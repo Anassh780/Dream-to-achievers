@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { ArrowUpRight, List, X, Sparkle, TrendUp } from '@phosphor-icons/react';
+import { ArrowUpRight, List, X, Sparkle, TrendUp, WhatsappLogo } from '@phosphor-icons/react';
 
 export const Navbar: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -16,10 +16,10 @@ export const Navbar: React.FC = () => {
   }, []);
 
   const navLinks = [
+    { label: 'About Faria', href: '#about' },
     { label: 'Services', href: '#services' },
     { label: 'Growth Stack', href: '#stack' },
     { label: 'Case Studies', href: '#case-studies' },
-    { label: 'Book Audit', href: '#contact' },
   ];
 
   return (
@@ -38,7 +38,7 @@ export const Navbar: React.FC = () => {
             <TrendUp size={16} weight="bold" />
           </div>
           <span className="font-heading font-extrabold text-base text-white tracking-tight group-hover:text-[#00f0ff] transition-colors">
-            VANGUARD<span className="text-[#00f0ff]">.AGENCY</span>
+            FARIA IMRAN<span className="text-[#00f0ff]">.PORTFOLIO</span>
           </span>
         </a>
 
@@ -55,11 +55,17 @@ export const Navbar: React.FC = () => {
           ))}
         </nav>
 
-        {/* Action Button */}
-        <div className="hidden md:flex items-center space-x-3">
-          <Badge variant="dot" size="sm" className="hidden lg:inline-flex">
-            Scale Mode: Active
-          </Badge>
+        {/* Action Buttons */}
+        <div className="hidden md:flex items-center space-x-2.5">
+          <a
+            href="https://wa.me/923054511395?text=Hi%20Faria,%20I%20would%20like%20to%20discuss%20a%20growth%20collaboration%20for%20my%20brand."
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Chat on WhatsApp (+92 305 4511395)"
+            className="p-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-[#080b11] transition-all"
+          >
+            <WhatsappLogo size={18} weight="fill" />
+          </a>
           <a href="#contact">
             <Button
               variant="primary"

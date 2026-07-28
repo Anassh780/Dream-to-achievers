@@ -49,7 +49,7 @@ export const Hero: React.FC = () => {
           <div className="hero-reveal">
             <Badge variant="accent" size="md">
               <Lightning size={14} className="text-[#00f0ff]" weight="fill" />
-              Growth Marketing & Automation Agency
+              Faria Imran — Growth Marketing & Automation Lead
             </Badge>
           </div>
 
@@ -58,7 +58,7 @@ export const Hero: React.FC = () => {
           </h1>
 
           <p className="hero-reveal text-base sm:text-lg text-slate-300 max-w-[52ch] leading-relaxed font-normal">
-            Automated content pipelines, high-ROAS ad campaigns, strategic copywriting, and full-stack business management.
+            Welcome to Faria Imran's official portfolio. Specialized in automated content pipelines, high-ROAS ad campaigns, strategic copywriting, and end-to-end business growth.
           </p>
 
           <div className="hero-reveal flex flex-wrap items-center gap-4 pt-2">

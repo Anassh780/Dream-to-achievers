@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Navbar } from '@/components/sections/Navbar';
 import { Hero } from '@/components/sections/Hero';
+import { OwnerProfile } from '@/components/sections/OwnerProfile';
 import { BentoWork } from '@/components/sections/BentoWork';
 import { TechStack } from '@/components/sections/TechStack';
 import { Experience } from '@/components/sections/Experience';
@@ -30,6 +31,7 @@ export const App: React.FC = () => {
       {/* Main Page Content */}
       <main className="flex-grow">
         <Hero />
+        <OwnerProfile />
         <BentoWork />
         <TechStack />
         <Experience />
