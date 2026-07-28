@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { ScrollFloat } from '@/components/ui/ScrollFloat';
-import { ChartLineUp, CheckCircle, RocketLaunch, Sparkle } from '@phosphor-icons/react';
+import { ChartLineUp, CheckCircle } from '@phosphor-icons/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 

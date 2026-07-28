@@ -1,18 +1,13 @@
 import React, { useState } from 'react';
-import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { LibrarySlot } from '@/components/ui/LibrarySlot';
 import { Orb } from '@/components/ui/Orb';
 import { ScrollFloat } from '@/components/ui/ScrollFloat';
 import {
-  EnvelopeSimple,
-  Copy,
   Check,
   PaperPlaneRight,
   Sparkle,
-  PhoneCall,
-  TrendUp,
   WhatsappLogo,
   ArrowUpRight,
   ShieldCheck,

@@ -5,19 +5,13 @@ import { ScrollFloat } from '@/components/ui/ScrollFloat';
 import { BorderGlow } from '@/components/ui/BorderGlow';
 import {
   UserCheck,
-  Sparkle,
   TrendUp,
   Lightning,
   CheckCircle,
   ArrowUpRight,
   ShieldCheck,
-  Compass,
   Cpu,
-  EnvelopeSimple,
   Globe,
-  Certificate,
-  Star,
-  Rocket,
   WhatsappLogo
 } from '@phosphor-icons/react';
 import gsap from 'gsap';

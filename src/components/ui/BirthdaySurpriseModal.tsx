@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Gift, Sparkle, X, Heart, Rocket, Trophy, Globe } from '@phosphor-icons/react';
+import { Gift, Sparkle, Heart, Rocket, Globe } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/Button';
 
 interface Particle {
@@ -23,13 +23,12 @@ interface Firework {
   exploded: boolean;
 }
 
-// Global Online Counter Endpoint (Shared globally across all PCs & devices)
-const GLOBAL_COUNTER_NAMESPACE = 'faria_imran_bday_online_counter_2026';
+// Dedicated single-open global online counter endpoint
+const GLOBAL_COUNTER_NAMESPACE = 'faria_imran_bday_single_live_2026';
 const GET_COUNTER_URL = `https://api.counterapi.dev/v1/${GLOBAL_COUNTER_NAMESPACE}/opens`;
 const INCREMENT_COUNTER_URL = `https://api.counterapi.dev/v1/${GLOBAL_COUNTER_NAMESPACE}/opens/up`;
 
 export const BirthdaySurpriseModal: React.FC = () => {
-  const [globalCount, setGlobalCount] = useState<number>(0);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isGiftOpened, setIsGiftOpened] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -63,9 +62,8 @@ export const BirthdaySurpriseModal: React.FC = () => {
         const count = data && typeof data.count === 'number' ? data.count : 0;
         
         if (isMounted) {
-          setGlobalCount(count);
-          // Global Auto-Destruct: If 2 or more opens occurred globally online, auto-destruct!
-          if (count >= 2) {
+          // Single-Use Auto-Destruct: If 1 or more opens occurred globally online, auto-destruct!
+          if (count >= 1) {
             setIsOpen(false);
             try {
               localStorage.setItem('faria_bday_completed', 'true');
@@ -75,7 +73,7 @@ export const BirthdaySurpriseModal: React.FC = () => {
           }
         }
       } catch (err) {
-        // Fallback: If network fails, default to opening for first 2 views
+        // Fallback: If network fails, default to open until marked completed
         if (isMounted) setIsOpen(true);
       } finally {
         if (isMounted) setIsLoading(false);
@@ -210,23 +208,14 @@ export const BirthdaySurpriseModal: React.FC = () => {
     };
   }, [isGiftOpened]);
 
-  // Handle Unwrap Gift Action: Increment Global Online Counter & Show Fireworks
+  // Handle Unwrap Gift Action: Increment Global Online Counter & Permanently Destroy for future visits
   const handleOpenGift = async () => {
     setIsGiftOpened(true);
     try {
-      // Increment global online counter on server
-      const res = await fetch(INCREMENT_COUNTER_URL);
-      const data = await res.json();
-      const updatedCount = data && typeof data.count === 'number' ? data.count : globalCount + 1;
-      setGlobalCount(updatedCount);
-
-      if (updatedCount >= 2) {
-        localStorage.setItem('faria_bday_completed', 'true');
-      }
-    } catch (e) {
-      // Fallback
-      setGlobalCount((prev) => prev + 1);
-    }
+      localStorage.setItem('faria_bday_completed', 'true');
+      // Increment global online counter on server to 1
+      await fetch(INCREMENT_COUNTER_URL);
+    } catch (e) {}
   };
 
   const handleCloseModal = () => {
@@ -256,10 +245,10 @@ export const BirthdaySurpriseModal: React.FC = () => {
         <div className="flex items-center justify-between text-xs font-mono text-slate-400 pb-2 border-b border-white/10">
           <span className="flex items-center space-x-1.5 text-[#00f0ff] font-semibold">
             <Globe size={14} className="animate-pulse" />
-            <span>Global Online Trail #{globalCount + 1} of 2</span>
+            <span>Single-Use Live Birthday Surprise</span>
           </span>
           <span className="text-[11px] text-slate-400 font-bold bg-white/5 px-2.5 py-0.5 rounded-full border border-white/10">
-            {globalCount === 0 ? 'Trail 1: Developer Check' : 'Trail 2: Faria Birthday Surprise'}
+            Auto-destructs after opening
           </span>
         </div>
 
@@ -286,7 +275,7 @@ export const BirthdaySurpriseModal: React.FC = () => {
                 Special Birthday Gift for <span className="text-gradient-cyan">Faria Imran</span> 🎂
               </h2>
               <p className="text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
-                A personalized birthday surprise has been prepared for you online. Tap the gift below to unwrap your fireworks celebration!
+                A personalized birthday surprise has been prepared for you. Tap the gift below to unwrap your fireworks celebration!
               </p>
             </div>
 

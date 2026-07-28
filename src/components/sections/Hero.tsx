@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { ArrowDownRight, Lightning, RocketLaunch, TrendUp, Cpu, Video, ChartLineUp } from '@phosphor-icons/react';
+import { ArrowDownRight, Lightning, TrendUp, Cpu, Video, ChartLineUp } from '@phosphor-icons/react';
 import gsap from 'gsap';
 
 export const Hero: React.FC = () => {
