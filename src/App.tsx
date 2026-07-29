@@ -8,17 +8,12 @@ import { Experience } from '@/components/sections/Experience';
 import { Contact } from '@/components/sections/Contact';
 import { Footer } from '@/components/sections/Footer';
 import { TargetCursor } from '@/components/ui/TargetCursor';
-import { BirthdaySurpriseModal } from '@/components/ui/BirthdaySurpriseModal';
 import { Target } from '@phosphor-icons/react';
-
 export const App: React.FC = () => {
   const [targetCursorEnabled, setTargetCursorEnabled] = useState(true);
 
   return (
     <div className="min-h-screen bg-[#080b11] text-slate-100 flex flex-col selection:bg-[#00f0ff]/30 selection:text-white">
-      {/* Birthday Surprise Celebration Overlay (Auto-destructs after 2 opens) */}
-      <BirthdaySurpriseModal />
-
       {/* Target Cursor Component */}
       <TargetCursor
         enabled={targetCursorEnabled}
