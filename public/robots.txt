@@ -1,0 +1,6 @@
+# Robots.txt for Faria Imran Official Portfolio
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://fariaimranofficial.vercel.app/sitemap.xml
