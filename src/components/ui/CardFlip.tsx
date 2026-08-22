@@ -116,6 +116,10 @@ export const CardFlip: React.FC<CardFlipProps> = ({
               <img
                 src={frontImage}
                 alt={title}
+                width={360}
+                height={380}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-contain object-center rounded-2xl transform group-hover:scale-105 transition-transform duration-700"
               />
 

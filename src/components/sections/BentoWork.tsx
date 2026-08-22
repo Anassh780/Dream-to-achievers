@@ -70,7 +70,7 @@ export const BentoWork: React.FC = () => {
       impactBadge: '10M+ Organic Views',
       icon: <Video size={20} className="text-[#00f0ff]" />,
       accentColor: 'cyan' as const,
-      frontImage: '/images/tiktok-automation.png',
+      frontImage: '/images/tiktok-automation.webp',
     },
     {
       id: 'service-ads',
@@ -87,7 +87,7 @@ export const BentoWork: React.FC = () => {
       impactBadge: '4.8x Avg ROAS',
       icon: <TrendUp size={20} className="text-emerald-400" />,
       accentColor: 'emerald' as const,
-      frontImage: '/images/paid-ads.png',
+      frontImage: '/images/paid-ads.webp',
     },
     {
       id: 'service-copy',
@@ -104,7 +104,7 @@ export const BentoWork: React.FC = () => {
       impactBadge: '+180% Click Conv.',
       icon: <PencilLine size={20} className="text-amber-400" />,
       accentColor: 'amber' as const,
-      frontImage: '/images/content-writing.png',
+      frontImage: '/images/content-writing.webp',
     },
     {
       id: 'service-smm',
@@ -121,7 +121,7 @@ export const BentoWork: React.FC = () => {
       impactBadge: '3x Community Growth',
       icon: <ShareNetwork size={20} className="text-indigo-400" />,
       accentColor: 'indigo' as const,
-      frontImage: '/images/smm.png',
+      frontImage: '/images/smm.webp',
     },
     {
       id: 'service-biz',
@@ -138,7 +138,7 @@ export const BentoWork: React.FC = () => {
       impactBadge: '35 Hrs/Wk Saved',
       icon: <Cpu size={20} className="text-[#00f0ff]" />,
       accentColor: 'cyan' as const,
-      frontImage: '/images/biz-management.png',
+      frontImage: '/images/biz-management.webp',
     },
     {
       id: 'service-graphic',
@@ -155,7 +155,7 @@ export const BentoWork: React.FC = () => {
       impactBadge: '100% Custom Identity',
       icon: <Palette size={20} className="text-rose-400" />,
       accentColor: 'rose' as const,
-      frontImage: '/images/graphic-design.png',
+      frontImage: '/images/graphic-design.webp',
     },
   ];
 
@@ -196,7 +196,7 @@ export const BentoWork: React.FC = () => {
                   glowRadius={30}
                   glowIntensity={1.2}
                   coneSpread={25}
-                  animated={true}
+                  animated={false}
                   colors={theme.colors}
                 >
                   <CardFlip

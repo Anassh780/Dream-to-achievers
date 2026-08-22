@@ -37,8 +37,8 @@ export const App: React.FC = () => {
         <Contact />
       </main>
 
-      {/* Floating Target Cursor Mode Toggle Pill */}
-      <div className="fixed bottom-6 left-6 z-50">
+      {/* Floating Target Cursor Mode Toggle Pill (Desktop Only) */}
+      <div className="hidden md:block fixed bottom-6 left-6 z-50">
         <button
           onClick={() => setTargetCursorEnabled(!targetCursorEnabled)}
           className={`flex items-center space-x-2.5 px-4 py-2.5 rounded-full text-xs font-mono font-bold backdrop-blur-xl border transition-all duration-300 shadow-xl cursor-target cursor-pointer ${

@@ -122,20 +122,27 @@ export const OwnerProfile: React.FC = () => {
                 glowRadius={30}
                 glowIntensity={1.4}
                 coneSpread={25}
-                animated={true}
+                animated={false}
                 colors={['#00f0ff', '#38bdf8', '#818cf8', '#34d399']}
                 className="w-full shadow-[0_0_40px_rgba(0,240,255,0.15)]"
               >
                 <div className="p-5 space-y-5">
                   {/* Photo Frame Container */}
-                  <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/15 shadow-2xl group">
-                    <img
-                      src="/images/faria-imran.jpg"
-                      alt="Faria Imran - Portfolio Owner & Founder"
-                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-                    />
+                  <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/15 shadow-2xl group bg-[#080b11]">
+                    <picture>
+                      <source srcSet="/images/faria-imran.webp" type="image/webp" />
+                      <img
+                        src="/images/faria-imran.jpg"
+                        alt="Faria Imran - Founder & Growth Marketing Lead"
+                        width="480"
+                        height="640"
+                        fetchPriority="high"
+                        decoding="async"
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                      />
+                    </picture>
                     {/* Subtle Gradient Scrim */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#080b11] via-transparent to-transparent opacity-85" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#080b11] via-transparent to-transparent opacity-85 pointer-events-none" />
                     
                     {/* Floating Availability Pill */}
                     <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
