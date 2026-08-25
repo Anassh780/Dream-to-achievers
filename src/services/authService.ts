@@ -20,6 +20,7 @@ import { rankEngine } from './rankEngine';
 export const ADMIN_EMAILS = [
   'muskyna46@gmail.com',
   'ghhhbbbhjn3@gmail.com',
+  'dreamtoachievers@gmail.com',
   'admin@dreamtoachievers.com',
 ];
 

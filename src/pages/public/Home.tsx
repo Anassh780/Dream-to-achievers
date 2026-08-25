@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { RankJourney } from '@/components/ranks/RankJourney';
 import { BentoWork } from '@/components/sections/BentoWork';
 import { OwnerProfile } from '@/components/sections/OwnerProfile';
+import { SocialCommunityHub } from '@/components/sections/SocialCommunityHub';
 import { SEED_PRODUCTS } from '@/config/products';
 import {
   ArrowRight,
@@ -371,7 +372,10 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* SECTION 9: FOUNDER PROFILE */}
+      {/* SECTION 9: OFFICIAL COMMUNITY & BROADCAST CHANNELS */}
+      <SocialCommunityHub />
+
+      {/* SECTION 10: FOUNDER PROFILE */}
       <OwnerProfile />
 
       {/* SECTION 10: FINAL CONVERSION CTA */}

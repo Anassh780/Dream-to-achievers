@@ -170,8 +170,12 @@ export interface SiteSettings {
   brandName: string;
   companyLegalName: string;
   supportEmail: string;
+  adminEmail?: string;
   whatsappNumber: string;
+  tiktokUrl?: string;
+  whatsappChannelUrl?: string;
   disclaimerText: string;
   communityRuleDescription: string;
   isReferralSignupEnabled: boolean;
 }
+

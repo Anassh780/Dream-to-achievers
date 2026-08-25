@@ -236,10 +236,40 @@ export const PublicLayout: React.FC = () => {
               <p className="text-[#94A3B8] text-xs sm:text-sm leading-relaxed max-w-sm">
                 Dream to Achievers connects ambitious partners with high-margin wholesale consumer products and a guaranteed path to milestone rewards.
               </p>
-              <div className="flex items-center space-x-3 text-xs text-[#64748B] pt-1">
-                <span>Support: {SITE_CONFIG.supportEmail}</span>
+              
+              {/* Official Social Media Badges */}
+              <div className="flex flex-wrap items-center gap-2 pt-2">
+                <a
+                  href={SITE_CONFIG.tiktokUrl || "https://www.tiktok.com/@dream.to.achievers"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-medium text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 transition-colors"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.81 4.47 6.3 6.3 0 0 0 1.86-4.47V8.62a8.27 8.27 0 0 0 4.85 1.57v-3.5h-.93z" />
+                  </svg>
+                  <span>@dream.to.achievers</span>
+                </a>
+
+                <a
+                  href={SITE_CONFIG.whatsappChannelUrl || "https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-medium text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 transition-colors"
+                >
+                  <WhatsappLogo size={12} weight="fill" />
+                  <span>WhatsApp Channel</span>
+                </a>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#64748B] pt-1 font-mono">
+                <a href={`mailto:${SITE_CONFIG.supportEmail}`} className="hover:text-cyan-400 transition-colors">
+                  {SITE_CONFIG.supportEmail}
+                </a>
                 <span>•</span>
-                <span>WhatsApp: {SITE_CONFIG.whatsappNumber}</span>
+                <a href={whatsappDirectUrl} target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">
+                  WhatsApp: {SITE_CONFIG.whatsappNumber}
+                </a>
               </div>
             </div>
 
