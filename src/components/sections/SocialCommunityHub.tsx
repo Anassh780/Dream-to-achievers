@@ -1,5 +1,5 @@
 import React from 'react';
-import { SITE_CONFIG } from '@/config/site';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Button } from '@/components/ui/Button';
 import {
   WhatsappLogo,
@@ -9,7 +9,6 @@ import {
   CheckCircle,
   Megaphone,
   ChatCircleDots,
-  VideoCamera,
 } from '@phosphor-icons/react';
 
 // Custom Crisp TikTok SVG Icon for high visual fidelity
@@ -26,7 +25,8 @@ const TikTokIcon: React.FC<{ size?: number; className?: string }> = ({ size = 20
 );
 
 export const SocialCommunityHub: React.FC = () => {
-  const cleanWhatsApp = SITE_CONFIG.whatsappNumber.replace(/[^0-9]/g, '');
+  const siteConfig = useSiteSettings();
+  const cleanWhatsApp = (siteConfig.whatsappNumber || '+92 305 4511395').replace(/[^0-9]/g, '');
   const directWhatsAppUrl = `https://wa.me/${cleanWhatsApp}?text=${encodeURIComponent(
     'Hi Dream to Achievers team, I would like to connect directly regarding the partner network.'
   )}`;
@@ -36,7 +36,7 @@ export const SocialCommunityHub: React.FC = () => {
       id: 'tiktok',
       title: 'Official TikTok',
       handle: '@dream.to.achievers',
-      link: SITE_CONFIG.tiktokUrl || 'https://www.tiktok.com/@dream.to.achievers',
+      link: siteConfig.tiktokUrl || 'https://www.tiktok.com/@dream.to.achievers',
       category: 'VIDEO COMMUNITY',
       badge: 'Daily Content',
       badgeClass: 'bg-rose-500/15 text-rose-300 border-rose-500/25',
@@ -51,7 +51,7 @@ export const SocialCommunityHub: React.FC = () => {
       id: 'whatsapp-channel',
       title: 'WhatsApp VIP Channel',
       handle: 'Dream to Achievers Broadcast',
-      link: SITE_CONFIG.whatsappChannelUrl || 'https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N',
+      link: siteConfig.whatsappChannelUrl || 'https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N',
       category: 'OFFICIAL BROADCAST',
       badge: 'Verified Channel',
       badgeClass: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25 shadow-[0_0_10px_rgba(16,185,129,0.2)]',
@@ -65,8 +65,8 @@ export const SocialCommunityHub: React.FC = () => {
     {
       id: 'email-support',
       title: 'Official Support Desk',
-      handle: SITE_CONFIG.supportEmail,
-      link: `mailto:${SITE_CONFIG.supportEmail}`,
+      handle: siteConfig.supportEmail || 'dreamtoachievers@gmail.com',
+      link: `mailto:${siteConfig.supportEmail || 'dreamtoachievers@gmail.com'}`,
       category: 'ADMIN & SUPPORT',
       badge: '24/7 Desk',
       badgeClass: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/25 shadow-[0_0_10px_rgba(0,242,254,0.2)]',
@@ -80,7 +80,7 @@ export const SocialCommunityHub: React.FC = () => {
     {
       id: 'whatsapp-chat',
       title: 'Direct WhatsApp Chat',
-      handle: SITE_CONFIG.whatsappNumber,
+      handle: siteConfig.whatsappNumber || '+92 305 4511395',
       link: directWhatsAppUrl,
       category: '1-ON-1 CONSULTATION',
       badge: 'Fast Response',

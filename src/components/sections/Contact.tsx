@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { SITE_CONFIG } from '@/config/site';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import {
   Check,
   PaperPlaneRight,
@@ -12,6 +12,7 @@ import {
 } from '@phosphor-icons/react';
 
 export const Contact: React.FC = () => {
+  const siteConfig = useSiteSettings();
   const [selectedService, setSelectedService] = useState('Product Wholesale Distribution');
   const [brandName, setBrandName] = useState('');
   const [userEmail, setUserEmail] = useState('');
@@ -20,7 +21,7 @@ export const Contact: React.FC = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
-  const cleanWhatsApp = SITE_CONFIG.whatsappNumber.replace(/[^0-9]/g, '');
+  const cleanWhatsApp = (siteConfig.whatsappNumber || '+92 305 4511395').replace(/[^0-9]/g, '');
   const whatsappUrl = `https://wa.me/${cleanWhatsApp}?text=${encodeURIComponent(
     `Hi Dream to Achievers team, I would like to inquire about ${selectedService}.`
   )}`;
@@ -44,7 +45,7 @@ export const Contact: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`https://formsubmit.co/ajax/${SITE_CONFIG.supportEmail}`, {
+      const response = await fetch(`https://formsubmit.co/ajax/${siteConfig.supportEmail || 'dreamtoachievers@gmail.com'}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +94,7 @@ export const Contact: React.FC = () => {
               <div className="space-y-3">
                 {/* TikTok */}
                 <a
-                  href={SITE_CONFIG.tiktokUrl || "https://www.tiktok.com/@dream.to.achievers"}
+                  href={siteConfig.tiktokUrl || "https://www.tiktok.com/@dream.to.achievers"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 hover:border-rose-500/40 flex items-center justify-between group transition-colors shadow-sm"
@@ -114,7 +115,7 @@ export const Contact: React.FC = () => {
 
                 {/* WhatsApp Channel */}
                 <a
-                  href={SITE_CONFIG.whatsappChannelUrl || "https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N"}
+                  href={siteConfig.whatsappChannelUrl || "https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 hover:border-emerald-500/40 flex items-center justify-between group transition-colors shadow-sm"
@@ -133,7 +134,7 @@ export const Contact: React.FC = () => {
 
                 {/* Support Email */}
                 <a
-                  href={`mailto:${SITE_CONFIG.supportEmail}`}
+                  href={`mailto:${siteConfig.supportEmail || 'dreamtoachievers@gmail.com'}`}
                   className="p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 hover:border-cyan-400/40 flex items-center justify-between group transition-colors shadow-sm"
                 >
                   <div className="flex items-center space-x-3">
@@ -142,7 +143,7 @@ export const Contact: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-xs font-bold text-white">Support & Admin Email</p>
-                      <p className="text-[11px] text-cyan-300 font-mono">{SITE_CONFIG.supportEmail}</p>
+                      <p className="text-[11px] text-cyan-300 font-mono">{siteConfig.supportEmail || 'dreamtoachievers@gmail.com'}</p>
                     </div>
                   </div>
                   <ArrowUpRight size={15} className="text-cyan-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -161,7 +162,7 @@ export const Contact: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-xs font-bold text-white">Direct WhatsApp Chat</p>
-                      <p className="text-[11px] text-slate-400 font-mono">{SITE_CONFIG.whatsappNumber}</p>
+                      <p className="text-[11px] text-slate-400 font-mono">{siteConfig.whatsappNumber || '+92 305 4511395'}</p>
                     </div>
                   </div>
                   <ArrowUpRight size={15} className="text-slate-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -224,7 +225,7 @@ export const Contact: React.FC = () => {
                   </div>
                   <h4 className="text-lg font-heading font-bold text-white">Message Received</h4>
                   <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
-                    Thank you for reaching out regarding <strong className="text-white">{selectedService}</strong>. Our partner support team will review your message and reply to <strong className="text-white">{SITE_CONFIG.supportEmail}</strong>.
+                    Thank you for reaching out regarding <strong className="text-white">{selectedService}</strong>. Our partner support team will review your message and reply to <strong className="text-white">{siteConfig.supportEmail || 'dreamtoachievers@gmail.com'}</strong>.
                   </p>
                   <div className="pt-2">
                     <Button

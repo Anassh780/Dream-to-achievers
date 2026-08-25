@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { DreamLogo } from '@/components/ui/DreamLogo';
 import { Button } from '@/components/ui/Button';
-import { SITE_CONFIG } from '@/config/site';
 import {
   List,
   X,
@@ -16,6 +16,7 @@ import {
 
 export const PublicLayout: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const siteConfig = useSiteSettings();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -38,7 +39,7 @@ export const PublicLayout: React.FC = () => {
     { label: 'Contact', href: '/contact' },
   ];
 
-  const cleanWhatsApp = SITE_CONFIG.whatsappNumber.replace(/[^0-9]/g, '');
+  const cleanWhatsApp = (siteConfig.whatsappNumber || '+92 305 4511395').replace(/[^0-9]/g, '');
   const whatsappDirectUrl = `https://wa.me/${cleanWhatsApp}?text=${encodeURIComponent(
     'Hi Dream to Achievers team, I would like to inquire about partner onboarding and catalog distribution.'
   )}`;
@@ -240,7 +241,7 @@ export const PublicLayout: React.FC = () => {
               {/* Official Social Media Badges */}
               <div className="flex flex-wrap items-center gap-2 pt-2">
                 <a
-                  href={SITE_CONFIG.tiktokUrl || "https://www.tiktok.com/@dream.to.achievers"}
+                  href={siteConfig.tiktokUrl || "https://www.tiktok.com/@dream.to.achievers"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-medium text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 transition-colors"
@@ -252,7 +253,7 @@ export const PublicLayout: React.FC = () => {
                 </a>
 
                 <a
-                  href={SITE_CONFIG.whatsappChannelUrl || "https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N"}
+                  href={siteConfig.whatsappChannelUrl || "https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-medium text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 transition-colors"
@@ -263,12 +264,12 @@ export const PublicLayout: React.FC = () => {
               </div>
 
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#64748B] pt-1 font-mono">
-                <a href={`mailto:${SITE_CONFIG.supportEmail}`} className="hover:text-cyan-400 transition-colors">
-                  {SITE_CONFIG.supportEmail}
+                <a href={`mailto:${siteConfig.supportEmail || 'dreamtoachievers@gmail.com'}`} className="hover:text-cyan-400 transition-colors">
+                  {siteConfig.supportEmail || 'dreamtoachievers@gmail.com'}
                 </a>
                 <span>•</span>
                 <a href={whatsappDirectUrl} target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">
-                  WhatsApp: {SITE_CONFIG.whatsappNumber}
+                  WhatsApp: {siteConfig.whatsappNumber || '+92 305 4511395'}
                 </a>
               </div>
             </div>
@@ -330,7 +331,7 @@ export const PublicLayout: React.FC = () => {
           </div>
 
           <div className="pt-8 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#64748B]">
-            <p>© {new Date().getFullYear()} {SITE_CONFIG.brandName}. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} {siteConfig.brandName || 'Dream to Achievers'}. All rights reserved.</p>
             <div className="flex items-center space-x-4">
               <Link to="/login" className="hover:text-white transition-colors">Partner Portal</Link>
               <Link to="/signup" className="hover:text-white transition-colors">Register</Link>

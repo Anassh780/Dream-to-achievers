@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
-import { SITE_CONFIG } from '@/config/site';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import {
   TrendUp,
   Lightning,
@@ -12,6 +12,7 @@ import {
 } from '@phosphor-icons/react';
 
 export const OwnerProfile: React.FC = () => {
+  const siteConfig = useSiteSettings();
   const expertiseList = [
     {
       title: 'Content & Video Marketing Pipelines',
@@ -30,7 +31,7 @@ export const OwnerProfile: React.FC = () => {
     },
   ];
 
-  const cleanWhatsApp = SITE_CONFIG.whatsappNumber.replace(/[^0-9]/g, '');
+  const cleanWhatsApp = (siteConfig.whatsappNumber || '+92 305 4511395').replace(/[^0-9]/g, '');
   const whatsappUrl = `https://wa.me/${cleanWhatsApp}?text=${encodeURIComponent(
     'Hi Faria, I would like to connect regarding Dream to Achievers partner onboarding and growth collaboration.'
   )}`;
