@@ -12,7 +12,7 @@ export const BentoWork: React.FC<BentoWorkProps> = ({ showHeader = true }) => {
   const flipServices = [
     {
       id: 'service-tiktok',
-      categoryNumber: '01 / AUTOMATION',
+      categoryNumber: 'AUTOMATION PIPELINE',
       title: 'TikTok & Reels Automation',
       subtitle: 'Automated video scripting & scheduled batch publishing pipelines',
       description: 'Automated video scripting, AI editing workflows, batch posting schedules, and TikTok Shop integration for exponential organic reach.',
@@ -28,8 +28,8 @@ export const BentoWork: React.FC<BentoWorkProps> = ({ showHeader = true }) => {
     },
     {
       id: 'service-ads',
-      categoryNumber: '02 / MEDIA BUYING',
-      title: 'Paid Performance Marketing',
+      categoryNumber: 'PERFORMANCE MEDIA',
+      title: 'Paid Media Buying',
       subtitle: 'Data-driven Meta, TikTok & Google ad scaling',
       description: 'Data-driven Meta, TikTok & Google ad campaigns engineered for maximum return on ad spend and rapid ROAS scale.',
       features: [
@@ -44,7 +44,7 @@ export const BentoWork: React.FC<BentoWorkProps> = ({ showHeader = true }) => {
     },
     {
       id: 'service-copy',
-      categoryNumber: '03 / DIRECT RESPONSE',
+      categoryNumber: 'DIRECT RESPONSE',
       title: 'Conversion Copywriting',
       subtitle: 'Persuasive ad copy, VSLs & landing page scripts',
       description: 'Persuasive ad copy, high-converting landing page scripts, email sequences, and SEO editorial content designed to sell.',
@@ -60,7 +60,7 @@ export const BentoWork: React.FC<BentoWorkProps> = ({ showHeader = true }) => {
     },
     {
       id: 'service-smm',
-      categoryNumber: '04 / BRAND GROWTH',
+      categoryNumber: 'COMMUNITY SCALE',
       title: 'Social Media Management',
       subtitle: 'Omnichannel positioning & partner community scaling',
       description: 'Omnichannel content calendars, community moderation, influencer outreach, and viral organic reach strategies.',
@@ -76,7 +76,7 @@ export const BentoWork: React.FC<BentoWorkProps> = ({ showHeader = true }) => {
     },
     {
       id: 'service-ops',
-      categoryNumber: '05 / OPERATIONS',
+      categoryNumber: 'OPERATIONS & CRM',
       title: 'Operations & CRM Systems',
       subtitle: 'Workflow automation & nationwide order routing',
       description: 'End-to-end workflow automation, CRM pipeline architecture, team SOP development, and operations optimization.',
@@ -92,7 +92,7 @@ export const BentoWork: React.FC<BentoWorkProps> = ({ showHeader = true }) => {
     },
     {
       id: 'service-design',
-      categoryNumber: '06 / CREATIVE',
+      categoryNumber: 'CREATIVE ASSETS',
       title: 'Graphic & Creative Design',
       subtitle: 'High-converting ad visuals, packaging & brand guidelines',
       description: 'High-converting ad creatives, scroll-stopping thumbnails, brand guideline systems, and polished digital marketing collateral.',
@@ -109,15 +109,15 @@ export const BentoWork: React.FC<BentoWorkProps> = ({ showHeader = true }) => {
   ];
 
   return (
-    <section id="services" className="w-full py-20 sm:py-28 font-sans bg-[#060B18] border-y border-white/[0.08]">
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-12">
+    <section id="services" className="w-full py-28 sm:py-36 font-sans bg-[#050A17] border-y border-white/[0.08]">
+      <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-16">
         {showHeader && (
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/[0.08]">
-            <div>
-              <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase block mb-2 font-mono">
-                Interactive Flip Cards
+            <div className="space-y-2">
+              <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase block font-mono">
+                Interactive Capabilities
               </span>
-              <h2 className="text-3xl sm:text-4xl font-outfit font-bold text-white tracking-tight">
+              <h2 className="text-3xl sm:text-5xl font-heading font-extrabold text-white tracking-tight">
                 Growth & Scaling Capabilities
               </h2>
             </div>
@@ -129,7 +129,7 @@ export const BentoWork: React.FC<BentoWorkProps> = ({ showHeader = true }) => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 grid-flow-dense">
           {flipServices.map((svc) => (
             <CardFlip
               key={svc.id}

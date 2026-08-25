@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 export const RankJourney: React.FC = () => {
   const ranks = [
     {
-      order: '01',
+      badgeLabel: 'Silver Level',
       name: 'Silver Rank',
       slug: 'silver',
       sales: 10,
@@ -19,7 +19,7 @@ export const RankJourney: React.FC = () => {
       elevation: 'md:translate-y-0',
     },
     {
-      order: '02',
+      badgeLabel: 'Platinum Level',
       name: 'Platinum Rank',
       slug: 'platinum',
       sales: 25,
@@ -32,7 +32,7 @@ export const RankJourney: React.FC = () => {
       elevation: 'md:-translate-y-2',
     },
     {
-      order: '03',
+      badgeLabel: 'Gold Leadership',
       name: 'Gold Rank',
       slug: 'gold',
       sales: 35,
@@ -45,7 +45,7 @@ export const RankJourney: React.FC = () => {
       elevation: 'md:-translate-y-4',
     },
     {
-      order: '04',
+      badgeLabel: 'Diamond Pinnacle',
       name: 'Diamond Rank',
       slug: 'diamond',
       sales: 100,
@@ -76,7 +76,7 @@ export const RankJourney: React.FC = () => {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className={`text-[10px] font-mono font-semibold uppercase px-2.5 py-0.5 rounded-full border ${r.badgeBg}`}>
-                      TIER {r.order}
+                      {r.badgeLabel}
                     </span>
                     {r.isPinnacle ? (
                       <span className="text-[10px] font-medium text-purple-400 flex items-center gap-1">
@@ -95,7 +95,7 @@ export const RankJourney: React.FC = () => {
                       <h3 className="font-heading font-bold text-lg text-white">
                         {r.name}
                       </h3>
-                      <p className="text-[11px] text-slate-400 font-mono">Stage {r.order}</p>
+                      <p className="text-[11px] text-slate-400 font-mono">Rank Milestone</p>
                     </div>
                   </div>
 

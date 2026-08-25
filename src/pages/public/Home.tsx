@@ -11,36 +11,30 @@ import {
   CheckCircle,
   WhatsappLogo,
   CaretRight,
-  Star,
+  Sparkle,
   TrendUp,
   Package,
-  Sparkle,
+  ShieldCheck,
+  Trophy,
 } from '@phosphor-icons/react';
-
-const RANK_PREVIEWS = [
-  { name: 'Silver', target: '20 sales', bonus: 'PKR 2,000' },
-  { name: 'Platinum', target: '45 sales', bonus: 'PKR 4,000' },
-  { name: 'Gold', target: '60 sales', bonus: 'PKR 6,000' },
-  { name: 'Diamond', target: '200 sales', bonus: 'PKR 10,000' },
-];
 
 const CASE_STUDIES = [
   {
-    label: 'Skincare Distribution',
+    category: 'Skincare Distribution',
     title: 'Scaled from 40 to 480+ units in 60 days',
-    description: 'A partner used TikTok organic content to drive skincare product demand, generating over PKR 450k in margins and reaching Diamond rank qualification in 75 days.',
+    description: 'A partner used TikTok organic content to drive skincare product demand, generating over PKR 450k in gross margins and reaching Diamond rank in 75 days.',
     metric: 'PKR 450k+ earned',
-    highlights: ['2.8M organic views on product videos', 'Diamond rank qualified in 75 days', 'Automated margin tracking']
+    highlights: ['2.8M organic views on product videos', 'Diamond rank achieved in 75 days', 'Instant margin tracking']
   },
   {
-    label: 'Community Growth',
+    category: 'Community Growth',
     title: '120+ active partners onboarded in 30 days',
-    description: 'Daily automated product demo reels drove a 38% referral completion rate, rapidly building an active distribution network.',
+    description: 'Daily automated product demo reels drove a 38% referral completion rate, rapidly building an active nationwide distribution team.',
     metric: '120+ team members',
-    highlights: ['Automated demo video workflows', '38% referral conversion rate', 'Multiple team milestone bonuses unlocked']
+    highlights: ['Automated demo video workflows', '38% referral conversion rate', 'Team milestone bonuses unlocked']
   },
   {
-    label: 'Order Operations',
+    category: 'Order Operations',
     title: 'Fulfillment time cut from 48 hours to under 6',
     description: 'Streamlined order routing and margin calculations with automated courier dispatch and real-time WhatsApp tracking for customers.',
     metric: '99.4% accuracy',
@@ -49,171 +43,167 @@ const CASE_STUDIES = [
 ];
 
 export const Home: React.FC = () => {
-  const [calculatorQuantity, setCalculatorQuantity] = useState(20);
+  const [calculatorQuantity, setCalculatorQuantity] = useState(24);
   const avgMargin = 500;
   const totalEarnings = calculatorQuantity * avgMargin;
 
   return (
-    <div className="w-full bg-[#030712] min-h-screen font-sans selection:bg-cyan-500/30 overflow-x-hidden">
-      {/* SECTION 1: HERO */}
-      <section className="relative w-full pt-32 pb-20 sm:pt-40 sm:pb-32 bg-radial-hero subtle-grid border-b border-white/[0.08]">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8">
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-            {/* Left Content */}
-            <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/25 shadow-[0_0_15px_rgba(6,182,212,0.15)]">
-                <Sparkle weight="fill" className="text-cyan-400 w-3.5 h-3.5 animate-pulse" />
-                <span className="text-xs font-mono font-semibold text-cyan-300 tracking-wide uppercase">
-                  Dream to Achievers Ecosystem
-                </span>
-              </div>
-              
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold font-outfit text-white leading-[1.08] tracking-tight" style={{ textWrap: 'balance' }}>
-                Sell premium products.<br/>
-                <span className="text-chroma">Build your team.</span><br/>
-                Get rewarded.
-              </h1>
-              
-              <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl">
-                Join our partner network to sell high-margin consumer products at wholesale rates. Hit your sales and team-building targets to unlock cash milestone rewards from PKR 2,000 to PKR 10,000.
-              </p>
-              
-              <div className="flex flex-wrap items-center gap-4 pt-2">
-                <Link to="/signup">
-                  <Button size="lg" variant="primary" className="font-bold" iconRight={<ArrowRight weight="bold" />}>
-                    Become a Partner
-                  </Button>
-                </Link>
-                <Link to="/ranks">
-                  <Button size="lg" variant="secondary" iconRight={<CaretRight weight="bold" />}>
-                    Explore the Journey
-                  </Button>
-                </Link>
-              </div>
+    <main className="w-full bg-[#030712] min-h-screen font-sans selection:bg-cyan-500/30 overflow-x-hidden max-w-full">
+      {/* ATTENTION (HERO): Cinematic Center Layout with Inline Typographic Media Pills */}
+      <section className="relative w-full pt-36 pb-24 sm:pt-44 sm:pb-36 bg-radial-hero subtle-grid border-b border-white/[0.08] overflow-hidden">
+        {/* Atmospheric ambient glow */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-tr from-cyan-500/15 via-blue-600/10 to-indigo-500/15 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 relative z-10 text-center space-y-8">
+          
+          {/* Subtle Verified Platform Header */}
+          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/25 shadow-[0_0_20px_rgba(0,242,254,0.15)]">
+            <Sparkle size={13} weight="fill" className="text-cyan-400 animate-pulse" />
+            <span className="text-xs font-mono font-semibold text-cyan-300 uppercase tracking-wider">
+              Wholesale Commerce & Milestone Rewards
+            </span>
+          </div>
+
+          {/* 2-Line Iron Rule Ultra-Wide H1 */}
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold font-heading text-white tracking-tight leading-[1.06] max-w-5xl mx-auto">
+            Sell wholesale products. <br className="hidden sm:block" />
+            <span className="text-chroma">Unlock cash milestone rewards.</span>
+          </h1>
+
+          {/* Clean Sub-Lead */}
+          <p className="text-base sm:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto">
+            Direct wholesale prices. Real customer demand. Hit your sales and referral goals to unlock cash rewards from PKR 2,000 to PKR 10,000.
+          </p>
+
+          {/* High-Contrast Dual Action CTAs */}
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+            <Link to="/signup">
+              <Button size="lg" variant="primary" className="font-bold px-8 shadow-xl" iconRight={<ArrowRight size={16} weight="bold" />}>
+                Become a Partner
+              </Button>
+            </Link>
+            <Link to="/ranks">
+              <Button size="lg" variant="secondary" className="px-7" iconRight={<CaretRight size={16} weight="bold" />}>
+                Explore Rank Journey
+              </Button>
+            </Link>
+          </div>
+
+          {/* Live Platform Proof Strip */}
+          <div className="pt-8 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-xs text-slate-400 font-mono">
+            <div className="flex items-center space-x-2">
+              <ShieldCheck size={16} className="text-cyan-400" />
+              <span>4-Tier Rank System</span>
             </div>
-
-            {/* Right Content - Rank Preview Interactive Card */}
-            <div className="lg:col-span-5 relative mx-auto w-full max-w-md">
-              <div className="relative rounded-3xl bg-[#080E1E] border border-white/10 p-6 sm:p-7 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),0_0_30px_rgba(0,242,254,0.1)]">
-                <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/[0.08]">
-                  <div className="flex items-center space-x-2">
-                    <Star weight="fill" className="text-amber-400 w-4 h-4" />
-                    <h3 className="text-base font-outfit font-semibold text-white">Milestone Progression</h3>
-                  </div>
-                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/25">
-                    Live System
-                  </span>
-                </div>
-                
-                <div className="space-y-2.5">
-                  {RANK_PREVIEWS.map((rank) => (
-                    <div 
-                      key={rank.name} 
-                      className="group relative flex items-center gap-3.5 p-3.5 rounded-2xl bg-[#0C152B]/80 border border-white/[0.06] hover:border-cyan-400/30 hover:bg-[#111E3D] transition-all duration-200"
-                    >
-                      <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 text-cyan-400 group-hover:border-cyan-400 group-hover:bg-cyan-500/20 transition-colors">
-                        <TrendUp className="w-5 h-5" />
-                      </div>
-                      <div className="flex-grow">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold text-white">{rank.name} Rank</span>
-                          <span className="text-cyan-400 font-jetbrains text-xs font-bold">{rank.bonus}</span>
-                        </div>
-                        <p className="text-[11px] text-slate-400">{rank.target}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="pt-4 mt-2">
-                  <Link to="/signup" className="block w-full">
-                    <Button variant="outline" size="sm" className="w-full justify-center rounded-xl text-xs font-semibold">
-                      Start at Silver Rank Today
-                    </Button>
-                  </Link>
-                </div>
-              </div>
+            <div className="flex items-center space-x-2">
+              <Trophy size={16} className="text-amber-400" />
+              <span>PKR 10,000 Top Bonus</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <TrendUp size={16} className="text-emerald-400" />
+              <span>+PKR 500 Avg Profit / Unit</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 2: TRUST STATS BAR */}
-      <section className="w-full border-b border-white/[0.08] bg-[#060B18]">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8">
-          <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-white/[0.08]">
-            {[
-              { label: 'Rank Tiers', value: '4' },
-              { label: 'Top Milestone Bonus', value: 'PKR 10,000' },
-              { label: 'Avg Margin / Unit', value: 'PKR 500+' },
-              { label: 'Verified Catalog', value: '6 Items' }
-            ].map((stat, idx) => (
-              <div key={idx} className="py-8 px-4 flex flex-col items-center justify-center text-center">
-                <div className="text-2xl sm:text-3xl font-bold font-outfit text-white mb-1 tracking-tight">{stat.value}</div>
-                <div className="text-[11px] text-slate-400 font-medium uppercase tracking-wider">{stat.label}</div>
-              </div>
-            ))}
+      {/* INTEREST: Gapless Continuous Infinite Trust Marquee */}
+      <div className="w-full py-6 bg-[#050A17] border-b border-white/[0.08] overflow-hidden">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 flex flex-wrap items-center justify-between gap-6 text-xs text-slate-300">
+          <span className="font-mono text-cyan-400 uppercase tracking-wider font-semibold text-[11px]">
+            Platform Milestones
+          </span>
+          <div className="flex flex-wrap items-center gap-6 sm:gap-8 font-jetbrains text-xs">
+            <span>Silver: <strong className="text-white">10 Sales + 20 Members</strong></span>
+            <span className="text-white/20">•</span>
+            <span>Platinum: <strong className="text-white">25 Sales + 45 Members</strong></span>
+            <span className="text-white/20">•</span>
+            <span>Gold: <strong className="text-white">35 Sales + 60 Members</strong></span>
+            <span className="text-white/20">•</span>
+            <span>Diamond: <strong className="text-white">100 Sales + 200 Members</strong></span>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* SECTION 3: HOW IT WORKS */}
-      <section id="how-it-works" className="w-full py-20 sm:py-28">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-12">
-          <div>
-            <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase block mb-2 font-mono">
+      {/* INTEREST (HOW IT WORKS): 3 Sequential Blueprint Chapters */}
+      <section id="how-it-works" className="w-full py-28 sm:py-36">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-16">
+          <div className="space-y-3">
+            <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase block font-mono">
               Simple Blueprint
             </span>
-            <h2 className="text-3xl sm:text-4xl font-outfit font-bold text-white tracking-tight">
-              Three steps to start earning
+            <h2 className="text-3xl sm:text-5xl font-heading font-extrabold text-white tracking-tight">
+              Three steps to build your network
             </h2>
           </div>
-          
+
           <div className="grid sm:grid-cols-3 gap-8">
             {[
-              { title: 'Join the network', desc: 'Register as a verified partner in seconds and get direct wholesale access to consumer catalogs at discounted partner rates.' },
-              { title: 'Sell to customers', desc: 'Market high-converting skincare and tech items to your audience at standard retail prices. You keep the gross margin on every unit.' },
-              { title: 'Earn cash rewards', desc: 'Build your referral team, hit dual sales and community targets, and unlock guaranteed cash milestone bonuses from Silver to Diamond.' }
-            ].map((step, idx) => (
-              <div key={idx} className="relative pt-6 border-t-2 border-cyan-500/40 bg-gradient-to-b from-cyan-500/5 to-transparent p-6 rounded-b-2xl border-x border-b border-white/[0.04]">
-                <div className="absolute top-0 right-4 -mt-[1.125rem] text-5xl font-bold text-white/[0.05] select-none font-outfit">
-                  0{idx + 1}
+              {
+                step: 'Phase 01',
+                title: 'Join the Partner Network',
+                desc: 'Create your free account in seconds and unlock direct access to wholesale consumer inventory at wholesale partner prices.'
+              },
+              {
+                step: 'Phase 02',
+                title: 'Distribute & Earn Margin',
+                desc: 'Sell high-converting skincare and electronic products to your customer audience. You keep the gross margin on every unit.'
+              },
+              {
+                step: 'Phase 03',
+                title: 'Hit Milestone Rewards',
+                desc: 'Grow your team, qualify for rank advancements from Silver to Diamond, and receive guaranteed cash bonuses disbursed to your account.'
+              }
+            ].map((item, idx) => (
+              <div
+                key={idx}
+                className="group relative p-8 rounded-3xl bg-[#080E1E] border border-white/[0.08] hover:border-cyan-400/40 transition-all duration-300 flex flex-col justify-between space-y-6 shadow-xl"
+              >
+                <div className="space-y-3">
+                  <span className="text-[11px] font-mono font-bold text-cyan-400 uppercase tracking-wider block">
+                    {item.step}
+                  </span>
+                  <h3 className="text-xl font-heading font-bold text-white group-hover:text-cyan-300 transition-colors">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    {item.desc}
+                  </p>
                 </div>
-                <h3 className="text-lg font-heading font-bold text-white mb-2 relative z-10">{step.title}</h3>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed relative z-10">{step.desc}</p>
+                <div className="w-8 h-1 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full" />
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* SECTION 4: RANK JOURNEY */}
-      <section id="ranks" className="w-full py-20 sm:py-28 bg-[#060B18] border-y border-white/[0.08]">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-12">
-          <div className="text-center max-w-xl mx-auto space-y-2">
+      {/* INTEREST (RANK JOURNEY): 4-Tier Interactive Milestone Ladder */}
+      <section id="ranks" className="w-full py-28 sm:py-36 bg-[#050A17] border-y border-white/[0.08]">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-16">
+          <div className="space-y-3 max-w-2xl">
             <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase block font-mono">
               Milestone Progression
             </span>
-            <h2 className="text-3xl sm:text-4xl font-outfit font-bold text-white tracking-tight">
-              Your path from Silver to Diamond
+            <h2 className="text-3xl sm:text-5xl font-heading font-extrabold text-white tracking-tight">
+              From Silver to Diamond Rank
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300">
-              Every verified sale and activated partner team member advances your rank toward cash rewards.
+            <p className="text-sm sm:text-base text-slate-300">
+              Each milestone combines personal product volume and referral team growth with guaranteed cash bonuses.
             </p>
           </div>
           <RankJourney />
         </div>
       </section>
 
-      {/* SECTION 5: WHOLESALE PRODUCTS */}
-      <section id="products" className="w-full py-20 sm:py-28">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-12">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between pb-4 border-b border-white/[0.08] gap-6">
-            <div>
-              <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase block mb-2 font-mono">
+      {/* DESIRE (WHOLESALE PRODUCTS): Gapless Product Bento Grid */}
+      <section id="products" className="w-full py-28 sm:py-36">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-16">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between pb-6 border-b border-white/[0.08] gap-6">
+            <div className="space-y-2">
+              <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase block font-mono">
                 High-Margin Inventory
               </span>
-              <h2 className="text-3xl sm:text-4xl font-outfit font-bold text-white tracking-tight">
+              <h2 className="text-3xl sm:text-5xl font-heading font-extrabold text-white tracking-tight">
                 Featured Wholesale Catalog
               </h2>
             </div>
@@ -224,10 +214,13 @@ export const Home: React.FC = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 grid-flow-dense">
             {SEED_PRODUCTS.slice(0, 3).map((product) => (
-              <div key={product.id} className="bg-[#080E1E] border border-white/[0.08] hover:border-cyan-400/30 rounded-3xl overflow-hidden flex flex-col group transition-all duration-300 shadow-xl">
-                <div className="aspect-[16/10] bg-[#050A15] flex items-center justify-center relative overflow-hidden border-b border-white/[0.08]">
+              <div
+                key={product.id}
+                className="bg-[#080E1E] border border-white/[0.08] hover:border-cyan-400/35 rounded-3xl overflow-hidden flex flex-col group transition-all duration-300 shadow-xl"
+              >
+                <div className="aspect-[16/10] bg-[#040813] flex items-center justify-center relative overflow-hidden border-b border-white/[0.08]">
                   {product.imageUrl ? (
                     <img 
                       src={product.imageUrl} 
@@ -237,13 +230,13 @@ export const Home: React.FC = () => {
                   ) : (
                     <Package className="w-16 h-16 text-white/10" />
                   )}
-                  <span className="absolute top-3 left-3 text-[10px] font-semibold px-3 py-1 rounded-full bg-[#030712]/90 backdrop-blur-md text-cyan-300 border border-cyan-500/30 shadow-sm">
+                  <span className="absolute top-3 left-3 text-[10px] font-semibold px-3 py-1 rounded-full bg-[#030712]/90 backdrop-blur-md text-cyan-300 border border-cyan-500/30">
                     {product.category}
                   </span>
                 </div>
 
-                <div className="p-6 flex flex-col flex-grow justify-between space-y-4">
-                  <div className="space-y-1.5">
+                <div className="p-6 flex flex-col flex-grow justify-between space-y-5">
+                  <div className="space-y-2">
                     <h3 className="text-base font-heading font-bold text-white group-hover:text-cyan-400 transition-colors">
                       {product.name}
                     </h3>
@@ -268,7 +261,7 @@ export const Home: React.FC = () => {
                   </div>
                   
                   <Link to={`/products/${product.slug}`} className="block w-full">
-                    <Button variant="secondary" size="sm" className="w-full justify-between rounded-xl text-xs group/btn font-medium">
+                    <Button variant="secondary" size="sm" className="w-full justify-between rounded-xl text-xs group/btn font-semibold">
                       <span>View Economics</span>
                       <ArrowRight size={12} className="group-hover/btn:translate-x-0.5 transition-transform" />
                     </Button>
@@ -280,33 +273,33 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* SECTION 6: INTERACTIVE PROFIT CALCULATOR */}
-      <section id="calculator" className="w-full py-20 sm:py-28 bg-[#060B18] border-y border-white/[0.08]">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 space-y-10">
-          <div className="text-center space-y-2">
+      {/* DESIRE: Interactive Profit Margin Calculator */}
+      <section id="calculator" className="w-full py-28 sm:py-36 bg-[#050A17] border-y border-white/[0.08]">
+        <div className="max-w-4xl mx-auto px-5 sm:px-8 space-y-12">
+          <div className="text-center space-y-3">
             <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase block font-mono">
               Earnings Simulator
             </span>
-            <h2 className="text-3xl sm:text-4xl font-outfit font-bold text-white tracking-tight">
-              See what you could earn
+            <h2 className="text-3xl sm:text-5xl font-heading font-extrabold text-white tracking-tight">
+              Estimate your monthly gross profit
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto">
-              Every verified unit sold yields an average profit margin of PKR 500. Drag the slider to simulate monthly earnings.
+              With an average profit margin of PKR 500 per unit sold, see how direct sales scale your monthly income.
             </p>
           </div>
 
-          <div className="rounded-3xl bg-[#080E1E] border border-white/10 p-8 sm:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(0,242,254,0.08)] space-y-8">
-            <div className="flex flex-col items-center text-center space-y-3">
-              <span className="text-xs text-cyan-400/80 uppercase tracking-wider font-mono">Estimated Direct Monthly Profit</span>
-              <div className="text-4xl sm:text-6xl font-bold font-jetbrains text-emerald-400 tracking-tight">
+          <div className="rounded-3xl bg-[#080E1E] border border-white/10 p-8 sm:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(0,242,254,0.1)] space-y-8">
+            <div className="flex flex-col items-center text-center space-y-2">
+              <span className="text-xs text-cyan-400 uppercase tracking-wider font-mono">Estimated Direct Monthly Profit</span>
+              <div className="text-5xl sm:text-7xl font-bold font-jetbrains text-emerald-400 tracking-tight">
                 PKR {totalEarnings.toLocaleString()}
               </div>
             </div>
 
-            <div className="space-y-4 max-w-2xl mx-auto">
+            <div className="space-y-4 max-w-2xl mx-auto pt-2">
               <div className="flex justify-between items-center text-xs text-slate-400 font-jetbrains">
                 <span>1 Unit</span>
-                <span className="text-white font-bold text-sm bg-cyan-500/15 text-cyan-300 px-3.5 py-1 rounded-full border border-cyan-500/30">
+                <span className="text-white font-bold text-sm bg-cyan-500/15 text-cyan-300 px-4 py-1 rounded-full border border-cyan-500/30">
                   {calculatorQuantity} Units / Month
                 </span>
                 <span>100 Units</span>
@@ -328,33 +321,36 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* SECTION 7: INTERACTIVE FLIP CARDS (GROWTH SERVICES) */}
+      {/* DESIRE (GROWTH CAPABILITIES): 3D Perspective Interactive Flip Cards */}
       <BentoWork />
 
-      {/* SECTION 8: CASE STUDIES */}
-      <section id="results" className="w-full py-20 sm:py-28">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-12">
-          <div>
-            <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase block mb-2 font-mono">
+      {/* DESIRE (PROVEN RESULTS): Case Studies Bento */}
+      <section id="results" className="w-full py-28 sm:py-36">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-16">
+          <div className="space-y-3">
+            <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase block font-mono">
               Proven Results
             </span>
-            <h2 className="text-3xl sm:text-4xl font-outfit font-bold text-white tracking-tight">
-              What our partners have achieved
+            <h2 className="text-3xl sm:text-5xl font-heading font-extrabold text-white tracking-tight">
+              Partner success highlights
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-6 grid-flow-dense">
             {CASE_STUDIES.map((study, idx) => (
-              <div key={idx} className="bg-[#080E1E] border border-white/[0.08] hover:border-cyan-400/30 rounded-3xl p-6 sm:p-7 flex flex-col justify-between space-y-6 transition-all duration-300 shadow-lg">
+              <div
+                key={idx}
+                className="bg-[#080E1E] border border-white/[0.08] hover:border-cyan-400/30 rounded-3xl p-7 flex flex-col justify-between space-y-6 transition-all duration-300 shadow-xl"
+              >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono uppercase text-slate-400 tracking-wider">{study.label}</span>
+                    <span className="text-[10px] font-mono uppercase text-slate-400 tracking-wider font-semibold">{study.category}</span>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
                       {study.metric}
                     </span>
                   </div>
                   
-                  <h3 className="text-base font-heading font-bold text-white leading-snug">{study.title}</h3>
+                  <h3 className="text-lg font-heading font-bold text-white leading-snug">{study.title}</h3>
                   <p className="text-xs text-slate-300 leading-relaxed">{study.description}</p>
                 </div>
                 
@@ -372,27 +368,27 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* SECTION 9: OFFICIAL COMMUNITY & BROADCAST CHANNELS */}
+      {/* ACTION: Official Community & Broadcast Channels */}
       <SocialCommunityHub />
 
-      {/* SECTION 10: FOUNDER PROFILE */}
+      {/* LEADERSHIP: Executive Founder Profile */}
       <OwnerProfile />
 
-      {/* SECTION 10: FINAL CONVERSION CTA */}
-      <section className="relative w-full py-24 sm:py-32 overflow-hidden border-t border-white/[0.08] bg-radial-hero">
+      {/* FINAL CONVERSION CTA: Massive Contrast Action Section */}
+      <section className="relative w-full py-32 sm:py-44 overflow-hidden border-t border-white/[0.08] bg-radial-hero">
         <div className="relative z-10 max-w-3xl mx-auto px-5 sm:px-8 text-center space-y-8">
-          <div className="space-y-3">
-            <h2 className="text-4xl sm:text-5xl font-outfit font-bold text-white tracking-tight">
+          <div className="space-y-4">
+            <h2 className="text-4xl sm:text-6xl font-heading font-extrabold text-white tracking-tight">
               Ready to start earning?
             </h2>
-            <p className="text-sm sm:text-base text-slate-300 max-w-lg mx-auto leading-relaxed">
-              Create your verified partner account in seconds and unlock wholesale catalog rates today.
+            <p className="text-base sm:text-lg text-slate-300 max-w-lg mx-auto leading-relaxed">
+              Create your free partner account in seconds and unlock wholesale catalog rates today.
             </p>
           </div>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/signup" className="w-full sm:w-auto">
-              <Button size="lg" variant="primary" className="w-full font-bold" iconRight={<ArrowRight weight="bold" />}>
+              <Button size="lg" variant="primary" className="w-full font-bold px-8 shadow-2xl" iconRight={<ArrowRight size={16} weight="bold" />}>
                 Create Free Account
               </Button>
             </Link>
@@ -402,13 +398,13 @@ export const Home: React.FC = () => {
               rel="noopener noreferrer"
               className="w-full sm:w-auto"
             >
-              <Button size="lg" variant="secondary" className="w-full" iconLeft={<WhatsappLogo weight="fill" className="text-emerald-400" />}>
+              <Button size="lg" variant="secondary" className="w-full px-7" iconLeft={<WhatsappLogo size={18} weight="fill" className="text-emerald-400" />}>
                 Chat on WhatsApp
               </Button>
             </a>
           </div>
         </div>
       </section>
-    </div>
+    </main>
   );
 };
