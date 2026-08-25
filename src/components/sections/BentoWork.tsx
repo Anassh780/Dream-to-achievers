@@ -109,15 +109,15 @@ export const BentoWork: React.FC<BentoWorkProps> = ({ showHeader = true }) => {
   ];
 
   return (
-    <section id="services" className="w-full py-20 sm:py-28 font-sans bg-[#080C14] border-y border-white/[0.06]">
+    <section id="services" className="w-full py-20 sm:py-28 font-sans bg-[#060B18] border-y border-white/[0.08]">
       <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-12">
         {showHeader && (
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/[0.06]">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/[0.08]">
             <div>
-              <span className="text-xs font-semibold tracking-wider text-blue-400 uppercase block mb-2 font-mono">
+              <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase block mb-2 font-mono">
                 Interactive Flip Cards
               </span>
-              <h2 className="text-3xl sm:text-4xl font-outfit font-semibold text-white tracking-tight">
+              <h2 className="text-3xl sm:text-4xl font-outfit font-bold text-white tracking-tight">
                 Growth & Scaling Capabilities
               </h2>
             </div>

@@ -12,15 +12,16 @@ import {
   doc,
   getDoc,
   setDoc,
-  updateDoc,
-  collection,
-  getDocs,
-  query,
-  where,
 } from 'firebase/firestore';
 import { ref, get, set, child } from 'firebase/database';
 import { storage } from './storage';
 import { rankEngine } from './rankEngine';
+
+export const ADMIN_EMAILS = [
+  'muskyna46@gmail.com',
+  'ghhhbbbhjn3@gmail.com',
+  'admin@dreamtoachievers.com',
+];
 
 export const authService = {
   /**
@@ -50,15 +51,30 @@ export const authService = {
   },
 
   /**
+   * Check if email is in the admin authorization list
+   */
+  isConfiguredAdmin(email: string): boolean {
+    return ADMIN_EMAILS.includes(email.toLowerCase().trim());
+  },
+
+  /**
    * Get user profile from Firestore / RTDB / Local Storage fallback
    */
   async getUserProfile(uid: string, fallbackEmail = ''): Promise<User | null> {
+    const cleanEmail = fallbackEmail.toLowerCase().trim();
+    const isAdminEmail = authService.isConfiguredAdmin(cleanEmail);
+
     try {
       // 1. Try Firestore
       const userDocRef = doc(db, 'users', uid);
       const userDoc = await getDoc(userDocRef);
       if (userDoc.exists()) {
         const data = userDoc.data() as User;
+        // Ensure admin status is updated if email is configured
+        if (isAdminEmail && data.role !== 'admin' && data.role !== 'superadmin') {
+          data.role = 'admin';
+          await authService.saveUserProfile(data);
+        }
         storage.setRaw('CURRENT_USER_ID', data.id);
         return data;
       }
@@ -72,6 +88,10 @@ export const authService = {
       const snapshot = await get(child(rtdbRef, `users/${uid}`));
       if (snapshot.exists()) {
         const data = snapshot.val() as User;
+        if (isAdminEmail && data.role !== 'admin' && data.role !== 'superadmin') {
+          data.role = 'admin';
+          await authService.saveUserProfile(data);
+        }
         storage.setRaw('CURRENT_USER_ID', data.id);
         return data;
       }
@@ -81,21 +101,25 @@ export const authService = {
 
     // 3. Check local users cache
     const localUsers = storage.get<User[]>('USERS', []);
-    const foundLocal = localUsers.find((u) => u.id === uid || u.email.toLowerCase() === fallbackEmail.toLowerCase());
+    const foundLocal = localUsers.find((u) => u.id === uid || u.email.toLowerCase() === cleanEmail);
     if (foundLocal) {
+      if (isAdminEmail && foundLocal.role !== 'admin' && foundLocal.role !== 'superadmin') {
+        foundLocal.role = 'admin';
+        await authService.saveUserProfile(foundLocal);
+      }
       storage.setRaw('CURRENT_USER_ID', foundLocal.id);
       return foundLocal;
     }
 
     // 4. Create default profile if user exists in Firebase Auth but no profile yet
-    if (fallbackEmail) {
+    if (cleanEmail) {
       const defaultUser: User = {
         id: uid,
-        fullName: fallbackEmail.split('@')[0] || 'Partner',
-        email: fallbackEmail.toLowerCase().trim(),
-        role: fallbackEmail.includes('admin') ? 'admin' : 'user',
+        fullName: cleanEmail.split('@')[0] || 'Partner',
+        email: cleanEmail,
+        role: isAdminEmail ? 'admin' : 'user',
         referralCode: `DTA-${Math.floor(1000 + Math.random() * 9000)}`,
-        currentRankSlug: 'unranked',
+        currentRankSlug: isAdminEmail ? 'diamond' : 'unranked',
         isActive: true,
         createdAt: new Date().toISOString(),
       };
@@ -206,6 +230,7 @@ export const authService = {
     city?: string;
   }): Promise<{ success: boolean; user?: User; error?: string }> {
     const cleanEmail = email.toLowerCase().trim();
+    const isAdminEmail = authService.isConfiguredAdmin(cleanEmail);
 
     // Generate unique referral code for the new user (e.g. HAMZA482)
     const baseCode = fullName.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 5) || 'DTA';
@@ -236,10 +261,10 @@ export const authService = {
         id: fbUser.uid,
         fullName: fullName.trim(),
         email: cleanEmail,
-        role: cleanEmail.includes('admin') ? 'admin' : 'user',
+        role: isAdminEmail ? 'admin' : 'user',
         referralCode: newReferralCode,
         referredByCode: validReferrer ? validReferrer.referralCode : undefined,
-        currentRankSlug: 'unranked',
+        currentRankSlug: isAdminEmail ? 'diamond' : 'unranked',
         phone: phone?.trim(),
         city: city?.trim(),
         isActive: true,
@@ -291,9 +316,11 @@ export const authService = {
         userId: newUser.id,
         type: 'welcome',
         title: '🌟 Welcome to Dream to Achievers!',
-        message: 'Your partner account is active. Explore products, share your referral link, and work toward Silver Rank!',
+        message: isAdminEmail
+          ? 'Administrator account activated with full platform access.'
+          : 'Your partner account is active. Explore products, share your referral link, and work toward Silver Rank!',
         isRead: false,
-        linkUrl: '/dashboard/rank-progress',
+        linkUrl: isAdminEmail ? '/admin' : '/dashboard/rank-progress',
         createdAt: new Date().toISOString(),
       });
       storage.set('NOTIFICATIONS', userNotifs);

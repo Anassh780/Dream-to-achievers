@@ -18,6 +18,7 @@ import {
   ArrowSquareOut,
   List,
   X,
+  LockKey,
 } from '@phosphor-icons/react';
 
 export const AdminLayout: React.FC = () => {
@@ -28,20 +29,20 @@ export const AdminLayout: React.FC = () => {
 
   if (!isAuthenticated || !isAdmin) {
     return (
-      <div className="min-h-screen bg-[#06090F] text-[#F8FAFC] flex flex-col items-center justify-center p-6 text-center space-y-4 font-sans">
-        <ShieldCheck size={48} className="text-[#3B82F6]" />
-        <h2 className="text-xl font-heading font-bold text-white">403 — Administrative Access Required</h2>
-        <p className="text-sm text-[#94A3B8] max-w-md">
-          This portal is restricted to authorized Dream to Achievers administrators. Use the Persona Switcher in the bottom-left to toggle to System Admin.
+      <div className="min-h-screen bg-[#030712] text-[#F8FAFC] flex flex-col items-center justify-center p-6 text-center space-y-4 font-sans">
+        <LockKey size={52} className="text-cyan-400 animate-pulse" />
+        <h2 className="text-2xl font-heading font-bold text-white">403 — Administrative Access Required</h2>
+        <p className="text-sm text-slate-400 max-w-md">
+          This portal is restricted to authorized administrators (<code className="text-cyan-400 font-mono">muskyna46@gmail.com</code>, <code className="text-cyan-400 font-mono">ghhhbbbhjn3@gmail.com</code>).
         </p>
         <div className="flex items-center space-x-3 pt-2">
-          <Link to="/dashboard">
-            <Button variant="secondary" size="md" className="rounded-xl">
-              User Dashboard
+          <Link to="/login">
+            <Button variant="primary" size="md" className="rounded-xl font-bold">
+              Sign In with Admin Email
             </Button>
           </Link>
           <Link to="/">
-            <Button variant="primary" size="md" className="rounded-xl">
+            <Button variant="secondary" size="md" className="rounded-xl">
               Return Home
             </Button>
           </Link>
@@ -63,27 +64,27 @@ export const AdminLayout: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#06090F] text-[#F8FAFC] flex flex-col md:flex-row font-sans selection:bg-[#3B82F6]/30">
+    <div className="min-h-screen bg-[#030712] text-[#F8FAFC] flex flex-col md:flex-row font-sans selection:bg-cyan-500/30">
       {/* Desktop Persistent Admin Sidebar */}
-      <aside className="hidden md:flex flex-col justify-between w-64 bg-[#0A0F19] border-r border-white/[0.08] p-4 shrink-0 min-h-screen sticky top-0">
+      <aside className="hidden md:flex flex-col justify-between w-64 bg-[#080E1E] border-r border-white/[0.08] p-4 shrink-0 min-h-screen sticky top-0 shadow-2xl">
         <div className="space-y-5">
           <div className="flex items-center justify-between px-2 py-1">
             <Link to="/">
               <DreamLogo size={26} />
             </Link>
-            <span className="text-[10px] font-mono font-medium bg-[#3B82F6]/10 text-[#60A5FA] border border-[#3B82F6]/20 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(6,182,212,0.2)]">
               ADMIN
             </span>
           </div>
 
-          <div className="p-3 rounded-2xl bg-[#0E1626] border border-white/[0.08]">
-            <p className="text-xs font-semibold text-white">{user?.fullName || 'Administrator'}</p>
-            <p className="text-[11px] text-[#64748B]">System Management</p>
+          <div className="p-3.5 rounded-2xl bg-[#0C152B] border border-white/[0.08]">
+            <p className="text-xs font-bold text-white truncate">{user?.fullName || 'Administrator'}</p>
+            <p className="text-[10px] text-cyan-400 font-mono">{user?.email}</p>
           </div>
 
           <div className="space-y-1">
-            <span className="px-3 text-[10px] font-mono uppercase tracking-wider text-[#64748B] font-semibold block pb-1">
-              MANAGEMENT
+            <span className="px-3 text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold block pb-1">
+              SYSTEM CONTROLS
             </span>
             <nav className="space-y-1">
               {adminNavItems.map((item) => {
@@ -97,13 +98,13 @@ export const AdminLayout: React.FC = () => {
                   <NavLink
                     key={item.label}
                     to={item.href}
-                    className={`flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs transition-colors ${
+                    className={`flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs transition-all duration-150 ${
                       isActive
-                        ? 'bg-[#121C2E] text-white font-semibold border-l-[3px] border-[#3B82F6]'
-                        : 'text-[#94A3B8] hover:bg-[#0E1626] hover:text-[#F8FAFC]'
+                        ? 'bg-gradient-to-r from-cyan-500/20 to-transparent text-cyan-300 font-semibold border-l-2 border-cyan-400'
+                        : 'text-slate-300 hover:text-white hover:bg-white/5'
                     }`}
                   >
-                    <Icon size={16} className={isActive ? 'text-[#3B82F6]' : 'text-[#64748B]'} />
+                    <Icon size={18} className={isActive ? 'text-cyan-400' : 'text-slate-400'} />
                     <span>{item.label}</span>
                   </NavLink>
                 );
@@ -112,67 +113,102 @@ export const AdminLayout: React.FC = () => {
           </div>
         </div>
 
-        <div className="pt-3 border-t border-white/[0.08] space-y-1 text-xs">
+        <div className="pt-4 border-t border-white/[0.08] space-y-2">
           <Link
             to="/dashboard"
-            className="flex items-center justify-between px-3 py-2 rounded-xl text-[#94A3B8] hover:text-white hover:bg-[#0E1626] transition-colors"
+            className="flex items-center space-x-2 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-cyan-400 hover:bg-white/5 transition-colors"
           >
-            <span>Partner Dashboard</span>
-            <ArrowSquareOut size={14} />
+            <ArrowSquareOut size={16} />
+            <span>Switch to Partner View</span>
           </Link>
           <button
             onClick={() => {
               logout();
-              navigate('/');
+              navigate('/login');
             }}
-            className="w-full flex items-center space-x-2 px-3 py-2 rounded-xl text-[#94A3B8] hover:text-[#EF4444] hover:bg-rose-500/10 transition-colors cursor-pointer"
+            className="w-full flex items-center space-x-2 px-3 py-2 rounded-xl text-xs text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
           >
             <SignOut size={16} />
-            <span>Log Out Admin</span>
+            <span>Sign Out</span>
           </button>
         </div>
       </aside>
 
-      {/* Mobile Header */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-[#0A0F19] border-b border-white/[0.08] sticky top-0 z-40">
+      {/* Mobile Top App Header */}
+      <header className="md:hidden flex items-center justify-between p-4 bg-[#080E1E] border-b border-white/[0.08] sticky top-0 z-40">
+        <Link to="/">
+          <DreamLogo size={24} />
+        </Link>
         <div className="flex items-center space-x-2">
-          <DreamLogo size={26} />
-          <span className="text-[10px] text-[#3B82F6] border border-[#3B82F6]/30 px-1.5 py-0.5 rounded">
+          <span className="text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 px-2 py-0.5 rounded-full">
             ADMIN
           </span>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 rounded-lg bg-white/5 text-slate-300 hover:text-white"
+          >
+            {mobileMenuOpen ? <X size={20} /> : <List size={20} />}
+          </button>
         </div>
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 text-[#CBD5E1]"
-        >
-          {mobileMenuOpen ? <X size={20} /> : <List size={20} />}
-        </button>
-      </div>
+      </header>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer Overlay */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 top-14 bg-[#06090F]/95 backdrop-blur-md z-50 p-5 flex flex-col justify-between">
-          <nav className="space-y-1">
-            {adminNavItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.label}
-                  to={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center space-x-3 p-2.5 rounded-xl text-sm text-[#CBD5E1] hover:bg-[#0E1626]"
-                >
-                  <Icon size={18} className="text-[#3B82F6]" />
-                  <span>{item.label}</span>
-                </NavLink>
-              );
-            })}
-          </nav>
+        <div className="md:hidden fixed inset-0 z-50 bg-[#030712]/95 backdrop-blur-2xl p-6 pt-16 flex flex-col justify-between">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+              <div>
+                <p className="font-bold text-white">System Admin Portal</p>
+                <p className="text-xs text-slate-400">{user?.email}</p>
+              </div>
+              <button onClick={() => setMobileMenuOpen(false)} className="p-2 rounded-full bg-white/5 text-slate-300">
+                <X size={20} />
+              </button>
+            </div>
+
+            <nav className="space-y-1.5">
+              {adminNavItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.label}
+                    to={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-200 hover:text-white hover:bg-white/5 font-medium"
+                  >
+                    <Icon size={20} className="text-cyan-400" />
+                    <span>{item.label}</span>
+                  </NavLink>
+                );
+              })}
+            </nav>
+          </div>
+
+          <div className="pt-6 border-t border-white/10 space-y-2">
+            <Link
+              to="/dashboard"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full flex items-center justify-center space-x-2 py-2.5 rounded-xl bg-white/5 text-white text-xs font-semibold"
+            >
+              <ArrowSquareOut size={16} />
+              <span>Partner Dashboard</span>
+            </Link>
+            <button
+              onClick={() => {
+                logout();
+                navigate('/login');
+              }}
+              className="w-full flex items-center justify-center space-x-2 py-2.5 rounded-xl bg-rose-500/10 text-rose-300 text-xs font-semibold"
+            >
+              <SignOut size={16} />
+              <span>Sign Out</span>
+            </button>
+          </div>
         </div>
       )}
 
       {/* Main Admin Sub-Page Outlet */}
-      <main className="flex-1 p-5 sm:p-7 lg:p-8 max-w-6xl mx-auto w-full overflow-x-hidden">
+      <main className="flex-1 p-5 sm:p-7 lg:p-8 max-w-7xl mx-auto w-full overflow-x-hidden">
         <Outlet />
       </main>
     </div>
