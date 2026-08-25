@@ -82,6 +82,23 @@ export const AdminLayout: React.FC = () => {
             <p className="text-[10px] text-cyan-400 font-mono">{user?.email}</p>
           </div>
 
+          {/* Quick Direct Switch to Partner App */}
+          <Link
+            to="/dashboard"
+            className="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-cyan-500/15 to-transparent border border-cyan-400/25 hover:border-cyan-400/50 transition-all text-xs group shadow-[0_0_15px_rgba(0,242,254,0.1)]"
+          >
+            <div className="flex items-center space-x-2">
+              <div className="w-7 h-7 rounded-lg bg-cyan-400/20 text-cyan-300 flex items-center justify-center">
+                <House size={16} weight="fill" />
+              </div>
+              <div>
+                <p className="font-bold text-white group-hover:text-cyan-300 transition-colors">Partner View</p>
+                <p className="text-[10px] text-slate-400">Switch to User App</p>
+              </div>
+            </div>
+            <ArrowSquareOut size={14} className="text-cyan-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+          </Link>
+
           <div className="space-y-1">
             <span className="px-3 text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold block pb-1">
               SYSTEM CONTROLS

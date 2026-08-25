@@ -24,7 +24,7 @@ import {
 import { referralService } from '@/services/referralService';
 
 export const DashboardLayout: React.FC = () => {
-  const { user, isAuthenticated, rankProgress, unreadNotifsCount, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, rankProgress, unreadNotifsCount, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [copiedRef, setCopiedRef] = useState(false);
   const navigate = useNavigate();
@@ -116,6 +116,25 @@ export const DashboardLayout: React.FC = () => {
             </div>
             <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
           </div>
+
+          {/* Admin Switch Banner (Shown if user has Admin Privileges) */}
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-cyan-500/20 via-blue-500/10 to-transparent border border-cyan-400/30 hover:border-cyan-400/60 transition-all text-xs group shadow-[0_0_15px_rgba(0,242,254,0.15)]"
+            >
+              <div className="flex items-center space-x-2">
+                <div className="w-7 h-7 rounded-lg bg-cyan-400/20 text-cyan-300 flex items-center justify-center">
+                  <ShieldStar size={16} weight="fill" />
+                </div>
+                <div>
+                  <p className="font-bold text-white group-hover:text-cyan-300 transition-colors">Admin Control</p>
+                  <p className="text-[10px] text-cyan-400/80">Manage System</p>
+                </div>
+              </div>
+              <ArrowSquareOut size={14} className="text-cyan-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </Link>
+          )}
 
           {/* Referral Code Quick Copy Pill */}
           <div className="p-2.5 rounded-xl bg-[#030712] border border-white/[0.06] flex items-center justify-between text-xs">

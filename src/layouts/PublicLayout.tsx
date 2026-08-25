@@ -15,7 +15,7 @@ import {
 } from '@phosphor-icons/react';
 
 export const PublicLayout: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isAdmin } = useAuth();
   const siteConfig = useSiteSettings();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -97,11 +97,20 @@ export const PublicLayout: React.FC = () => {
             </a>
 
             {isAuthenticated ? (
-              <Link to="/dashboard">
-                <Button variant="primary" size="sm" className="rounded-full px-5 font-bold">
-                  Dashboard
-                </Button>
-              </Link>
+              <div className="flex items-center space-x-2">
+                {isAdmin && (
+                  <Link to="/admin">
+                    <Button variant="outline" size="sm" className="rounded-full px-3.5 text-xs font-semibold text-cyan-300 border-cyan-400/40 hover:bg-cyan-400/10 shadow-[0_0_12px_rgba(0,242,254,0.2)]">
+                      Admin Center
+                    </Button>
+                  </Link>
+                )}
+                <Link to="/dashboard">
+                  <Button variant="primary" size="sm" className="rounded-full px-4 font-bold">
+                    Dashboard
+                  </Button>
+                </Link>
+              </div>
             ) : (
               <div className="flex items-center space-x-1.5">
                 <Link to="/login">
