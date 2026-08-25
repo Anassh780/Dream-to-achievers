@@ -18,11 +18,11 @@ import {
   LockKey,
   Scales,
   Certificate,
-  CaretDown,
-  CaretUp,
   EnvelopeSimple,
   Globe,
   ArrowSquareOut,
+  House,
+  ChatCircleDots,
 } from '@phosphor-icons/react';
 
 // Crisp Vector TikTok Icon
@@ -43,8 +43,6 @@ export const PublicLayout: React.FC = () => {
   const siteConfig = useSiteSettings();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [expandArchitecture, setExpandArchitecture] = useState(true);
-  const [expandCompliance, setExpandCompliance] = useState(true);
   const location = useLocation();
 
   useEffect(() => {
@@ -195,7 +193,7 @@ export const PublicLayout: React.FC = () => {
 
       {/* Screen-Filling Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-[#020612]/95 backdrop-blur-3xl p-5 pt-24 flex flex-col justify-between animate-in fade-in duration-300 overflow-y-auto">
+        <div className="fixed inset-0 z-40 bg-[#020612]/95 backdrop-blur-3xl p-5 pt-24 flex flex-col justify-between animate-in fade-in duration-300 overflow-y-auto font-sans">
           <div className="space-y-4">
             <div className="flex items-center justify-between px-2 pb-2 border-b border-white/[0.08]">
               <span className="text-[11px] font-mono text-cyan-400 uppercase tracking-wider font-semibold">
@@ -281,15 +279,15 @@ export const PublicLayout: React.FC = () => {
         <Outlet />
       </main>
 
-      {/* 2. Premium Enterprise-Level Footer Experience */}
-      <footer className="border-t border-white/[0.08] bg-[#01040D] text-[#94A3B8] font-sans relative overflow-hidden">
-        {/* Subtle Ambient Radial Lighting */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />
+      {/* 2. Premium Responsive Enterprise Footer */}
+      <footer className="border-t border-white/[0.08] bg-[#01040E] text-[#94A3B8] font-sans relative overflow-hidden">
+        {/* Subtle Ambient Radial Glow */}
+        <div className="absolute top-0 left-1/4 w-[500px] h-[300px] bg-cyan-500/5 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[300px] bg-blue-600/5 rounded-full blur-[140px] pointer-events-none" />
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-16 pb-12 space-y-12 relative z-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12 space-y-12 relative z-10">
           
-          {/* Footer Conversion Card */}
+          {/* A. Full-Width CTA Conversion Card */}
           <div className="p-6 sm:p-10 rounded-3xl bg-gradient-to-b from-[#080E1E] to-[#030712] border border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(0,242,254,0.08)] relative overflow-hidden">
             <div className="space-y-1.5 text-center md:text-left relative z-10">
               <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-cyan-300 text-[10px] font-mono uppercase tracking-wider font-semibold">
@@ -303,20 +301,30 @@ export const PublicLayout: React.FC = () => {
                 Unlock high-margin skincare and electronics inventory with direct milestone rewards.
               </p>
             </div>
-            <div className="flex items-center gap-3 relative z-10 shrink-0 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-center gap-3 relative z-10 shrink-0 w-full sm:w-auto">
               <Link to="/signup" className="w-full sm:w-auto">
                 <Button variant="primary" size="md" className="w-full sm:w-auto rounded-xl px-7 font-bold text-xs shadow-xl" iconRight={<ArrowRight size={14} weight="bold" />}>
                   Create Free Account
                 </Button>
               </Link>
+              <a
+                href={whatsappDirectUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto"
+              >
+                <Button variant="secondary" size="md" className="w-full sm:w-auto rounded-xl px-5 text-xs font-semibold" iconLeft={<WhatsappLogo size={16} weight="fill" className="text-emerald-400" />}>
+                  WhatsApp Desk
+                </Button>
+              </a>
             </div>
           </div>
 
-          {/* Main Footer Structured Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pt-2">
+          {/* B. Main Multi-Column Structured Grid (100% Responsive) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10 pt-2">
             
-            {/* Column 1: Main Brand Authority & Verified Seal Card (5 cols) */}
-            <div className="md:col-span-5 p-6 sm:p-7 rounded-3xl bg-[#060B18] border border-white/[0.08] flex flex-col justify-between space-y-6 shadow-xl">
+            {/* Column 1: Brand Authority & Support Desk (5 cols on Desktop, Full Width on Tablet/Mobile) */}
+            <div className="lg:col-span-5 md:col-span-2 col-span-1 p-6 sm:p-7 rounded-3xl bg-[#060B18] border border-white/[0.08] flex flex-col justify-between space-y-6 shadow-xl">
               <div className="space-y-4">
                 {/* Brandmark + Verified Badge */}
                 <div className="flex items-center justify-between">
@@ -325,16 +333,16 @@ export const PublicLayout: React.FC = () => {
                   </Link>
                   <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shadow-[0_0_10px_rgba(0,242,254,0.15)]">
                     <ShieldCheck size={12} weight="fill" className="text-cyan-400" />
-                    <span>VERIFIED</span>
+                    <span>VERIFIED ENTERPRISE</span>
                   </span>
                 </div>
 
                 {/* Editorial Description */}
-                <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                  DreamToAchievers connects ambitious partners with verified wholesale product margins, performance marketing infrastructure, and cash milestone rewards.
+                <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-md">
+                  DreamToAchievers connects ambitious partners with verified wholesale product margins, automated marketing systems, and cash milestone rewards.
                 </p>
 
-                {/* Social Media Interactive Pills (TikTok & WhatsApp Channel) */}
+                {/* Social Media Interactive Pills */}
                 <div className="space-y-2 pt-2">
                   <span className="text-[10px] font-mono uppercase text-slate-400 font-semibold block tracking-wider">
                     Official Broadcast & Community
@@ -351,7 +359,7 @@ export const PublicLayout: React.FC = () => {
                         <div className="w-5 h-5 rounded-lg bg-rose-500/20 flex items-center justify-center text-rose-300">
                           <TikTokIcon size={12} />
                         </div>
-                        <span className="font-semibold truncate max-w-[100px]">@dream.to.achievers</span>
+                        <span className="font-semibold truncate max-w-[120px]">@dream.to.achievers</span>
                       </div>
                       <ArrowSquareOut size={13} className="text-rose-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </a>
@@ -397,44 +405,39 @@ export const PublicLayout: React.FC = () => {
               </div>
             </div>
 
-            {/* Column 2: Platform Architecture Structured Card (3.5 cols) */}
-            <div className="md:col-span-3.5 p-6 rounded-3xl bg-[#060B18] border border-white/[0.08] flex flex-col justify-between space-y-4 shadow-xl">
+            {/* Column 2: Platform Architecture (3 cols on Desktop, 1 on Tablet/Mobile) */}
+            <div className="lg:col-span-3 md:col-span-1 col-span-1 p-6 rounded-3xl bg-[#060B18] border border-white/[0.08] flex flex-col justify-between space-y-4 shadow-xl">
               <div>
-                <div 
-                  onClick={() => setExpandArchitecture(!expandArchitecture)}
-                  className="flex items-center justify-between pb-3 border-b border-white/[0.08] cursor-pointer sm:cursor-default"
-                >
-                  <span className="text-white font-heading font-bold text-xs uppercase tracking-wider flex items-center space-x-2">
-                    <Globe size={15} className="text-cyan-400" />
-                    <span>Platform Architecture</span>
-                  </span>
-                  <button className="sm:hidden text-slate-400">
-                    {expandArchitecture ? <CaretUp size={14} /> : <CaretDown size={14} />}
-                  </button>
+                <div className="pb-3 border-b border-white/[0.08] flex items-center space-x-2">
+                  <Globe size={15} className="text-cyan-400" />
+                  <h4 className="text-white font-heading font-bold text-xs uppercase tracking-wider">
+                    Platform Architecture
+                  </h4>
                 </div>
 
-                <div className={`space-y-1.5 pt-3 ${expandArchitecture ? 'block' : 'hidden sm:block'}`}>
+                <div className="space-y-1.5 pt-3">
                   {[
-                    { label: 'Wholesale Products Catalog', href: '/products', icon: Package, badge: 'Active' },
-                    { label: '4-Tier Rank Milestones', href: '/ranks', icon: Trophy, badge: 'PKR 10k' },
-                    { label: 'How It Works Blueprint', href: '/how-it-works', icon: TreeStructure },
-                    { label: 'Growth & Automation Services', href: '/services', icon: Lightning },
+                    { label: 'Wholesale Catalog', href: '/products', icon: Package, badge: 'Live' },
+                    { label: 'Partner Dashboard', href: '/dashboard', icon: House },
+                    { label: '4-Tier Ranks', href: '/ranks', icon: Trophy, badge: 'PKR 10k' },
+                    { label: 'How It Works', href: '/how-it-works', icon: TreeStructure },
+                    { label: 'Growth Services', href: '/services', icon: Lightning },
                   ].map((item) => {
                     const Icon = item.icon;
                     return (
                       <Link
                         key={item.label}
                         to={item.href}
-                        className="group flex items-center justify-between p-2.5 rounded-xl hover:bg-white/5 transition-colors text-xs text-slate-300 hover:text-white"
+                        className="group flex items-center justify-between p-2 rounded-xl hover:bg-white/5 transition-colors text-xs text-slate-300 hover:text-white"
                       >
-                        <div className="flex items-center space-x-2.5">
-                          <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-500/20 transition-colors">
+                        <div className="flex items-center space-x-2.5 truncate">
+                          <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-500/20 transition-colors shrink-0">
                             <Icon size={14} />
                           </div>
-                          <span>{item.label}</span>
+                          <span className="truncate">{item.label}</span>
                         </div>
                         {item.badge && (
-                          <span className="text-[9px] font-mono text-cyan-300 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">
+                          <span className="text-[9px] font-mono text-cyan-300 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20 shrink-0 ml-1">
                             {item.badge}
                           </span>
                         )}
@@ -446,51 +449,90 @@ export const PublicLayout: React.FC = () => {
 
               <div className="pt-2 border-t border-white/[0.06]">
                 <p className="text-[10px] font-mono text-slate-500">
-                  Decentralized Catalog & Order Routing
+                  Decentralized Wholesale Ledger
                 </p>
               </div>
             </div>
 
-            {/* Column 3: Compliance & Security Structured Card (3.5 cols) */}
-            <div className="md:col-span-3.5 p-6 rounded-3xl bg-[#060B18] border border-white/[0.08] flex flex-col justify-between space-y-4 shadow-xl">
+            {/* Column 3: Compliance & Security (2 cols on Desktop, 1 on Tablet/Mobile) */}
+            <div className="lg:col-span-2 md:col-span-1 col-span-1 p-6 rounded-3xl bg-[#060B18] border border-white/[0.08] flex flex-col justify-between space-y-4 shadow-xl">
               <div>
-                <div 
-                  onClick={() => setExpandCompliance(!expandCompliance)}
-                  className="flex items-center justify-between pb-3 border-b border-white/[0.08] cursor-pointer sm:cursor-default"
-                >
-                  <span className="text-white font-heading font-bold text-xs uppercase tracking-wider flex items-center space-x-2">
-                    <ShieldCheck size={15} className="text-cyan-400" />
-                    <span>Compliance & Policies</span>
-                  </span>
-                  <button className="sm:hidden text-slate-400">
-                    {expandCompliance ? <CaretUp size={14} /> : <CaretDown size={14} />}
-                  </button>
+                <div className="pb-3 border-b border-white/[0.08] flex items-center space-x-2">
+                  <ShieldCheck size={15} className="text-cyan-400" />
+                  <h4 className="text-white font-heading font-bold text-xs uppercase tracking-wider">
+                    Compliance
+                  </h4>
                 </div>
 
-                <div className={`space-y-1.5 pt-3 ${expandCompliance ? 'block' : 'hidden sm:block'}`}>
+                <div className="space-y-1.5 pt-3">
                   {[
-                    { label: 'Partner Terms & Conditions', href: '/terms', icon: FileText },
-                    { label: 'Data Privacy & Security', href: '/privacy', icon: LockKey },
-                    { label: 'Statutory Earnings Disclaimer', href: '/disclaimer', icon: Scales },
-                    { label: 'Platform Standards', href: '/terms', icon: Certificate },
+                    { label: 'Partner Terms', href: '/terms', icon: FileText },
+                    { label: 'Data Privacy', href: '/privacy', icon: LockKey },
+                    { label: 'Disclaimer', href: '/disclaimer', icon: Scales },
+                    { label: 'Standards', href: '/terms', icon: Certificate },
                   ].map((item) => {
                     const Icon = item.icon;
                     return (
                       <Link
                         key={item.label}
                         to={item.href}
-                        className="group flex items-center justify-between p-2.5 rounded-xl hover:bg-white/5 transition-colors text-xs text-slate-300 hover:text-white"
+                        className="group flex items-center justify-between p-2 rounded-xl hover:bg-white/5 transition-colors text-xs text-slate-300 hover:text-white"
                       >
-                        <div className="flex items-center space-x-2.5">
-                          <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-500/20 transition-colors">
+                        <div className="flex items-center space-x-2.5 truncate">
+                          <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-500/20 transition-colors shrink-0">
                             <Icon size={14} />
                           </div>
-                          <span>{item.label}</span>
+                          <span className="truncate">{item.label}</span>
                         </div>
-                        <ArrowRight size={12} className="text-slate-500 group-hover:translate-x-0.5 transition-transform" />
                       </Link>
                     );
                   })}
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-white/[0.06]">
+                <p className="text-[10px] font-mono text-slate-500">
+                  Full Regulatory Transparency
+                </p>
+              </div>
+            </div>
+
+            {/* Column 4: Official Support & Security Badge (2 cols on Desktop, 2 on Tablet, 1 on Mobile) */}
+            <div className="lg:col-span-2 md:col-span-2 col-span-1 p-6 rounded-3xl bg-[#060B18] border border-white/[0.08] flex flex-col justify-between space-y-4 shadow-xl">
+              <div>
+                <div className="pb-3 border-b border-white/[0.08] flex items-center space-x-2">
+                  <ChatCircleDots size={15} className="text-cyan-400" />
+                  <h4 className="text-white font-heading font-bold text-xs uppercase tracking-wider">
+                    Support
+                  </h4>
+                </div>
+
+                <div className="space-y-1.5 pt-3">
+                  <Link
+                    to="/contact"
+                    className="flex items-center space-x-2.5 p-2 rounded-xl hover:bg-white/5 text-xs text-slate-300 hover:text-white transition-colors"
+                  >
+                    <EnvelopeSimple size={14} className="text-cyan-400 shrink-0" />
+                    <span>Contact Desk</span>
+                  </Link>
+                  <a
+                    href={siteConfig.whatsappChannelUrl || 'https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2.5 p-2 rounded-xl hover:bg-white/5 text-xs text-slate-300 hover:text-white transition-colors"
+                  >
+                    <WhatsappLogo size={14} className="text-emerald-400 shrink-0" />
+                    <span>VIP Channel</span>
+                  </a>
+                  <a
+                    href={whatsappDirectUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2.5 p-2 rounded-xl hover:bg-white/5 text-xs text-slate-300 hover:text-white transition-colors"
+                  >
+                    <Globe size={14} className="text-cyan-400 shrink-0" />
+                    <span>1-on-1 Consultation</span>
+                  </a>
                 </div>
               </div>
 
@@ -498,32 +540,37 @@ export const PublicLayout: React.FC = () => {
               <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/25 flex items-center space-x-2.5 text-xs text-cyan-300">
                 <ShieldCheck size={18} weight="fill" className="text-cyan-400 shrink-0" />
                 <div className="leading-tight">
-                  <p className="font-bold text-[11px]">Verified Partner Association</p>
-                  <p className="text-[10px] text-cyan-400/80 font-mono">Reg. DTA-78401 • Encrypted</p>
+                  <p className="font-bold text-[11px]">Verified Platform</p>
+                  <p className="text-[9px] text-cyan-400/80 font-mono">Reg. DTA-78401 • SSL</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 3. Bottom Legal, Status & Copyright Bar */}
+          {/* C. Bottom Legal, Status & Copyright Bar */}
           <div className="pt-8 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-            <div className="flex items-center space-x-2 text-center sm:text-left">
+            {/* Left: System Status */}
+            <div className="flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
               <span className="font-mono text-[11px] text-slate-300">
                 System Status: <strong className="text-emerald-400 font-semibold">100% Operational</strong>
               </span>
             </div>
 
+            {/* Center: Copyright */}
             <p className="text-[11px] text-center">
               © {new Date().getFullYear()} {siteConfig.brandName || 'Dream to Achievers'}. All rights reserved.
             </p>
 
-            <div className="flex items-center space-x-4 text-[11px] font-mono">
+            {/* Right: Quick Links */}
+            <div className="flex items-center space-x-3 text-[11px] font-mono">
               <Link to="/login" className="hover:text-cyan-300 transition-colors">Partner Portal</Link>
               <span>•</span>
               <Link to="/signup" className="hover:text-cyan-300 transition-colors">Register</Link>
               <span>•</span>
               <Link to="/privacy" className="hover:text-cyan-300 transition-colors">Privacy</Link>
+              <span>•</span>
+              <Link to="/terms" className="hover:text-cyan-300 transition-colors">Terms</Link>
             </div>
           </div>
         </div>

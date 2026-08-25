@@ -373,38 +373,6 @@ export const Home: React.FC = () => {
 
       {/* LEADERSHIP: Executive Founder Profile */}
       <OwnerProfile />
-
-      {/* FINAL CONVERSION CTA: Massive Contrast Action Section */}
-      <section className="relative w-full py-32 sm:py-44 overflow-hidden border-t border-white/[0.08] bg-radial-hero">
-        <div className="relative z-10 max-w-3xl mx-auto px-5 sm:px-8 text-center space-y-8">
-          <div className="space-y-4">
-            <h2 className="text-4xl sm:text-6xl font-heading font-extrabold text-white tracking-tight">
-              Ready to start earning?
-            </h2>
-            <p className="text-base sm:text-lg text-slate-300 max-w-lg mx-auto leading-relaxed">
-              Create your free partner account in seconds and unlock wholesale catalog rates today.
-            </p>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/signup" className="w-full sm:w-auto">
-              <Button size="lg" variant="primary" className="w-full font-bold px-8 shadow-2xl" iconRight={<ArrowRight size={16} weight="bold" />}>
-                Create Free Account
-              </Button>
-            </Link>
-            <a 
-              href="https://wa.me/923054511395?text=Hi%20Faria,%20I%20would%20like%20to%20join%20Dream%20to%20Achievers." 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto"
-            >
-              <Button size="lg" variant="secondary" className="w-full px-7" iconLeft={<WhatsappLogo size={18} weight="fill" className="text-emerald-400" />}>
-                Chat on WhatsApp
-              </Button>
-            </a>
-          </div>
-        </div>
-      </section>
     </main>
   );
 };
