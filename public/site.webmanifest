@@ -1,31 +1,21 @@
 {
-  "name": "Faria Imran — Growth Marketing & Automation Lead",
-  "short_name": "Faria Imran",
-  "description": "Official portfolio of Faria Imran — Growth Marketing, TikTok Automation, and High-ROAS Paid Ads.",
+  "name": "Dream to Achievers — Product Distribution & Rank Milestone Platform",
+  "short_name": "DreamToAchievers",
+  "description": "Official platform of Dream to Achievers. Scale your product sales, build a verified community network, and unlock cash milestone rewards.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#080b11",
-  "theme_color": "#00f0ff",
+  "background_color": "#06090F",
+  "theme_color": "#3B82F6",
   "icons": [
     {
-      "src": "/favicon-48x48.png",
-      "sizes": "48x48",
+      "src": "/images/logo.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/favicon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png"
-    },
-    {
-      "src": "/android-chrome-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/android-chrome-512x512.png",
-      "sizes": "512x512",
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
       "type": "image/png"
     }
   ]

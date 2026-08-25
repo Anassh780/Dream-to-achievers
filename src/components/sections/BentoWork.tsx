@@ -1,81 +1,35 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { CardFlip } from '@/components/ui/CardFlip';
-import { Badge } from '@/components/ui/Badge';
-import { ScrollFloat } from '@/components/ui/ScrollFloat';
-import { BorderGlow } from '@/components/ui/BorderGlow';
-import { Sparkle, Video, TrendUp, PencilLine, ShareNetwork, Cpu, Palette } from '@phosphor-icons/react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Video, TrendUp, PencilLine, ShareNetwork, Cpu, Palette, ArrowRight } from '@phosphor-icons/react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/Button';
 
-gsap.registerPlugin(ScrollTrigger);
+interface BentoWorkProps {
+  showHeader?: boolean;
+}
 
-const borderGlowThemes: Record<string, { glowColor: string; colors: string[] }> = {
-  cyan: {
-    glowColor: '190 100 70',
-    colors: ['#00f0ff', '#38bdf8', '#818cf8'],
-  },
-  emerald: {
-    glowColor: '155 80 60',
-    colors: ['#34d399', '#10b981', '#06b6d4'],
-  },
-  amber: {
-    glowColor: '40 90 60',
-    colors: ['#fbbf24', '#f59e0b', '#ec4899'],
-  },
-  indigo: {
-    glowColor: '235 85 65',
-    colors: ['#818cf8', '#6366f1', '#a855f7'],
-  },
-  rose: {
-    glowColor: '345 85 65',
-    colors: ['#fb7185', '#f43f5e', '#ec4899'],
-  },
-};
-
-
-export const BentoWork: React.FC = () => {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from('.flip-card-wrapper', {
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top 80%',
-        },
-        y: 40,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.12,
-        ease: 'power3.out',
-      });
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
-
+export const BentoWork: React.FC<BentoWorkProps> = ({ showHeader = true }) => {
   const flipServices = [
     {
       id: 'service-tiktok',
-      categoryNumber: 'CORE SERVICE #1',
-      title: 'TikTok Automation',
-      subtitle: 'Automated video scripting & batch posting pipelines',
+      categoryNumber: '01 / AUTOMATION',
+      title: 'TikTok & Reels Automation',
+      subtitle: 'Automated video scripting & scheduled batch publishing pipelines',
       description: 'Automated video scripting, AI editing workflows, batch posting schedules, and TikTok Shop integration for exponential organic reach.',
       features: [
         'Viral Scripting Engines',
-        'CapCut AI Batch Editing',
+        'AI Batch Video Editing',
         'Auto-Posting Schedule',
         'TikTok Shop Integration',
       ],
-      impactBadge: '10M+ Organic Views',
-      icon: <Video size={20} className="text-[#00f0ff]" />,
-      accentColor: 'cyan' as const,
+      impactBadge: '10M+ Views',
+      icon: <Video size={18} />,
       frontImage: '/images/tiktok-automation.webp',
     },
     {
       id: 'service-ads',
-      categoryNumber: 'CORE SERVICE #2',
-      title: 'Paid Advertisement',
+      categoryNumber: '02 / MEDIA BUYING',
+      title: 'Paid Performance Marketing',
       subtitle: 'Data-driven Meta, TikTok & Google ad scaling',
       description: 'Data-driven Meta, TikTok & Google ad campaigns engineered for maximum return on ad spend and rapid ROAS scale.',
       features: [
@@ -85,136 +39,111 @@ export const BentoWork: React.FC = () => {
         'Retargeting Funnels',
       ],
       impactBadge: '4.8x Avg ROAS',
-      icon: <TrendUp size={20} className="text-emerald-400" />,
-      accentColor: 'emerald' as const,
+      icon: <TrendUp size={18} />,
       frontImage: '/images/paid-ads.webp',
     },
     {
       id: 'service-copy',
-      categoryNumber: 'CORE SERVICE #3',
-      title: 'Content Writing',
-      subtitle: 'Persuasive ad copy & landing page scripts',
+      categoryNumber: '03 / DIRECT RESPONSE',
+      title: 'Conversion Copywriting',
+      subtitle: 'Persuasive ad copy, VSLs & landing page scripts',
       description: 'Persuasive ad copy, high-converting landing page scripts, email sequences, and SEO editorial content designed to sell.',
       features: [
         'Direct-Response Copy',
         'Video Ad Scripts',
-        'High-Converting Emails',
-        'SEO Editorial Content',
+        'High-Converting VSLs',
+        'Email Sequences',
       ],
-      impactBadge: '+180% Click Conv.',
-      icon: <PencilLine size={20} className="text-amber-400" />,
-      accentColor: 'amber' as const,
+      impactBadge: '3.2x Conversion',
+      icon: <PencilLine size={18} />,
       frontImage: '/images/content-writing.webp',
     },
     {
       id: 'service-smm',
-      categoryNumber: 'CORE SERVICE #4',
-      title: 'Social Media Marketing',
-      subtitle: 'Full-spectrum social growth & community building',
-      description: 'Full-spectrum social media management, community engagement, brand positioning, and daily multi-platform distribution.',
+      categoryNumber: '04 / BRAND GROWTH',
+      title: 'Social Media Management',
+      subtitle: 'Omnichannel positioning & partner community scaling',
+      description: 'Omnichannel content calendars, community moderation, influencer outreach, and viral organic reach strategies.',
       features: [
-        'Instagram & TikTok SMM',
-        'YouTube Shorts Engine',
-        'Community Building',
-        'Brand Authority Strategy',
+        'Cross-Platform Scheduling',
+        'Brand Voice Blueprint',
+        'Community Engagement',
+        'Influencer Seeding',
       ],
-      impactBadge: '3x Community Growth',
-      icon: <ShareNetwork size={20} className="text-indigo-400" />,
-      accentColor: 'indigo' as const,
+      impactBadge: '100k+ Reach',
+      icon: <ShareNetwork size={18} />,
       frontImage: '/images/smm.webp',
     },
     {
-      id: 'service-biz',
-      categoryNumber: 'CORE SERVICE #5',
-      title: 'Business Management',
-      subtitle: 'Workflow automations & client onboarding OS',
-      description: 'Streamlining agency operations, automated client onboarding, Make/Zapier workflow automations, and CRM synchronization.',
+      id: 'service-ops',
+      categoryNumber: '05 / OPERATIONS',
+      title: 'Operations & CRM Systems',
+      subtitle: 'Workflow automation & nationwide order routing',
+      description: 'End-to-end workflow automation, CRM pipeline architecture, team SOP development, and operations optimization.',
       features: [
-        'Make.com Scenarios',
-        'Zapier Automations',
-        'Airtable & CRM Sync',
-        'Client Onboarding OS',
+        'Workflow Automation',
+        'CRM & Pipeline Setup',
+        'Team SOP Systems',
+        'KPI Dashboards',
       ],
-      impactBadge: '35 Hrs/Wk Saved',
-      icon: <Cpu size={20} className="text-[#00f0ff]" />,
-      accentColor: 'cyan' as const,
+      impactBadge: '35h/wk Saved',
+      icon: <Cpu size={18} />,
       frontImage: '/images/biz-management.webp',
     },
     {
-      id: 'service-graphic',
-      categoryNumber: 'CORE SERVICE #6',
-      title: 'Graphic Designing',
-      subtitle: 'High-converting ad creatives & UI/UX brand assets',
-      description: 'High-converting ad graphics, premium social media visual assets, brand identity kits, and UI/UX creative designs.',
+      id: 'service-design',
+      categoryNumber: '06 / CREATIVE',
+      title: 'Graphic & Creative Design',
+      subtitle: 'High-converting ad visuals, packaging & brand guidelines',
+      description: 'High-converting ad creatives, scroll-stopping thumbnails, brand guideline systems, and polished digital marketing collateral.',
       features: [
-        'Ad Creative Assets',
-        'Brand Style Guides',
-        'Social Media Graphics',
-        'Figma UI/UX Systems',
+        'High-ROAS Ad Creatives',
+        'Social Media Asset Packs',
+        'Brand Identity Guidelines',
+        'Packaging & Merch',
       ],
-      impactBadge: '100% Custom Identity',
-      icon: <Palette size={20} className="text-rose-400" />,
-      accentColor: 'rose' as const,
+      impactBadge: '500+ Assets',
+      icon: <Palette size={18} />,
       frontImage: '/images/graphic-design.webp',
     },
   ];
 
   return (
-    <section ref={sectionRef} id="services" className="py-24 relative bg-[#07090e]">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-12">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/10">
-          <div>
-            <Badge variant="accent" size="md" className="mb-3">
-              <Sparkle size={14} className="text-[#00f0ff]" /> Vanguard Flip Card Architecture
-            </Badge>
-            <ScrollFloat
-              animationDuration={1}
-              ease="back.inOut(2)"
-              stagger={0.025}
-              textClassName="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight font-heading"
-            >
-              Our Core Growth & Agency Services
-            </ScrollFloat>
+    <section id="services" className="w-full py-20 sm:py-28 font-sans bg-[#080C14] border-y border-white/[0.06]">
+      <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-12">
+        {showHeader && (
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/[0.06]">
+            <div>
+              <span className="text-xs font-semibold tracking-wider text-blue-400 uppercase block mb-2 font-mono">
+                Interactive Flip Cards
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-outfit font-semibold text-white tracking-tight">
+                Growth & Scaling Capabilities
+              </h2>
+            </div>
+            <Link to="/services">
+              <Button variant="outline" size="sm" iconRight={<ArrowRight size={13} />}>
+                Explore All Services
+              </Button>
+            </Link>
           </div>
-          <p className="text-slate-400 max-w-md text-sm sm:text-base">
-            Hover or tap any card to flip and explore detailed deliverables, features, and booking options.
-          </p>
-        </div>
+        )}
 
-        {/* 6 Modern Interactive Flip Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
-          {flipServices.map((service) => {
-            const theme = borderGlowThemes[service.accentColor] || borderGlowThemes.cyan;
-            return (
-              <div key={service.id} className="flip-card-wrapper w-full flex justify-center">
-                <BorderGlow
-                  edgeSensitivity={30}
-                  glowColor={theme.glowColor}
-                  backgroundColor="#0a0e17"
-                  borderRadius={16}
-                  glowRadius={30}
-                  glowIntensity={1.2}
-                  coneSpread={25}
-                  animated={false}
-                  colors={theme.colors}
-                >
-                  <CardFlip
-                    id={service.id}
-                    categoryNumber={service.categoryNumber}
-                    title={service.title}
-                    subtitle={service.subtitle}
-                    description={service.description}
-                    features={service.features}
-                    impactBadge={service.impactBadge}
-                    icon={service.icon}
-                    accentColor={service.accentColor}
-                    frontImage={service.frontImage}
-                  />
-                </BorderGlow>
-              </div>
-            );
-          })}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {flipServices.map((svc) => (
+            <CardFlip
+              key={svc.id}
+              id={svc.id}
+              categoryNumber={svc.categoryNumber}
+              title={svc.title}
+              subtitle={svc.subtitle}
+              description={svc.description}
+              features={svc.features}
+              impactBadge={svc.impactBadge}
+              icon={svc.icon}
+              frontImage={svc.frontImage}
+            />
+          ))}
         </div>
       </div>
     </section>

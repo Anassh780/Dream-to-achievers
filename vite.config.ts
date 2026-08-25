@@ -11,13 +11,18 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    watch: {
+      ignored: ['**/*.md', '**/.git/**', '**/.agents/**', '**/.gemini/**', '**/.user_uploaded/**'],
+    },
+  },
   build: {
     target: 'es2020',
     cssCodeSplit: true,
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],
+          vendor: ['react', 'react-dom', 'react-router-dom'],
           animation: ['gsap'],
           graphics: ['ogl'],
           icons: ['@phosphor-icons/react', 'lucide-react'],
@@ -26,4 +31,3 @@ export default defineConfig({
     },
   },
 });
-

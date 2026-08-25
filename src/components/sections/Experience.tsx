@@ -1,132 +1,93 @@
-import React, { useEffect, useRef } from 'react';
-import { Badge } from '@/components/ui/Badge';
-import { ScrollFloat } from '@/components/ui/ScrollFloat';
+import React from 'react';
 import { ChartLineUp, CheckCircle } from '@phosphor-icons/react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
 
 export const Experience: React.FC = () => {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from('.case-study-item', {
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top 80%',
-        },
-        x: -30,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.2,
-        ease: 'power3.out',
-      });
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
-
   const caseStudies = [
     {
-      period: 'Case Study #1 — DTC Scale',
-      title: 'E-Commerce Fashion Brand Scaling',
-      client: 'Verve Wear Global',
-      description: 'Engineered automated TikTok content pipelines paired with high-intent Meta retargeting ads, scaling monthly revenue from $35,000 to $280,000 in 90 days.',
-      metrics: '5.4x ROAS / $245k Rev Lift',
+      period: 'Case Study #1 — DTC Wholesale Scale',
+      title: 'E-Commerce Skincare Distribution Scaling',
+      client: 'Verified Brand Partner',
+      description: 'Scaled monthly product sales from 40 units to 480+ units in 60 days via direct TikTok organic hooks and targeted partner community distribution.',
+      metrics: 'PKR 450k+ Margins Generated',
       highlights: [
-        'Generated 22M+ organic views across 45 automated TikTok videos',
-        'Built high-conversion direct response ad creatives & video hooks',
-        'Integrated automated order tracking & email retargeting flows',
+        'Over 2.8M organic views generated across video reviews',
+        'Achieved Diamond Rank milestone qualification in 75 days',
+        'Integrated automated margin crediting to local partner ledgers',
       ],
     },
     {
-      period: 'Case Study #2 — SaaS Organic Growth',
-      title: 'Viral TikTok & Social Growth Engine',
-      client: 'Aura AI Productivity',
-      description: 'Executed daily automated TikTok & Instagram Reels distribution system, driving 14,000+ new app signups without ad spend.',
-      metrics: '14M Views / 14k Signups',
+      period: 'Case Study #2 — Organic Community Expansion',
+      title: 'Viral Video Content & Partner Referral Funnel',
+      client: 'Apex Lifestyle Network',
+      description: 'Executed daily automated product demonstration reels, driving 120+ active verified partner signups in 30 days.',
+      metrics: '120+ Active Team Members',
       highlights: [
-        'Automated script generation & voiceover synthesis pipeline',
-        'Achieved 3 viral hits (>2.5M views each) in the first 30 days',
-        'Optimized landing page copy resulting in a 24% conversion rate',
+        'Automated script generation & product demonstration workflows',
+        'High conversion referral page with 38% partner completion rate',
+        'Direct cash milestone bonus unlocks achieved across team members',
       ],
     },
     {
-      period: 'Case Study #3 — Agency Automation',
-      title: 'Business Management & CRM Automation',
-      client: 'Apex Marketing Partners',
-      description: 'Streamlined agency operations by deploying custom Make.com scenarios, eliminating manual client onboarding and contract routing.',
-      metrics: '35 Hrs/Wk Saved',
+      period: 'Case Study #3 — Distribution Operations',
+      title: 'Catalog Order Fulfillment & Margin Optimization',
+      client: 'National Logistics Hub',
+      description: 'Streamlined order routing and wholesale margin calculations, reducing fulfillment latency from 48 hours to under 6 hours.',
+      metrics: '99.4% Order Accuracy',
       highlights: [
-        'Automated client intake, invoice generation & Slack notifications',
-        'Reduced client onboarding time from 3 days to 4 minutes',
-        'Built real-time client KPI reporting dashboard',
+        'Automated order confirmation and courier dispatch sync',
+        'Real-time customer status tracking and WhatsApp updates',
+        'Instant gross margin ledger credit upon confirmed delivery',
       ],
     },
   ];
 
   return (
-    <section ref={sectionRef} id="case-studies" className="py-24 bg-[#07090e] relative">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-12">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/10">
-          <div>
-            <Badge variant="accent" size="md" className="mb-3">
-              <ChartLineUp size={14} className="text-[#00f0ff]" /> Proven Client Impact
-            </Badge>
-            <ScrollFloat
-              animationDuration={1}
-              ease="back.inOut(2)"
-              stagger={0.025}
-              textClassName="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight font-heading"
-            >
-              Growth Case Studies
-            </ScrollFloat>
-          </div>
-          <p className="text-slate-400 max-w-md text-sm sm:text-base">
-            Verified performance metrics demonstrating measurable revenue, view counts, and operations time saved.
-          </p>
+    <section id="case-studies" className="max-w-6xl mx-auto px-5 sm:px-8 space-y-8 font-sans">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-white/[0.08]">
+        <div>
+          <span className="text-xs text-[#60A5FA] font-medium uppercase tracking-wider block mb-1">
+            Proven Performance
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white">
+            Partner Case Studies
+          </h2>
         </div>
+        <p className="text-xs text-[#8996A8] max-w-sm">
+          Documented metrics demonstrating product volume, community growth, and cash rewards unlocked.
+        </p>
+      </div>
 
-        {/* Case Studies Timeline */}
-        <div className="relative pl-6 border-l border-white/15 space-y-10 max-w-4xl mx-auto">
-          {caseStudies.map((cs, idx) => (
-            <div key={idx} className="case-study-item relative group">
-              {/* Indicator Dot */}
-              <div className="absolute -left-[31px] top-2 w-4 h-4 rounded-full bg-[#07090e] border-2 border-[#00f0ff] group-hover:scale-125 group-hover:bg-[#00f0ff] transition-all" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {caseStudies.map((cs, idx) => (
+          <div
+            key={idx}
+            className="p-5 rounded-2xl bg-[#111A27] border border-white/[0.08] hover:border-white/[0.14] transition-colors flex flex-col justify-between space-y-4 text-xs"
+          >
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono text-[#8996A8]">{cs.period}</span>
+                <span className="text-[10px] font-semibold text-[#22C55E] bg-[#22C55E]/10 px-2 py-0.5 rounded">
+                  {cs.metrics}
+                </span>
+              </div>
 
-              <div className="p-2 rounded-[2rem] bg-white/5 border border-white/10 group-hover:border-[#00f0ff]/40 transition-all">
-                <div className="rounded-[calc(2rem-0.5rem)] bg-[#0a0e17] p-8 space-y-5">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div>
-                      <span className="text-xs font-mono text-[#00f0ff] font-semibold block">{cs.period}</span>
-                      <h3 className="text-2xl font-bold text-white group-hover:text-[#00f0ff] transition-colors font-heading">
-                        {cs.title}
-                      </h3>
-                      <p className="text-xs font-mono text-slate-400">Client: {cs.client}</p>
-                    </div>
-                    <Badge variant="emerald" size="md" className="w-max font-mono font-bold text-xs">
-                      {cs.metrics}
-                    </Badge>
-                  </div>
-
-                  <p className="text-sm text-slate-300 leading-relaxed">{cs.description}</p>
-
-                  <div className="pt-4 border-t border-white/10 space-y-2">
-                    {cs.highlights.map((item, i) => (
-                      <div key={i} className="flex items-center space-x-2.5 text-xs text-slate-300 font-mono">
-                        <CheckCircle size={15} className="text-emerald-400 shrink-0" />
-                        <span>{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              <div className="space-y-1">
+                <h3 className="font-semibold text-sm text-white">{cs.title}</h3>
+                <p className="text-[11px] text-[#8996A8]">{cs.client}</p>
+                <p className="text-xs text-[#CBD5E1] leading-relaxed pt-1">{cs.description}</p>
               </div>
             </div>
-          ))}
-        </div>
+
+            <div className="pt-3 border-t border-white/[0.06] space-y-1.5">
+              {cs.highlights.map((hl, i) => (
+                <div key={i} className="flex items-start space-x-1.5 text-[11px] text-[#8996A8]">
+                  <CheckCircle size={13} className="text-[#3B82F6] shrink-0 mt-0.5" />
+                  <span className="text-[#CBD5E1]">{hl}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );
