@@ -136,7 +136,15 @@ export const PublicLayout: React.FC = () => {
             </div>
           </div>
 
-          <div className="pt-6 border-t border-[#E3DCC8] space-y-3">
+          <div className="pt-6 border-t border-[#E3DCC8] space-y-2.5">
+            {isAdmin && (
+              <Link to="/admin" onClick={() => setMobileDrawerOpen(false)} className="block">
+                <Button variant="outline" size="md" className="w-full justify-center text-xs font-mono text-[#1F4D3E] border-[#1F4D3E]/30 bg-[#1F4D3E]/5">
+                  🔐 Open Admin Portal
+                </Button>
+              </Link>
+            )}
+
             {isAuthenticated ? (
               <Link to="/dashboard" onClick={() => setMobileDrawerOpen(false)} className="block">
                 <Button variant="primary" size="md" className="w-full justify-center">
@@ -156,6 +164,14 @@ export const PublicLayout: React.FC = () => {
                   </Button>
                 </Link>
               </div>
+            )}
+
+            {!isAdmin && (
+              <Link to="/admin" onClick={() => setMobileDrawerOpen(false)} className="block text-center pt-1">
+                <span className="text-[11px] font-mono text-[#5B5C50] hover:text-[#1E241F] underline">
+                  Admin Login Access
+                </span>
+              </Link>
             )}
           </div>
         </div>
@@ -273,6 +289,11 @@ export const PublicLayout: React.FC = () => {
                 <li>
                   <Link to="/about" className="hover:text-[#1E241F] transition-colors">
                     About Founder
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/admin" className="hover:text-[#1E241F] transition-colors font-mono text-[11px] text-[#1F4D3E]">
+                    Admin Portal ↗
                   </Link>
                 </li>
               </ul>

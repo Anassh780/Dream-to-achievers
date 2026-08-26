@@ -3,6 +3,7 @@ import { NavLink, Link, Outlet, useNavigate, useLocation } from 'react-router-do
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { SwitchButton } from '@/components/ui/SwitchButton';
+import { DreamLogo } from '@/components/ui/DreamLogo';
 import {
   ShieldCheck,
   House,
@@ -38,21 +39,23 @@ export const AdminLayout: React.FC = () => {
 
   if (!isAuthenticated || !isAdmin) {
     return (
-      <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] flex flex-col items-center justify-center p-6 text-center space-y-4 font-sans">
-        <LockKey size={48} className="text-[#1F4D3E]" />
-        <h2 className="font-serif text-xl font-medium text-[#1E241F]">Administrative Access Required</h2>
-        <p className="text-xs text-[#5B5C50] max-w-md">
-          This portal is restricted to authorized platform administrators.
+      <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] flex flex-col items-center justify-center p-6 text-center space-y-4 font-sans selection:bg-[#B8862E]/25">
+        <div className="w-16 h-16 rounded-2xl bg-[#1F4D3E]/10 border border-[#1F4D3E]/20 flex items-center justify-center text-[#1F4D3E] mx-auto">
+          <LockKey size={36} weight="bold" />
+        </div>
+        <h2 className="font-serif text-2xl font-medium text-[#1E241F]">Administrative Access Required</h2>
+        <p className="text-xs sm:text-sm text-[#5B5C50] max-w-md mx-auto leading-relaxed">
+          This portal is restricted to authorized platform administrators. Please sign in with your administrative credentials.
         </p>
-        <div className="flex items-center space-x-3 pt-2">
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
           <Link to="/login">
-            <Button variant="primary" size="sm" className="text-xs font-medium">
+            <Button variant="primary" size="md" className="text-xs font-medium">
               Sign In with Admin Account
             </Button>
           </Link>
           <Link to="/">
-            <Button variant="outline" size="sm" className="text-xs font-medium">
-              Return Home
+            <Button variant="outline" size="md" className="text-xs font-medium">
+              Return to Website
             </Button>
           </Link>
         </div>
@@ -97,9 +100,7 @@ export const AdminLayout: React.FC = () => {
           {/* Header Brand */}
           <div className="flex items-center justify-between px-2 py-1">
             <Link to="/admin" className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
-                <img src="/images/logo.png" alt="DreamToAchievers" className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
-              </div>
+              <DreamLogo size={28} />
               <div>
                 <span className="font-serif font-semibold text-sm text-[#1E241F] block">Admin Engine</span>
                 <span className="text-[10px] font-mono text-[#5B5C50]">Super Admin</span>
@@ -176,28 +177,27 @@ export const AdminLayout: React.FC = () => {
         </div>
       </aside>
 
-      {/* Mobile Top Header */}
-      <header className="md:hidden sticky top-0 z-40 bg-white border-b border-[#E3DCC8] p-4 flex items-center justify-between">
+      {/* Mobile Top Header (Android / Touch Devices) */}
+      <header className="md:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E3DCC8] px-4 py-3 flex items-center justify-between">
         <Link to="/admin" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-[#1F4D3E] text-white flex items-center justify-center font-serif font-semibold text-sm">
-            D
-          </div>
+          <DreamLogo size={26} />
           <span className="font-serif font-semibold text-sm text-[#1E241F]">Admin Portal</span>
         </Link>
         <div className="flex items-center gap-2">
           <SwitchButton size="sm" showLabel={false} />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg text-[#1E241F] hover:bg-[#FAF7EF]"
+            className="p-2 rounded-xl text-[#1E241F] hover:bg-[#FAF7EF] border border-[#E3DCC8]"
+            aria-label="Toggle Admin Navigation Menu"
           >
-            {mobileMenuOpen ? <X size={18} /> : <List size={18} />}
+            {mobileMenuOpen ? <X size={20} weight="bold" /> : <List size={20} weight="bold" />}
           </button>
         </div>
       </header>
 
-      {/* Mobile Menu */}
+      {/* Mobile Full Menu Overlay (Android / Mobile Responsive) */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 top-14 z-30 bg-[#FAF7EF] p-5 flex flex-col justify-between overflow-y-auto">
+        <div className="md:hidden fixed inset-0 top-[57px] z-50 bg-[#FAF7EF] p-5 flex flex-col justify-between overflow-y-auto border-b border-[#E3DCC8] animate-in slide-in-from-top-2">
           <nav className="space-y-4 text-xs">
             {navGroups.map((group) => (
               <div key={group.title} className="space-y-1">
@@ -217,10 +217,10 @@ export const AdminLayout: React.FC = () => {
                         key={item.href}
                         to={item.href}
                         onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center space-x-2.5 px-3 py-2 rounded-lg ${
+                        className={`flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-sm font-medium ${
                           isActive
-                            ? 'bg-[#1F4D3E] text-white font-medium'
-                            : 'text-[#5B5C50] hover:text-[#1E241F] hover:bg-[#F1ECDD]'
+                            ? 'bg-[#1F4D3E] text-white font-semibold shadow-xs'
+                            : 'text-[#1E241F] hover:bg-[#F1ECDD]'
                         }`}
                       >
                         <Icon size={16} />
@@ -233,25 +233,44 @@ export const AdminLayout: React.FC = () => {
             ))}
           </nav>
 
-          <div className="pt-4 border-t border-[#E3DCC8]">
+          <div className="pt-5 mt-6 border-t border-[#E3DCC8] space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <Link
+                to="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-2.5 rounded-xl bg-white border border-[#E3DCC8] text-xs font-semibold text-[#1E241F] text-center"
+              >
+                Website Home
+              </Link>
+              <Link
+                to="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-2.5 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] text-xs font-semibold text-[#1F4D3E] text-center"
+              >
+                Partner Dashboard
+              </Link>
+            </div>
+
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
                 logout();
                 navigate('/login');
               }}
-              className="w-full py-2.5 rounded-lg text-xs font-semibold text-rose-700 bg-rose-50 text-center"
+              className="w-full py-2.5 rounded-xl text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 text-center"
             >
-              Sign Out
+              Sign Out from Admin
             </button>
           </div>
         </div>
       )}
 
-      {/* Main Admin Content */}
+      {/* Main Admin Content Viewport */}
       <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl overflow-x-hidden">
         <Outlet />
       </main>
     </div>
   );
 };
+
+export default AdminLayout;
