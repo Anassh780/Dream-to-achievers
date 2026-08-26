@@ -14,6 +14,7 @@ import {
   CheckCircle,
   ShieldCheck,
   ArrowRight,
+  ArrowLeft,
 } from '@phosphor-icons/react';
 
 export const Signup: React.FC = () => {
@@ -101,7 +102,19 @@ export const Signup: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-[85vh] bg-[#FAF7EF] text-[#1E241F] flex items-center justify-center px-4 sm:px-6 py-12 sm:py-16 font-sans selection:bg-[#B8862E]/25 relative">
+    <div className="min-h-[85vh] bg-[#FAF7EF] text-[#1E241F] flex flex-col items-center justify-center px-4 sm:px-6 py-10 sm:py-14 font-sans selection:bg-[#B8862E]/25 relative">
+      {/* Back to Home Quick Bar */}
+      <div className="w-full max-w-4xl pb-6 flex items-center justify-between">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-xs font-mono text-[#5B5C50] hover:text-[#1E241F] transition-colors py-1.5 px-3 rounded-lg bg-white border border-[#E3DCC8] shadow-2xs"
+        >
+          <ArrowLeft size={13} />
+          <span>Back to Home</span>
+        </Link>
+        <span className="text-[11px] font-mono text-[#7C7D70]">DreamToAchievers Network</span>
+      </div>
+
       {/* Fullscreen Smooth Animated Loader */}
       {loading && (
         <Loader

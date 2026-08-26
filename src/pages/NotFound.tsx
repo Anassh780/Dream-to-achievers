@@ -2,32 +2,45 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { DreamLogo } from '@/components/ui/DreamLogo';
 import { Button } from '@/components/ui/Button';
-import { WarningCircle, House } from '@phosphor-icons/react';
+import { House, ArrowRight, Package } from '@phosphor-icons/react';
 
 export const NotFound: React.FC = () => {
   return (
-    <div className="min-h-[70vh] flex flex-col items-center justify-center text-center p-8 space-y-5 font-mono">
-      <DreamLogo size={48} showText={false} />
-      <div className="space-y-2">
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-white font-heading">404</h1>
-        <p className="text-base text-slate-300">Page Not Found in Dream to Achievers Directory</p>
-        <p className="text-xs text-slate-500 max-w-sm mx-auto">
-          The link you followed may be expired or the route may have been repositioned.
-        </p>
-      </div>
+    <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] flex flex-col items-center justify-center p-6 sm:p-8 font-sans selection:bg-[#B8862E]/25">
+      <div className="max-w-md w-full p-8 sm:p-10 rounded-2xl bg-white border border-[#E3DCC8] shadow-xs text-center space-y-6">
+        <div className="flex justify-center">
+          <Link to="/">
+            <DreamLogo size={42} />
+          </Link>
+        </div>
 
-      <div className="flex items-center space-x-3 pt-2">
-        <Link to="/">
-          <Button variant="primary" size="md" iconLeft={<House size={16} />}>
-            Return Home
-          </Button>
-        </Link>
-        <Link to="/dashboard">
-          <Button variant="secondary" size="md">
-            Partner Dashboard
-          </Button>
-        </Link>
+        <div className="space-y-2">
+          <span className="text-[11px] font-mono uppercase tracking-widest text-[#B8862E] font-semibold block">
+            HTTP Status 404
+          </span>
+          <h1 className="font-display font-medium text-3xl sm:text-4xl text-[#1E241F] tracking-tight">
+            Page Not Found
+          </h1>
+          <p className="text-xs sm:text-sm text-[#5B5C50] leading-relaxed">
+            The page or catalog route you are looking for does not exist or has been relocated within the network.
+          </p>
+        </div>
+
+        <div className="pt-2 border-t border-[#E3DCC8] flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Link to="/" className="w-full sm:w-auto">
+            <Button variant="primary" size="md" className="w-full justify-center text-xs font-medium" iconLeft={<House size={14} />}>
+              Return to Home
+            </Button>
+          </Link>
+          <Link to="/products" className="w-full sm:w-auto">
+            <Button variant="outline" size="md" className="w-full justify-center text-xs font-medium" iconLeft={<Package size={14} />}>
+              Browse Catalog
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );
 };
+
+export default NotFound;

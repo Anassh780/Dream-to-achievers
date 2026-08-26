@@ -29,7 +29,19 @@ export const ForgotPassword: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[85vh] bg-[#FAF7EF] text-[#1E241F] flex items-center justify-center px-4 sm:px-6 py-12 sm:py-16 font-sans selection:bg-[#B8862E]/25">
+    <div className="min-h-[85vh] bg-[#FAF7EF] text-[#1E241F] flex flex-col items-center justify-center px-4 sm:px-6 py-10 sm:py-14 font-sans selection:bg-[#B8862E]/25">
+      {/* Back to Home Quick Bar */}
+      <div className="w-full max-w-md pb-6 flex items-center justify-between">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-xs font-mono text-[#5B5C50] hover:text-[#1E241F] transition-colors py-1.5 px-3 rounded-lg bg-white border border-[#E3DCC8] shadow-2xs"
+        >
+          <ArrowLeft size={13} />
+          <span>Back to Home</span>
+        </Link>
+        <span className="text-[11px] font-mono text-[#7C7D70]">DTA Network</span>
+      </div>
+
       <div className="w-full max-w-md rounded-xl bg-white border border-[#E3DCC8] p-7 sm:p-9 shadow-xs space-y-6">
         <div className="text-center space-y-2 pb-2 border-b border-[#E3DCC8]">
           <Link to="/" className="flex items-center justify-center gap-3 mb-2">

@@ -49,14 +49,11 @@ import { AdminCategoriesPage } from '@/pages/admin/AdminCategoriesPage';
 // Common / 404
 import { NotFound } from '@/pages/NotFound';
 
-import { AdminQuickSwitch } from '@/components/common/AdminQuickSwitch';
-
 export const App: React.FC = () => {
   return (
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
-          <AdminQuickSwitch />
           <Routes>
             {/* Public Portal Routes */}
             <Route path="/" element={<PublicLayout />}>
