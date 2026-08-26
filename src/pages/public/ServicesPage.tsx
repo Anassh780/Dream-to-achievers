@@ -1,6 +1,7 @@
 import React from 'react';
 import { BentoWork } from '@/components/sections/BentoWork';
 import { Button } from '@/components/ui/Button';
+import { CardFlip } from '@/components/ui/CardFlip';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, CheckCircle, WhatsappLogo } from '@phosphor-icons/react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
@@ -129,68 +130,18 @@ export const ServicesPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service) => (
-              <div
+              <CardFlip
                 key={service.id}
-                className="rounded-xl bg-white border border-[#E3DCC8] p-5 flex flex-col justify-between space-y-4 shadow-xs hover:border-[#D2C8AF] transition-colors"
-              >
-                <div className="space-y-3.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[#FAF7EF] text-[#1F4D3E] border border-[#E3DCC8]">
-                      {service.category}
-                    </span>
-                    <span className="text-[10px] font-mono font-medium text-[#B8862E] bg-[#EFE2C4] px-2 py-0.5 rounded">
-                      {service.metric}
-                    </span>
-                  </div>
-
-                  <div className="w-full h-32 rounded-lg overflow-hidden bg-[#FAF7EF] border border-[#E3DCC8]">
-                    <img
-                      src={service.image}
-                      alt={service.title}
-                      loading="lazy"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        if (target.src.endsWith('.webp')) {
-                          target.src = target.src.replace('.webp', '.png');
-                        } else {
-                          target.src = '/images/logo.png';
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <h3 className="font-display font-medium text-base text-[#1E241F] mb-1">
-                      {service.title}
-                    </h3>
-                    <p className="text-xs text-[#5B5C50] leading-relaxed">
-                      {service.summary}
-                    </p>
-                  </div>
-
-                  <div className="space-y-1.5 pt-2 border-t border-[#E3DCC8]">
-                    {service.deliverables.map((item, idx) => (
-                      <div key={idx} className="flex items-start space-x-2 text-[11px] text-[#5B5C50]">
-                        <CheckCircle size={13} weight="bold" className="text-[#1F4D3E] shrink-0 mt-0.5" />
-                        <span className="leading-snug">{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-[#E3DCC8] flex items-center justify-between text-xs">
-                  <span className="text-[10.5px] font-mono text-[#5B5C50]">Active Module</span>
-                  <a
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-mono text-[11px] text-[#1F4D3E] font-medium hover:underline flex items-center gap-1"
-                  >
-                    Inquire via Desk &rarr;
-                  </a>
-                </div>
-              </div>
+                title={service.title}
+                subtitle={service.summary}
+                description={service.summary}
+                features={service.deliverables}
+                categoryNumber={service.category}
+                metric={service.metric}
+                impactBadge={service.metric}
+                frontImage={service.image}
+                whatsappUrl={whatsappUrl}
+              />
             ))}
           </div>
         </section>

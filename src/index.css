@@ -27,8 +27,9 @@
     --color-line: var(--line);
 
     /* 2. Typography */
-    --font-display: 'Fraunces', Georgia, serif;
-    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-display: 'Lora', 'Fraunces', Georgia, serif;
+    --font-serif: 'Lora', Georgia, serif;
+    --font-sans: 'Lora', 'Inter', system-ui, -apple-system, sans-serif;
     --font-mono: 'IBM Plex Mono', monospace;
 
     /* 3. Radii */
@@ -58,6 +59,13 @@
   }
 }
 
+@theme {
+  --font-display: 'Lora', 'Fraunces', Georgia, serif;
+  --font-serif: 'Lora', Georgia, serif;
+  --font-sans: 'Lora', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Lora', Georgia, serif;
+}
+
 /* Global Reset & Base */
 html {
   scroll-behavior: smooth;
@@ -65,11 +73,11 @@ html {
 }
 
 body {
-  font-family: var(--font-sans);
+  font-family: 'Lora', 'Inter', system-ui, -apple-system, sans-serif;
   background-color: var(--bg);
   color: var(--ink);
-  line-height: 1.5;
-  letter-spacing: -0.011em;
+  line-height: 1.6;
+  letter-spacing: -0.006em;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -165,6 +173,48 @@ code, pre, .font-mono {
 .btn-ghost:hover, .btn-secondary:hover, .btn-outline:hover {
   background-color: var(--surface-alt);
   color: var(--ink);
+}
+
+/* 3D Flip Card Animation System */
+.flip-card-container {
+  perspective: 2000px;
+  -webkit-perspective: 2000px;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.flip-card-inner.is-flipped {
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 1.25rem;
+  overflow: hidden;
+}
+
+.flip-card-front {
+  transform: rotateY(0deg);
+  -webkit-transform: rotateY(0deg);
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
 }
 
 /* Cards & Ledger Elements */

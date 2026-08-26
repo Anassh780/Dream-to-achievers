@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
+import { CardFlip } from '@/components/ui/CardFlip';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import {
   WhatsappLogo,
@@ -133,7 +134,7 @@ export const OwnerProfile: React.FC = () => {
 
                 <div className="absolute bottom-3 inset-x-3 p-3 rounded-lg bg-white/95 backdrop-blur-md border border-[#E3DCC8] flex items-center justify-between shadow-xs">
                   <div>
-                    <p className="font-display font-semibold text-[#1E241F] text-sm">Faria Imran</p>
+                    <p className="font-serif font-semibold text-[#1E241F] text-sm">Faria Imran</p>
                     <p className="text-[11px] text-[#5B5C50]">Founder &amp; Executive Director</p>
                   </div>
                   <span className="stamp">
@@ -145,11 +146,11 @@ export const OwnerProfile: React.FC = () => {
               {/* Verified Metrics Counter */}
               <div className="grid grid-cols-2 gap-3 text-center">
                 <div className="p-3 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8]">
-                  <p className="text-xl font-medium font-display text-[#1E241F]">25M+</p>
+                  <p className="text-xl font-medium font-serif text-[#1E241F]">25M+</p>
                   <p className="text-[10.5px] text-[#5B5C50] mt-0.5">Organic Impressions</p>
                 </div>
                 <div className="p-3 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8]">
-                  <p className="text-xl font-medium font-display text-[#1F4D3E]">100%</p>
+                  <p className="text-xl font-medium font-serif text-[#1F4D3E]">100%</p>
                   <p className="text-[10.5px] text-[#5B5C50] mt-0.5">Transparent Margins</p>
                 </div>
               </div>
@@ -164,7 +165,7 @@ export const OwnerProfile: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <h2 className="font-display text-3xl sm:text-4xl lg:text-[38px] font-medium text-[#1E241F] tracking-tight leading-tight">
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-[38px] font-medium text-[#1E241F] tracking-tight leading-tight">
                 "We built DreamToAchievers to give everyday distributors enterprise wholesale power."
               </h2>
               <p className="text-xs font-mono uppercase tracking-wider text-[#B8862E] font-medium">
@@ -184,11 +185,11 @@ export const OwnerProfile: React.FC = () => {
             {/* Core Values Strip */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
               <div className="p-3.5 rounded-lg bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
-                <span className="font-display font-medium text-xs text-[#1E241F] block">Zero Inventory Risk</span>
+                <span className="font-serif font-medium text-xs text-[#1E241F] block">Zero Inventory Risk</span>
                 <p className="text-[11px] text-[#5B5C50]">Distribute verified wholesale products without upfront bulk warehousing capital.</p>
               </div>
               <div className="p-3.5 rounded-lg bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
-                <span className="font-display font-medium text-xs text-[#1E241F] block">Guaranteed Milestone Bonuses</span>
+                <span className="font-serif font-medium text-xs text-[#1E241F] block">Guaranteed Milestone Bonuses</span>
                 <p className="text-[11px] text-[#5B5C50]">Clear dual qualification milestones unlocking up to PKR 10,000 cash rewards.</p>
               </div>
             </div>
@@ -208,7 +209,7 @@ export const OwnerProfile: React.FC = () => {
           </div>
         </div>
 
-        {/* 2. CLEAN EDITORIAL SERVICES GRID */}
+        {/* 2. INTERACTIVE 3D FLIP SERVICE CARDS */}
         <div className="space-y-8 pt-6 border-t border-[#E3DCC8]">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="space-y-1">
@@ -216,11 +217,11 @@ export const OwnerProfile: React.FC = () => {
                 <ShieldCheck size={13} weight="bold" />
                 <span>Partner Enablement Solutions</span>
               </div>
-              <h2 className="font-display text-2xl sm:text-3xl font-medium text-[#1E241F] tracking-tight">
+              <h2 className="font-serif text-2xl sm:text-3xl font-medium text-[#1E241F] tracking-tight">
                 Distribution &amp; Growth Services
               </h2>
               <p className="text-xs text-[#5B5C50] max-w-lg">
-                Complete growth and operational infrastructure designed to scale your independent distribution network.
+                Interactive capability suite. Hover or tap each card to flip and inspect operational deliverables.
               </p>
             </div>
 
@@ -232,69 +233,19 @@ export const OwnerProfile: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((service) => (
-              <div
+            {services.map((service, idx) => (
+              <CardFlip
                 key={service.id}
-                className="rounded-xl bg-white border border-[#E3DCC8] p-5 flex flex-col justify-between space-y-4 shadow-xs hover:border-[#D2C8AF] transition-colors"
-              >
-                <div className="space-y-3.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[#FAF7EF] text-[#1F4D3E] border border-[#E3DCC8]">
-                      {service.category}
-                    </span>
-                    <span className="text-[10px] font-mono font-medium text-[#B8862E] bg-[#EFE2C4] px-2 py-0.5 rounded">
-                      {service.metric}
-                    </span>
-                  </div>
-
-                  <div className="w-full h-32 rounded-lg overflow-hidden bg-[#FAF7EF] border border-[#E3DCC8]">
-                    <img
-                      src={service.image}
-                      alt={service.title}
-                      loading="lazy"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        if (target.src.endsWith('.webp')) {
-                          target.src = target.src.replace('.webp', '.png');
-                        } else {
-                          target.src = '/images/logo.png';
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <h3 className="font-display font-medium text-base text-[#1E241F] mb-1">
-                      {service.title}
-                    </h3>
-                    <p className="text-xs text-[#5B5C50] leading-relaxed">
-                      {service.summary}
-                    </p>
-                  </div>
-
-                  <div className="space-y-1.5 pt-2 border-t border-[#E3DCC8]">
-                    {service.deliverables.map((item, idx) => (
-                      <div key={idx} className="flex items-start space-x-2 text-[11px] text-[#5B5C50]">
-                        <CheckCircle size={13} weight="bold" className="text-[#1F4D3E] shrink-0 mt-0.5" />
-                        <span className="leading-snug">{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-[#E3DCC8] flex items-center justify-between text-xs">
-                  <span className="text-[10.5px] font-mono text-[#5B5C50]">Verified Service</span>
-                  <a
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-mono text-[11px] text-[#1F4D3E] font-medium hover:underline flex items-center gap-1"
-                  >
-                    Inquire via Desk &rarr;
-                  </a>
-                </div>
-              </div>
+                title={service.title}
+                subtitle={service.summary}
+                description={service.summary}
+                features={service.deliverables}
+                categoryNumber={service.category}
+                metric={service.metric}
+                impactBadge={service.metric}
+                frontImage={service.image}
+                whatsappUrl={whatsappUrl}
+              />
             ))}
           </div>
         </div>
