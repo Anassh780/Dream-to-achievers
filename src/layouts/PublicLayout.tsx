@@ -23,11 +23,13 @@ export const PublicLayout: React.FC = () => {
   const location = useLocation();
 
   const navLinks = [
+    { label: 'Home', href: '/' },
     { label: 'Wholesale catalog', href: '/products' },
     { label: 'Partner journey', href: '/ranks' },
     { label: 'How it works', href: '/how-it-works' },
     { label: 'Services', href: '/services' },
     { label: 'About', href: '/about' },
+    { label: 'Contact', href: '/contact' },
   ];
 
   return (
@@ -240,28 +242,31 @@ export const PublicLayout: React.FC = () => {
               <ul className="space-y-1.5">
                 <li>
                   <a
-                    href={`https://wa.me/${(siteConfig.whatsappNumber || '+92 305 4511395').replace(/[^0-9]/g, '')}`}
+                    href={siteConfig.whatsappChannelUrl || 'https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N'}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center gap-1.5 hover:text-[#1E241F] transition-colors"
                   >
                     <WhatsappLogo size={14} className="text-[#1F4D3E]" />
-                    <span>WhatsApp Desk</span>
+                    <span>WhatsApp Channel</span>
                   </a>
                 </li>
                 <li>
+                  <a
+                    href={`mailto:${siteConfig.supportEmail || 'dreamtoachievers@gmail.com'}?subject=Partner%20Support%20Query`}
+                    className="hover:text-[#1E241F] transition-colors"
+                  >
+                    Email Support
+                  </a>
+                </li>
+                <li>
+                  <Link to="/contact" className="hover:text-[#1E241F] transition-colors">
+                    Help Desk &amp; Queries
+                  </Link>
+                </li>
+                <li>
                   <Link to="/about" className="hover:text-[#1E241F] transition-colors">
-                    About DTA
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/terms" className="hover:text-[#1E241F] transition-colors">
-                    Partner Terms
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/privacy" className="hover:text-[#1E241F] transition-colors">
-                    Privacy Policy
+                    About Founder
                   </Link>
                 </li>
               </ul>
