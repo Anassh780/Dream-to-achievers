@@ -21,6 +21,7 @@ import {
   ArrowSquareOut,
 } from '@phosphor-icons/react';
 import { referralService } from '@/services/referralService';
+import { DreamLogo } from '@/components/ui/DreamLogo';
 
 export const DashboardLayout: React.FC = () => {
   const { user, isAuthenticated, isAdmin, rankProgress, unreadNotifsCount, logout } = useAuth();
@@ -79,10 +80,8 @@ export const DashboardLayout: React.FC = () => {
         <div className="space-y-5">
           {/* Logo & Public Site Link */}
           <div className="flex items-center justify-between px-2 py-1">
-            <Link to="/" className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
-                <img src="/images/logo.png" alt="DreamToAchievers" className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
-              </div>
+            <Link to="/" className="flex items-center gap-2">
+              <DreamLogo size={28} showText={false} />
               <span className="font-serif font-semibold text-sm text-[#1E241F]">Partner Hub</span>
             </Link>
             <Link
@@ -195,9 +194,7 @@ export const DashboardLayout: React.FC = () => {
       {/* Mobile Top Header */}
       <header className="md:hidden sticky top-0 z-40 bg-white border-b border-[#E3DCC8] p-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-[#1F4D3E] text-white flex items-center justify-center font-serif font-semibold text-sm">
-            D
-          </div>
+          <DreamLogo size={28} showText={false} />
           <span className="font-serif font-semibold text-sm text-[#1E241F]">Partner Hub</span>
         </Link>
 

@@ -12,35 +12,32 @@ export const DreamLogo: React.FC<DreamLogoProps> = ({
   showText = true,
 }) => {
   return (
-    <div className={`inline-flex items-center gap-3 select-none group ${className}`}>
-      {/* Official Brand Logo Mark */}
+    <div className={`inline-flex items-center gap-2.5 select-none group ${className}`}>
+      {/* Official Brand Logo Mark Perfectly Framed */}
       <div
-        className="rounded-[9px] bg-[#1F4D3E] text-white flex items-center justify-center font-display font-semibold shrink-0 overflow-hidden shadow-xs transition-transform duration-150 group-hover:scale-105"
-        style={{ width: size, height: size, fontSize: Math.round(size * 0.45) }}
+        className="rounded-xl bg-white border border-[#E3DCC8] shadow-2xs flex items-center justify-center shrink-0 overflow-hidden transition-transform duration-200 group-hover:scale-105 p-1"
+        style={{ width: size, height: size }}
       >
         <img
           src="/images/logo.png"
-          alt="DreamToAchievers"
-          className="w-full h-full object-contain p-0.5"
-          onError={(e) => {
-            // Fallback to "D" glyph if image not found
-            (e.target as HTMLElement).style.display = 'none';
-          }}
+          alt="Dream to Achievers"
+          className="w-full h-full object-contain"
         />
-        <span className="hidden group-has-[img[style*='display: none']]:inline">D</span>
       </div>
 
       {/* Typography Brandmark */}
       {showText && (
         <div className="flex flex-col leading-tight">
-          <span className="font-display font-semibold text-[17px] sm:text-[18px] tracking-tight text-[#1E241F]">
+          <span className="font-serif font-bold text-[16px] sm:text-[17px] tracking-tight text-[#1E241F]">
             DreamToAchievers
           </span>
-          <span className="font-sans text-[10px] sm:text-[11px] tracking-wider uppercase text-[#5B5C50] font-medium">
-            Commerce &amp; Leadership
+          <span className="font-mono text-[9.5px] tracking-wider uppercase text-[#5B5C50] font-medium">
+            Wholesale &amp; Reselling
           </span>
         </div>
       )}
     </div>
   );
 };
+
+export default DreamLogo;
