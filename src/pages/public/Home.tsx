@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { DepthCarousel } from '@/components/ui/DepthCarousel';
-import { FAQSection } from '@/components/sections/FAQSection';
 import { OwnerProfile } from '@/components/sections/OwnerProfile';
 import { ScrollFloat } from '@/components/ui/ScrollFloat';
 import { Strands } from '@/components/ui/Strands';
@@ -10,19 +9,10 @@ import { SEED_PRODUCTS } from '@/config/products';
 import {
   ArrowRight,
   ShieldCheck,
-  Package,
-  Trophy,
-  Users,
   CheckCircle,
-  Truck,
-  Sparkle,
 } from '@phosphor-icons/react';
 
 export const Home: React.FC = () => {
-  const [calculatorQuantity, setCalculatorQuantity] = useState(24);
-  const avgMargin = 650;
-  const totalEarnings = calculatorQuantity * avgMargin;
-
   return (
     <div className="w-full bg-[#FAF7EF] text-[#1E241F] font-sans selection:bg-[#B8862E]/25">
       
@@ -32,11 +22,6 @@ export const Home: React.FC = () => {
           
           {/* Left Column: Clear Value Proposition */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1F4D3E]/8 border border-[#1F4D3E]/15 text-[#1F4D3E] text-xs font-medium">
-              <ShieldCheck size={14} weight="bold" />
-              <span>Pakistan's Verified Wholesale Reseller Network</span>
-            </div>
-
             <h1 className="font-serif font-normal text-3xl sm:text-5xl lg:text-[50px] tracking-tight leading-[1.12] text-[#1E241F]">
               Start your reselling business with <em className="italic text-[#1F4D3E] font-medium">zero upfront inventory</em>.
             </h1>
@@ -77,22 +62,6 @@ export const Home: React.FC = () => {
                   Join as Partner (Free)
                 </Button>
               </Link>
-            </div>
-
-            {/* Quick Stats Strip */}
-            <div className="pt-6 border-t border-[#E3DCC8] flex flex-wrap gap-8 sm:gap-12">
-              <div>
-                <div className="text-xs text-[#7C7D70]">Available Products</div>
-                <div className="font-serif text-2xl font-medium text-[#1E241F] mt-0.5">100+ SKUs</div>
-              </div>
-              <div>
-                <div className="text-xs text-[#7C7D70]">Avg. Profit per Unit</div>
-                <div className="font-serif text-2xl font-medium text-[#1F4D3E] mt-0.5">PKR 650+</div>
-              </div>
-              <div>
-                <div className="text-xs text-[#7C7D70]">Milestone Rewards</div>
-                <div className="font-serif text-2xl font-medium text-[#B8862E] mt-0.5">Up to PKR 10K</div>
-              </div>
             </div>
           </div>
 
@@ -195,218 +164,7 @@ export const Home: React.FC = () => {
         </div>
       </header>
 
-      {/* 2. SIMPLE 3-STEP "HOW IT WORKS" (EASY TO UNDERSTAND) */}
-      <section className="px-6 sm:px-8 py-16 bg-[#F1ECDD] border-b border-[#E3DCC8]">
-        <div className="max-w-[1180px] mx-auto space-y-10">
-          
-          <div className="text-center space-y-2 max-w-xl mx-auto">
-            <div className="text-xs font-semibold uppercase tracking-wider text-[#1F4D3E]">
-              Simple 3-Step Process
-            </div>
-            <h2 className="font-serif text-3xl sm:text-4xl font-medium text-[#1E241F]">
-              How DreamToAchievers Works
-            </h2>
-            <p className="text-[#5B5C50] text-xs sm:text-sm">
-              Anyone in Pakistan can start an online resale business in 3 easy steps.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* Step 01 */}
-            <div className="p-6 rounded-2xl bg-white border border-[#E3DCC8] space-y-4 shadow-xs hover:border-[#1F4D3E]/30 transition-all">
-              <div className="w-10 h-10 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] flex items-center justify-center font-serif text-[#1F4D3E] font-bold text-base">
-                1
-              </div>
-              <div className="space-y-1.5">
-                <h3 className="text-base font-semibold text-[#1E241F]">
-                  Pick Wholesale Products
-                </h3>
-                <p className="text-xs text-[#5B5C50] leading-relaxed">
-                  Browse 100+ verified skincare formulas, cosmetics, and electronics at factory-direct wholesale pricing.
-                </p>
-              </div>
-              <div className="pt-2 text-[11px] font-mono text-[#1F4D3E] font-medium flex items-center gap-1.5">
-                <CheckCircle size={14} weight="bold" />
-                <span>Zero advance bulk stock cost</span>
-              </div>
-            </div>
-
-            {/* Step 02 */}
-            <div className="p-6 rounded-2xl bg-white border border-[#E3DCC8] space-y-4 shadow-xs hover:border-[#1F4D3E]/30 transition-all">
-              <div className="w-10 h-10 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] flex items-center justify-center font-serif text-[#1F4D3E] font-bold text-base">
-                2
-              </div>
-              <div className="space-y-1.5">
-                <h3 className="text-base font-semibold text-[#1E241F]">
-                  Share &amp; Take Orders
-                </h3>
-                <p className="text-xs text-[#5B5C50] leading-relaxed">
-                  Post products on WhatsApp, TikTok, Instagram, or Facebook. Sell to customers at recommended retail prices.
-                </p>
-              </div>
-              <div className="pt-2 text-[11px] font-mono text-[#1F4D3E] font-medium flex items-center gap-1.5">
-                <CheckCircle size={14} weight="bold" />
-                <span>Free marketing video copy &amp; images</span>
-              </div>
-            </div>
-
-            {/* Step 03 */}
-            <div className="p-6 rounded-2xl bg-white border border-[#E3DCC8] space-y-4 shadow-xs hover:border-[#1F4D3E]/30 transition-all">
-              <div className="w-10 h-10 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] flex items-center justify-center font-serif text-[#1F4D3E] font-bold text-base">
-                3
-              </div>
-              <div className="space-y-1.5">
-                <h3 className="text-base font-semibold text-[#1E241F]">
-                  We Ship &amp; You Get Paid
-                </h3>
-                <p className="text-xs text-[#5B5C50] leading-relaxed">
-                  We pack and deliver the parcel with Cash on Delivery (COD) across 150+ cities. You receive your profit directly.
-                </p>
-              </div>
-              <div className="pt-2 text-[11px] font-mono text-[#1F4D3E] font-medium flex items-center gap-1.5">
-                <CheckCircle size={14} weight="bold" />
-                <span>Automated rider COD dispatch</span>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* 3. PARTNER LEVELS & REWARDS (CLEAR & MOTIVATING) */}
-      <section className="px-6 sm:px-8 py-16 border-b border-[#E3DCC8]">
-        <div className="max-w-[1180px] mx-auto space-y-8">
-          
-          <div className="text-center space-y-2 max-w-xl mx-auto">
-            <div className="text-xs font-semibold uppercase tracking-wider text-[#1F4D3E]">
-              Partner Growth Milestones
-            </div>
-            <h2 className="font-serif text-3xl sm:text-4xl font-medium text-[#1E241F]">
-              Sell More, Earn Cash Bonuses
-            </h2>
-            <p className="text-[#5B5C50] text-xs sm:text-sm">
-              As your personal sales and reseller referrals grow, unlock direct cash bonuses up to PKR 10,000.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            
-            {/* Level 01 */}
-            <div className="p-5 rounded-2xl bg-white border border-[#E3DCC8] space-y-4 shadow-2xs hover:border-[#1F4D3E]/30 transition-all flex flex-col justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[10.5px] uppercase font-semibold text-[#1F4D3E] bg-[#FAF7EF] px-2 py-0.5 rounded border border-[#E3DCC8]">
-                    Level 01
-                  </span>
-                  <span className="text-[10px] text-[#7C7D70]">Starter</span>
-                </div>
-                <div className="text-xl font-bold font-serif text-[#B8862E]">
-                  +PKR 2,000
-                </div>
-                <div className="text-[11.5px] text-[#5B5C50]">Cash bonus reward</div>
-              </div>
-
-              <div className="space-y-2 pt-3 border-t border-[#E3DCC8] text-xs">
-                <div className="flex justify-between text-[#5B5C50]">
-                  <span>Product Sales:</span>
-                  <strong className="text-[#1E241F]">10 units</strong>
-                </div>
-                <div className="flex justify-between text-[#5B5C50]">
-                  <span>Team Referrals:</span>
-                  <strong className="text-[#1E241F]">20 members</strong>
-                </div>
-              </div>
-            </div>
-
-            {/* Level 02 */}
-            <div className="p-5 rounded-2xl bg-white border border-[#E3DCC8] space-y-4 shadow-2xs hover:border-[#1F4D3E]/30 transition-all flex flex-col justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[10.5px] uppercase font-semibold text-[#1F4D3E] bg-[#FAF7EF] px-2 py-0.5 rounded border border-[#E3DCC8]">
-                    Level 02
-                  </span>
-                  <span className="text-[10px] text-[#7C7D70]">Growth</span>
-                </div>
-                <div className="text-xl font-bold font-serif text-[#B8862E]">
-                  +PKR 4,000
-                </div>
-                <div className="text-[11.5px] text-[#5B5C50]">Cash bonus reward</div>
-              </div>
-
-              <div className="space-y-2 pt-3 border-t border-[#E3DCC8] text-xs">
-                <div className="flex justify-between text-[#5B5C50]">
-                  <span>Product Sales:</span>
-                  <strong className="text-[#1E241F]">25 units</strong>
-                </div>
-                <div className="flex justify-between text-[#5B5C50]">
-                  <span>Team Referrals:</span>
-                  <strong className="text-[#1E241F]">45 members</strong>
-                </div>
-              </div>
-            </div>
-
-            {/* Level 03 */}
-            <div className="p-5 rounded-2xl bg-white border border-[#E3DCC8] space-y-4 shadow-2xs hover:border-[#1F4D3E]/30 transition-all flex flex-col justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[10.5px] uppercase font-semibold text-[#1F4D3E] bg-[#FAF7EF] px-2 py-0.5 rounded border border-[#E3DCC8]">
-                    Level 03
-                  </span>
-                  <span className="text-[10px] text-[#7C7D70]">Regional</span>
-                </div>
-                <div className="text-xl font-bold font-serif text-[#B8862E]">
-                  +PKR 6,000
-                </div>
-                <div className="text-[11.5px] text-[#5B5C50]">Cash bonus reward</div>
-              </div>
-
-              <div className="space-y-2 pt-3 border-t border-[#E3DCC8] text-xs">
-                <div className="flex justify-between text-[#5B5C50]">
-                  <span>Product Sales:</span>
-                  <strong className="text-[#1E241F]">35 units</strong>
-                </div>
-                <div className="flex justify-between text-[#5B5C50]">
-                  <span>Team Referrals:</span>
-                  <strong className="text-[#1E241F]">60 members</strong>
-                </div>
-              </div>
-            </div>
-
-            {/* Level 04 */}
-            <div className="p-5 rounded-2xl bg-white border border-[#B8862E]/40 space-y-4 shadow-xs hover:border-[#B8862E] transition-all flex flex-col justify-between bg-gradient-to-b from-white to-[#FBF7ED]">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[10.5px] uppercase font-semibold text-white bg-[#1F4D3E] px-2 py-0.5 rounded">
-                    Level 04 ★
-                  </span>
-                  <span className="text-[10px] text-[#B8862E] font-semibold">Top Tier</span>
-                </div>
-                <div className="text-xl font-bold font-serif text-[#1F4D3E]">
-                  +PKR 10,000
-                </div>
-                <div className="text-[11.5px] text-[#5B5C50]">Cash bonus reward</div>
-              </div>
-
-              <div className="space-y-2 pt-3 border-t border-[#E3DCC8] text-xs">
-                <div className="flex justify-between text-[#5B5C50]">
-                  <span>Product Sales:</span>
-                  <strong className="text-[#1E241F]">100 units</strong>
-                </div>
-                <div className="flex justify-between text-[#5B5C50]">
-                  <span>Team Referrals:</span>
-                  <strong className="text-[#1E241F]">200 members</strong>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* 4. FEATURED PRODUCTS — 3D DEPTH CAROUSEL */}
+      {/* 2. FEATURED PRODUCTS — 3D DEPTH CAROUSEL */}
       <section className="px-6 sm:px-8 py-16 bg-[#F1ECDD] border-b border-[#E3DCC8]">
         <div className="max-w-[1180px] mx-auto space-y-8">
           <div className="text-center space-y-2">
@@ -466,68 +224,10 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 5. MARGIN ESTIMATOR CALCULATOR */}
-      <section className="px-6 sm:px-8 py-16 bg-[#F1ECDD] border-b border-[#E3DCC8]">
-        <div className="max-w-[800px] mx-auto p-6 sm:p-8 rounded-2xl bg-white border border-[#E3DCC8] shadow-xs space-y-6">
-          <div className="space-y-1 text-center sm:text-left">
-            <div className="text-xs font-semibold uppercase tracking-wider text-[#1F4D3E]">
-              Profit Calculator
-            </div>
-            <h3 className="font-serif text-2xl sm:text-3xl font-medium text-[#1E241F]">
-              Estimate Your Monthly Profit
-            </h3>
-            <p className="text-xs sm:text-sm text-[#5B5C50]">
-              Drag the slider to see how much you can earn selling products in your spare time.
-            </p>
-          </div>
-
-          <div className="space-y-4 pt-1">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-[#5B5C50]">Products sold per month:</span>
-              <span className="font-bold text-[#1E241F] text-sm font-mono bg-[#FAF7EF] px-2.5 py-1 rounded-md border border-[#E3DCC8]">
-                {calculatorQuantity} Units / Month
-              </span>
-            </div>
-            <input
-              type="range"
-              min={5}
-              max={150}
-              step={1}
-              value={calculatorQuantity}
-              onChange={(e) => setCalculatorQuantity(Number(e.target.value))}
-              className="w-full accent-[#1F4D3E] cursor-pointer h-2 bg-[#F1ECDD] rounded-lg"
-            />
-            <div className="flex justify-between text-[11px] text-[#7C7D70]">
-              <span>5 units (Part-time)</span>
-              <span>75 units</span>
-              <span>150+ units (Full-time)</span>
-            </div>
-          </div>
-
-          <div className="p-4 sm:p-5 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-center sm:text-left">
-              <span className="text-xs text-[#5B5C50] block">Estimated Take-Home Profit:</span>
-              <span className="font-mono text-2xl sm:text-3xl font-bold text-[#B8862E]">
-                PKR {totalEarnings.toLocaleString()}
-              </span>
-              <span className="text-[10.5px] text-[#7C7D70] block mt-0.5">Based on average PKR 650 profit per unit</span>
-            </div>
-            <Link to="/signup">
-              <Button variant="primary" size="md" className="text-xs font-medium shrink-0">
-                Start Selling Today
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. FOUNDER PROFILE & SERVICES */}
+      {/* 3. FOUNDER PROFILE & SERVICES (WITH 3D FLIP CARDS) */}
       <OwnerProfile />
 
-      {/* 6. FREQUENTLY ASKED QUESTIONS */}
-      <FAQSection />
-
-      {/* 7. FINAL CONVERSION CTA WITH STRANDS BACKGROUND */}
+      {/* 4. FINAL CONVERSION CTA WITH STRANDS BACKGROUND */}
       <section className="px-6 sm:px-8 py-20">
         <div className="max-w-[1180px] mx-auto rounded-2xl bg-[#1F4D3E] text-white text-center shadow-lg relative overflow-hidden" style={{ minHeight: '340px' }}>
           {/* Ambient WebGL Strands — distinct flowing lines, NOT a blob */}
@@ -576,3 +276,4 @@ export const Home: React.FC = () => {
     </div>
   );
 };
+export default Home;
