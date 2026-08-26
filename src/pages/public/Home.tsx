@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { FAQSection } from '@/components/sections/FAQSection';
 import { OwnerProfile } from '@/components/sections/OwnerProfile';
 import { ScrollFloat } from '@/components/ui/ScrollFloat';
+import { Strands } from '@/components/ui/Strands';
 import { SEED_PRODUCTS } from '@/config/products';
 import {
   ArrowRight,
@@ -419,33 +420,55 @@ export const Home: React.FC = () => {
       {/* 6. FREQUENTLY ASKED QUESTIONS */}
       <FAQSection />
 
-      {/* 7. FINAL CONVERSION CTA */}
+      {/* 7. FINAL CONVERSION CTA WITH STRANDS BACKGROUND */}
       <section className="px-6 sm:px-8 py-20">
-        <div className="max-w-[1180px] mx-auto p-10 sm:p-14 rounded-2xl bg-[#1F4D3E] text-white text-center space-y-5 shadow-lg">
-          <ScrollFloat
-            animationDuration={1}
-            ease="back.inOut(2)"
-            scrollStart="top bottom-=10%"
-            scrollEnd="bottom center"
-            stagger={0.02}
-            containerClassName="font-serif text-3xl sm:text-4xl font-normal tracking-tight text-white max-w-xl mx-auto"
-          >
-            Ready to distribute verified wholesale goods?
-          </ScrollFloat>
-          <p className="text-sm sm:text-base text-emerald-100 max-w-lg mx-auto leading-relaxed">
-            Join hundreds of active distributors in Pakistan. Unlock wholesale pricing, direct margins, and milestone cash rewards.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3.5 pt-3">
-            <Link to="/signup">
-              <Button variant="outline" size="lg" className="bg-white text-[#1F4D3E] hover:bg-emerald-50 border-white font-medium">
-                Apply for Partner Access
-              </Button>
-            </Link>
-            <Link to="/products">
-              <Button variant="ghost" size="lg" className="text-white hover:bg-[#153A2E] border-white/20 font-medium">
-                Browse Full Catalog
-              </Button>
-            </Link>
+        <div className="max-w-[1180px] mx-auto rounded-2xl bg-[#1F4D3E] text-white text-center shadow-lg relative overflow-hidden" style={{ minHeight: '340px' }}>
+          {/* Ambient WebGL Strands — full bleed behind content */}
+          <div className="absolute inset-0 w-full h-full pointer-events-none z-0" style={{ opacity: 0.7 }}>
+            <Strands
+              colors={['#52B788', '#D4A043', '#7CCFA8', '#FAF7EF']}
+              count={5}
+              speed={0.35}
+              amplitude={1.1}
+              waviness={1.3}
+              thickness={0.9}
+              glow={3.2}
+              taper={2.2}
+              spread={1.3}
+              intensity={0.8}
+              saturation={1.6}
+              opacity={1}
+              scale={1.6}
+            />
+          </div>
+
+          {/* Foreground Content — lifted above strands */}
+          <div className="relative z-10 p-10 sm:p-14 space-y-5 max-w-2xl mx-auto">
+            <ScrollFloat
+              animationDuration={1}
+              ease="back.inOut(2)"
+              scrollStart="top bottom-=10%"
+              scrollEnd="bottom center"
+              stagger={0.02}
+              containerClassName="font-serif text-3xl sm:text-4xl lg:text-[40px] font-normal tracking-tight text-white leading-tight max-w-xl mx-auto drop-shadow-lg"
+            >
+              Ready to distribute verified wholesale goods?
+            </ScrollFloat>
+            <p className="text-sm sm:text-base text-emerald-100 max-w-lg mx-auto leading-relaxed drop-shadow-sm">
+              Join hundreds of active distributors in Pakistan. Unlock wholesale pricing, direct margins, and milestone cash rewards.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3.5 pt-3">
+              <Link to="/signup">
+                <Button variant="outline" size="lg" className="bg-white text-[#1F4D3E] hover:bg-emerald-50 border-white font-medium shadow-md">
+                  Apply for Partner Access
+                </Button>
+              </Link>
+              <Link to="/products">
+                <Button variant="ghost" size="lg" className="text-white hover:bg-[#153A2E]/80 border-white/25 font-medium">
+                  Browse Full Catalog
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
