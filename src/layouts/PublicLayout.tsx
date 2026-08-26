@@ -24,10 +24,9 @@ export const PublicLayout: React.FC = () => {
 
   const navLinks = [
     { label: 'Home', href: '/' },
-    { label: 'Wholesale catalog', href: '/products' },
-    { label: 'Partner journey', href: '/ranks' },
-    { label: 'How it works', href: '/how-it-works' },
-    { label: 'Services', href: '/services' },
+    { label: 'Products', href: '/products' },
+    { label: 'How It Works', href: '/how-it-works' },
+    { label: 'Ranks', href: '/ranks' },
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
   ];
@@ -37,15 +36,15 @@ export const PublicLayout: React.FC = () => {
       
       {/* 1. Clean Editorial Top Navigation Bar */}
       <nav className="sticky top-0 z-40 bg-[#FAF7EF]/95 backdrop-blur-md border-b border-[#E3DCC8]">
-        <div className="max-w-[1180px] mx-auto px-6 sm:px-8 py-4 flex items-center justify-between">
+        <div className="max-w-[1180px] mx-auto px-5 sm:px-8 py-3.5 flex items-center justify-between gap-4">
           
           {/* Brand Logo */}
-          <Link to="/" className="flex items-center group">
-            <DreamLogo size={36} />
+          <Link to="/" className="flex items-center group shrink-0">
+            <DreamLogo size={34} />
           </Link>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden lg:flex items-center gap-8 text-[13.5px] font-medium text-[#5B5C50]">
+          <div className="hidden lg:flex items-center gap-5 xl:gap-7 text-[13px] font-medium text-[#5B5C50]">
             {navLinks.map((item) => (
               <NavLink
                 key={item.label}
@@ -62,13 +61,13 @@ export const PublicLayout: React.FC = () => {
           </div>
 
           {/* Header Action Controls */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2.5 shrink-0">
             <SwitchButton size="sm" showLabel={false} />
 
             {isAdmin && (
               <Link to="/admin">
-                <Button variant="outline" size="sm" className="text-xs font-medium">
-                  Admin portal
+                <Button variant="outline" size="sm" className="text-xs font-medium px-2.5">
+                  Admin
                 </Button>
               </Link>
             )}
@@ -76,19 +75,19 @@ export const PublicLayout: React.FC = () => {
             {isAuthenticated ? (
               <Link to="/dashboard">
                 <Button variant="primary" size="sm" className="text-xs font-medium">
-                  Partner dashboard
+                  Dashboard
                 </Button>
               </Link>
             ) : (
               <>
                 <Link to="/login">
-                  <Button variant="outline" size="sm" className="text-xs font-medium">
+                  <Button variant="ghost" size="sm" className="text-xs font-medium text-[#5B5C50] hover:text-[#1E241F]">
                     Sign in
                   </Button>
                 </Link>
                 <Link to="/signup">
-                  <Button variant="primary" size="sm" className="text-xs font-medium">
-                    Become a partner
+                  <Button variant="primary" size="sm" className="text-xs font-medium shadow-2xs">
+                    Join Free
                   </Button>
                 </Link>
               </>
@@ -111,18 +110,24 @@ export const PublicLayout: React.FC = () => {
 
       {/* Mobile Drawer */}
       {mobileDrawerOpen && (
-        <div className="md:hidden fixed inset-0 top-[65px] z-30 bg-[#FAF7EF] p-6 flex flex-col justify-between border-b border-[#E3DCC8] animate-in slide-in-from-top-2">
-          <div className="space-y-3">
+        <div className="md:hidden fixed inset-0 top-[61px] z-30 bg-[#FAF7EF] p-6 flex flex-col justify-between border-b border-[#E3DCC8] animate-in slide-in-from-top-2">
+          <div className="space-y-4">
             <span className="text-[10px] font-mono uppercase text-[#7C7D70] font-semibold tracking-wider block">
               Menu Navigation
             </span>
-            <div className="space-y-1">
+            <div className="space-y-2">
               {navLinks.map((item) => (
                 <NavLink
                   key={item.label}
                   to={item.href}
                   onClick={() => setMobileDrawerOpen(false)}
-                  className="block px-3 py-2.5 rounded-lg text-sm font-medium text-[#1E241F] hover:bg-[#F1ECDD] transition-colors"
+                  className={({ isActive }) =>
+                    `block px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-[#1F4D3E] text-white font-semibold'
+                        : 'text-[#1E241F] hover:bg-[#F1ECDD]'
+                    }`
+                  }
                 >
                   {item.label}
                 </NavLink>
@@ -130,23 +135,23 @@ export const PublicLayout: React.FC = () => {
             </div>
           </div>
 
-          <div className="pt-6 border-t border-[#E3DCC8] space-y-2.5">
+          <div className="pt-6 border-t border-[#E3DCC8] space-y-3">
             {isAuthenticated ? (
               <Link to="/dashboard" onClick={() => setMobileDrawerOpen(false)} className="block">
-                <Button variant="primary" size="md" className="w-full justify-center text-xs">
+                <Button variant="primary" size="md" className="w-full justify-center">
                   Open Partner Dashboard
                 </Button>
               </Link>
             ) : (
               <div className="grid grid-cols-2 gap-3">
-                <Link to="/login" onClick={() => setMobileDrawerOpen(false)}>
+                <Link to="/login" onClick={() => setMobileDrawerOpen(false)} className="block">
                   <Button variant="outline" size="md" className="w-full justify-center text-xs">
                     Sign in
                   </Button>
                 </Link>
-                <Link to="/signup" onClick={() => setMobileDrawerOpen(false)}>
+                <Link to="/signup" onClick={() => setMobileDrawerOpen(false)} className="block">
                   <Button variant="primary" size="md" className="w-full justify-center text-xs">
-                    Get started
+                    Join Free
                   </Button>
                 </Link>
               </div>
