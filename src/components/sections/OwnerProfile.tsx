@@ -51,15 +51,15 @@ export const OwnerProfile: React.FC = () => {
     },
     {
       id: 'srv-content',
-      title: 'Commercial Video Creation',
+      title: 'Commercial Content & Scripting',
       category: 'Creative Production',
-      image: '/images/content-creation.webp',
-      summary: 'Studio-grade product unboxings, cosmetic texture B-rolls, and problem-solution ad creatives.',
+      image: '/images/content-writing.webp',
+      summary: 'Studio-grade product unboxings, cosmetic texture copy, and problem-solution ad creatives.',
       metric: '4.8x Conversion',
       deliverables: [
-        'Macro 4K product cinematography',
-        'Urdu & English voiceover narration',
-        'High-converting thumbnail suites',
+        'High-converting video scripts',
+        'Urdu & English product copy',
+        'Catalog sales data sheets',
       ],
     },
     {
@@ -76,29 +76,29 @@ export const OwnerProfile: React.FC = () => {
       ],
     },
     {
-      id: 'srv-logistics',
-      title: 'Wholesale Sourcing & Logistics',
-      category: 'Supply Chain',
-      image: '/images/sourcing-logistics.webp',
-      summary: 'Factory-direct supplier vetting, bulk inventory quality checks, and nationwide courier routing.',
-      metric: '99.4% SLA',
+      id: 'srv-graphic',
+      title: 'Visual Assets & Catalog Design',
+      category: 'Brand Identity',
+      image: '/images/graphic-design.webp',
+      summary: 'Factory-direct supplier presentation, premium packaging mockups, and wholesale banners.',
+      metric: '100% Custom',
       deliverables: [
-        'Supplier batch inspection ledgers',
-        'Centralized packaging & tamper-sealing',
-        'Nationwide COD logistics integration',
+        'High-res product mockups',
+        'Social media banner packages',
+        'Digital brand guideline boards',
       ],
     },
     {
-      id: 'srv-mentorship',
-      title: 'Partner Strategy & Mentorship',
-      category: 'Executive Coaching',
-      image: '/images/mentorship.webp',
+      id: 'srv-biz',
+      title: 'Wholesale Sourcing & Strategy',
+      category: 'Supply Chain',
+      image: '/images/biz-management.webp',
       summary: '1-on-1 operational coaching for high-volume resellers aiming for Level 03 & Level 04 milestones.',
-      metric: '100% Verified',
+      metric: '99.4% SLA',
       deliverables: [
-        'Weekly sales & margin breakdown audits',
+        'Supplier batch inspection ledgers',
         'Sub-distributor team structuring',
-        'Personal brand authority positioning',
+        'Nationwide COD logistics integration',
       ],
     },
   ];
@@ -208,7 +208,7 @@ export const OwnerProfile: React.FC = () => {
           </div>
         </div>
 
-        {/* 2. CLEAN EDITORIAL SERVICES GRID (No Clunky 3D Flipping) */}
+        {/* 2. CLEAN EDITORIAL SERVICES GRID */}
         <div className="space-y-8 pt-6 border-t border-[#E3DCC8]">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="space-y-1">
@@ -254,7 +254,12 @@ export const OwnerProfile: React.FC = () => {
                       loading="lazy"
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/images/logo.png';
+                        const target = e.target as HTMLImageElement;
+                        if (target.src.endsWith('.webp')) {
+                          target.src = target.src.replace('.webp', '.png');
+                        } else {
+                          target.src = '/images/logo.png';
+                        }
                       }}
                     />
                   </div>
