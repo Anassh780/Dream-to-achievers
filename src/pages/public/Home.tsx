@@ -77,55 +77,104 @@ export const Home: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column: Editorial Wholesale Margin Ledger Card */}
+          {/* Right Column: Premium Wholesale Margin Ledger Card */}
           <div className="lg:col-span-5">
-            <div className="ledger-card shadow-sm">
-              <div className="ledger-head">
-                <div className="text-[13px] font-semibold text-[#1E241F]">
-                  Wholesale margin sheet
+            <div className="rounded-2xl bg-white border border-[#E3DCC8] overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+              
+              {/* Card Header with subtle gradient */}
+              <div className="flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-[#F1ECDD] to-[#FAF7EF] border-b border-[#E3DCC8]">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-[#1F4D3E] animate-pulse" />
+                  <span className="text-[13px] font-semibold text-[#1E241F] tracking-tight">
+                    Wholesale margin sheet
+                  </span>
                 </div>
-                <div className="stamp">
+                <div className="flex items-center gap-1.5 font-mono text-[10px] font-medium uppercase tracking-wider text-[#1F4D3E] border border-[#1F4D3E]/20 bg-[#1F4D3E]/5 rounded-full px-3 py-1">
+                  <ShieldCheck size={11} weight="bold" />
                   Verified
                 </div>
               </div>
 
+              {/* Hero Product Image + Details */}
               <div className="p-5 space-y-4">
-                <div className="flex items-center gap-3.5">
-                  <img
-                    src="https://images.unsplash.com/photo-1608248597359-bb4f53ca0c59?auto=format&fit=crop&w=200&q=80"
-                    alt="Luxe botanical elixir"
-                    className="w-12 h-12 rounded-lg object-cover bg-[#EFE2C4] border border-[#E3DCC8] shrink-0"
-                  />
-                  <div className="truncate">
-                    <div className="font-mono text-[10.5px] text-[#5B5C50] uppercase tracking-wider">
-                      DTA-SKN-001 · SKINCARE
+                <div className="flex gap-4 items-start">
+                  {/* Large product thumbnail */}
+                  <div className="w-[72px] h-[72px] rounded-xl overflow-hidden bg-gradient-to-br from-[#EFE2C4] to-[#F1ECDD] border border-[#E3DCC8] shrink-0 shadow-sm">
+                    <img
+                      src="https://images.unsplash.com/photo-1608248597359-bb4f53ca0c59?auto=format&fit=crop&w=200&q=80"
+                      alt="Luxe botanical elixir"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        target.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-[#B8862E]"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>';
+                      }}
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1 pt-0.5">
+                    <div className="font-mono text-[10px] text-[#7C7D70] uppercase tracking-[0.08em] mb-1">
+                      DTA-SKN-001 · Skincare
                     </div>
-                    <div className="text-[14px] font-semibold text-[#1E241F] truncate">
+                    <div className="text-[15px] font-semibold text-[#1E241F] leading-snug">
                       Luxe botanical skin repair elixir
                     </div>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-[10px] font-mono text-white bg-[#1F4D3E] rounded-full px-2 py-0.5">Best seller</span>
+                      <span className="text-[10px] font-mono text-[#5B5C50]">In stock</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-0 border-t border-[#E3DCC8] pt-4">
-                  <div className="pr-3 border-r border-[#E3DCC8]">
-                    <div className="text-[11px] text-[#5B5C50] mb-1">Retail price</div>
-                    <div className="font-mono text-[14.5px] font-medium text-[#1E241F]">PKR 2,500</div>
+                {/* Price Breakdown Grid */}
+                <div className="grid grid-cols-3 gap-0 rounded-xl border border-[#E3DCC8] overflow-hidden">
+                  <div className="p-3.5 bg-[#FAF7EF]">
+                    <div className="text-[10px] text-[#7C7D70] uppercase tracking-wider mb-1.5 font-medium">Retail</div>
+                    <div className="font-mono text-[15px] font-semibold text-[#1E241F]">PKR 2,500</div>
                   </div>
-                  <div className="px-3 border-r border-[#E3DCC8]">
-                    <div className="text-[11px] text-[#5B5C50] mb-1">Wholesale cost</div>
-                    <div className="font-mono text-[14.5px] font-medium text-[#1F4D3E]">PKR 2,000</div>
+                  <div className="p-3.5 bg-[#FAF7EF] border-x border-[#E3DCC8]">
+                    <div className="text-[10px] text-[#7C7D70] uppercase tracking-wider mb-1.5 font-medium">Your cost</div>
+                    <div className="font-mono text-[15px] font-semibold text-[#1F4D3E]">PKR 2,000</div>
                   </div>
-                  <div className="pl-3">
-                    <div className="text-[11px] text-[#5B5C50] mb-1">Partner margin</div>
-                    <div className="font-mono text-[14.5px] font-semibold text-[#B8862E]">+PKR 500</div>
+                  <div className="p-3.5 bg-gradient-to-br from-[#FBF7ED] to-[#F5EDD8]">
+                    <div className="text-[10px] text-[#7C7D70] uppercase tracking-wider mb-1.5 font-medium">You keep</div>
+                    <div className="font-mono text-[15px] font-bold text-[#B8862E]">+PKR 500</div>
+                  </div>
+                </div>
+
+                {/* Visual margin bar */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[10px] font-mono text-[#7C7D70]">
+                    <span>Margin breakdown</span>
+                    <span className="text-[#B8862E] font-semibold">20% margin</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-[#F1ECDD] overflow-hidden">
+                    <div className="h-full rounded-full bg-gradient-to-r from-[#1F4D3E] to-[#2D6A56]" style={{ width: '80%' }} />
+                  </div>
+                  <div className="flex justify-between text-[9px] font-mono text-[#7C7D70]">
+                    <span>Partner cost · 80%</span>
+                    <span className="text-[#B8862E]">Profit · 20%</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between px-5 py-3.5 border-t border-[#E3DCC8] bg-[#F1ECDD] text-[13px]">
-                <span className="font-medium text-[#1E241F] truncate pr-2">Quantum sound ANC earbuds</span>
-                <span className="font-mono font-semibold text-[#B8862E] shrink-0">+PKR 1,000 margin</span>
+              {/* Second product teaser */}
+              <div className="flex items-center justify-between px-5 py-3 border-t border-[#E3DCC8] bg-gradient-to-r from-[#F1ECDD] to-[#FAF7EF]">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-white border border-[#E3DCC8] overflow-hidden shadow-xs">
+                    <img
+                      src="https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=100&q=80"
+                      alt="ANC Earbuds"
+                      className="w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  </div>
+                  <span className="text-[12px] font-medium text-[#1E241F]">Quantum sound ANC earbuds</span>
+                </div>
+                <span className="font-mono text-[12px] font-bold text-[#B8862E] bg-[#B8862E]/8 rounded-full px-2.5 py-0.5">+PKR 1,000</span>
               </div>
+
+              {/* Bottom accent strip */}
+              <div className="h-1 bg-gradient-to-r from-[#1F4D3E] via-[#B8862E] to-[#1F4D3E]" />
             </div>
           </div>
 
