@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { productService } from '@/services/productService';
 import { salesService } from '@/services/salesService';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
-import { ArrowLeft, Check, ShoppingCart } from '@phosphor-icons/react';
+import {
+  ArrowLeft,
+  Check,
+  Package,
+  ShieldCheck,
+  Truck,
+  TrendUp,
+  ArrowRight,
+  Calculator,
+} from '@phosphor-icons/react';
 
 export const ProductDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -16,13 +25,21 @@ export const ProductDetail: React.FC = () => {
   const [saleRecorded, setSaleRecorded] = useState(false);
   const navigate = useNavigate();
 
+  const allProducts = useMemo(() => productService.getAllProducts(), []);
+  const relatedProducts = useMemo(() => {
+    if (!product) return [];
+    return allProducts
+      .filter((p) => p.id !== product.id && p.category === product.category)
+      .slice(0, 3);
+  }, [product, allProducts]);
+
   if (!product) {
     return (
-      <div className="min-h-[50vh] flex flex-col items-center justify-center text-center p-8 space-y-3 font-sans">
-        <h2 className="text-xl font-bold text-white">Product Not Found</h2>
-        <p className="text-xs text-[#94A3B8]">The requested product does not exist in the current catalog.</p>
+      <div className="min-h-[50vh] flex flex-col items-center justify-center text-center p-8 space-y-3 font-sans bg-[#FAF7EF] text-[#1E241F]">
+        <h2 className="font-serif text-2xl font-medium text-[#1E241F]">Product Not Found</h2>
+        <p className="text-xs text-[#5B5C50]">The requested product does not exist in the current catalog.</p>
         <Link to="/products">
-          <Button variant="secondary" size="md" className="rounded-xl">
+          <Button variant="outline" size="md" className="text-xs">
             Return to Products Catalog
           </Button>
         </Link>
@@ -51,176 +68,247 @@ export const ProductDetail: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 pb-24 max-w-5xl mx-auto px-5 sm:px-8 font-sans">
-      {/* Back button */}
-      <div>
-        <Link to="/products" className="inline-flex items-center space-x-1.5 text-xs text-[#94A3B8] hover:text-white transition-colors">
-          <ArrowLeft size={14} />
-          <span>Back to Wholesale Products</span>
-        </Link>
-      </div>
+    <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] pb-24 font-sans selection:bg-[#B8862E]/25">
+      <div className="max-w-[1180px] mx-auto px-6 sm:px-8 pt-8 space-y-8">
+        
+        {/* Back Link */}
+        <div>
+          <Link
+            to="/products"
+            className="inline-flex items-center space-x-1.5 text-xs text-[#5B5C50] hover:text-[#1E241F] transition-colors font-mono"
+          >
+            <ArrowLeft size={14} />
+            <span>Back to Wholesale Catalog</span>
+          </Link>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Product Imagery */}
-        <div className="lg:col-span-6 space-y-4">
-          <div className="double-bezel">
-            <div className="double-bezel-inner p-3 overflow-hidden">
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-[#0A0F19] relative">
-                <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
-                <span className="absolute top-3 left-3 text-xs font-medium px-3 py-1 rounded-full bg-[#06090F]/90 backdrop-blur-sm text-white">
+        {/* 1. Main PDP Two-Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+          
+          {/* Left Column: Product Gallery & Supply Proof */}
+          <div className="lg:col-span-6 space-y-4">
+            <div className="rounded-2xl bg-white border border-[#E3DCC8] overflow-hidden p-3 shadow-xs">
+              <div className="aspect-[4/3] rounded-xl overflow-hidden bg-[#FAF7EF] relative">
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+                <span className="absolute top-3 left-3 text-[10.5px] font-mono font-semibold px-3 py-1 rounded bg-white/90 text-[#1E241F] border border-[#E3DCC8] shadow-2xs">
                   {product.category}
+                </span>
+                {product.isFeatured && (
+                  <span className="absolute top-3 right-3 text-[10.5px] font-mono font-bold px-2.5 py-1 rounded bg-[#EFE2C4] text-[#B8862E] border border-[#B8862E]/30 shadow-2xs">
+                    FEATURED SKU
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Distribution Verification Strip */}
+            <div className="p-4 rounded-xl bg-white border border-[#E3DCC8] grid grid-cols-3 gap-3 text-center text-xs shadow-2xs">
+              <div>
+                <span className="text-[10px] text-[#5B5C50] font-mono block">SKU Identity</span>
+                <span className="font-mono font-semibold text-[#1E241F] text-xs">{product.sku}</span>
+              </div>
+              <div className="border-x border-[#E3DCC8]">
+                <span className="text-[10px] text-[#5B5C50] font-mono block">Availability</span>
+                <span className="font-semibold text-[#1F4D3E] text-xs flex items-center justify-center gap-1">
+                  <Check size={12} weight="bold" /> In Stock
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-[#5B5C50] font-mono block">Fulfillment</span>
+                <span className="font-semibold text-[#1E241F] text-xs flex items-center justify-center gap-1">
+                  <Truck size={12} /> Nationwide COD
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 text-xs text-center">
-            <div className="p-3 rounded-2xl bg-[#0E1626] border border-white/[0.06]">
-              <span className="text-[#60A5FA] font-medium block">100% Authentic</span>
-              <span className="text-[10px] text-[#64748B]">Pre-Vetted Supply</span>
+          {/* Right Column: Title, Transparent Unit Economics & Direct Order Simulation */}
+          <div className="lg:col-span-6 space-y-6">
+            <div className="space-y-2">
+              <div className="eyebrow">
+                <ShieldCheck size={13} weight="bold" />
+                <span>Verified Manufacturer Supply</span>
+              </div>
+              <h1 className="font-serif text-2xl sm:text-4xl font-medium text-[#1E241F] tracking-tight">
+                {product.name}
+              </h1>
+              <p className="text-xs sm:text-sm text-[#5B5C50] leading-relaxed">
+                {product.shortDescription}
+              </p>
             </div>
-            <div className="p-3 rounded-2xl bg-[#0E1626] border border-white/[0.06]">
-              <span className="text-[#22C55E] font-medium block">Nationwide Delivery</span>
-              <span className="text-[10px] text-[#64748B]">Logistics Ready</span>
-            </div>
-            <div className="p-3 rounded-2xl bg-[#0E1626] border border-white/[0.06]">
-              <span className="text-white font-medium block">Rank Eligible</span>
-              <span className="text-[10px] text-[#64748B]">Qualifying Unit</span>
-            </div>
-          </div>
-        </div>
 
-        {/* Right Column: Product Overview, Margin Calculator & Sales Simulation */}
-        <div className="lg:col-span-6 space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-2xl sm:text-4xl font-heading font-bold text-white tracking-tight">
-              {product.name}
-            </h1>
-            <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed">
-              {product.description}
-            </p>
-          </div>
-
-          {/* Price & Profit Margin Matrix */}
-          <div className="double-bezel">
-            <div className="double-bezel-inner p-6 space-y-4 text-xs">
-              <span className="text-[10px] font-mono text-[#60A5FA] uppercase tracking-wider block">
-                Product Economics Matrix
-              </span>
+            {/* Transparent Unit Economics Box (Section 11 Requirement) */}
+            <div className="p-5 rounded-2xl bg-white border border-[#E3DCC8] space-y-4 shadow-xs">
+              <div className="flex items-center justify-between pb-3 border-b border-[#E3DCC8]">
+                <span className="text-xs font-serif font-semibold text-[#1E241F]">
+                  Unit Economics Breakdown
+                </span>
+                <span className="text-[10px] font-mono text-[#1F4D3E] bg-[#F1ECDD] px-2 py-0.5 rounded border border-[#E3DCC8]">
+                  Verified Rates
+                </span>
+              </div>
 
               <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="p-3 rounded-xl bg-[#0A0F19] border border-white/[0.04]">
-                  <span className="text-[10px] text-[#64748B] block">Retail Price</span>
-                  <span className="text-base font-bold text-white font-mono">PKR {product.retailPrice.toLocaleString()}</span>
+                <div className="p-3 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8]">
+                  <span className="text-[10px] text-[#5B5C50] block font-mono">Retail Price</span>
+                  <span className="font-mono font-medium text-[#1E241F] text-sm sm:text-base">
+                    PKR {product.retailPrice.toLocaleString()}
+                  </span>
                 </div>
-                <div className="p-3 rounded-xl bg-[#0A0F19] border border-white/[0.04]">
-                  <span className="text-[10px] text-[#64748B] block">Wholesale Cost</span>
-                  <span className="text-base font-bold text-[#60A5FA] font-mono">PKR {product.partnerPrice.toLocaleString()}</span>
+                <div className="p-3 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8]">
+                  <span className="text-[10px] text-[#5B5C50] block font-mono">Wholesale Cost</span>
+                  <span className="font-mono font-medium text-[#1F4D3E] text-sm sm:text-base">
+                    PKR {product.partnerPrice.toLocaleString()}
+                  </span>
                 </div>
-                <div className="p-3 rounded-xl bg-[#0A0F19] border border-white/[0.04]">
-                  <span className="text-[10px] text-[#64748B] block">Gross Margin</span>
-                  <span className="text-base font-bold text-[#22C55E] font-mono">+PKR {product.grossMargin.toLocaleString()}</span>
+                <div className="p-3 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8]">
+                  <span className="text-[10px] text-[#5B5C50] block font-mono">Partner Margin</span>
+                  <span className="font-mono font-bold text-[#B8862E] text-sm sm:text-base">
+                    +PKR {product.grossMargin.toLocaleString()}
+                  </span>
                 </div>
               </div>
+
+              <p className="text-[11px] text-[#5B5C50] font-sans leading-relaxed">
+                You purchase this SKU at the wholesale rate of <strong>PKR {product.partnerPrice.toLocaleString()}</strong> and sell at retail for <strong>PKR {product.retailPrice.toLocaleString()}</strong>, capturing the direct gross margin upon delivered order.
+              </p>
             </div>
-          </div>
 
-          {/* Direct Sales Recording for Logged-In Partner */}
-          <div className="double-bezel">
-            <div className="double-bezel-inner p-6 sm:p-7 space-y-4 text-xs">
-              <h3 className="text-sm font-semibold text-white">
-                {isAuthenticated ? 'Record a Customer Sale' : 'Partner Portal Wholesale Access'}
-              </h3>
+            {/* Direct Order / Sale Simulation Form */}
+            <div className="p-5 rounded-2xl bg-white border border-[#E3DCC8] space-y-4 shadow-xs">
+              <div className="flex items-center space-x-2 text-xs font-serif font-semibold text-[#1E241F]">
+                <Calculator size={15} className="text-[#1F4D3E]" />
+                <span>Simulate Client Order &amp; Margin Ledger</span>
+              </div>
 
-              {isAuthenticated ? (
-                saleRecorded ? (
-                  <div className="p-4 rounded-xl bg-[#22C55E]/10 border border-[#22C55E]/20 text-center space-y-2">
-                    <Check size={24} className="text-[#22C55E] mx-auto" />
-                    <p className="text-xs font-semibold text-white">Sale Successfully Credited</p>
-                    <p className="text-xs text-[#94A3B8]">
-                      +PKR {(product.grossMargin * quantity).toLocaleString()} has been logged to your profit ledger.
-                    </p>
-                    <div className="flex items-center justify-center space-x-2 pt-1">
-                      <Link to="/dashboard/sales">
-                        <Button variant="primary" size="sm" className="rounded-xl">
-                          View Sales Ledger
-                        </Button>
-                      </Link>
-                      <Button variant="secondary" size="sm" className="rounded-xl" onClick={() => setSaleRecorded(false)}>
-                        Record Another
-                      </Button>
-                    </div>
+              {saleRecorded ? (
+                <div className="p-4 rounded-xl bg-[#F1ECDD] border border-[#E3DCC8] text-xs space-y-2">
+                  <div className="flex items-center space-x-2 font-semibold text-[#1F4D3E]">
+                    <Check size={16} weight="bold" />
+                    <span>Order Recorded Successfully!</span>
                   </div>
-                ) : (
-                  <form onSubmit={handleSimulateSale} className="space-y-3.5">
+                  <p className="text-[#5B5C50]">
+                    Credited <strong>+PKR {(product.grossMargin * quantity).toLocaleString()}</strong> gross profit margin to your partner sales ledger.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSaleRecorded(false)}
+                    className="text-xs mt-2"
+                  >
+                    Record Another Order
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleSimulateSale} className="space-y-3 text-xs">
+                  <div>
+                    <label className="block text-[#5B5C50] mb-1 font-medium">Customer Full Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      placeholder="e.g. Tariq Mehmood"
+                      className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[#94A3B8] mb-1 font-medium">Customer Full Name *</label>
+                      <label className="block text-[#5B5C50] mb-1 font-medium">Client Contact</label>
                       <input
                         type="text"
-                        required
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        placeholder="e.g. Asad Malik"
-                        className="w-full px-3.5 py-2 rounded-xl bg-[#0A0F19] border border-white/10 text-white focus:outline-none focus:border-[#3B82F6]"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        placeholder="client@email.com"
+                        className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E]"
                       />
                     </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[#94A3B8] mb-1 font-medium">Customer Contact</label>
-                        <input
-                          type="text"
-                          value={customerEmail}
-                          onChange={(e) => setCustomerEmail(e.target.value)}
-                          placeholder="customer@email.com"
-                          className="w-full px-3.5 py-2 rounded-xl bg-[#0A0F19] border border-white/10 text-white focus:outline-none focus:border-[#3B82F6]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[#94A3B8] mb-1 font-medium">Units</label>
-                        <input
-                          type="number"
-                          min={1}
-                          max={20}
-                          value={quantity}
-                          onChange={(e) => setQuantity(Number(e.target.value))}
-                          className="w-full px-3.5 py-2 rounded-xl bg-[#0A0F19] border border-white/10 text-white focus:outline-none focus:border-[#3B82F6]"
-                        />
-                      </div>
+                    <div>
+                      <label className="block text-[#5B5C50] mb-1 font-medium">Quantity</label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={50}
+                        value={quantity}
+                        onChange={(e) => setQuantity(Number(e.target.value))}
+                        className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] font-mono focus:outline-none focus:border-[#1F4D3E]"
+                      />
                     </div>
-
-                    <div className="p-3 rounded-xl bg-[#22C55E]/10 border border-[#22C55E]/20 flex items-center justify-between text-[#4ADE80]">
-                      <span>Calculated Gross Margin:</span>
-                      <span className="font-semibold font-mono">PKR {(product.grossMargin * quantity).toLocaleString()}</span>
-                    </div>
-
-                    <Button type="submit" variant="primary" size="md" className="w-full justify-center rounded-xl font-medium">
-                      Confirm & Record Customer Order
-                    </Button>
-                  </form>
-                )
-              ) : (
-                <div className="space-y-3 text-xs text-[#94A3B8]">
-                  <p>
-                    To purchase at partner wholesale pricing (PKR {product.partnerPrice.toLocaleString()}) and earn direct gross margins, please sign in or register as a partner.
-                  </p>
-                  <div className="flex items-center space-x-2.5 pt-1">
-                    <Link to="/signup">
-                      <Button variant="primary" size="sm" className="rounded-xl">
-                        Join as Partner
-                      </Button>
-                    </Link>
-                    <Link to="/login">
-                      <Button variant="secondary" size="sm" className="rounded-xl">
-                        Partner Sign In
-                      </Button>
-                    </Link>
                   </div>
-                </div>
+
+                  <div className="p-3 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] flex justify-between font-mono text-xs">
+                    <span className="text-[#5B5C50]">Total Calculated Margin:</span>
+                    <span className="font-bold text-[#B8862E]">
+                      +PKR {(product.grossMargin * quantity).toLocaleString()}
+                    </span>
+                  </div>
+
+                  <Button type="submit" variant="primary" size="md" className="w-full justify-center text-xs font-medium">
+                    {isAuthenticated ? 'Record & Credit Order to Ledger' : 'Sign In to Record Partner Sale'}
+                  </Button>
+                </form>
               )}
             </div>
           </div>
+
         </div>
+
+        {/* 2. Detailed Specifications Section */}
+        <div className="p-6 sm:p-8 rounded-2xl bg-white border border-[#E3DCC8] space-y-4 shadow-xs">
+          <h3 className="font-serif text-xl font-medium text-[#1E241F]">
+            Product Information &amp; Distribution Details
+          </h3>
+          <div className="text-xs sm:text-sm text-[#5B5C50] leading-relaxed space-y-3">
+            <p>{product.description}</p>
+            <p>
+              All wholesale lots are inspected for batch freshness and packaged securely for nationwide courier cash on delivery dispatch. Return and exchange protection is supported for verified customer delivery disputes.
+            </p>
+          </div>
+        </div>
+
+        {/* 3. Related Inventory Carousel */}
+        {relatedProducts.length > 0 && (
+          <div className="space-y-4 pt-4">
+            <h3 className="font-serif text-xl font-medium text-[#1E241F]">
+              Similar High-Margin Wholesale Products
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              {relatedProducts.map((rel) => (
+                <div
+                  key={rel.id}
+                  className="rounded-xl bg-white border border-[#E3DCC8] p-4 flex flex-col justify-between space-y-3 shadow-2xs hover:border-[#D2C8AF] transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    <img
+                      src={rel.imageUrl}
+                      alt={rel.name}
+                      className="w-12 h-12 rounded-lg object-cover bg-[#FAF7EF] border border-[#E3DCC8] shrink-0"
+                    />
+                    <div className="truncate">
+                      <h4 className="font-serif font-medium text-sm text-[#1E241F] truncate">{rel.name}</h4>
+                      <span className="text-[10.5px] font-mono text-[#B8862E] font-semibold block">
+                        +PKR {rel.grossMargin.toLocaleString()} Margin
+                      </span>
+                    </div>
+                  </div>
+
+                  <Link to={`/products/${rel.slug}`}>
+                    <Button variant="outline" size="sm" className="w-full text-xs justify-between">
+                      <span>View SKU</span>
+                      <ArrowRight size={12} />
+                    </Button>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

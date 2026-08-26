@@ -1,378 +1,425 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
-import { RankJourney } from '@/components/ranks/RankJourney';
-import { BentoWork } from '@/components/sections/BentoWork';
+import { FAQSection } from '@/components/sections/FAQSection';
 import { OwnerProfile } from '@/components/sections/OwnerProfile';
-import { SocialCommunityHub } from '@/components/sections/SocialCommunityHub';
 import { SEED_PRODUCTS } from '@/config/products';
 import {
   ArrowRight,
-  CheckCircle,
-  WhatsappLogo,
-  CaretRight,
-  Sparkle,
-  TrendUp,
-  Package,
   ShieldCheck,
+  Package,
   Trophy,
+  Users,
+  CheckCircle,
+  Truck,
+  Sparkle,
 } from '@phosphor-icons/react';
-
-const CASE_STUDIES = [
-  {
-    category: 'Skincare Distribution',
-    title: 'Scaled from 40 to 480+ units in 60 days',
-    description: 'A partner used TikTok organic content to drive skincare product demand, generating over PKR 450k in gross margins and reaching Diamond rank in 75 days.',
-    metric: 'PKR 450k+ earned',
-    highlights: ['2.8M organic views on product videos', 'Diamond rank achieved in 75 days', 'Instant margin tracking']
-  },
-  {
-    category: 'Community Growth',
-    title: '120+ active partners onboarded in 30 days',
-    description: 'Daily automated product demo reels drove a 38% referral completion rate, rapidly building an active nationwide distribution team.',
-    metric: '120+ team members',
-    highlights: ['Automated demo video workflows', '38% referral conversion rate', 'Team milestone bonuses unlocked']
-  },
-  {
-    category: 'Order Operations',
-    title: 'Fulfillment time cut from 48 hours to under 6',
-    description: 'Streamlined order routing and margin calculations with automated courier dispatch and real-time WhatsApp tracking for customers.',
-    metric: '99.4% accuracy',
-    highlights: ['Automated dispatch and tracking', 'Real-time WhatsApp updates', 'Instant margin crediting on delivery']
-  }
-];
 
 export const Home: React.FC = () => {
   const [calculatorQuantity, setCalculatorQuantity] = useState(24);
-  const avgMargin = 500;
+  const avgMargin = 650;
   const totalEarnings = calculatorQuantity * avgMargin;
 
   return (
-    <main className="w-full bg-[#030712] min-h-screen font-sans selection:bg-cyan-500/30 overflow-x-hidden max-w-full">
-      {/* ATTENTION (HERO): Cinematic Center Layout with Inline Typographic Media Pills */}
-      <section className="relative w-full pt-36 pb-24 sm:pt-44 sm:pb-36 bg-radial-hero subtle-grid border-b border-white/[0.08] overflow-hidden">
-        {/* Atmospheric ambient glow */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-tr from-cyan-500/15 via-blue-600/10 to-indigo-500/15 rounded-full blur-[120px] pointer-events-none" />
-
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 relative z-10 text-center space-y-8">
+    <div className="w-full bg-[#FAF7EF] text-[#1E241F] font-sans selection:bg-[#B8862E]/25">
+      
+      {/* 1. EDITORIAL HERO SECTION */}
+      <header className="px-6 sm:px-8 pt-16 pb-14 border-b border-[#E3DCC8]">
+        <div className="max-w-[1180px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-start">
           
-          {/* Subtle Verified Platform Header */}
-          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/25 shadow-[0_0_20px_rgba(0,242,254,0.15)]">
-            <Sparkle size={13} weight="fill" className="text-cyan-400 animate-pulse" />
-            <span className="text-xs font-mono font-semibold text-cyan-300 uppercase tracking-wider">
-              Wholesale Commerce & Milestone Rewards
-            </span>
-          </div>
-
-          {/* 2-Line Iron Rule Ultra-Wide H1 */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold font-heading text-white tracking-tight leading-[1.06] max-w-5xl mx-auto">
-            Sell wholesale products. <br className="hidden sm:block" />
-            <span className="text-chroma">Unlock cash milestone rewards.</span>
-          </h1>
-
-          {/* Clean Sub-Lead */}
-          <p className="text-base sm:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto">
-            Direct wholesale prices. Real customer demand. Hit your sales and referral goals to unlock cash rewards from PKR 2,000 to PKR 10,000.
-          </p>
-
-          {/* High-Contrast Dual Action CTAs */}
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-            <Link to="/signup">
-              <Button size="lg" variant="primary" className="font-bold px-8 shadow-xl" iconRight={<ArrowRight size={16} weight="bold" />}>
-                Become a Partner
-              </Button>
-            </Link>
-            <Link to="/ranks">
-              <Button size="lg" variant="secondary" className="px-7" iconRight={<CaretRight size={16} weight="bold" />}>
-                Explore Rank Journey
-              </Button>
-            </Link>
-          </div>
-
-          {/* Live Platform Proof Strip */}
-          <div className="pt-8 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-xs text-slate-400 font-mono">
-            <div className="flex items-center space-x-2">
-              <ShieldCheck size={16} className="text-cyan-400" />
-              <span>4-Tier Rank System</span>
+          {/* Left Column: Core Value Proposition */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="eyebrow">
+              <ShieldCheck size={14} weight="bold" />
+              <span>Verified B2B wholesale network</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <Trophy size={16} className="text-amber-400" />
-              <span>PKR 10,000 Top Bonus</span>
+
+            <h1 className="font-serif font-normal text-4xl sm:text-5xl lg:text-[54px] tracking-tight leading-[1.08] text-[#1E241F]">
+              Source better.<br />
+              Sell smarter.<br />
+              Grow <em className="italic text-[#1F4D3E] font-medium">your</em> distribution business.
+            </h1>
+
+            <p className="text-base text-[#5B5C50] max-w-[490px] leading-relaxed">
+              Access verified wholesale pricing on high-demand consumer goods, sell at suggested retail, and keep the full margin on every unit — with transparent partner-level rewards as your network grows.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3.5 pt-1">
+              <Link to="/products">
+                <Button variant="primary" size="md" className="font-medium" iconRight={<ArrowRight size={14} />}>
+                  Explore wholesale catalog
+                </Button>
+              </Link>
+              <Link to="/ranks">
+                <Button variant="outline" size="md" className="font-medium">
+                  See partner rewards
+                </Button>
+              </Link>
             </div>
-            <div className="flex items-center space-x-2">
-              <TrendUp size={16} className="text-emerald-400" />
-              <span>+PKR 500 Avg Profit / Unit</span>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* INTEREST: Gapless Continuous Infinite Trust Marquee */}
-      <div className="w-full py-6 bg-[#050A17] border-b border-white/[0.08] overflow-hidden">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 flex flex-wrap items-center justify-between gap-6 text-xs text-slate-300">
-          <span className="font-mono text-cyan-400 uppercase tracking-wider font-semibold text-[11px]">
-            Platform Milestones
-          </span>
-          <div className="flex flex-wrap items-center gap-6 sm:gap-8 font-jetbrains text-xs">
-            <span>Silver: <strong className="text-white">10 Sales + 20 Members</strong></span>
-            <span className="text-white/20">•</span>
-            <span>Platinum: <strong className="text-white">25 Sales + 45 Members</strong></span>
-            <span className="text-white/20">•</span>
-            <span>Gold: <strong className="text-white">35 Sales + 60 Members</strong></span>
-            <span className="text-white/20">•</span>
-            <span>Diamond: <strong className="text-white">100 Sales + 200 Members</strong></span>
-          </div>
-        </div>
-      </div>
-
-      {/* INTEREST (HOW IT WORKS): 3 Sequential Blueprint Chapters */}
-      <section id="how-it-works" className="w-full py-28 sm:py-36">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-16">
-          <div className="space-y-3">
-            <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase block font-mono">
-              Simple Blueprint
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-heading font-extrabold text-white tracking-tight">
-              Three steps to build your network
-            </h2>
-          </div>
-
-          <div className="grid sm:grid-cols-3 gap-8">
-            {[
-              {
-                step: 'Phase 01',
-                title: 'Join the Partner Network',
-                desc: 'Create your free account in seconds and unlock direct access to wholesale consumer inventory at wholesale partner prices.'
-              },
-              {
-                step: 'Phase 02',
-                title: 'Distribute & Earn Margin',
-                desc: 'Sell high-converting skincare and electronic products to your customer audience. You keep the gross margin on every unit.'
-              },
-              {
-                step: 'Phase 03',
-                title: 'Hit Milestone Rewards',
-                desc: 'Grow your team, qualify for rank advancements from Silver to Diamond, and receive guaranteed cash bonuses disbursed to your account.'
-              }
-            ].map((item, idx) => (
-              <div
-                key={idx}
-                className="group relative p-8 rounded-3xl bg-[#080E1E] border border-white/[0.08] hover:border-cyan-400/40 transition-all duration-300 flex flex-col justify-between space-y-6 shadow-xl"
-              >
-                <div className="space-y-3">
-                  <span className="text-[11px] font-mono font-bold text-cyan-400 uppercase tracking-wider block">
-                    {item.step}
-                  </span>
-                  <h3 className="text-xl font-heading font-bold text-white group-hover:text-cyan-300 transition-colors">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                    {item.desc}
-                  </p>
-                </div>
-                <div className="w-8 h-1 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full" />
+            {/* Credibility Stats Strip */}
+            <div className="pt-6 border-t border-[#E3DCC8] flex flex-wrap gap-8 sm:gap-12">
+              <div>
+                <div className="text-xs text-[#5B5C50] font-sans">Verified SKUs</div>
+                <div className="font-serif text-2xl font-medium text-[#1E241F] mt-0.5">100+</div>
               </div>
-            ))}
+              <div>
+                <div className="text-xs text-[#5B5C50] font-sans">Unit margin</div>
+                <div className="font-serif text-2xl font-medium text-[#1E241F] mt-0.5">PKR 500–1,300</div>
+              </div>
+              <div>
+                <div className="text-xs text-[#5B5C50] font-sans">Milestone bonus</div>
+                <div className="font-serif text-2xl font-medium text-[#1E241F] mt-0.5">Up to PKR 10,000</div>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
 
-      {/* INTEREST (RANK JOURNEY): 4-Tier Interactive Milestone Ladder */}
-      <section id="ranks" className="w-full py-28 sm:py-36 bg-[#050A17] border-y border-white/[0.08]">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-16">
-          <div className="space-y-3 max-w-2xl">
-            <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase block font-mono">
-              Milestone Progression
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-heading font-extrabold text-white tracking-tight">
-              From Silver to Diamond Rank
+          {/* Right Column: Editorial Wholesale Margin Ledger Card */}
+          <div className="lg:col-span-5">
+            <div className="ledger-card shadow-sm">
+              <div className="ledger-head">
+                <div className="text-[13px] font-semibold text-[#1E241F]">
+                  Wholesale margin sheet
+                </div>
+                <div className="stamp">
+                  Verified
+                </div>
+              </div>
+
+              <div className="p-5 space-y-4">
+                <div className="flex items-center gap-3.5">
+                  <img
+                    src="https://images.unsplash.com/photo-1608248597359-bb4f53ca0c59?auto=format&fit=crop&w=200&q=80"
+                    alt="Luxe botanical elixir"
+                    className="w-12 h-12 rounded-lg object-cover bg-[#EFE2C4] border border-[#E3DCC8] shrink-0"
+                  />
+                  <div className="truncate">
+                    <div className="font-mono text-[10.5px] text-[#5B5C50] uppercase tracking-wider">
+                      DTA-SKN-001 · SKINCARE
+                    </div>
+                    <div className="text-[14px] font-semibold text-[#1E241F] truncate">
+                      Luxe botanical skin repair elixir
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-0 border-t border-[#E3DCC8] pt-4">
+                  <div className="pr-3 border-r border-[#E3DCC8]">
+                    <div className="text-[11px] text-[#5B5C50] mb-1">Retail price</div>
+                    <div className="font-mono text-[14.5px] font-medium text-[#1E241F]">PKR 2,500</div>
+                  </div>
+                  <div className="px-3 border-r border-[#E3DCC8]">
+                    <div className="text-[11px] text-[#5B5C50] mb-1">Wholesale cost</div>
+                    <div className="font-mono text-[14.5px] font-medium text-[#1F4D3E]">PKR 2,000</div>
+                  </div>
+                  <div className="pl-3">
+                    <div className="text-[11px] text-[#5B5C50] mb-1">Partner margin</div>
+                    <div className="font-mono text-[14.5px] font-semibold text-[#B8862E]">+PKR 500</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between px-5 py-3.5 border-t border-[#E3DCC8] bg-[#F1ECDD] text-[13px]">
+                <span className="font-medium text-[#1E241F] truncate pr-2">Quantum sound ANC earbuds</span>
+                <span className="font-mono font-semibold text-[#B8862E] shrink-0">+PKR 1,000 margin</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </header>
+
+      {/* 2. NETWORK CAPABILITIES SECTION */}
+      <section className="px-6 sm:px-8 py-16 bg-[#F1ECDD] border-b border-[#E3DCC8]">
+        <div className="max-w-[1180px] mx-auto space-y-10">
+          
+          <div className="space-y-2">
+            <div className="text-xs font-semibold uppercase tracking-wider text-[#1F4D3E]">
+              Network capabilities
+            </div>
+            <h2 className="font-serif text-3xl sm:text-4xl font-medium text-[#1E241F]">
+              Built for people moving real inventory
             </h2>
-            <p className="text-sm sm:text-base text-slate-300">
-              Each milestone combines personal product volume and referral team growth with guaranteed cash bonuses.
+            <p className="text-[#5B5C50] text-sm sm:text-base max-w-[540px]">
+              Every figure a partner sees is pulled from verified catalog data — not a projection.
             </p>
           </div>
-          <RankJourney />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            
+            {/* Card 01 */}
+            <div className="p-6 rounded-xl bg-white border border-[#E3DCC8] space-y-3 shadow-xs">
+              <div className="w-9 h-9 rounded-lg bg-[#F1ECDD] border border-[#E3DCC8] flex items-center justify-center font-serif text-[#1F4D3E] font-medium text-sm">
+                01
+              </div>
+              <h3 className="text-base font-semibold text-[#1E241F]">
+                Nationwide logistics &amp; COD dispatch
+              </h3>
+              <p className="text-xs sm:text-sm text-[#5B5C50] leading-relaxed">
+                Centralized order routing with delivery coverage across 150+ cities. Couriers handle cash on delivery with status updates on every order.
+              </p>
+              <div className="pt-3 border-t border-[#E3DCC8] text-xs text-[#5B5C50]">
+                <strong className="text-[#1E241F] font-semibold">99.4%</strong> fulfillment accuracy
+              </div>
+            </div>
+
+            {/* Card 02 */}
+            <div className="p-6 rounded-xl bg-white border border-[#E3DCC8] space-y-3 shadow-xs">
+              <div className="w-9 h-9 rounded-lg bg-[#F1ECDD] border border-[#E3DCC8] flex items-center justify-center font-serif text-[#1F4D3E] font-medium text-sm">
+                02
+              </div>
+              <h3 className="text-base font-semibold text-[#1E241F]">
+                Wholesale price access
+              </h3>
+              <p className="text-xs sm:text-sm text-[#5B5C50] leading-relaxed">
+                Direct factory and verified distributor rates, with a healthy, consistent margin on every unit sold.
+              </p>
+              <div className="pt-3 border-t border-[#E3DCC8] text-xs text-[#5B5C50]">
+                Margins from <strong className="text-[#1E241F] font-semibold">PKR 500 to 1,300</strong> per unit
+              </div>
+            </div>
+
+            {/* Card 03 */}
+            <div className="p-6 rounded-xl bg-white border border-[#E3DCC8] space-y-3 shadow-xs">
+              <div className="w-9 h-9 rounded-lg bg-[#F1ECDD] border border-[#E3DCC8] flex items-center justify-center font-serif text-[#1F4D3E] font-medium text-sm">
+                03
+              </div>
+              <h3 className="text-base font-semibold text-[#1E241F]">
+                Verified catalog inventory
+              </h3>
+              <p className="text-xs sm:text-sm text-[#5B5C50] leading-relaxed">
+                A curated selection of high-demand skincare formulas and lifestyle electronics, with continuous stock availability checks.
+              </p>
+              <div className="pt-3 border-t border-[#E3DCC8] text-xs text-[#5B5C50]">
+                Restocked and <strong className="text-[#1E241F] font-semibold">quality-checked</strong> in batches
+              </div>
+            </div>
+
+            {/* Card 04 */}
+            <div className="p-6 rounded-xl bg-white border border-[#E3DCC8] space-y-3 shadow-xs">
+              <div className="w-9 h-9 rounded-lg bg-[#F1ECDD] border border-[#E3DCC8] flex items-center justify-center font-serif text-[#1F4D3E] font-medium text-sm">
+                04
+              </div>
+              <h3 className="text-base font-semibold text-[#1E241F]">
+                Partner network tracking
+              </h3>
+              <p className="text-xs sm:text-sm text-[#5B5C50] leading-relaxed">
+                Every partner gets a unique referral code that permanently attributes their team's sign-ups, visible on one shared dashboard.
+              </p>
+              <div className="pt-3 border-t border-[#E3DCC8] text-xs text-[#5B5C50]">
+                <strong className="text-[#1E241F] font-semibold">Transparent</strong> attribution, no manual reconciliation
+              </div>
+            </div>
+
+          </div>
+
         </div>
       </section>
 
-      {/* DESIRE (WHOLESALE PRODUCTS): Gapless Product Bento Grid */}
-      <section id="products" className="w-full py-28 sm:py-36">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-16">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between pb-6 border-b border-white/[0.08] gap-6">
-            <div className="space-y-2">
-              <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase block font-mono">
-                High-Margin Inventory
+      {/* 3. PARTNER LEVELS SECTION */}
+      <section className="px-6 sm:px-8 py-16 border-b border-[#E3DCC8]">
+        <div className="max-w-[1180px] mx-auto space-y-10">
+          
+          <div className="space-y-2">
+            <div className="text-xs font-semibold uppercase tracking-wider text-[#1F4D3E]">
+              Partner levels
+            </div>
+            <h2 className="font-serif text-3xl sm:text-4xl font-medium text-[#1E241F]">
+              Grow at your own pace
+            </h2>
+            <p className="text-[#5B5C50] text-sm sm:text-base max-w-[540px]">
+              Each level combines personal sales with team growth. Bonuses are cash, paid on qualification.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border border-[#E3DCC8] rounded-xl overflow-hidden bg-white shadow-xs divide-y sm:divide-y-0 sm:divide-x divide-[#E3DCC8]">
+            
+            {/* Level 01 */}
+            <div className="p-6 space-y-3 flex flex-col justify-between">
+              <div>
+                <div className="font-mono text-xs text-[#7C7D70] mb-2">Level 01</div>
+                <h3 className="font-serif text-lg font-medium text-[#1E241F] mb-1">Starter partner</h3>
+                <p className="text-xs text-[#5B5C50] leading-relaxed min-h-[48px]">
+                  Build your customer base and place your first team referrals.
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-3 border-t border-[#E3DCC8]">
+                <div className="flex justify-between text-xs text-[#5B5C50]">
+                  <span>Product sales</span>
+                  <strong className="font-mono font-medium text-[#1E241F]">10 units</strong>
+                </div>
+                <div className="flex justify-between text-xs text-[#5B5C50]">
+                  <span>Team size</span>
+                  <strong className="font-mono font-medium text-[#1E241F]">20 members</strong>
+                </div>
+                <div className="pt-2 border-t border-[#E3DCC8] flex justify-between items-center text-xs font-medium">
+                  <span className="text-[#1E241F]">Cash bonus</span>
+                  <span className="font-mono font-semibold text-[#B8862E]">PKR 2,000</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Level 02 */}
+            <div className="p-6 space-y-3 flex flex-col justify-between">
+              <div>
+                <div className="font-mono text-xs text-[#7C7D70] mb-2">Level 02</div>
+                <h3 className="font-serif text-lg font-medium text-[#1E241F] mb-1">Growth partner</h3>
+                <p className="text-xs text-[#5B5C50] leading-relaxed min-h-[48px]">
+                  Scale wholesale volume and grow an active distributor team.
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-3 border-t border-[#E3DCC8]">
+                <div className="flex justify-between text-xs text-[#5B5C50]">
+                  <span>Product sales</span>
+                  <strong className="font-mono font-medium text-[#1E241F]">25 units</strong>
+                </div>
+                <div className="flex justify-between text-xs text-[#5B5C50]">
+                  <span>Team size</span>
+                  <strong className="font-mono font-medium text-[#1E241F]">45 members</strong>
+                </div>
+                <div className="pt-2 border-t border-[#E3DCC8] flex justify-between items-center text-xs font-medium">
+                  <span className="text-[#1E241F]">Cash bonus</span>
+                  <span className="font-mono font-semibold text-[#B8862E]">PKR 4,000</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Level 03 */}
+            <div className="p-6 space-y-3 flex flex-col justify-between">
+              <div>
+                <div className="font-mono text-xs text-[#7C7D70] mb-2">Level 03</div>
+                <h3 className="font-serif text-lg font-medium text-[#1E241F] mb-1">Regional partner</h3>
+                <p className="text-xs text-[#5B5C50] leading-relaxed min-h-[48px]">
+                  Manage multi-channel resale and mentor a regional team.
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-3 border-t border-[#E3DCC8]">
+                <div className="flex justify-between text-xs text-[#5B5C50]">
+                  <span>Product sales</span>
+                  <strong className="font-mono font-medium text-[#1E241F]">35 units</strong>
+                </div>
+                <div className="flex justify-between text-xs text-[#5B5C50]">
+                  <span>Team size</span>
+                  <strong className="font-mono font-medium text-[#1E241F]">60 members</strong>
+                </div>
+                <div className="pt-2 border-t border-[#E3DCC8] flex justify-between items-center text-xs font-medium">
+                  <span className="text-[#1E241F]">Cash bonus</span>
+                  <span className="font-mono font-semibold text-[#B8862E]">PKR 6,000</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Level 04 */}
+            <div className="p-6 space-y-3 flex flex-col justify-between">
+              <div>
+                <div className="font-mono text-xs text-[#7C7D70] mb-2">Level 04</div>
+                <h3 className="font-serif text-lg font-medium text-[#1E241F] mb-1">National partner</h3>
+                <p className="text-xs text-[#5B5C50] leading-relaxed min-h-[48px]">
+                  High-volume nationwide distribution with top-tier revenue share.
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-3 border-t border-[#E3DCC8]">
+                <div className="flex justify-between text-xs text-[#5B5C50]">
+                  <span>Product sales</span>
+                  <strong className="font-mono font-medium text-[#1E241F]">100 units</strong>
+                </div>
+                <div className="flex justify-between text-xs text-[#5B5C50]">
+                  <span>Team size</span>
+                  <strong className="font-mono font-medium text-[#1E241F]">200 members</strong>
+                </div>
+                <div className="pt-2 border-t border-[#E3DCC8] flex justify-between items-center text-xs font-medium">
+                  <span className="text-[#1E241F]">Cash bonus</span>
+                  <span className="font-mono font-semibold text-[#B8862E]">PKR 10,000</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* 4. MARGIN ESTIMATOR CALCULATOR */}
+      <section className="px-6 sm:px-8 py-16 bg-[#F1ECDD] border-b border-[#E3DCC8]">
+        <div className="max-w-[800px] mx-auto p-8 rounded-2xl bg-white border border-[#E3DCC8] shadow-sm space-y-6">
+          <div className="space-y-1.5 text-center sm:text-left">
+            <div className="text-xs font-semibold uppercase tracking-wider text-[#1F4D3E]">
+              Margin Calculator
+            </div>
+            <h3 className="font-serif text-2xl font-medium text-[#1E241F]">
+              Estimate Your Monthly Partner Profit
+            </h3>
+            <p className="text-xs sm:text-sm text-[#5B5C50]">
+              Adjust monthly unit sales volume to calculate gross distributor profit margin.
+            </p>
+          </div>
+
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-[#5B5C50]">Monthly Volume:</span>
+              <span className="font-bold text-[#1E241F] text-sm">{calculatorQuantity} Units / Month</span>
+            </div>
+            <input
+              type="range"
+              min={5}
+              max={150}
+              step={1}
+              value={calculatorQuantity}
+              onChange={(e) => setCalculatorQuantity(Number(e.target.value))}
+              className="w-full accent-[#1F4D3E] cursor-pointer"
+            />
+          </div>
+
+          <div className="p-4 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <span className="text-xs text-[#5B5C50] block">Estimated Gross Monthly Margin:</span>
+              <span className="font-mono text-2xl font-bold text-[#B8862E]">
+                +PKR {totalEarnings.toLocaleString()}
               </span>
-              <h2 className="text-3xl sm:text-5xl font-heading font-extrabold text-white tracking-tight">
-                Featured Wholesale Catalog
-              </h2>
             </div>
-            <Link to="/products">
-              <Button variant="outline" size="sm" iconRight={<ArrowRight size={13} />}>
-                View All Catalog Items
+            <Link to="/signup">
+              <Button variant="primary" size="md" className="text-xs font-medium">
+                Start Selling Today
               </Button>
             </Link>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 grid-flow-dense">
-            {SEED_PRODUCTS.slice(0, 3).map((product) => (
-              <div
-                key={product.id}
-                className="bg-[#080E1E] border border-white/[0.08] hover:border-cyan-400/35 rounded-3xl overflow-hidden flex flex-col group transition-all duration-300 shadow-xl"
-              >
-                <div className="aspect-[16/10] bg-[#040813] flex items-center justify-center relative overflow-hidden border-b border-white/[0.08]">
-                  {product.imageUrl ? (
-                    <img 
-                      src={product.imageUrl} 
-                      alt={product.name} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100" 
-                    />
-                  ) : (
-                    <Package className="w-16 h-16 text-white/10" />
-                  )}
-                  <span className="absolute top-3 left-3 text-[10px] font-semibold px-3 py-1 rounded-full bg-[#030712]/90 backdrop-blur-md text-cyan-300 border border-cyan-500/30">
-                    {product.category}
-                  </span>
-                </div>
-
-                <div className="p-6 flex flex-col flex-grow justify-between space-y-5">
-                  <div className="space-y-2">
-                    <h3 className="text-base font-heading font-bold text-white group-hover:text-cyan-400 transition-colors">
-                      {product.name}
-                    </h3>
-                    <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
-                      {product.shortDescription}
-                    </p>
-                  </div>
-                  
-                  <div className="bg-[#0C152B] rounded-2xl p-3.5 border border-white/[0.06] grid grid-cols-3 gap-1 text-center text-xs">
-                    <div>
-                      <span className="text-[10px] text-slate-400 block">Retail</span>
-                      <span className="text-white font-medium font-jetbrains">PKR {product.retailPrice}</span>
-                    </div>
-                    <div className="border-x border-white/[0.08]">
-                      <span className="text-[10px] text-slate-400 block">Wholesale</span>
-                      <span className="text-cyan-400 font-medium font-jetbrains">PKR {product.partnerPrice}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-slate-400 block">Profit</span>
-                      <span className="text-emerald-400 font-bold font-jetbrains">+PKR {product.grossMargin}</span>
-                    </div>
-                  </div>
-                  
-                  <Link to={`/products/${product.slug}`} className="block w-full">
-                    <Button variant="secondary" size="sm" className="w-full justify-between rounded-xl text-xs group/btn font-semibold">
-                      <span>View Economics</span>
-                      <ArrowRight size={12} className="group-hover/btn:translate-x-0.5 transition-transform" />
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* DESIRE: Interactive Profit Margin Calculator */}
-      <section id="calculator" className="w-full py-28 sm:py-36 bg-[#050A17] border-y border-white/[0.08]">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 space-y-12">
-          <div className="text-center space-y-3">
-            <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase block font-mono">
-              Earnings Simulator
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-heading font-extrabold text-white tracking-tight">
-              Estimate your monthly gross profit
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto">
-              With an average profit margin of PKR 500 per unit sold, see how direct sales scale your monthly income.
-            </p>
-          </div>
-
-          <div className="rounded-3xl bg-[#080E1E] border border-white/10 p-8 sm:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(0,242,254,0.1)] space-y-8">
-            <div className="flex flex-col items-center text-center space-y-2">
-              <span className="text-xs text-cyan-400 uppercase tracking-wider font-mono">Estimated Direct Monthly Profit</span>
-              <div className="text-5xl sm:text-7xl font-bold font-jetbrains text-emerald-400 tracking-tight">
-                PKR {totalEarnings.toLocaleString()}
-              </div>
-            </div>
-
-            <div className="space-y-4 max-w-2xl mx-auto pt-2">
-              <div className="flex justify-between items-center text-xs text-slate-400 font-jetbrains">
-                <span>1 Unit</span>
-                <span className="text-white font-bold text-sm bg-cyan-500/15 text-cyan-300 px-4 py-1 rounded-full border border-cyan-500/30">
-                  {calculatorQuantity} Units / Month
-                </span>
-                <span>100 Units</span>
-              </div>
-              <input 
-                type="range" 
-                min="1" 
-                max="100" 
-                value={calculatorQuantity}
-                onChange={(e) => setCalculatorQuantity(parseInt(e.target.value))}
-                className="w-full h-2.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-              />
-            </div>
-
-            <p className="text-[11px] text-slate-400 text-center max-w-lg mx-auto">
-              *Calculation based on an average product margin of PKR 500 per unit. Actual gross profits depend on specific products distributed.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* DESIRE (GROWTH CAPABILITIES): 3D Perspective Interactive Flip Cards */}
-      <BentoWork />
-
-      {/* DESIRE (PROVEN RESULTS): Case Studies Bento */}
-      <section id="results" className="w-full py-28 sm:py-36">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-16">
-          <div className="space-y-3">
-            <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase block font-mono">
-              Proven Results
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-heading font-extrabold text-white tracking-tight">
-              Partner success highlights
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 grid-flow-dense">
-            {CASE_STUDIES.map((study, idx) => (
-              <div
-                key={idx}
-                className="bg-[#080E1E] border border-white/[0.08] hover:border-cyan-400/30 rounded-3xl p-7 flex flex-col justify-between space-y-6 transition-all duration-300 shadow-xl"
-              >
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono uppercase text-slate-400 tracking-wider font-semibold">{study.category}</span>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
-                      {study.metric}
-                    </span>
-                  </div>
-                  
-                  <h3 className="text-lg font-heading font-bold text-white leading-snug">{study.title}</h3>
-                  <p className="text-xs text-slate-300 leading-relaxed">{study.description}</p>
-                </div>
-                
-                <ul className="space-y-2.5 pt-4 border-t border-white/[0.06]">
-                  {study.highlights.map((highlight, hIdx) => (
-                    <li key={hIdx} className="flex items-start gap-2.5 text-xs text-slate-200">
-                      <CheckCircle weight="fill" className="text-cyan-400 w-4 h-4 flex-shrink-0 mt-0.5" />
-                      <span>{highlight}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ACTION: Official Community & Broadcast Channels */}
-      <SocialCommunityHub />
-
-      {/* LEADERSHIP: Executive Founder Profile */}
+      {/* 5. FOUNDER PROFILE & SERVICES FLIP CARDS */}
       <OwnerProfile />
-    </main>
+
+      {/* 6. FREQUENTLY ASKED QUESTIONS */}
+      <FAQSection />
+
+      {/* 6. FINAL CONVERSION CTA */}
+      <section className="px-6 sm:px-8 py-20">
+        <div className="max-w-[1180px] mx-auto p-10 sm:p-14 rounded-2xl bg-[#1F4D3E] text-white text-center space-y-5 shadow-lg">
+          <h2 className="font-serif text-3xl sm:text-4xl font-normal tracking-tight max-w-xl mx-auto">
+            Ready to distribute verified wholesale goods?
+          </h2>
+          <p className="text-sm sm:text-base text-emerald-100 max-w-lg mx-auto leading-relaxed">
+            Join hundreds of active distributors in Pakistan. Unlock wholesale pricing, direct margins, and milestone cash rewards.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3.5 pt-3">
+            <Link to="/signup">
+              <Button variant="outline" size="lg" className="bg-white text-[#1F4D3E] hover:bg-emerald-50 border-white font-medium">
+                Apply for Partner Access
+              </Button>
+            </Link>
+            <Link to="/products">
+              <Button variant="ghost" size="lg" className="text-white hover:bg-[#153A2E] border-white/20 font-medium">
+                Browse Full Catalog
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+    </div>
   );
 };

@@ -4,19 +4,16 @@ import { productService, ProductSortOption } from '@/services/productService';
 import { categoryService } from '@/services/categoryService';
 import { CategoryPillCarousel } from '@/components/categories/CategoryPillCarousel';
 import { CategorySidebarTree } from '@/components/categories/CategorySidebarTree';
-import { CategoryIcon } from '@/components/categories/CategoryIcon';
 import { Button } from '@/components/ui/Button';
 import {
   MagnifyingGlass,
   ArrowRight,
-  Sparkle,
-  TrendUp,
   Package,
   SlidersHorizontal,
   X,
   CaretRight,
-  ShieldCheck,
   House,
+  ShieldCheck,
 } from '@phosphor-icons/react';
 
 export const Products: React.FC = () => {
@@ -101,29 +98,31 @@ export const Products: React.FC = () => {
   }, [allProducts, selectedCategorySlug, selectedSubSlug, searchQuery, sortBy]);
 
   return (
-    <div className="min-h-screen bg-[#020612] text-[#F8FAFC] pb-24 font-sans selection:bg-cyan-500/30">
-      {/* 1. Storefront Hero Banner */}
-      <section className="relative pt-24 sm:pt-28 pb-10 border-b border-white/[0.08] bg-radial-hero overflow-hidden">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 text-center sm:text-left">
+    <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] pb-24 font-sans selection:bg-[#B8862E]/25">
+      
+      {/* 1. Storefront Header Banner */}
+      <header className="px-6 sm:px-8 pt-10 sm:pt-14 pb-8 border-b border-[#E3DCC8] bg-[#F1ECDD]">
+        <div className="max-w-[1180px] mx-auto space-y-4">
+          
           {/* Dynamic Breadcrumbs */}
-          <nav className="flex items-center space-x-1.5 text-[11px] font-mono text-slate-400 justify-center sm:justify-start">
-            <Link to="/" className="hover:text-cyan-300 flex items-center space-x-1 transition-colors">
-              <House size={12} />
+          <nav className="flex items-center space-x-1.5 text-xs font-mono text-[#5B5C50]">
+            <Link to="/" className="hover:text-[#1E241F] flex items-center space-x-1 transition-colors">
+              <House size={13} />
               <span>Home</span>
             </Link>
-            <CaretRight size={10} className="text-slate-600" />
+            <CaretRight size={10} className="text-[#7C7D70]" />
             <button
               type="button"
               onClick={() => handleSelectCategory(null, null)}
-              className={`hover:text-cyan-300 transition-colors ${
-                !selectedCategorySlug ? 'text-cyan-300 font-semibold' : ''
+              className={`hover:text-[#1E241F] transition-colors ${
+                !selectedCategorySlug ? 'text-[#1F4D3E] font-semibold' : ''
               }`}
             >
-              Catalog
+              Wholesale Catalog
             </button>
             {breadcrumbChain.map((crumb, idx) => (
               <React.Fragment key={crumb.id}>
-                <CaretRight size={10} className="text-slate-600" />
+                <CaretRight size={10} className="text-[#7C7D70]" />
                 <button
                   type="button"
                   onClick={() =>
@@ -131,8 +130,8 @@ export const Products: React.FC = () => {
                       ? handleSelectCategory(crumb.slug, null)
                       : handleSelectCategory(breadcrumbChain[0].slug, crumb.slug)
                   }
-                  className={`hover:text-cyan-300 transition-colors truncate max-w-[140px] ${
-                    idx === breadcrumbChain.length - 1 ? 'text-cyan-300 font-semibold' : ''
+                  className={`hover:text-[#1E241F] transition-colors truncate max-w-[140px] ${
+                    idx === breadcrumbChain.length - 1 ? 'text-[#1F4D3E] font-semibold' : ''
                   }`}
                 >
                   {crumb.name}
@@ -142,47 +141,44 @@ export const Products: React.FC = () => {
           </nav>
 
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div className="space-y-1.5">
-              <div className="inline-flex items-center space-x-1.5 px-3 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-cyan-300 text-[10px] font-mono uppercase tracking-wider font-semibold">
-                <Sparkle size={11} weight="fill" className="text-cyan-400" />
-                <span>Wholesale Distribution Network</span>
+            <div className="space-y-1.5 max-w-2xl">
+              <div className="eyebrow">
+                <ShieldCheck size={13} weight="bold" />
+                <span>Direct B2B Distribution Inventory</span>
               </div>
-              <h1 className="text-2xl sm:text-4xl font-heading font-extrabold text-white tracking-tight">
+              <h1 className="font-serif text-3xl sm:text-4xl font-medium text-[#1E241F] tracking-tight">
                 {activeCategory ? activeCategory.name : 'Wholesale Products Catalog'}
               </h1>
-              <p className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#5B5C50] leading-relaxed">
                 {activeCategory?.description ||
-                  'Explore verified high-margin product inventory. Partners purchase at wholesale cost and earn direct gross margins on every unit distributed.'}
+                  'Explore verified high-demand product inventory with transparent unit economics. Purchase at wholesale cost and earn direct gross profit margins on every unit distributed.'}
               </p>
             </div>
 
-            {/* Quick Stats Pill */}
-            {activeCategory && (
-              <div className="p-3 rounded-2xl bg-[#060B18] border border-white/[0.08] flex items-center space-x-4 shrink-0 self-start sm:self-auto text-xs shadow-lg">
-                <div>
-                  <span className="text-[10px] text-slate-400 block font-mono">Available SKUs</span>
-                  <span className="font-bold text-white font-jetbrains flex items-center space-x-1">
-                    <Package size={13} className="text-cyan-400" />
-                    <span>{filteredProducts.length}</span>
-                  </span>
-                </div>
-                <div className="border-l border-white/10 pl-4">
-                  <span className="text-[10px] text-slate-400 block font-mono">Direct Margin</span>
-                  <span className="font-bold text-emerald-400 font-jetbrains flex items-center space-x-1">
-                    <TrendUp size={13} />
-                    <span>Up to +PKR 1,300</span>
-                  </span>
-                </div>
+            {/* Catalog SKU & Margin Summary */}
+            <div className="p-3.5 rounded-xl bg-white border border-[#E3DCC8] flex items-center space-x-4 shrink-0 text-xs shadow-xs">
+              <div>
+                <span className="text-[10px] text-[#5B5C50] block font-mono">Available SKUs</span>
+                <span className="font-bold text-[#1E241F] font-mono flex items-center space-x-1">
+                  <Package size={13} className="text-[#1F4D3E]" />
+                  <span>{filteredProducts.length}</span>
+                </span>
               </div>
-            )}
+              <div className="border-l border-[#E3DCC8] pl-4">
+                <span className="text-[10px] text-[#5B5C50] block font-mono">Max Unit Margin</span>
+                <span className="font-bold text-[#B8862E] font-mono">
+                  Up to +PKR 1,300
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-      </section>
+      </header>
 
-      {/* 2. Main Storefront Content Area */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+      {/* 2. Main Storefront Layout */}
+      <div className="max-w-[1180px] mx-auto px-6 sm:px-8 pt-8 space-y-6">
         
-        {/* Mobile Category Pill Carousel (< 1024px) */}
+        {/* Mobile Category Shortcuts Carousel (< 1024px) */}
         <div className="lg:hidden">
           <CategoryPillCarousel
             categoryTree={categoryTree}
@@ -193,53 +189,66 @@ export const Products: React.FC = () => {
           />
         </div>
 
-        {/* Search & Sort Bar */}
-        <div className="p-3 sm:p-4 rounded-2xl bg-[#060B18] border border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs shadow-sm">
-          {/* Search Input */}
+        {/* Search & Sort Toolbar */}
+        <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-[#E3DCC8] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs shadow-xs">
+          
+          {/* Search Box */}
           <div className="relative w-full sm:max-w-md">
-            <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <MagnifyingGlass size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5B5C50]" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search products by title, SKU, or keywords..."
-              className="w-full pl-9 pr-8 py-2 rounded-xl bg-[#030712] border border-white/10 text-white placeholder:text-slate-500 text-xs focus:outline-none focus:border-cyan-400 transition-all"
+              placeholder="Search products by name, SKU, or keywords..."
+              className="w-full pl-9 pr-8 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] placeholder:text-[#7C7D70] text-xs focus:outline-none focus:border-[#1F4D3E] transition-colors font-sans"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#5B5C50] hover:text-[#1E241F]"
               >
                 <X size={14} />
               </button>
             )}
           </div>
 
-          {/* Sort Dropdown */}
-          <div className="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-end">
-            <span className="text-[11px] text-slate-400 font-mono hidden sm:inline flex items-center space-x-1">
+          {/* Sort & Filter Reset */}
+          <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-end">
+            <span className="text-xs text-[#5B5C50] font-mono hidden sm:inline flex items-center space-x-1">
               <SlidersHorizontal size={13} />
-              <span>Sort:</span>
+              <span>Sort By:</span>
             </span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as ProductSortOption)}
-              className="px-3 py-2 rounded-xl bg-[#030712] border border-white/10 text-slate-200 text-xs focus:outline-none focus:border-cyan-400 transition-all cursor-pointer font-sans"
+              className="px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] text-xs focus:outline-none focus:border-[#1F4D3E] cursor-pointer font-sans"
             >
               <option value="highest_margin">Highest Profit Margin</option>
               <option value="lowest_margin">Lowest Profit Margin</option>
               <option value="most_stock">In-Stock First</option>
               <option value="recently_added">Recently Added</option>
-              <option value="price_asc">Wholesale Price: Low to High</option>
-              <option value="price_desc">Wholesale Price: High to Low</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
             </select>
+
+            {(selectedCategorySlug || searchQuery) && (
+              <button
+                onClick={() => {
+                  handleSelectCategory(null, null);
+                  setSearchQuery('');
+                }}
+                className="text-xs text-[#5B5C50] hover:text-[#1E241F] underline underline-offset-2 shrink-0 font-mono"
+              >
+                Reset
+              </button>
+            )}
           </div>
         </div>
 
-        {/* 3. Responsive Content Body: Left Sticky Sidebar (Desktop) + Products Grid */}
+        {/* 3. Main Grid: Left Sticky Sidebar (Desktop) + Products Column */}
         <div className="flex flex-col lg:flex-row items-start gap-8">
           
-          {/* Desktop Left Sticky Tree (≥ 1024px) */}
+          {/* Desktop Left Sticky Category Tree (≥ 1024px) */}
           <div className="hidden lg:block">
             <CategorySidebarTree
               categoryTree={categoryTree}
@@ -254,97 +263,97 @@ export const Products: React.FC = () => {
           <div className="flex-1 w-full space-y-6">
             {filteredProducts.length === 0 ? (
               /* Empty State */
-              <div className="p-12 sm:p-16 rounded-3xl bg-[#060B18] border border-white/[0.08] text-center space-y-4 shadow-xl">
-                <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center mx-auto">
-                  <Package size={24} />
+              <div className="p-12 rounded-2xl bg-white border border-[#E3DCC8] text-center space-y-4">
+                <div className="w-12 h-12 rounded-xl bg-[#F1ECDD] border border-[#E3DCC8] text-[#1F4D3E] flex items-center justify-center mx-auto">
+                  <Package size={22} />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-heading font-bold text-base text-white">
-                    No products found in this category
+                  <h3 className="font-serif font-medium text-base text-[#1E241F]">
+                    No products match your search or filter
                   </h3>
-                  <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                    There are no products currently active matching your selected filters. Reset filters to view our full catalog.
+                  <p className="text-xs text-[#5B5C50] max-w-sm mx-auto">
+                    Try searching for different keywords or clear the category filters to browse all inventory.
                   </p>
                 </div>
                 <Button
-                  variant="secondary"
+                  variant="outline"
                   size="sm"
                   onClick={() => {
                     handleSelectCategory(null, null);
                     setSearchQuery('');
                   }}
-                  className="rounded-xl text-xs font-semibold"
+                  className="text-xs"
                 >
                   View All Products Catalog
                 </Button>
               </div>
             ) : (
               /* 2-Column (Mobile) / 3-Column (Desktop) Product Cards Grid */
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                 {filteredProducts.map((product) => (
                   <div
                     key={product.id}
-                    className="rounded-3xl bg-[#060B18] border border-white/[0.08] overflow-hidden shadow-xl hover:border-cyan-400/30 transition-all duration-300 group flex flex-col justify-between"
+                    className="rounded-xl bg-white border border-[#E3DCC8] overflow-hidden hover:border-[#D2C8AF] hover:shadow-md transition-all flex flex-col justify-between group shadow-xs"
                   >
-                    <div className="space-y-4">
+                    <div>
                       {/* Product Image Tile */}
-                      <div className="aspect-[16/10] bg-[#030712] relative overflow-hidden">
+                      <div className="aspect-[16/10] bg-[#FAF7EF] relative overflow-hidden border-b border-[#E3DCC8]">
                         <img
                           src={product.imageUrl}
                           alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300 opacity-95 group-hover:opacity-100"
                         />
                         <div className="absolute top-2.5 left-2.5">
-                          <span className="text-[10px] font-mono font-medium px-2.5 py-0.5 rounded-full bg-[#030712]/90 backdrop-blur-md text-white border border-white/10">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/90 text-[#1E241F] border border-[#E3DCC8] shadow-2xs">
                             {product.category}
                           </span>
                         </div>
                         {product.isFeatured && (
                           <div className="absolute top-2.5 right-2.5">
-                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                              HOT
+                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#EFE2C4] text-[#B8862E] border border-[#B8862E]/30">
+                              FEATURED
                             </span>
                           </div>
                         )}
                       </div>
 
                       {/* Product Content Details */}
-                      <div className="px-5 space-y-2">
-                        <div className="flex items-center justify-between text-[10px] font-mono text-slate-500">
+                      <div className="p-4 space-y-2">
+                        <div className="flex items-center justify-between text-[10px] font-mono text-[#5B5C50]">
                           <span>SKU: {product.sku}</span>
-                          <span className={product.inStock ? 'text-emerald-400' : 'text-rose-400'}>
+                          <span className={product.inStock ? 'text-[#1F4D3E] font-medium' : 'text-rose-600'}>
                             {product.inStock ? 'In Stock' : 'Out of Stock'}
                           </span>
                         </div>
 
-                        <h3 className="font-heading font-bold text-sm sm:text-base text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
+                        <h3 className="font-serif font-medium text-[15px] text-[#1E241F] group-hover:text-[#1F4D3E] transition-colors line-clamp-1">
                           {product.name}
                         </h3>
-                        <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                        <p className="text-xs text-[#5B5C50] line-clamp-2 leading-relaxed">
                           {product.shortDescription}
                         </p>
                       </div>
                     </div>
 
                     {/* Economics & Action Footer */}
-                    <div className="p-5 pt-3 space-y-3">
-                      {/* Pricing Pill */}
-                      <div className="p-3 rounded-2xl bg-[#030712] border border-white/[0.06] space-y-1.5 text-xs">
-                        <div className="flex items-center justify-between text-slate-400">
-                          <span>Retail Selling Price:</span>
-                          <span className="text-white font-medium font-jetbrains">
+                    <div className="p-4 pt-0 space-y-3">
+                      {/* Pricing Box */}
+                      <div className="p-2.5 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] space-y-1 text-xs">
+                        <div className="flex items-center justify-between text-[#5B5C50]">
+                          <span>Retail Price:</span>
+                          <span className="text-[#1E241F] font-mono font-medium">
                             PKR {product.retailPrice.toLocaleString()}
                           </span>
                         </div>
-                        <div className="flex items-center justify-between text-slate-400">
-                          <span>Partner Wholesale:</span>
-                          <span className="text-cyan-300 font-medium font-jetbrains">
+                        <div className="flex items-center justify-between text-[#5B5C50]">
+                          <span>Wholesale Cost:</span>
+                          <span className="text-[#1F4D3E] font-mono font-medium">
                             PKR {product.partnerPrice.toLocaleString()}
                           </span>
                         </div>
-                        <div className="pt-1.5 border-t border-white/[0.06] flex items-center justify-between font-semibold">
-                          <span className="text-slate-300">Partner Profit Margin:</span>
-                          <span className="text-emerald-400 font-mono font-bold">
+                        <div className="pt-1 border-t border-[#E3DCC8] flex items-center justify-between font-medium">
+                          <span className="text-[#1E241F]">Partner Margin:</span>
+                          <span className="text-[#B8862E] font-mono font-semibold">
                             +PKR {product.grossMargin.toLocaleString()}
                           </span>
                         </div>
@@ -353,14 +362,14 @@ export const Products: React.FC = () => {
                       {/* Detail CTA Button */}
                       <Link to={`/products/${product.slug}`} className="block">
                         <Button
-                          variant="secondary"
+                          variant="outline"
                           size="sm"
-                          className="w-full justify-between rounded-xl text-xs font-semibold group/btn"
+                          className="w-full justify-between text-xs font-medium group/btn hover:bg-[#F1ECDD]"
                         >
-                          <span>View Product Details</span>
+                          <span>View Economics &amp; Details</span>
                           <ArrowRight
                             size={12}
-                            className="group-hover/btn:translate-x-1 transition-transform text-cyan-400"
+                            className="group-hover/btn:translate-x-1 transition-transform text-[#1F4D3E]"
                           />
                         </Button>
                       </Link>

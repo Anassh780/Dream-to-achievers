@@ -1,123 +1,116 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { salesService } from '@/services/salesService';
 import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router-dom';
+import { ShoppingCart, Package } from '@phosphor-icons/react';
 
 export const DashboardSales: React.FC = () => {
   const { user } = useAuth();
-  const [filterStatus, setFilterStatus] = useState<string>('all');
 
   if (!user) return null;
 
   const sales = salesService.getUserSales(user.id);
   const totalProfit = salesService.getTotalProfitEarned(user.id);
-  const qualifyingCount = salesService.getQualifyingSalesCount(user.id);
-
-  const filteredSales = sales.filter((s) => (filterStatus === 'all' ? true : s.status === filterStatus));
+  const totalUnits = sales.reduce((sum, s) => sum + s.quantity, 0);
 
   return (
-    <div className="space-y-6 font-sans">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 font-sans max-w-7xl">
+      
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3DCC8]">
         <div className="space-y-1">
-          <div className="flex items-center space-x-2 text-xs text-[#8996A8]">
-            <span>Ledger</span>
-            <span>•</span>
-            <span>Product Margins</span>
+          <div className="flex items-center space-x-2 text-xs font-mono text-[#5B5C50]">
+            <span>Commercials</span>
+            <span>/</span>
+            <span>Customer Sales Ledger</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-heading font-bold text-white">
-            Sales & Margin Transactions
+          <h1 className="font-serif text-2xl sm:text-3xl font-medium text-[#1E241F] tracking-tight">
+            Direct Customer Sales &amp; Margin Ledger
           </h1>
+          <p className="text-xs text-[#5B5C50]">
+            All verified customer retail transactions credited with direct wholesale margins.
+          </p>
         </div>
 
         <Link to="/dashboard/products">
-          <Button variant="primary" size="sm">
-            + Record Sale
+          <Button variant="primary" size="sm" iconLeft={<ShoppingCart size={14} />}>
+            Record New Sale
           </Button>
         </Link>
       </div>
 
-      {/* Summary KPI Bar */}
+      {/* Accounting Summary Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-xl bg-[#111A27] border border-white/[0.08]">
-          <span className="text-xs text-[#8996A8] block">Qualifying Units</span>
-          <span className="text-2xl font-bold text-white">{qualifyingCount}</span>
+        <div className="p-5 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
+          <span className="text-xs text-[#5B5C50] font-mono block">Total Orders Recorded</span>
+          <span className="text-2xl font-bold font-mono text-[#1E241F]">{sales.length}</span>
         </div>
-        <div className="p-4 rounded-xl bg-[#111A27] border border-white/[0.08]">
-          <span className="text-xs text-[#8996A8] block">Total Gross Margin</span>
-          <span className={`text-2xl font-bold ${totalProfit > 0 ? 'text-[#22C55E]' : 'text-white'}`}>
+        <div className="p-5 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
+          <span className="text-xs text-[#5B5C50] font-mono block">Delivered Units (Rank Qualifying)</span>
+          <span className="text-2xl font-bold font-mono text-[#1F4D3E]">{totalUnits}</span>
+        </div>
+        <div className="p-5 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
+          <span className="text-xs text-[#5B5C50] font-mono block">Accumulated Gross Margin</span>
+          <span className="text-2xl font-bold font-mono text-[#B8862E]">
             PKR {totalProfit.toLocaleString()}
-          </span>
-        </div>
-        <div className="p-4 rounded-xl bg-[#111A27] border border-white/[0.08]">
-          <span className="text-xs text-[#8996A8] block">Average Margin / Unit</span>
-          <span className="text-2xl font-bold text-white">
-            PKR {qualifyingCount > 0 ? Math.round(totalProfit / qualifyingCount).toLocaleString() : '0'}
           </span>
         </div>
       </div>
 
-      {/* Professional Table (Step 32) */}
-      <div className="rounded-xl border border-white/[0.08] bg-[#111A27] overflow-hidden text-xs">
-        <div className="p-3.5 bg-[#0D141F] border-b border-white/[0.06] flex items-center justify-between">
-          <span className="font-semibold text-white">Transaction History ({filteredSales.length})</span>
-          <div className="flex items-center space-x-1.5">
-            {['all', 'confirmed', 'fulfilled', 'cancelled'].map((st) => (
-              <button
-                key={st}
-                onClick={() => setFilterStatus(st)}
-                className={`px-2 py-0.8 rounded text-[11px] capitalize transition-colors ${
-                  filterStatus === st
-                    ? 'bg-[#3B82F6] text-white font-medium'
-                    : 'text-[#8996A8] hover:text-white hover:bg-white/5'
-                }`}
-              >
-                {st}
-              </button>
-            ))}
-          </div>
+      {/* Sales Table */}
+      <div className="rounded-xl border border-[#E3DCC8] bg-white overflow-hidden text-xs shadow-xs">
+        <div className="p-3.5 bg-[#F1ECDD] border-b border-[#E3DCC8] flex items-center justify-between font-mono">
+          <span className="font-semibold text-[#1E241F]">Customer Orders Ledger</span>
+          <span className="text-[10px] text-[#5B5C50]">{sales.length} Records</span>
         </div>
 
-        {filteredSales.length === 0 ? (
-          <div className="p-8 text-center text-[#8996A8]">No transactions match the selected filter.</div>
+        {sales.length === 0 ? (
+          <div className="p-12 text-center text-[#5B5C50] space-y-2">
+            <Package size={32} className="text-[#7C7D70] mx-auto" />
+            <p className="font-serif font-medium text-base text-[#1E241F]">No sales recorded yet</p>
+            <p className="text-xs">Browse the wholesale catalog to record your first client purchase.</p>
+            <Link to="/dashboard/products" className="inline-block pt-2">
+              <Button variant="outline" size="sm">
+                Browse Products
+              </Button>
+            </Link>
+          </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="border-b border-white/[0.06] text-[#8996A8] text-[11px]">
+            <table className="w-full text-left font-sans">
+              <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                 <tr>
-                  <th className="p-3.5 font-medium">Transaction ID</th>
+                  <th className="p-3.5 font-medium">Order ID</th>
                   <th className="p-3.5 font-medium">Product</th>
-                  <th className="p-3.5 font-medium">Customer</th>
-                  <th className="p-3.5 font-medium text-right">Retail</th>
-                  <th className="p-3.5 font-medium text-right">Partner Price</th>
-                  <th className="p-3.5 font-medium text-right">Margin</th>
-                  <th className="p-3.5 font-medium text-center">Status</th>
+                  <th className="p-3.5 font-medium">Client Info</th>
+                  <th className="p-3.5 font-medium text-center">Qty</th>
+                  <th className="p-3.5 font-medium text-right">Unit Margin</th>
+                  <th className="p-3.5 font-medium text-right">Total Profit</th>
                   <th className="p-3.5 font-medium text-right">Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.04] text-[#CBD5E1]">
-                {filteredSales.map((sale) => (
-                  <tr key={sale.id} className="hover:bg-white/[0.02]">
-                    <td className="p-3.5 font-mono text-[#8996A8]">{sale.id}</td>
-                    <td className="p-3.5 font-medium text-white">{sale.productName}</td>
-                    <td className="p-3.5 text-[#CBD5E1]">{sale.customerName}</td>
-                    <td className="p-3.5 text-right text-white">PKR {sale.sellingPrice.toLocaleString()}</td>
-                    <td className="p-3.5 text-right text-[#CBD5E1]">PKR {sale.partnerPrice.toLocaleString()}</td>
-                    <td className="p-3.5 text-right font-medium text-[#22C55E]">
+              <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50]">
+                {sales.map((sale) => (
+                  <tr key={sale.id} className="hover:bg-[#FAF7EF] transition-colors">
+                    <td className="p-3.5 font-mono text-[#7C7D70]">{sale.id}</td>
+                    <td className="p-3.5">
+                      <p className="font-serif font-semibold text-[#1E241F]">{sale.productName}</p>
+                    </td>
+                    <td className="p-3.5">
+                      <p className="text-[#1E241F] font-medium">{sale.customerName}</p>
+                      <p className="text-[10px] text-[#7C7D70] font-mono">{sale.customerEmail || 'No email'}</p>
+                    </td>
+                    <td className="p-3.5 text-center font-mono font-medium text-[#1E241F]">
+                      {sale.quantity}
+                    </td>
+                    <td className="p-3.5 text-right font-mono text-[#1F4D3E]">
+                      +PKR {sale.profitMargin.toLocaleString()}
+                    </td>
+                    <td className="p-3.5 text-right font-mono font-bold text-[#B8862E]">
                       +PKR {(sale.profitMargin * sale.quantity).toLocaleString()}
                     </td>
-                    <td className="p-3.5 text-center">
-                      <span
-                        className={`inline-block text-[10px] font-medium capitalize px-2 py-0.5 rounded ${
-                          sale.status === 'confirmed' || sale.status === 'fulfilled'
-                            ? 'bg-[#22C55E]/10 text-[#4ADE80] border border-[#22C55E]/20'
-                            : 'bg-rose-500/10 text-rose-300 border border-rose-500/20'
-                        }`}
-                      >
-                        {sale.status}
-                      </span>
-                    </td>
-                    <td className="p-3.5 text-right text-[#8996A8]">
+                    <td className="p-3.5 text-right text-[#7C7D70] font-mono">
                       {new Date(sale.createdAt).toLocaleDateString()}
                     </td>
                   </tr>
@@ -127,6 +120,7 @@ export const DashboardSales: React.FC = () => {
           </div>
         )}
       </div>
+
     </div>
   );
 };

@@ -1,187 +1,161 @@
 import React, { useState } from 'react';
 import { storage } from '@/services/storage';
-import { auditService } from '@/services/auditService';
-import { useAuth } from '@/context/AuthContext';
 import { User, RankSlug } from '@/types';
-import { Button } from '@/components/ui/Button';
-import { MagnifyingGlass, X } from '@phosphor-icons/react';
+import { MagnifyingGlass, Users, X } from '@phosphor-icons/react';
 
 export const AdminUsersPage: React.FC = () => {
-  const { user: currentAdmin, refreshUserData } = useAuth();
-  const [users, setUsers] = useState<User[]>(storage.get<User[]>('USERS', []));
-  const [search, setSearch] = useState('');
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>(() => storage.get<User[]>('USERS', []));
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const filteredUsers = users.filter(
     (u) =>
-      u.fullName.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase()) ||
-      u.referralCode.toLowerCase().includes(search.toLowerCase())
+      u.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.referralCode.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleRankOverride = (newRank: RankSlug) => {
-    if (!editingUser || !currentAdmin) return;
-
-    const oldRank = editingUser.currentRankSlug;
-    const updatedUsers = users.map((u) => (u.id === editingUser.id ? { ...u, currentRankSlug: newRank } : u));
-    setUsers(updatedUsers);
-    storage.set('USERS', updatedUsers);
-
-    auditService.logAction({
-      adminId: currentAdmin.id,
-      adminEmail: currentAdmin.email,
-      action: 'OVERRIDE_USER_RANK',
-      entityType: 'user',
-      entityId: editingUser.id,
-      details: `Changed rank for ${editingUser.fullName} from ${oldRank} to ${newRank}.`,
-    });
-
-    refreshUserData();
-    setEditingUser(null);
+    if (!selectedUser) return;
+    const updated = users.map((u) => (u.id === selectedUser.id ? { ...u, currentRankSlug: newRank } : u));
+    storage.set('USERS', updated);
+    setUsers(updated);
+    setSelectedUser(null);
   };
 
-  const handleToggleActive = (userId: string) => {
-    if (!currentAdmin) return;
-    const target = users.find((u) => u.id === userId);
-    if (!target) return;
-
-    const updatedUsers = users.map((u) => (u.id === userId ? { ...u, isActive: !u.isActive } : u));
-    setUsers(updatedUsers);
-    storage.set('USERS', updatedUsers);
-
-    auditService.logAction({
-      adminId: currentAdmin.id,
-      adminEmail: currentAdmin.email,
-      action: target.isActive ? 'DEACTIVATE_USER' : 'ACTIVATE_USER',
-      entityType: 'user',
-      entityId: userId,
-      details: `${target.isActive ? 'Deactivated' : 'Activated'} user account ${target.fullName} (${target.email}).`,
-    });
+  const handleToggleStatus = (u: User) => {
+    const updated = users.map((item) => (item.id === u.id ? { ...item, isActive: !item.isActive } : item));
+    storage.set('USERS', updated);
+    setUsers(updated);
   };
 
   return (
-    <div className="space-y-6 font-sans">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 font-sans max-w-7xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3DCC8]">
         <div className="space-y-1">
-          <div className="flex items-center space-x-2 text-xs text-[#8996A8]">
-            <span>Admin</span>
-            <span>•</span>
-            <span>User Accounts</span>
+          <div className="flex items-center space-x-2 text-xs font-mono text-[#5B5C50]">
+            <span>Operations</span>
+            <span>/</span>
+            <span>Partners Directory</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-heading font-bold text-white">
-            Partner Directory
+          <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F]">
+            Partner Accounts &amp; Access Control
           </h1>
+          <p className="text-xs text-[#5B5C50]">
+            Manage registered distributors, modify milestone levels, and adjust account permissions.
+          </p>
         </div>
 
-        <div className="relative w-full sm:w-64 text-xs">
-          <MagnifyingGlass size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8996A8]" />
+        <div className="relative w-full sm:max-w-xs text-xs">
+          <MagnifyingGlass size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5B5C50]" />
           <input
             type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name, email, code..."
-            className="w-full pl-8 pr-3 py-1.8 rounded-lg bg-[#111A27] border border-white/10 text-white placeholder:text-[#8996A8] focus:outline-none focus:border-[#3B82F6]"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search name, email, code..."
+            className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-white border border-[#E3DCC8] text-[#1E241F] placeholder:text-[#7C7D70] focus:outline-none focus:border-[#1F4D3E]"
           />
         </div>
       </div>
 
-      {/* Users Table */}
-      <div className="rounded-xl border border-white/[0.08] bg-[#111A27] overflow-hidden text-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="border-b border-white/[0.06] text-[#8996A8] text-[11px]">
-              <tr>
-                <th className="p-3.5 font-medium">Partner Name</th>
-                <th className="p-3.5 font-medium">Email</th>
-                <th className="p-3.5 font-medium">Referral Code</th>
-                <th className="p-3.5 font-medium text-center">Rank</th>
-                <th className="p-3.5 font-medium text-center">Role</th>
-                <th className="p-3.5 font-medium text-center">Status</th>
-                <th className="p-3.5 font-medium text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/[0.04] text-[#CBD5E1]">
-              {filteredUsers.map((u) => (
-                <tr key={u.id} className="hover:bg-white/[0.02]">
-                  <td className="p-3.5 font-medium text-white">{u.fullName}</td>
-                  <td className="p-3.5 text-[#8996A8]">{u.email}</td>
-                  <td className="p-3.5 font-mono text-white">{u.referralCode}</td>
-                  <td className="p-3.5 text-center">
-                    <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded bg-white/5 text-[#CBD5E1]">
-                      {u.currentRankSlug}
-                    </span>
-                  </td>
-                  <td className="p-3.5 text-center">
-                    <span
-                      className={`text-[10px] font-medium uppercase px-2 py-0.5 rounded ${
-                        u.role === 'admin' ? 'bg-[#3B82F6]/10 text-[#60A5FA]' : 'bg-white/5 text-[#8996A8]'
-                      }`}
-                    >
-                      {u.role}
-                    </span>
-                  </td>
-                  <td className="p-3.5 text-center">
-                    <span
-                      className={`text-[10px] font-medium uppercase px-2 py-0.5 rounded ${
-                        u.isActive ? 'text-[#22C55E]' : 'text-rose-400'
-                      }`}
-                    >
-                      {u.isActive ? 'Active' : 'Disabled'}
-                    </span>
-                  </td>
-                  <td className="p-3.5 text-right space-x-1.5">
-                    <button
-                      onClick={() => setEditingUser(u)}
-                      className="px-2.5 py-1 rounded bg-[#16202E] hover:bg-[#1C283A] text-white border border-white/10 text-[11px] cursor-pointer"
-                    >
-                      Override Rank
-                    </button>
-                    <button
-                      onClick={() => handleToggleActive(u.id)}
-                      className={`px-2 py-1 rounded text-[11px] border cursor-pointer ${
-                        u.isActive
-                          ? 'bg-rose-500/10 text-rose-300 border-rose-500/20 hover:bg-rose-500/20'
-                          : 'bg-[#22C55E]/10 text-[#4ADE80] border border-[#22C55E]/20'
-                      }`}
-                    >
-                      {u.isActive ? 'Disable' : 'Enable'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="rounded-xl border border-[#E3DCC8] bg-white overflow-hidden text-xs shadow-xs">
+        <div className="p-3.5 bg-[#F1ECDD] border-b border-[#E3DCC8] flex items-center justify-between font-mono">
+          <span className="font-semibold text-[#1E241F]">Registered Distributors</span>
+          <span className="text-[10px] text-[#5B5C50]">{filteredUsers.length} Partners</span>
         </div>
+
+        {filteredUsers.length === 0 ? (
+          <div className="p-12 text-center text-[#5B5C50] space-y-2">
+            <Users size={32} className="text-[#7C7D70] mx-auto" />
+            <p className="font-serif font-medium text-base text-[#1E241F]">No partner accounts found</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left font-sans">
+              <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
+                <tr>
+                  <th className="p-3.5 font-medium">Partner Profile</th>
+                  <th className="p-3.5 font-medium">Referral Code</th>
+                  <th className="p-3.5 font-medium">Current Level</th>
+                  <th className="p-3.5 font-medium">Role</th>
+                  <th className="p-3.5 font-medium text-center">Status</th>
+                  <th className="p-3.5 font-medium text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50]">
+                {filteredUsers.map((u) => (
+                  <tr key={u.id} className="hover:bg-[#FAF7EF] transition-colors">
+                    <td className="p-3.5">
+                      <p className="font-serif font-semibold text-[#1E241F]">{u.fullName}</p>
+                      <p className="text-[10px] font-mono text-[#7C7D70]">{u.email}</p>
+                    </td>
+                    <td className="p-3.5 font-mono font-bold text-[#1F4D3E]">{u.referralCode}</td>
+                    <td className="p-3.5 font-mono uppercase text-[#1E241F] font-semibold">{u.currentRankSlug}</td>
+                    <td className="p-3.5 capitalize font-mono text-[#5B5C50]">{u.role}</td>
+                    <td className="p-3.5 text-center">
+                      <span
+                        className={`inline-block text-[10px] font-mono font-semibold capitalize px-2 py-0.5 rounded border ${
+                          u.isActive
+                            ? 'bg-[#F1ECDD] text-[#1F4D3E] border-[#E3DCC8]'
+                            : 'bg-rose-50 text-rose-700 border-rose-200'
+                        }`}
+                      >
+                        {u.isActive ? 'Active' : 'Suspended'}
+                      </span>
+                    </td>
+                    <td className="p-3.5 text-center">
+                      <div className="flex items-center justify-center space-x-1.5">
+                        <button
+                          onClick={() => setSelectedUser(u)}
+                          className="px-2 py-1 rounded bg-[#FAF7EF] hover:bg-[#F1ECDD] text-[#1E241F] border border-[#E3DCC8] text-[11px] font-mono"
+                        >
+                          Change Level
+                        </button>
+                        <button
+                          onClick={() => handleToggleStatus(u)}
+                          className="px-2 py-1 rounded bg-[#FAF7EF] hover:bg-rose-50 text-[#5B5C50] hover:text-rose-700 border border-[#E3DCC8] text-[11px] font-mono"
+                        >
+                          {u.isActive ? 'Suspend' : 'Activate'}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {/* Rank Override Modal */}
-      {editingUser && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-sm p-6 rounded-2xl bg-[#111A27] border border-white/[0.12] shadow-2xl space-y-4 text-xs">
-            <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
-              <h3 className="text-sm font-semibold text-white">Override Rank: {editingUser.fullName}</h3>
-              <button onClick={() => setEditingUser(null)} className="text-[#8996A8] hover:text-white">
+      {/* Change Level Modal */}
+      {selectedUser && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-sm p-6 rounded-2xl bg-white border border-[#E3DCC8] shadow-xl space-y-4 text-xs">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E3DCC8]">
+              <h3 className="font-serif font-medium text-base text-[#1E241F]">
+                Override Partner Level: {selectedUser.fullName}
+              </h3>
+              <button onClick={() => setSelectedUser(null)} className="text-[#5B5C50] hover:text-[#1E241F]">
                 <X size={16} />
               </button>
             </div>
-            <p className="text-[#8996A8]">Select new rank tier. Action will be recorded in audit log.</p>
 
-            <div className="space-y-1.5 pt-1">
-              {(['silver', 'platinum', 'gold', 'diamond'] as RankSlug[]).map((r) => (
+            <div className="space-y-2">
+              {(['unranked', 'silver', 'platinum', 'gold', 'diamond'] as RankSlug[]).map((r) => (
                 <button
                   key={r}
                   onClick={() => handleRankOverride(r)}
-                  className="w-full p-2 rounded-lg bg-[#0D141F] hover:bg-[#16202E] text-white font-medium capitalize border border-white/5 flex items-center justify-between cursor-pointer"
+                  className={`w-full p-2.5 rounded-lg border text-left flex items-center justify-between font-mono uppercase ${
+                    selectedUser.currentRankSlug === r
+                      ? 'bg-[#1F4D3E] text-white border-[#1F4D3E] font-bold'
+                      : 'bg-[#FAF7EF] text-[#1E241F] border-[#E3DCC8] hover:bg-[#F1ECDD]'
+                  }`}
                 >
-                  <span>{r} Rank</span>
-                  <span className="text-[#3B82F6]">Select →</span>
+                  <span>{r}</span>
+                  {selectedUser.currentRankSlug === r && <span className="text-xs">Current</span>}
                 </button>
               ))}
             </div>
-
-            <Button variant="secondary" size="sm" onClick={() => setEditingUser(null)} className="w-full justify-center mt-2">
-              Cancel
-            </Button>
           </div>
         </div>
       )}

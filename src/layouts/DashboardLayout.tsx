@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { NavLink, Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { DreamLogo } from '@/components/ui/DreamLogo';
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import {
   House,
@@ -16,7 +14,7 @@ import {
   SignOut,
   List,
   X,
-  ShieldStar,
+  ShieldCheck,
   Copy,
   Check,
   ArrowSquareOut,
@@ -27,25 +25,24 @@ export const DashboardLayout: React.FC = () => {
   const { user, isAuthenticated, isAdmin, rankProgress, unreadNotifsCount, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [copiedRef, setCopiedRef] = useState(false);
-  const navigate = useNavigate();
   const location = useLocation();
 
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen bg-[#030712] text-[#F8FAFC] flex flex-col items-center justify-center p-6 text-center space-y-4 font-sans">
-        <ShieldStar size={48} className="text-cyan-400 animate-pulse" />
-        <h2 className="text-2xl font-heading font-bold text-white">Partner Session Required</h2>
-        <p className="text-sm text-slate-400 max-w-md">
-          Please sign in to access your partner analytics, customer sales ledgers, and milestone rewards.
+      <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] flex flex-col items-center justify-center p-6 text-center space-y-4 font-sans">
+        <ShieldCheck size={48} className="text-[#1F4D3E]" />
+        <h2 className="font-serif text-2xl font-medium text-[#1E241F]">Partner Session Required</h2>
+        <p className="text-xs text-[#5B5C50] max-w-md">
+          Please sign in to access your partner analytics, wholesale inventory ledger, and milestone rewards.
         </p>
         <div className="flex items-center space-x-3 pt-2">
           <Link to="/login">
-            <Button variant="primary" size="md" className="rounded-xl font-bold">
+            <Button variant="primary" size="md" className="text-xs font-medium">
               Partner Sign In
             </Button>
           </Link>
           <Link to="/">
-            <Button variant="secondary" size="md" className="rounded-xl">
+            <Button variant="outline" size="md" className="text-xs font-medium">
               Return Home
             </Button>
           </Link>
@@ -56,22 +53,14 @@ export const DashboardLayout: React.FC = () => {
 
   const navItems = [
     { label: 'Overview', href: '/dashboard', icon: House },
+    { label: 'Wholesale Inventory', href: '/dashboard/products', icon: Package },
     { label: 'Rank Progress', href: '/dashboard/rank-progress', icon: ChartLineUp, badge: rankProgress?.nextRank ? `${rankProgress.overallProgressPercent}%` : 'MAX' },
-    { label: 'Products', href: '/dashboard/products', icon: Package },
-    { label: 'Sales & Margins', href: '/dashboard/sales', icon: ShoppingCart, count: rankProgress?.qualifyingSales },
-    { label: 'Referral Community', href: '/dashboard/referrals', icon: Users, count: rankProgress?.qualifyingCommunity },
-    { label: 'Milestone Rewards', href: '/dashboard/rewards', icon: Gift },
+    { label: 'Direct Sales', href: '/dashboard/sales', icon: ShoppingCart, count: rankProgress?.qualifyingSales },
+    { label: 'Referral Network', href: '/dashboard/referrals', icon: Users, count: rankProgress?.qualifyingCommunity },
+    { label: 'Rewards', href: '/dashboard/rewards', icon: Gift },
     { label: 'Notifications', href: '/dashboard/notifications', icon: Bell, count: unreadNotifsCount || undefined },
     { label: 'Profile', href: '/dashboard/profile', icon: UserCircle },
   ];
-
-  const rankBadgeStyles: Record<string, string> = {
-    silver: 'bg-slate-400/10 text-slate-300 border-slate-400/20',
-    platinum: 'bg-cyan-500/15 text-cyan-300 border-cyan-400/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]',
-    gold: 'bg-amber-500/15 text-amber-300 border-amber-400/30 shadow-[0_0_10px_rgba(245,158,11,0.2)]',
-    diamond: 'bg-purple-500/15 text-purple-300 border-purple-400/30 shadow-[0_0_12px_rgba(168,85,247,0.25)]',
-    unranked: 'bg-white/5 text-slate-400 border-white/10',
-  };
 
   const handleCopyRef = () => {
     if (!user) return;
@@ -82,127 +71,115 @@ export const DashboardLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#030712] text-[#F8FAFC] flex flex-col md:flex-row font-sans selection:bg-cyan-500/30">
+    <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] flex flex-col md:flex-row font-sans selection:bg-[#B8862E]/25">
+      
       {/* Desktop Persistent Sidebar */}
-      <aside className="hidden md:flex flex-col justify-between w-64 bg-[#080E1E] border-r border-white/[0.08] p-4 shrink-0 min-h-screen sticky top-0 shadow-2xl">
+      <aside className="hidden md:flex flex-col justify-between w-64 bg-white border-r border-[#E3DCC8] p-4 shrink-0 min-h-screen sticky top-0 shadow-xs">
         <div className="space-y-5">
-          {/* Brand Logo & Public Link */}
+          {/* Logo & Public Site Link */}
           <div className="flex items-center justify-between px-2 py-1">
-            <Link to="/">
-              <DreamLogo size={26} />
+            <Link to="/" className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                <img src="/images/logo.png" alt="DreamToAchievers" className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
+              </div>
+              <span className="font-serif font-semibold text-sm text-[#1E241F]">Partner Hub</span>
             </Link>
             <Link
               to="/"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
-              title="View Public Site"
+              className="p-1.5 rounded-lg text-[#5B5C50] hover:text-[#1E241F] hover:bg-[#FAF7EF] transition-colors"
+              title="View Public Storefront"
             >
               <ArrowSquareOut size={16} />
             </Link>
           </div>
 
           {/* User Profile Card */}
-          <div className="p-3.5 rounded-2xl bg-[#0C152B] border border-white/[0.08] space-y-2">
+          <div className="p-3 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-white truncate max-w-[120px]">
+              <span className="text-xs font-semibold text-[#1E241F] truncate max-w-[120px]">
                 {user.fullName}
               </span>
-              <span
-                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full border uppercase ${
-                  rankBadgeStyles[user.currentRankSlug] || rankBadgeStyles.unranked
-                }`}
-              >
+              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#F1ECDD] text-[#1F4D3E] border border-[#E3DCC8] uppercase">
                 {user.currentRankSlug}
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
+            <p className="text-[10.5px] font-mono text-[#5B5C50] truncate">{user.email}</p>
           </div>
 
-          {/* Admin Switch Banner (Shown if user has Admin Privileges) */}
+          {/* Admin Switch Banner (If user is admin) */}
           {isAdmin && (
             <Link
               to="/admin"
-              className="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-cyan-500/20 via-blue-500/10 to-transparent border border-cyan-400/30 hover:border-cyan-400/60 transition-all text-xs group shadow-[0_0_15px_rgba(0,242,254,0.15)]"
+              className="flex items-center justify-between p-2.5 rounded-xl bg-[#F1ECDD] border border-[#E3DCC8] hover:bg-[#EAE4D2] transition-colors text-xs group"
             >
               <div className="flex items-center space-x-2">
-                <div className="w-7 h-7 rounded-lg bg-cyan-400/20 text-cyan-300 flex items-center justify-center">
-                  <ShieldStar size={16} weight="fill" />
-                </div>
-                <div>
-                  <p className="font-bold text-white group-hover:text-cyan-300 transition-colors">Admin Control</p>
-                  <p className="text-[10px] text-cyan-400/80">Manage System</p>
-                </div>
+                <ShieldCheck size={16} className="text-[#1F4D3E]" />
+                <span className="font-semibold text-[#1E241F]">Admin Portal</span>
               </div>
-              <ArrowSquareOut size={14} className="text-cyan-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+              <ArrowSquareOut size={13} className="text-[#5B5C50]" />
             </Link>
           )}
 
           {/* Referral Code Quick Copy Pill */}
-          <div className="p-2.5 rounded-xl bg-[#030712] border border-white/[0.06] flex items-center justify-between text-xs">
+          <div className="p-2.5 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] flex items-center justify-between text-xs">
             <div className="space-y-0.5">
-              <span className="text-[10px] font-mono uppercase text-slate-400 block">Referral Code</span>
-              <span className="font-mono font-bold text-cyan-400">{user.referralCode}</span>
+              <span className="text-[10px] font-mono uppercase text-[#5B5C50] block">Referral Code</span>
+              <span className="font-mono font-bold text-[#1F4D3E]">{user.referralCode}</span>
             </div>
             <button
               onClick={handleCopyRef}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg bg-white border border-[#E3DCC8] hover:bg-[#F1ECDD] text-[#1E241F] transition-colors cursor-pointer"
               title="Copy referral link"
             >
-              {copiedRef ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+              {copiedRef ? <Check size={14} className="text-[#1F4D3E]" /> : <Copy size={14} />}
             </button>
           </div>
 
           {/* Navigation Links */}
-          <div className="space-y-1">
-            <span className="px-3 text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold block pb-1">
-              PARTNER MENU
-            </span>
-            <nav className="space-y-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive =
-                  item.href === '/dashboard'
-                    ? location.pathname === '/dashboard'
-                    : location.pathname.startsWith(item.href);
+          <nav className="space-y-1 text-xs">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                item.href === '/dashboard'
+                  ? location.pathname === '/dashboard'
+                  : location.pathname.startsWith(item.href);
 
-                return (
-                  <NavLink
-                    key={item.label}
-                    to={item.href}
-                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all duration-150 ${
-                      isActive
-                        ? 'bg-gradient-to-r from-cyan-500/20 to-transparent text-cyan-300 font-semibold border-l-2 border-cyan-400'
-                        : 'text-slate-300 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-2.5">
-                      <Icon size={18} className={isActive ? 'text-cyan-400' : 'text-slate-400'} />
-                      <span>{item.label}</span>
-                    </div>
-                    {item.badge && (
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/25">
-                        {item.badge}
-                      </span>
-                    )}
-                    {typeof item.count === 'number' && item.count > 0 && (
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-white/10 text-slate-200">
-                        {item.count}
-                      </span>
-                    )}
-                  </NavLink>
-                );
-              })}
-            </nav>
-          </div>
+              return (
+                <NavLink
+                  key={item.label}
+                  to={item.href}
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                    isActive
+                      ? 'bg-[#1F4D3E] text-white font-medium shadow-xs'
+                      : 'text-[#5B5C50] hover:text-[#1E241F] hover:bg-[#FAF7EF]'
+                  }`}
+                >
+                  <div className="flex items-center space-x-2.5 truncate">
+                    <Icon size={16} />
+                    <span className="truncate">{item.label}</span>
+                  </div>
+
+                  {item.badge && (
+                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${isActive ? 'bg-white/20 text-white' : 'bg-[#F1ECDD] text-[#5B5C50]'}`}>
+                      {item.badge}
+                    </span>
+                  )}
+                  {item.count !== undefined && (
+                    <span className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-[#F1ECDD] text-[#5B5C50]'}`}>
+                      {item.count}
+                    </span>
+                  )}
+                </NavLink>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Sidebar Footer Logout */}
-        <div className="pt-4 border-t border-white/[0.08] space-y-2">
+        {/* Sign Out Action */}
+        <div className="pt-4 border-t border-[#E3DCC8]">
           <button
-            onClick={() => {
-              logout();
-              navigate('/login');
-            }}
-            className="w-full flex items-center space-x-2 px-3 py-2 rounded-xl text-xs text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+            onClick={() => logout()}
+            className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
           >
             <SignOut size={16} />
             <span>Sign Out</span>
@@ -210,78 +187,76 @@ export const DashboardLayout: React.FC = () => {
         </div>
       </aside>
 
-      {/* Mobile Top App Header */}
-      <header className="md:hidden flex items-center justify-between p-4 bg-[#080E1E] border-b border-white/[0.08] sticky top-0 z-40">
-        <Link to="/">
-          <DreamLogo size={24} />
+      {/* Mobile Top Header */}
+      <header className="md:hidden sticky top-0 z-40 bg-white border-b border-[#E3DCC8] p-4 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-[#1F4D3E] text-white flex items-center justify-center font-serif font-semibold text-sm">
+            D
+          </div>
+          <span className="font-serif font-semibold text-sm text-[#1E241F]">Partner Hub</span>
         </Link>
+
         <div className="flex items-center space-x-2">
-          <span
-            className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full border uppercase ${
-              rankBadgeStyles[user.currentRankSlug] || rankBadgeStyles.unranked
-            }`}
-          >
+          <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#F1ECDD] text-[#1F4D3E] border border-[#E3DCC8] uppercase">
             {user.currentRankSlug}
           </span>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg bg-white/5 text-slate-300 hover:text-white"
-            aria-label="Toggle Dashboard Menu"
+            className="p-2 rounded-lg text-[#1E241F] hover:bg-[#FAF7EF]"
           >
-            {mobileMenuOpen ? <X size={20} /> : <List size={20} />}
+            {mobileMenuOpen ? <X size={18} /> : <List size={18} />}
           </button>
         </div>
       </header>
 
-      {/* Mobile Drawer Overlay */}
+      {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-[#030712]/95 backdrop-blur-2xl p-6 pt-16 flex flex-col justify-between">
-          <div className="space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-white/10">
-              <div>
-                <p className="font-bold text-white">{user.fullName}</p>
-                <p className="text-xs text-slate-400">{user.email}</p>
-              </div>
-              <button onClick={() => setMobileMenuOpen(false)} className="p-2 rounded-full bg-white/5 text-slate-300">
-                <X size={20} />
-              </button>
-            </div>
+        <div className="md:hidden fixed inset-0 top-14 z-30 bg-[#FAF7EF] p-5 flex flex-col justify-between overflow-y-auto">
+          <nav className="space-y-1 text-sm">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                item.href === '/dashboard'
+                  ? location.pathname === '/dashboard'
+                  : location.pathname.startsWith(item.href);
 
-            <nav className="space-y-1.5">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.label}
-                    to={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-200 hover:text-white hover:bg-white/5 font-medium"
-                  >
-                    <Icon size={20} className="text-cyan-400" />
+              return (
+                <NavLink
+                  key={item.label}
+                  to={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center justify-between px-4 py-2.5 rounded-lg font-medium ${
+                    isActive
+                      ? 'bg-[#1F4D3E] text-white font-medium'
+                      : 'text-[#5B5C50] hover:text-[#1E241F] hover:bg-[#F1ECDD]'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Icon size={18} />
                     <span>{item.label}</span>
-                  </NavLink>
-                );
-              })}
-            </nav>
-          </div>
+                  </div>
+                  {item.badge && <span className="text-xs font-mono">{item.badge}</span>}
+                </NavLink>
+              );
+            })}
+          </nav>
 
-          <div className="pt-6 border-t border-white/10">
+          <div className="pt-4 border-t border-[#E3DCC8]">
             <button
               onClick={() => {
+                setMobileMenuOpen(false);
                 logout();
-                navigate('/login');
               }}
-              className="w-full flex items-center justify-center space-x-2 py-3 rounded-xl bg-rose-500/10 text-rose-300 text-sm font-semibold border border-rose-500/20"
+              className="w-full py-2.5 rounded-lg text-xs font-semibold text-rose-700 bg-rose-50 text-center"
             >
-              <SignOut size={18} />
-              <span>Log Out</span>
+              Sign Out
             </button>
           </div>
         </div>
       )}
 
-      {/* Main Dashboard Sub-Page Outlet */}
-      <main className="flex-1 p-5 sm:p-7 lg:p-8 max-w-6xl mx-auto w-full overflow-x-hidden">
+      {/* Main Dashboard Content */}
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl overflow-x-hidden">
         <Outlet />
       </main>
     </div>

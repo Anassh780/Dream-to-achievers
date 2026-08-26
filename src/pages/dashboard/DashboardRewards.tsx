@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { rewardService } from '@/services/rewardService';
+import { Gift } from '@phosphor-icons/react';
 
 export const DashboardRewards: React.FC = () => {
   const { user } = useAuth();
@@ -12,90 +13,103 @@ export const DashboardRewards: React.FC = () => {
   const paidTotal = rewards.filter((r) => r.status === 'paid').reduce((sum, r) => sum + r.amount, 0);
   const pendingTotal = rewards.filter((r) => r.status !== 'paid' && r.status !== 'rejected').reduce((sum, r) => sum + r.amount, 0);
 
+  const statusStyles: Record<string, string> = {
+    paid: 'bg-[#F1ECDD] text-[#1F4D3E] border-[#E3DCC8]',
+    approved: 'bg-[#F1ECDD] text-[#1F4D3E] border-[#E3DCC8]',
+    pending_review: 'bg-[#EFE2C4] text-[#B8862E] border-[#B8862E]/30',
+    earned: 'bg-[#F1ECDD] text-[#1F4D3E] border-[#E3DCC8]',
+    rejected: 'bg-rose-50 text-rose-700 border-rose-200',
+  };
+
   return (
-    <div className="space-y-6 font-sans">
-      <div className="space-y-1">
-        <div className="flex items-center space-x-2 text-xs text-[#8996A8]">
-          <span>Rewards</span>
-          <span>•</span>
-          <span>Rank Bonuses</span>
+    <div className="space-y-6 font-sans max-w-7xl">
+      
+      {/* Header */}
+      <div className="space-y-1 pb-2 border-b border-[#E3DCC8]">
+        <div className="flex items-center space-x-2 text-xs font-mono text-[#5B5C50]">
+          <span>Financials</span>
+          <span>/</span>
+          <span>Level Milestone Rewards</span>
         </div>
-        <h1 className="text-xl sm:text-2xl font-heading font-bold text-white">
-          Milestone Cash Rewards
+        <h1 className="font-serif text-2xl sm:text-3xl font-medium text-[#1E241F] tracking-tight">
+          Milestone Cash Rewards Ledger
         </h1>
-        <p className="text-xs sm:text-sm text-[#8996A8]">
-          One-time cash bonuses unlocked upon reaching Silver, Platinum, Gold, and Diamond tiers.
+        <p className="text-xs text-[#5B5C50]">
+          One-time cash bonuses unlocked upon reaching Level 01, Level 02, Level 03, and Level 04 thresholds.
         </p>
       </div>
 
-      {/* Reward Summary Cards */}
+      {/* Accounting Summary Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-xl bg-[#111A27] border border-white/[0.08]">
-          <span className="text-xs text-[#8996A8] block">Total Milestone Rewards</span>
-          <span className={`text-2xl font-bold ${totalEarned > 0 ? 'text-[#F59E0B]' : 'text-white'}`}>
+        <div className="p-5 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
+          <span className="text-xs text-[#5B5C50] font-mono block">Total Milestone Rewards</span>
+          <span className="text-2xl font-bold font-mono text-[#1E241F]">
             PKR {totalEarned.toLocaleString()}
           </span>
         </div>
-        <div className="p-4 rounded-xl bg-[#111A27] border border-white/[0.08]">
-          <span className="text-xs text-[#8996A8] block">Disbursed / Paid</span>
-          <span className={`text-2xl font-bold ${paidTotal > 0 ? 'text-[#22C55E]' : 'text-white'}`}>
+        <div className="p-5 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
+          <span className="text-xs text-[#5B5C50] font-mono block">Disbursed / Paid</span>
+          <span className="text-2xl font-bold font-mono text-[#1F4D3E]">
             PKR {paidTotal.toLocaleString()}
           </span>
         </div>
-        <div className="p-4 rounded-xl bg-[#111A27] border border-white/[0.08]">
-          <span className="text-xs text-[#8996A8] block">Under Review</span>
-          <span className="text-2xl font-bold text-white">PKR {pendingTotal.toLocaleString()}</span>
+        <div className="p-5 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
+          <span className="text-xs text-[#5B5C50] font-mono block">Pending Review / Processing</span>
+          <span className="text-2xl font-bold font-mono text-[#B8862E]">
+            PKR {pendingTotal.toLocaleString()}
+          </span>
         </div>
       </div>
 
-      {/* Rewards Ledger Table */}
-      <div className="rounded-xl border border-white/[0.08] bg-[#111A27] overflow-hidden text-xs">
-        <div className="p-3.5 bg-[#0D141F] border-b border-white/[0.06]">
-          <span className="font-semibold text-white">Reward Disbursement History</span>
+      {/* Financial Rewards Ledger Table */}
+      <div className="rounded-xl border border-[#E3DCC8] bg-white overflow-hidden text-xs shadow-xs">
+        <div className="p-3.5 bg-[#F1ECDD] border-b border-[#E3DCC8] flex items-center justify-between">
+          <span className="font-semibold text-[#1E241F] font-mono text-xs">Reward Disbursement Ledger</span>
+          <span className="text-[10px] font-mono text-[#5B5C50]">{rewards.length} Records</span>
         </div>
 
         {rewards.length === 0 ? (
-          <div className="p-8 text-center text-[#8996A8]">
-            No milestone rewards generated yet. Complete 10 sales & 20 community members to unlock Silver Rank (PKR 2,000).
+          <div className="p-10 text-center text-[#5B5C50] space-y-2">
+            <Gift size={28} className="text-[#7C7D70] mx-auto" />
+            <p className="font-medium text-[#1E241F]">No milestone rewards generated yet</p>
+            <p className="text-xs max-w-sm mx-auto text-[#7C7D70]">
+              Complete 10 personal sales &amp; 20 community referrals to unlock Level 01 (PKR 2,000 bonus).
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="border-b border-white/[0.06] text-[#8996A8] text-[11px]">
+              <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                 <tr>
                   <th className="p-3.5 font-medium">Reward ID</th>
                   <th className="p-3.5 font-medium">Milestone Tier</th>
-                  <th className="p-3.5 font-medium text-right">Amount</th>
+                  <th className="p-3.5 font-medium text-right">Amount (PKR)</th>
                   <th className="p-3.5 font-medium text-center">Status</th>
                   <th className="p-3.5 font-medium">Reference / Note</th>
-                  <th className="p-3.5 font-medium text-right">Date Earned</th>
+                  <th className="p-3.5 font-medium text-right">Earned Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.04] text-[#CBD5E1]">
+              <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50] font-sans">
                 {rewards.map((rew) => (
-                  <tr key={rew.id} className="hover:bg-white/[0.02]">
-                    <td className="p-3.5 font-mono text-[#8996A8]">{rew.id}</td>
-                    <td className="p-3.5 font-medium text-white">{rew.rankName}</td>
-                    <td className="p-3.5 text-right font-semibold text-white">
+                  <tr key={rew.id} className="hover:bg-[#FAF7EF] transition-colors">
+                    <td className="p-3.5 font-mono text-[#5B5C50]">{rew.id}</td>
+                    <td className="p-3.5 font-serif font-semibold text-[#1E241F]">{rew.rankName}</td>
+                    <td className="p-3.5 text-right font-mono font-bold text-[#B8862E]">
                       PKR {rew.amount.toLocaleString()}
                     </td>
                     <td className="p-3.5 text-center">
                       <span
-                        className={`inline-block text-[10px] font-medium capitalize px-2 py-0.5 rounded ${
-                          rew.status === 'paid'
-                            ? 'bg-[#22C55E]/10 text-[#4ADE80] border border-[#22C55E]/20'
-                            : rew.status === 'approved'
-                            ? 'bg-[#3B82F6]/10 text-[#60A5FA] border border-[#3B82F6]/20'
-                            : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
+                        className={`inline-block text-[10px] font-mono font-semibold capitalize px-2 py-0.5 rounded border ${
+                          statusStyles[rew.status] || 'bg-[#FAF7EF] text-[#5B5C50]'
                         }`}
                       >
                         {rew.status.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="p-3.5 text-[#8996A8] text-[11px]">
-                      {rew.transactionReference || rew.adminNote || 'Queued for processing'}
+                    <td className="p-3.5 text-[#5B5C50] text-xs font-mono">
+                      {rew.transactionReference || rew.adminNote || 'Queued for operations disbursement'}
                     </td>
-                    <td className="p-3.5 text-right text-[#8996A8]">
+                    <td className="p-3.5 text-right text-[#5B5C50] font-mono">
                       {new Date(rew.earnedAt).toLocaleDateString()}
                     </td>
                   </tr>
@@ -105,6 +119,7 @@ export const DashboardRewards: React.FC = () => {
           </div>
         )}
       </div>
+
     </div>
   );
 };

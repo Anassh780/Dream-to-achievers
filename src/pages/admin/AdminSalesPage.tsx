@@ -1,109 +1,82 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { storage } from '@/services/storage';
-import { auditService } from '@/services/auditService';
-import { rankEngine } from '@/services/rankEngine';
-import { useAuth } from '@/context/AuthContext';
-import { Sale, SaleStatus } from '@/types';
+import { Sale } from '@/types';
+import { ShoppingCart } from '@phosphor-icons/react';
 
 export const AdminSalesPage: React.FC = () => {
-  const { user: currentAdmin, refreshUserData } = useAuth();
-  const [sales, setSales] = useState<Sale[]>(storage.get<Sale[]>('SALES', []));
-
-  const handleUpdateStatus = (saleId: string, newStatus: SaleStatus) => {
-    if (!currentAdmin) return;
-    const target = sales.find((s) => s.id === saleId);
-    if (!target) return;
-
-    const isQualifying = newStatus === 'confirmed' || newStatus === 'fulfilled';
-    const updated = sales.map((s) => (s.id === saleId ? { ...s, status: newStatus, isQualifying } : s));
-    setSales(updated);
-    storage.set('SALES', updated);
-
-    auditService.logAction({
-      adminId: currentAdmin.id,
-      adminEmail: currentAdmin.email,
-      action: 'UPDATE_SALE_STATUS',
-      entityType: 'sale',
-      entityId: saleId,
-      details: `Changed sale #${saleId} status to ${newStatus} (Qualifying: ${isQualifying}).`,
-    });
-
-    // Re-evaluate rank for the affected partner
-    rankEngine.checkAndPromoteUser(target.userId);
-    refreshUserData();
-  };
+  const sales = storage.get<Sale[]>('SALES', []);
 
   return (
-    <div className="space-y-6 font-sans">
-      <div className="space-y-1">
-        <div className="flex items-center space-x-2 text-xs text-[#8996A8]">
-          <span>Admin</span>
-          <span>•</span>
-          <span>Order Verifications</span>
+    <div className="space-y-6 font-sans max-w-7xl">
+      <div className="space-y-1 pb-4 border-b border-[#E3DCC8]">
+        <div className="flex items-center space-x-2 text-xs font-mono text-[#5B5C50]">
+          <span>Commerce</span>
+          <span>/</span>
+          <span>Sales Ledger</span>
         </div>
-        <h1 className="text-xl sm:text-2xl font-heading font-bold text-white">
-          Sales & Order Verifications
+        <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F]">
+          Platform Customer Sales Audit
         </h1>
+        <p className="text-xs text-[#5B5C50]">
+          Complete transaction registry of all partner product sales with gross profit distributions.
+        </p>
       </div>
 
-      <div className="rounded-xl border border-white/[0.08] bg-[#111A27] overflow-hidden text-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="border-b border-white/[0.06] text-[#8996A8] text-[11px]">
-              <tr>
-                <th className="p-3.5 font-medium">Sale ID</th>
-                <th className="p-3.5 font-medium">Product</th>
-                <th className="p-3.5 font-medium">Customer</th>
-                <th className="p-3.5 font-medium text-right">Price</th>
-                <th className="p-3.5 font-medium text-right">Margin</th>
-                <th className="p-3.5 font-medium text-center">Qualifying</th>
-                <th className="p-3.5 font-medium text-center">Status</th>
-                <th className="p-3.5 font-medium text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/[0.04] text-[#CBD5E1]">
-              {sales.map((s) => (
-                <tr key={s.id} className="hover:bg-white/[0.02]">
-                  <td className="p-3.5 font-mono text-[#8996A8]">{s.id}</td>
-                  <td className="p-3.5 font-medium text-white">{s.productName}</td>
-                  <td className="p-3.5 text-[#CBD5E1]">{s.customerName}</td>
-                  <td className="p-3.5 text-right text-white">PKR {s.sellingPrice.toLocaleString()}</td>
-                  <td className="p-3.5 text-right font-medium text-[#22C55E]">
-                    +PKR {(s.profitMargin * s.quantity).toLocaleString()}
-                  </td>
-                  <td className="p-3.5 text-center">
-                    <span className={`text-[11px] font-medium ${s.isQualifying ? 'text-[#22C55E]' : 'text-[#8996A8]'}`}>
-                      {s.isQualifying ? 'Yes (+1)' : 'No'}
-                    </span>
-                  </td>
-                  <td className="p-3.5 text-center">
-                    <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded bg-white/5 text-[#CBD5E1]">
-                      {s.status}
-                    </span>
-                  </td>
-                  <td className="p-3.5 text-right space-x-1">
-                    {s.status !== 'confirmed' && (
-                      <button
-                        onClick={() => handleUpdateStatus(s.id, 'confirmed')}
-                        className="px-2 py-1 rounded bg-[#22C55E]/10 hover:bg-[#22C55E]/20 text-[#4ADE80] text-[10px] cursor-pointer"
-                      >
-                        Confirm
-                      </button>
-                    )}
-                    {s.status !== 'cancelled' && (
-                      <button
-                        onClick={() => handleUpdateStatus(s.id, 'cancelled')}
-                        className="px-2 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-[10px] cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="rounded-xl border border-[#E3DCC8] bg-white overflow-hidden text-xs shadow-xs">
+        <div className="p-3.5 bg-[#F1ECDD] border-b border-[#E3DCC8] flex items-center justify-between font-mono">
+          <span className="font-semibold text-[#1E241F]">Transactions Ledger</span>
+          <span className="text-[10px] text-[#5B5C50]">{sales.length} Records</span>
         </div>
+
+        {sales.length === 0 ? (
+          <div className="p-12 text-center text-[#5B5C50] space-y-2">
+            <ShoppingCart size={32} className="text-[#7C7D70] mx-auto" />
+            <p className="font-serif font-medium text-base text-[#1E241F]">No sales records found</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left font-sans">
+              <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
+                <tr>
+                  <th className="p-3.5 font-medium">Transaction ID</th>
+                  <th className="p-3.5 font-medium">Product / SKU</th>
+                  <th className="p-3.5 font-medium">Client Info</th>
+                  <th className="p-3.5 font-medium text-center">Qty</th>
+                  <th className="p-3.5 font-medium text-right">Selling Price</th>
+                  <th className="p-3.5 font-medium text-right">Partner Profit</th>
+                  <th className="p-3.5 font-medium text-right">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50]">
+                {sales.map((sale) => (
+                  <tr key={sale.id} className="hover:bg-[#FAF7EF] transition-colors">
+                    <td className="p-3.5 font-mono text-[#7C7D70]">{sale.id}</td>
+                    <td className="p-3.5">
+                      <p className="font-serif font-semibold text-[#1E241F]">{sale.productName}</p>
+                      <p className="text-[10px] font-mono text-[#7C7D70]">{sale.productId}</p>
+                    </td>
+                    <td className="p-3.5">
+                      <p className="text-[#1E241F] font-medium">{sale.customerName}</p>
+                      <p className="text-[10px] text-[#7C7D70] font-mono">{sale.customerEmail || 'No email'}</p>
+                    </td>
+                    <td className="p-3.5 text-center font-mono font-medium text-[#1E241F]">
+                      {sale.quantity}
+                    </td>
+                    <td className="p-3.5 text-right font-mono text-[#1E241F]">
+                      PKR {(sale.sellingPrice * sale.quantity).toLocaleString()}
+                    </td>
+                    <td className="p-3.5 text-right font-mono font-bold text-[#B8862E]">
+                      +PKR {(sale.profitMargin * sale.quantity).toLocaleString()}
+                    </td>
+                    <td className="p-3.5 text-right text-[#7C7D70] font-mono">
+                      {new Date(sale.createdAt).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

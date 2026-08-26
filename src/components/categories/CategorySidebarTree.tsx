@@ -18,7 +18,6 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
   onSelectCategory,
   allProductsCount,
 }) => {
-  // Set default expanded nodes to include the selected category
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     categoryTree.forEach((c) => {
@@ -36,17 +35,17 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
 
   return (
     <aside className="w-64 shrink-0 font-sans sticky top-24 space-y-4">
-      <div className="p-4 rounded-3xl bg-[#060B18] border border-white/[0.08] shadow-xl space-y-4">
+      <div className="p-4 rounded-xl bg-white border border-[#E3DCC8] shadow-xs space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+        <div className="flex items-center justify-between pb-3 border-b border-[#E3DCC8]">
           <div className="flex items-center space-x-2">
-            <Tag size={16} className="text-cyan-400" />
-            <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-white">
-              Category Tree
+            <Tag size={15} className="text-[#1F4D3E]" />
+            <h3 className="font-serif font-medium text-xs uppercase tracking-wider text-[#1E241F]">
+              Category Taxonomy
             </h3>
           </div>
-          <span className="text-[10px] font-mono text-slate-400">
-            {allProductsCount ?? 0} items
+          <span className="text-[10.5px] font-mono text-[#5B5C50]">
+            {allProductsCount ?? 0} SKUs
           </span>
         </div>
 
@@ -56,18 +55,18 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
           <button
             type="button"
             onClick={() => onSelectCategory(null, null)}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all ${
               !selectedCategorySlug
-                ? 'bg-cyan-500/15 text-cyan-300 font-semibold border border-cyan-500/30 shadow-[0_0_12px_rgba(0,242,254,0.15)]'
-                : 'text-slate-300 hover:text-white hover:bg-white/5'
+                ? 'bg-[#1F4D3E] text-white font-medium shadow-xs'
+                : 'text-[#5B5C50] hover:text-[#1E241F] hover:bg-[#FAF7EF]'
             }`}
           >
             <div className="flex items-center space-x-2.5">
-              <Sparkle size={15} className={!selectedCategorySlug ? 'text-cyan-400' : 'text-slate-400'} />
+              <Sparkle size={14} className={!selectedCategorySlug ? 'text-white' : 'text-[#7C7D70]'} />
               <span>All Products</span>
             </div>
             {allProductsCount !== undefined && (
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-white/10 text-slate-300">
+              <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${!selectedCategorySlug ? 'bg-white/20 text-white' : 'bg-[#F1ECDD] text-[#5B5C50]'}`}>
                 {allProductsCount}
               </span>
             )}
@@ -84,12 +83,12 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
                 {/* Parent Row */}
                 <div
                   onClick={() => onSelectCategory(cat.slug, null)}
-                  className={`group flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all ${
+                  className={`group flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-all ${
                     isParentSelected && !selectedSubSlug
-                      ? 'bg-cyan-500/15 text-cyan-300 font-semibold border border-cyan-500/30 shadow-[0_0_12px_rgba(0,242,254,0.15)]'
+                      ? 'bg-[#1F4D3E] text-white font-medium shadow-xs'
                       : isParentSelected
-                      ? 'text-cyan-200 bg-white/[0.04]'
-                      : 'text-slate-300 hover:text-white hover:bg-white/5'
+                      ? 'text-[#1F4D3E] bg-[#F1ECDD] font-medium'
+                      : 'text-[#5B5C50] hover:text-[#1E241F] hover:bg-[#FAF7EF]'
                   }`}
                 >
                   <div className="flex items-center space-x-2.5 truncate">
@@ -97,62 +96,47 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
                       <button
                         type="button"
                         onClick={(e) => toggleExpand(cat.id, e)}
-                        className="p-0.5 rounded text-slate-400 hover:text-white"
+                        className="p-0.5 rounded text-[#7C7D70] hover:text-[#1E241F]"
                       >
-                        {isExpanded ? <CaretDown size={13} /> : <CaretRight size={13} />}
+                        {isExpanded ? <CaretDown size={12} /> : <CaretRight size={12} />}
                       </button>
                     )}
-                    {!hasChildren && <span className="w-3.5" />}
-                    <CategoryIcon
-                      name={cat.icon}
-                      size={15}
-                      className={isParentSelected ? 'text-cyan-400' : 'text-slate-400 group-hover:text-slate-200'}
-                    />
+                    <CategoryIcon name={cat.icon} size={14} className="shrink-0" />
                     <span className="truncate">{cat.name}</span>
                   </div>
-
                   {cat.productCount !== undefined && cat.productCount > 0 && (
-                    <span
-                      className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
-                        isParentSelected
-                          ? 'bg-cyan-400/30 text-cyan-200 border border-cyan-400/40'
-                          : 'bg-white/10 text-slate-400'
-                      }`}
-                    >
+                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${isParentSelected && !selectedSubSlug ? 'bg-white/20 text-white' : 'bg-[#F1ECDD] text-[#5B5C50]'}`}>
                       {cat.productCount}
                     </span>
                   )}
                 </div>
 
-                {/* Sub-Categories (Depth 1) */}
+                {/* Subcategory Tier 2 */}
                 {hasChildren && isExpanded && (
-                  <div className="pl-6 space-y-0.5 border-l border-white/[0.06] ml-4 py-1 animate-in fade-in duration-150">
+                  <div className="pl-4 space-y-0.5 border-l border-[#E3DCC8] ml-3 mt-1">
                     {cat.children.map((sub) => {
-                      const isSubSelected =
-                        isParentSelected && (selectedSubSlug === sub.slug || selectedSubSlug === sub.id);
+                      const isSubSelected = selectedSubSlug === sub.slug || selectedSubSlug === sub.id;
 
                       return (
                         <button
                           key={sub.id}
                           type="button"
-                          onClick={() => onSelectCategory(cat.slug, sub.slug)}
-                          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] transition-all ${
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectCategory(cat.slug, sub.slug);
+                          }}
+                          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-[11.5px] transition-colors ${
                             isSubSelected
-                              ? 'bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30'
-                              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                              ? 'bg-[#1F4D3E] text-white font-medium'
+                              : 'text-[#5B5C50] hover:text-[#1E241F] hover:bg-[#FAF7EF]'
                           }`}
                         >
                           <div className="flex items-center space-x-2 truncate">
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full ${
-                                isSubSelected ? 'bg-cyan-400' : 'bg-slate-600'
-                              }`}
-                            />
+                            <span className="text-[#7C7D70]">└──</span>
                             <span className="truncate">{sub.name}</span>
                           </div>
-
                           {sub.productCount !== undefined && sub.productCount > 0 && (
-                            <span className="text-[9px] font-mono text-slate-400 font-medium">
+                            <span className="text-[9.5px] font-mono text-[#7C7D70]">
                               {sub.productCount}
                             </span>
                           )}

@@ -2,13 +2,12 @@ import React from 'react';
 import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router-dom';
 import {
-  UserPlus,
   Package,
-  ShoppingCart,
-  Users,
-  Lightning,
-  Gift,
+  TrendUp,
+  Trophy,
   ArrowRight,
+  ShieldCheck,
+  CheckCircle,
   Sparkle,
 } from '@phosphor-icons/react';
 
@@ -16,132 +15,130 @@ export const HowItWorks: React.FC = () => {
   const steps = [
     {
       num: '01',
-      title: 'Join as Partner',
-      subtitle: 'Instant Access to Wholesale Pricing & Portal',
-      desc: 'Sign up in under 60 seconds. You immediately unlock your partner dashboard, wholesale catalog rates, and unique referral tracking code.',
-      icon: UserPlus,
-      highlight: 'Zero Franchise Fee',
+      title: 'Choose Wholesale Products',
+      subtitle: 'Browse Verified Inventory at Wholesale Cost',
+      desc: 'Create your partner account and explore high-demand skincare and consumer electronic products. Every SKU has transparent wholesale partner pricing and established retail margins.',
+      icon: Package,
+      badgeColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/25',
+      points: [
+        'Verified supplier inventory with batch quality inspection',
+        'Transparent wholesale pricing without hidden buy-ins',
+        'Direct catalog data sheets and marketing assets',
+      ],
     },
     {
       num: '02',
-      title: 'Choose In-Demand Products',
-      subtitle: 'Curated Skincare, Tech & Lifestyle Goods',
-      desc: 'Browse our catalog of verified consumer goods. Every item comes with established partner wholesale prices and suggested retail rates.',
-      icon: Package,
-      highlight: 'Direct Wholesale Access',
+      title: 'Sell & Keep Your Direct Margin',
+      subtitle: 'Distribute at Suggested Retail & Earn Immediately',
+      desc: 'Market products to your local network, clients, or digital audience. When an order is fulfilled, you capture the gross profit margin (e.g. +PKR 500 to PKR 1,300 per unit) credited straight to your sales ledger.',
+      icon: TrendUp,
+      badgeColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25',
+      points: [
+        'Nationwide cash-on-delivery and courier logistics handling',
+        'Instant gross profit margin calculation per sale',
+        'Automated customer order tracking notifications',
+      ],
     },
     {
       num: '03',
-      title: 'Sell Directly to Customers',
-      subtitle: 'Market to Your Audience & Network',
-      desc: 'Share products with customers. Nationwide courier fulfillment delivers directly to your customer with cash-on-delivery tracking.',
-      icon: ShoppingCart,
-      highlight: 'Nationwide Delivery',
-    },
-    {
-      num: '04',
-      title: 'Earn Direct Profit Margins',
-      subtitle: 'Earn Immediate PKR 500+ Gross Margins',
-      desc: 'When a customer purchases at retail (e.g. PKR 2,500), you keep the gross profit margin (PKR 500) directly credited to your profit ledger.',
-      icon: Lightning,
-      highlight: 'Instant Gross Profit',
-    },
-    {
-      num: '05',
-      title: 'Build Your Community',
-      subtitle: 'Grow a Team of Active Partners',
-      desc: 'Share your referral code with aspiring entrepreneurs. As they register and generate sales, they count toward your verified community milestones.',
-      icon: Users,
-      highlight: 'Verified Attributions',
-    },
-    {
-      num: '06',
-      title: 'Unlock Ranks & Cash Rewards',
-      subtitle: 'PKR 2,000 up to PKR 10,000 Milestone Bonuses',
-      desc: 'Meet dual requirements across product sales and community members to unlock guaranteed cash milestone bonuses from Silver up to Diamond.',
-      icon: Gift,
-      highlight: 'Guaranteed Tier Payouts',
+      title: 'Grow & Unlock Level Milestones',
+      subtitle: 'Progress from Level 01 to Level 04 for Cash Bonuses',
+      desc: 'Build your distribution volume and introduce reseller partners to your network. Meeting combined unit sales and community milestones unlocks guaranteed rank cash bonuses from PKR 2,000 to PKR 10,000.',
+      icon: Trophy,
+      badgeColor: 'text-amber-400 bg-amber-500/10 border-amber-500/25',
+      points: [
+        'Structured 4-tier qualification roadmap',
+        'Real-time partner network and personal sales tracking',
+        'Direct bonus disbursements upon milestone claim approval',
+      ],
     },
   ];
 
   return (
-    <div className="space-y-20 pb-24 max-w-5xl mx-auto px-5 sm:px-8 font-sans">
-      {/* Header */}
-      <section className="pt-8 text-center max-w-2xl mx-auto space-y-3">
-        <span className="text-[11px] font-mono text-[#60A5FA] uppercase tracking-wider">
-          Six-Stage Business Blueprint
-        </span>
-        <h1 className="text-3xl sm:text-5xl font-heading font-bold text-white tracking-tight">
-          How Dream to Achievers Works
-        </h1>
-        <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed">
-          A systematic, transparent process engineered to reward active product sales and community leadership.
-        </p>
+    <div className="min-h-screen bg-[#020612] text-[#F8FAFC] pb-24 font-sans selection:bg-cyan-500/30">
+      {/* 1. Header Banner */}
+      <section className="relative pt-24 sm:pt-28 pb-14 border-b border-white/[0.08] bg-radial-hero overflow-hidden">
+        <div className="max-w-4xl mx-auto px-5 sm:px-8 space-y-4 text-center">
+          <div className="eyebrow mx-auto">
+            <ShieldCheck size={13} weight="bold" />
+            <span>Operational Blueprint</span>
+          </div>
+          <h1 className="text-3xl sm:text-5xl font-heading font-extrabold text-white tracking-tight">
+            How DreamToAchievers Works
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto leading-relaxed">
+            A transparent 3-step pathway from wholesale inventory sourcing to direct client distribution and guaranteed rank milestone rewards.
+          </p>
+        </div>
       </section>
 
-      {/* Visual Step-by-Step Connected Journey */}
-      <section className="space-y-6 max-w-3xl mx-auto">
-        {steps.map((item) => {
-          const Icon = item.icon;
+      {/* 2. Step Cards */}
+      <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-12 space-y-8">
+        {steps.map((step) => {
+          const Icon = step.icon;
           return (
-            <div key={item.num} className="double-bezel">
-              <div className="double-bezel-inner p-6 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-                <div className="md:col-span-2 flex items-center md:flex-col md:items-start justify-between">
-                  <span className="text-2xl sm:text-3xl font-mono font-bold text-[#60A5FA]">
-                    {item.num}
-                  </span>
-                  <div className="w-10 h-10 rounded-2xl bg-[#0A0F19] border border-white/[0.06] flex items-center justify-center text-[#60A5FA] mt-2">
-                    <Icon size={20} />
+            <div
+              key={step.num}
+              className="p-7 sm:p-9 rounded-3xl bg-[#060B18] border border-white/[0.08] shadow-2xl space-y-6 hover:border-cyan-400/30 transition-all group"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
+                <div className="flex items-center space-x-3.5">
+                  <div className={`w-10 h-10 rounded-2xl border flex items-center justify-center ${step.badgeColor}`}>
+                    <Icon size={20} weight="fill" />
+                  </div>
+                  <div>
+                    <h2 className="font-heading font-bold text-lg text-white group-hover:text-cyan-300 transition-colors">
+                      {step.title}
+                    </h2>
+                    <p className="text-xs text-slate-400 font-mono">{step.subtitle}</p>
                   </div>
                 </div>
+                <span className="text-2xl sm:text-3xl font-jetbrains font-extrabold text-white/20 group-hover:text-cyan-400/40 transition-colors">
+                  {step.num}
+                </span>
+              </div>
 
-                <div className="md:col-span-10 space-y-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                    <h3 className="font-heading font-bold text-lg text-white">
-                      {item.title}
-                    </h3>
-                    <span className="text-[10px] font-mono text-[#60A5FA] bg-[#3B82F6]/10 px-2.5 py-0.5 rounded-full border border-[#3B82F6]/20 w-fit">
-                      {item.highlight}
-                    </span>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                {step.desc}
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                {step.points.map((point) => (
+                  <div
+                    key={point}
+                    className="p-3.5 rounded-2xl bg-[#030712] border border-white/[0.06] flex items-start space-x-2.5 text-xs text-slate-300"
+                  >
+                    <CheckCircle size={15} weight="fill" className="text-cyan-400 shrink-0 mt-0.5" />
+                    <span className="leading-snug">{point}</span>
                   </div>
-                  <p className="text-xs text-[#64748B] font-medium">{item.subtitle}</p>
-                  <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed pt-1">
-                    {item.desc}
-                  </p>
-                </div>
+                ))}
               </div>
             </div>
           );
         })}
-      </section>
 
-      {/* CTA Section */}
-      <section className="double-bezel">
-        <div className="double-bezel-inner p-8 sm:p-12 text-center space-y-4 max-w-2xl mx-auto">
-          <h3 className="text-2xl font-heading font-bold text-white tracking-tight">
-            Ready to put this system into action?
+        {/* 3. Action CTA Banner */}
+        <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-[#060B18] to-[#0A1024] border border-white/10 text-center space-y-4 shadow-2xl">
+          <h3 className="font-heading font-bold text-xl sm:text-2xl text-white">
+            Ready to start your distribution journey?
           </h3>
-          <p className="text-xs sm:text-sm text-[#94A3B8] max-w-md mx-auto">
-            Create your partner account today and start earning product sales margins and rank rewards immediately.
+          <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto">
+            Create your account in seconds, browse the wholesale catalog, and claim your initial sales margins.
           </p>
-          <div className="pt-2">
+          <div className="flex items-center justify-center space-x-3 pt-2">
             <Link to="/signup">
-              <Button
-                variant="primary"
-                size="lg"
-                className="rounded-full px-6 group"
-                iconRight={
-                  <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-white ml-1 group-hover:translate-x-1 transition-transform">
-                    <ArrowRight size={13} weight="bold" />
-                  </span>
-                }
-              >
+              <Button variant="primary" size="md" className="rounded-xl font-bold text-xs" iconRight={<ArrowRight size={13} />}>
                 Create Partner Account
+              </Button>
+            </Link>
+            <Link to="/products">
+              <Button variant="secondary" size="md" className="rounded-xl text-xs font-semibold">
+                Explore Catalog
               </Button>
             </Link>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 };

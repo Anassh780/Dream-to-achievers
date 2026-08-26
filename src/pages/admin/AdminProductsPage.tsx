@@ -6,7 +6,15 @@ import { useAuth } from '@/context/AuthContext';
 import { Product } from '@/types';
 import { SEED_PRODUCTS } from '@/config/products';
 import { Button } from '@/components/ui/Button';
-import { Plus, Trash, X, PencilSimple, Package, TrendUp, ShieldCheck } from '@phosphor-icons/react';
+import {
+  Plus,
+  Trash,
+  X,
+  PencilSimple,
+  Package,
+  Check,
+  MagnifyingGlass,
+} from '@phosphor-icons/react';
 
 export const AdminProductsPage: React.FC = () => {
   const { user: currentAdmin } = useAuth();
@@ -14,388 +22,504 @@ export const AdminProductsPage: React.FC = () => {
     storage.get<Product[]>('PRODUCTS', SEED_PRODUCTS)
   );
   const allCategories = useMemo(() => categoryService.getAllCategories(), []);
-  const categoryTree = useMemo(
-    () => categoryService.buildCategoryTree(allCategories.filter((c) => c.status === 'active')),
-    [allCategories]
-  );
 
   const [isCreating, setIsCreating] = useState(false);
   const [editingProd, setEditingProd] = useState<Product | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   // Form State
   const [name, setName] = useState('');
   const [categoryId, setCategoryId] = useState<string>(allCategories[0]?.id || 'cat-skincare');
   const [retailPrice, setRetailPrice] = useState(2500);
   const [partnerPrice, setPartnerPrice] = useState(2000);
+  const [sku, setSku] = useState('');
   const [imageUrl, setImageUrl] = useState(
     'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80'
   );
   const [shortDescription, setShortDescription] = useState('');
   const [description, setDescription] = useState('');
+  const [inStock, setInStock] = useState(true);
+  const [isFeatured, setIsFeatured] = useState(false);
 
-  const selectedCategoryObj = useMemo(
-    () => allCategories.find((c) => c.id === categoryId),
-    [categoryId, allCategories]
-  );
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 4000);
+  };
+
+  const calculatedGrossMargin = Math.max(0, retailPrice - partnerPrice);
 
   const handleOpenCreate = () => {
     setEditingProd(null);
     setName('');
+    setSku(`DTA-${Math.floor(1000 + Math.random() * 9000)}`);
     setCategoryId(allCategories[0]?.id || 'cat-skincare');
     setRetailPrice(2500);
     setPartnerPrice(2000);
     setImageUrl('https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80');
     setShortDescription('');
     setDescription('');
+    setInStock(true);
+    setIsFeatured(false);
     setIsCreating(true);
   };
 
   const handleOpenEdit = (p: Product) => {
     setEditingProd(p);
     setName(p.name);
+    setSku(p.sku);
     setCategoryId(p.categoryId || allCategories[0]?.id || 'cat-skincare');
     setRetailPrice(p.retailPrice);
     setPartnerPrice(p.partnerPrice);
     setImageUrl(p.imageUrl);
     setShortDescription(p.shortDescription);
     setDescription(p.description);
+    setInStock(p.inStock);
+    setIsFeatured(p.isFeatured || false);
     setIsCreating(true);
   };
 
   const handleSaveProduct = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !currentAdmin) return;
+    if (!name.trim() || !currentAdmin) return;
 
-    const grossMargin = Math.max(0, retailPrice - partnerPrice);
     const slug = name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
 
     const targetCat = allCategories.find((c) => c.id === categoryId);
-    const categoryName = targetCat ? targetCat.name : 'General Catalog';
-    const categoryHierarchyIds = targetCat
-      ? categoryService.getCategoryHierarchy(targetCat.id).map((c) => c.id)
-      : [categoryId];
+    const categoryName = targetCat ? targetCat.name : 'Skincare & Beauty';
 
-    const newProd: Product = {
-      id: editingProd ? editingProd.id : `prod-${Date.now()}`,
-      name,
-      slug,
-      shortDescription,
-      description: description || shortDescription,
-      category: categoryName,
-      categoryId,
-      categoryIds: categoryHierarchyIds,
-      retailPrice,
-      partnerPrice,
-      suggestedSellingPrice: retailPrice,
-      grossMargin,
-      currency: 'PKR',
-      imageUrl,
-      sku: editingProd ? editingProd.sku : `DTA-${Date.now().toString().slice(-4)}`,
-      inStock: true,
-      isFeatured: editingProd ? editingProd.isFeatured : false,
-      status: 'active',
-      createdAt: editingProd ? editingProd.createdAt : new Date().toISOString(),
-    };
-
-    let updated: Product[];
     if (editingProd) {
-      updated = products.map((p) => (p.id === editingProd.id ? newProd : p));
+      const updated: Product[] = products.map((p) =>
+        p.id === editingProd.id
+          ? {
+              ...p,
+              name: name.trim(),
+              slug,
+              category: categoryName,
+              categoryId,
+              retailPrice: Number(retailPrice),
+              partnerPrice: Number(partnerPrice),
+              suggestedSellingPrice: Number(retailPrice),
+              grossMargin: calculatedGrossMargin,
+              sku: sku.trim(),
+              imageUrl: imageUrl.trim(),
+              shortDescription: shortDescription.trim(),
+              description: description.trim(),
+              inStock,
+              isFeatured,
+            }
+          : p
+      );
+
+      storage.set('PRODUCTS', updated);
+      setProducts(updated);
+
       auditService.logAction({
         adminId: currentAdmin.id,
         adminEmail: currentAdmin.email,
         action: 'UPDATE_PRODUCT',
         entityType: 'product',
-        entityId: newProd.id,
-        details: `Updated catalog product ${newProd.name} (Category: ${categoryName}, Margin: PKR ${grossMargin}).`,
+        entityId: editingProd.id,
+        details: `Updated product "${name}" (SKU: ${sku})`,
       });
+
+      showToast(`Product "${name}" updated successfully.`);
     } else {
-      updated = [newProd, ...products];
+      const newProduct: Product = {
+        id: `prod-${Date.now()}`,
+        name: name.trim(),
+        slug,
+        category: categoryName,
+        categoryId,
+        retailPrice: Number(retailPrice),
+        partnerPrice: Number(partnerPrice),
+        suggestedSellingPrice: Number(retailPrice),
+        grossMargin: calculatedGrossMargin,
+        currency: 'PKR',
+        imageUrl: imageUrl.trim(),
+        sku: sku.trim(),
+        inStock,
+        isFeatured,
+        status: 'active',
+        shortDescription: shortDescription.trim(),
+        description: description.trim(),
+        createdAt: new Date().toISOString(),
+      };
+
+      const updated = [newProduct, ...products];
+      storage.set('PRODUCTS', updated);
+      setProducts(updated);
+
       auditService.logAction({
         adminId: currentAdmin.id,
         adminEmail: currentAdmin.email,
         action: 'CREATE_PRODUCT',
         entityType: 'product',
-        entityId: newProd.id,
-        details: `Added new product ${newProd.name} (Category: ${categoryName}, Margin: PKR ${grossMargin}).`,
+        entityId: newProduct.id,
+        details: `Created product "${name}" (SKU: ${sku})`,
       });
+
+      showToast(`Product "${name}" created successfully.`);
     }
 
-    setProducts(updated);
-    storage.set('PRODUCTS', updated);
     setIsCreating(false);
-    setEditingProd(null);
   };
 
-  const handleDelete = (prodId: string) => {
+  const handleDelete = (p: Product) => {
     if (!currentAdmin) return;
-    const target = products.find((p) => p.id === prodId);
-    if (!target) return;
+    if (confirm(`Are you sure you want to delete ${p.name}?`)) {
+      const updated = products.filter((item) => item.id !== p.id);
+      storage.set('PRODUCTS', updated);
+      setProducts(updated);
 
-    if (!window.confirm(`Are you sure you want to delete "${target.name}"?`)) return;
+      auditService.logAction({
+        adminId: currentAdmin.id,
+        adminEmail: currentAdmin.email,
+        action: 'DELETE_PRODUCT',
+        entityType: 'product',
+        entityId: p.id,
+        details: `Deleted product "${p.name}" (SKU: ${p.sku})`,
+      });
 
-    const updated = products.filter((p) => p.id !== prodId);
-    setProducts(updated);
-    storage.set('PRODUCTS', updated);
-
-    auditService.logAction({
-      adminId: currentAdmin.id,
-      adminEmail: currentAdmin.email,
-      action: 'DELETE_PRODUCT',
-      entityType: 'product',
-      entityId: prodId,
-      details: `Deleted product ${target.name} from catalog.`,
-    });
+      showToast(`Product "${p.name}" deleted.`);
+    }
   };
+
+  const filteredList = useMemo(() => {
+    return products.filter((p) => {
+      const matchesSearch =
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.sku.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCat =
+        categoryFilter === 'all' ||
+        p.category === categoryFilter ||
+        p.categoryId === categoryFilter;
+      return matchesSearch && matchesCat;
+    });
+  }, [products, searchQuery, categoryFilter]);
 
   return (
-    <div className="space-y-6 font-sans max-w-6xl selection:bg-cyan-500/30">
+    <div className="space-y-6 font-sans max-w-7xl">
+      
       {/* 1. Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3DCC8]">
         <div className="space-y-1">
-          <div className="flex items-center space-x-2 text-[11px] font-mono text-slate-400">
+          <div className="flex items-center space-x-2 text-xs font-mono text-[#5B5C50]">
             <span>Admin Console</span>
             <span>/</span>
-            <span>Inventory</span>
-            <span>/</span>
-            <span className="text-cyan-300 font-semibold">Products Catalog</span>
+            <span>Product Catalog</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-heading font-bold text-white tracking-tight">
-            Wholesale Products & Pricing Inventory
+          <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F] tracking-tight">
+            Wholesale Products &amp; Inventory
           </h1>
-          <p className="text-xs text-slate-400">
-            Manage wholesale costs, suggested retail prices, product margins, and category assignments.
+          <p className="text-xs text-[#5B5C50]">
+            Manage SKU records, category assignments, and unit economics margins.
           </p>
         </div>
 
-        <div className="flex items-center space-x-2 shrink-0">
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleOpenCreate}
-            className="rounded-xl font-bold text-xs shadow-md"
-            iconLeft={<Plus size={14} weight="bold" />}
+        <Button
+          onClick={handleOpenCreate}
+          variant="primary"
+          size="sm"
+          className="text-xs font-medium shrink-0"
+          iconLeft={<Plus size={14} />}
+        >
+          Add New Product
+        </Button>
+      </div>
+
+      {toastMsg && (
+        <div className="p-3.5 rounded-xl bg-[#F1ECDD] border border-[#E3DCC8] text-[#1F4D3E] text-xs flex items-center space-x-2 animate-in fade-in">
+          <Check size={16} weight="bold" className="shrink-0" />
+          <span className="font-semibold">{toastMsg}</span>
+        </div>
+      )}
+
+      {/* 2. Search & Category Filter Toolbar */}
+      <div className="p-3.5 rounded-xl bg-white border border-[#E3DCC8] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs shadow-xs">
+        <div className="relative w-full sm:max-w-xs">
+          <MagnifyingGlass size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5B5C50]" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by product name or SKU..."
+            className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] placeholder:text-[#7C7D70] text-xs focus:outline-none focus:border-[#1F4D3E]"
+          />
+        </div>
+
+        <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-end">
+          <span className="text-xs text-[#5B5C50] font-mono hidden sm:inline">Filter Category:</span>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="px-3 py-1.5 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] text-xs focus:outline-none focus:border-[#1F4D3E] cursor-pointer"
           >
-            Add New Product
-          </Button>
+            <option value="all">All Categories ({products.length})</option>
+            {allCategories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <span className="text-[11px] font-mono text-[#5B5C50]">
+            {filteredList.length} SKUs
+          </span>
         </div>
       </div>
 
-      {/* 2. Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {products.map((p) => (
-          <div
-            key={p.id}
-            className="p-5 rounded-3xl bg-[#060B18] border border-white/[0.08] space-y-4 flex flex-col justify-between shadow-xl group hover:border-cyan-400/30 transition-all"
-          >
-            <div className="space-y-3">
-              <div className="aspect-[16/10] rounded-2xl overflow-hidden bg-[#030712] relative">
-                <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
-                <span className="absolute top-2.5 left-2.5 text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#030712]/90 text-white border border-white/10">
-                  {p.category}
-                </span>
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-[10px] font-mono text-slate-500">
-                  <span>SKU: {p.sku}</span>
-                  <span className="text-emerald-400">In Stock</span>
-                </div>
-                <h3 className="font-heading font-bold text-sm text-white truncate">{p.name}</h3>
-                <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                  {p.shortDescription}
-                </p>
-              </div>
-            </div>
-
-            {/* Economics Box */}
-            <div className="space-y-3 pt-2">
-              <div className="p-3 rounded-2xl bg-[#030712] border border-white/[0.06] space-y-1.5 text-xs">
-                <div className="flex justify-between text-slate-400">
-                  <span>Retail Price:</span>
-                  <span className="text-white font-mono">PKR {p.retailPrice.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>Partner Wholesale:</span>
-                  <span className="text-cyan-300 font-mono">PKR {p.partnerPrice.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between font-bold border-t border-white/[0.06] pt-1 text-slate-300">
-                  <span>Gross Profit Margin:</span>
-                  <span className="text-emerald-400 font-mono">+PKR {p.grossMargin.toLocaleString()}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => handleOpenEdit(p)}
-                  className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-semibold flex items-center justify-center space-x-1.5 transition-colors"
-                >
-                  <PencilSimple size={13} />
-                  <span>Edit</span>
-                </button>
-                <button
-                  onClick={() => handleDelete(p.id)}
-                  className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 transition-colors"
-                  title="Delete Product"
-                >
-                  <Trash size={14} />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+      {/* 3. Operational Data Table */}
+      <div className="rounded-xl bg-white border border-[#E3DCC8] overflow-x-auto shadow-xs">
+        <table className="w-full text-left text-xs border-collapse font-sans">
+          <thead>
+            <tr className="border-b border-[#E3DCC8] bg-[#F1ECDD] text-[#5B5C50] font-mono text-[11px]">
+              <th className="p-3.5">Product</th>
+              <th className="p-3.5">SKU &amp; Category</th>
+              <th className="p-3.5">Stock</th>
+              <th className="p-3.5 text-right">Retail Price</th>
+              <th className="p-3.5 text-right">Wholesale Cost</th>
+              <th className="p-3.5 text-right">Partner Margin</th>
+              <th className="p-3.5 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#E3DCC8]">
+            {filteredList.map((prod) => (
+              <tr key={prod.id} className="hover:bg-[#FAF7EF] transition-colors">
+                <td className="p-3.5">
+                  <div className="flex items-center space-x-3">
+                    <img
+                      src={prod.imageUrl}
+                      alt={prod.name}
+                      className="w-10 h-10 rounded-lg object-cover bg-[#FAF7EF] border border-[#E3DCC8] shrink-0"
+                    />
+                    <div className="max-w-[220px]">
+                      <span className="font-serif font-semibold text-[#1E241F] truncate block">{prod.name}</span>
+                      <span className="text-[10px] text-[#5B5C50] line-clamp-1">{prod.shortDescription}</span>
+                    </div>
+                  </div>
+                </td>
+                <td className="p-3.5 font-mono text-[#5B5C50]">
+                  <span className="block text-[#1E241F] font-medium">{prod.sku}</span>
+                  <span className="text-[10px] text-[#7C7D70]">{prod.category}</span>
+                </td>
+                <td className="p-3.5">
+                  <span
+                    className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded ${
+                      prod.inStock
+                        ? 'bg-[#F1ECDD] text-[#1F4D3E] border border-[#E3DCC8]'
+                        : 'bg-rose-50 text-rose-700 border border-rose-200'
+                    }`}
+                  >
+                    {prod.inStock ? 'In Stock' : 'Out of Stock'}
+                  </span>
+                </td>
+                <td className="p-3.5 text-right font-mono text-[#1E241F]">
+                  PKR {prod.retailPrice.toLocaleString()}
+                </td>
+                <td className="p-3.5 text-right font-mono text-[#1F4D3E] font-medium">
+                  PKR {prod.partnerPrice.toLocaleString()}
+                </td>
+                <td className="p-3.5 text-right font-mono text-[#B8862E] font-bold">
+                  +PKR {prod.grossMargin.toLocaleString()}
+                </td>
+                <td className="p-3.5 text-center">
+                  <div className="flex items-center justify-center space-x-1.5">
+                    <button
+                      onClick={() => handleOpenEdit(prod)}
+                      className="p-1.5 rounded-lg bg-[#FAF7EF] hover:bg-[#F1ECDD] text-[#1E241F] border border-[#E3DCC8] transition-colors"
+                      title="Edit Product"
+                    >
+                      <PencilSimple size={14} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(prod)}
+                      className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors"
+                      title="Delete Product"
+                    >
+                      <Trash size={14} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      {/* 3. Product Create / Edit Modal Drawer */}
+      {/* 4. Product Modal Drawer */}
       {isCreating && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto p-6 rounded-3xl bg-[#060B18] border border-white/15 shadow-2xl space-y-4 text-xs font-sans animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-              <div className="flex items-center space-x-2">
-                <Package size={18} className="text-cyan-400" />
-                <h3 className="text-sm font-heading font-bold text-white">
-                  {editingProd ? `Edit Product: ${editingProd.name}` : 'Add Wholesale Product'}
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="rounded-2xl bg-white border border-[#E3DCC8] p-6 max-w-xl w-full max-h-[90vh] overflow-y-auto space-y-4 shadow-xl">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E3DCC8]">
+              <div>
+                <h3 className="font-serif font-medium text-lg text-[#1E241F]">
+                  {editingProd ? 'Edit Product SKU' : 'Add New Wholesale Product'}
                 </h3>
+                <p className="text-[11px] font-mono text-[#5B5C50]">
+                  Configure commercial specs &amp; unit margins
+                </p>
               </div>
               <button
                 onClick={() => setIsCreating(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5"
+                className="p-1 rounded text-[#5B5C50] hover:text-[#1E241F]"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSaveProduct} className="space-y-3.5">
-              <div className="space-y-1">
-                <label className="block text-slate-300 font-semibold">Product Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Luxe Botanical Serum"
-                  className="w-full px-3 py-2 rounded-xl bg-[#030712] border border-white/10 text-white text-xs focus:outline-none focus:border-cyan-400"
-                />
-              </div>
-
-              {/* Multi-Tier Category Dropdown with Live Margin Sanity Check */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="block text-slate-300 font-semibold">Assigned Category Hierarchy *</label>
-                  {selectedCategoryObj && (
-                    <span className="text-[10px] font-mono text-emerald-400 flex items-center space-x-1">
-                      <TrendUp size={11} />
-                      <span>Category Avg Margin: +PKR {selectedCategoryObj.avgProfitMarginPKR ?? 500}</span>
-                    </span>
-                  )}
-                </div>
-                <select
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#030712] border border-white/10 text-white text-xs focus:outline-none focus:border-cyan-400 cursor-pointer"
-                >
-                  {categoryTree.map((rootCat) => (
-                    <optgroup key={rootCat.id} label={`📁 ${rootCat.name} (Tier 1)`}>
-                      <option value={rootCat.id}>{rootCat.name} (Direct)</option>
-                      {rootCat.children?.map((subCat) => (
-                        <option key={subCat.id} value={subCat.id}>
-                          &nbsp;&nbsp;└─ {subCat.name} (Tier 2 Sub-Category)
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
-              </div>
-
-              {/* Prices & Margins */}
+            <form onSubmit={handleSaveProduct} className="space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="block text-slate-300 font-semibold">Retail Price (PKR) *</label>
+                <div>
+                  <label className="block text-[#5B5C50] mb-1 font-medium">Product Title *</label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Organic Rose Hydrating Mist"
+                    className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#5B5C50] mb-1 font-medium">SKU Code *</label>
+                  <input
+                    type="text"
+                    required
+                    value={sku}
+                    onChange={(e) => setSku(e.target.value)}
+                    placeholder="DTA-1049"
+                    className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] font-mono focus:outline-none focus:border-[#1F4D3E]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[#5B5C50] mb-1 font-medium">Category Assignment</label>
+                  <select
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E] cursor-pointer"
+                  >
+                    {allCategories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[#5B5C50] mb-1 font-medium">Image URL</label>
+                  <input
+                    type="url"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[#5B5C50] mb-1 font-medium">Retail Price (PKR)</label>
                   <input
                     type="number"
-                    min="100"
                     required
+                    min={100}
                     value={retailPrice}
-                    onChange={(e) => setRetailPrice(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-full px-3 py-2 rounded-xl bg-[#030712] border border-white/10 text-white text-xs focus:outline-none focus:border-cyan-400"
+                    onChange={(e) => setRetailPrice(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] font-mono focus:outline-none focus:border-[#1F4D3E]"
                   />
                 </div>
-
-                <div className="space-y-1">
-                  <label className="block text-slate-300 font-semibold">Partner Wholesale Cost (PKR) *</label>
+                <div>
+                  <label className="block text-[#5B5C50] mb-1 font-medium">Wholesale Cost (PKR)</label>
                   <input
                     type="number"
-                    min="50"
                     required
+                    min={50}
                     value={partnerPrice}
-                    onChange={(e) => setPartnerPrice(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-full px-3 py-2 rounded-xl bg-[#030712] border border-white/10 text-white text-xs focus:outline-none focus:border-cyan-400"
+                    onChange={(e) => setPartnerPrice(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] font-mono focus:outline-none focus:border-[#1F4D3E]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#5B5C50] mb-1 font-medium">Gross Margin (PKR)</label>
+                  <input
+                    type="text"
+                    disabled
+                    value={`+PKR ${calculatedGrossMargin.toLocaleString()}`}
+                    className="w-full px-3 py-2 rounded-lg bg-[#F1ECDD] border border-[#E3DCC8] text-[#B8862E] font-mono font-bold cursor-not-allowed"
                   />
                 </div>
               </div>
 
-              {/* Computed Margin Banner */}
-              <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-between text-xs">
-                <span className="text-slate-300 font-medium">Computed Unit Margin:</span>
-                <span className="font-mono font-bold text-emerald-400 text-sm">
-                  +PKR {Math.max(0, retailPrice - partnerPrice).toLocaleString()}
-                </span>
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-slate-300 font-semibold">Image URL</label>
-                <input
-                  type="url"
-                  required
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full px-3 py-2 rounded-xl bg-[#030712] border border-white/10 text-white text-xs focus:outline-none focus:border-cyan-400"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-slate-300 font-semibold">Short Summary Description</label>
+              <div>
+                <label className="block text-[#5B5C50] mb-1 font-medium">Short One-Line Summary</label>
                 <input
                   type="text"
-                  required
                   value={shortDescription}
                   onChange={(e) => setShortDescription(e.target.value)}
-                  placeholder="One sentence summary for catalog card..."
-                  className="w-full px-3 py-2 rounded-xl bg-[#030712] border border-white/10 text-white text-xs focus:outline-none focus:border-cyan-400"
+                  placeholder="Key highlight or ingredient benefits"
+                  className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E]"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="block text-slate-300 font-semibold">Full Product Details</label>
+              <div>
+                <label className="block text-[#5B5C50] mb-1 font-medium">Full Description</label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Detailed ingredients, specifications, and selling points..."
-                  className="w-full px-3 py-2 rounded-xl bg-[#030712] border border-white/10 text-white text-xs focus:outline-none focus:border-cyan-400 resize-none"
+                  placeholder="Detailed product information..."
+                  className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E]"
                 />
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-white/[0.08]">
+              <div className="flex items-center space-x-6 pt-1">
+                <label className="flex items-center space-x-2 text-xs text-[#5B5C50] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={inStock}
+                    onChange={(e) => setInStock(e.target.checked)}
+                    className="rounded accent-[#1F4D3E]"
+                  />
+                  <span>In Stock Availability</span>
+                </label>
+
+                <label className="flex items-center space-x-2 text-xs text-[#5B5C50] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isFeatured}
+                    onChange={(e) => setIsFeatured(e.target.checked)}
+                    className="rounded accent-[#1F4D3E]"
+                  />
+                  <span>Featured in Catalog</span>
+                </label>
+              </div>
+
+              <div className="pt-3 border-t border-[#E3DCC8] flex items-center justify-end space-x-2">
                 <Button
                   type="button"
-                  variant="secondary"
+                  variant="outline"
                   size="sm"
-                  className="rounded-xl"
                   onClick={() => setIsCreating(false)}
                 >
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary" size="sm" className="rounded-xl font-bold px-6">
-                  {editingProd ? 'Save Changes' : 'Publish Product'}
+                <Button type="submit" variant="primary" size="sm" className="font-medium">
+                  {editingProd ? 'Save Changes' : 'Create Product SKU'}
                 </Button>
               </div>
             </form>
           </div>
         </div>
       )}
+
     </div>
   );
 };

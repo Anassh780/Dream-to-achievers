@@ -1,6 +1,14 @@
 import React from 'react';
-import { CardFlip } from '@/components/ui/CardFlip';
-import { Video, TrendUp, PencilLine, ShareNetwork, Cpu, Palette, ArrowRight } from '@phosphor-icons/react';
+import {
+  Truck,
+  Package,
+  TrendUp,
+  Users,
+  Trophy,
+  Megaphone,
+  ArrowRight,
+  Sparkle,
+} from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 
@@ -9,141 +17,134 @@ interface BentoWorkProps {
 }
 
 export const BentoWork: React.FC<BentoWorkProps> = ({ showHeader = true }) => {
-  const flipServices = [
+  const benefits = [
     {
-      id: 'service-tiktok',
-      categoryNumber: 'AUTOMATION PIPELINE',
-      title: 'TikTok & Reels Automation',
-      subtitle: 'Automated video scripting & scheduled batch publishing pipelines',
-      description: 'Automated video scripting, AI editing workflows, batch posting schedules, and TikTok Shop integration for exponential organic reach.',
-      features: [
-        'Viral Scripting Engines',
-        'AI Batch Video Editing',
-        'Auto-Posting Schedule',
-        'TikTok Shop Integration',
-      ],
-      impactBadge: '10M+ Views',
-      icon: <Video size={18} />,
-      frontImage: '/images/tiktok-automation.webp',
+      id: 'bento-logistics',
+      title: 'Nationwide Logistics & COD Dispatch',
+      description:
+        'Centralized order routing and delivery fleet coverage across 150+ cities. Couriers handle Cash on Delivery with real-time status sync.',
+      badge: '99.4% Fulfillment Accuracy',
+      icon: Truck,
+      span: 'md:col-span-2 lg:col-span-8',
+      highlight: 'End-to-End Fulfillment',
+      accentColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/25',
     },
     {
-      id: 'service-ads',
-      categoryNumber: 'PERFORMANCE MEDIA',
-      title: 'Paid Media Buying',
-      subtitle: 'Data-driven Meta, TikTok & Google ad scaling',
-      description: 'Data-driven Meta, TikTok & Google ad campaigns engineered for maximum return on ad spend and rapid ROAS scale.',
-      features: [
-        'Meta & TikTok Ads',
-        'A/B Creative Testing',
-        'ROAS Optimization',
-        'Retargeting Funnels',
-      ],
-      impactBadge: '4.8x Avg ROAS',
-      icon: <TrendUp size={18} />,
-      frontImage: '/images/paid-ads.webp',
+      id: 'bento-wholesale-pricing',
+      title: 'Wholesale Price Access',
+      description:
+        'Direct factory and verified distributor rates. Maintain healthy gross margins of +PKR 500 to PKR 1,300 on every unit sold.',
+      badge: 'Up to 35% Margin',
+      icon: TrendUp,
+      span: 'md:col-span-1 lg:col-span-4',
+      highlight: 'Margin Protection',
+      accentColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25',
     },
     {
-      id: 'service-copy',
-      categoryNumber: 'DIRECT RESPONSE',
-      title: 'Conversion Copywriting',
-      subtitle: 'Persuasive ad copy, VSLs & landing page scripts',
-      description: 'Persuasive ad copy, high-converting landing page scripts, email sequences, and SEO editorial content designed to sell.',
-      features: [
-        'Direct-Response Copy',
-        'Video Ad Scripts',
-        'High-Converting VSLs',
-        'Email Sequences',
-      ],
-      impactBadge: '3.2x Conversion',
-      icon: <PencilLine size={18} />,
-      frontImage: '/images/content-writing.webp',
+      id: 'bento-inventory',
+      title: 'Verified Catalog Inventory',
+      description:
+        'Curated selection of high-demand skincare formulas and lifestyle electronic accessories with continuous stock availability.',
+      badge: '100+ Live SKUs',
+      icon: Package,
+      span: 'md:col-span-1 lg:col-span-4',
+      highlight: 'Batch Quality Checked',
+      accentColor: 'text-blue-400 bg-blue-500/10 border-blue-500/25',
     },
     {
-      id: 'service-smm',
-      categoryNumber: 'COMMUNITY SCALE',
-      title: 'Social Media Management',
-      subtitle: 'Omnichannel positioning & partner community scaling',
-      description: 'Omnichannel content calendars, community moderation, influencer outreach, and viral organic reach strategies.',
-      features: [
-        'Cross-Platform Scheduling',
-        'Brand Voice Blueprint',
-        'Community Engagement',
-        'Influencer Seeding',
-      ],
-      impactBadge: '100k+ Reach',
-      icon: <ShareNetwork size={18} />,
-      frontImage: '/images/smm.webp',
+      id: 'bento-referrals',
+      title: 'Automated Partner Network Tracking',
+      description:
+        'Unique partner tracking codes attribute team registrations permanently. Transparent dashboard monitors qualified volume across tiers.',
+      badge: '100% Attribution Accuracy',
+      icon: Users,
+      span: 'md:col-span-2 lg:col-span-4',
+      highlight: 'Transparent Tracking',
+      accentColor: 'text-purple-400 bg-purple-500/10 border-purple-500/25',
     },
     {
-      id: 'service-ops',
-      categoryNumber: 'OPERATIONS & CRM',
-      title: 'Operations & CRM Systems',
-      subtitle: 'Workflow automation & nationwide order routing',
-      description: 'End-to-end workflow automation, CRM pipeline architecture, team SOP development, and operations optimization.',
-      features: [
-        'Workflow Automation',
-        'CRM & Pipeline Setup',
-        'Team SOP Systems',
-        'KPI Dashboards',
-      ],
-      impactBadge: '35h/wk Saved',
-      icon: <Cpu size={18} />,
-      frontImage: '/images/biz-management.webp',
+      id: 'bento-rewards',
+      title: 'Rank Milestone Cash Rewards',
+      description:
+        'Structured 4-tier milestone ladder rewarding volume and team development with guaranteed cash bonuses from PKR 2,000 to PKR 10,000.',
+      badge: 'PKR 10,000 Max Bonus',
+      icon: Trophy,
+      span: 'md:col-span-1 lg:col-span-4',
+      highlight: 'Direct Disbursement',
+      accentColor: 'text-amber-400 bg-amber-500/10 border-amber-500/25',
     },
     {
-      id: 'service-design',
-      categoryNumber: 'CREATIVE ASSETS',
-      title: 'Graphic & Creative Design',
-      subtitle: 'High-converting ad visuals, packaging & brand guidelines',
-      description: 'High-converting ad creatives, scroll-stopping thumbnails, brand guideline systems, and polished digital marketing collateral.',
-      features: [
-        'High-ROAS Ad Creatives',
-        'Social Media Asset Packs',
-        'Brand Identity Guidelines',
-        'Packaging & Merch',
-      ],
-      impactBadge: '500+ Assets',
-      icon: <Palette size={18} />,
-      frontImage: '/images/graphic-design.webp',
+      id: 'bento-marketing',
+      title: 'Distribution Marketing Assistance',
+      description:
+        'High-converting product creative assets, video ad scripts, demo reels, and catalog data sheets to accelerate reseller conversions.',
+      badge: 'Ready-to-Use Creatives',
+      icon: Megaphone,
+      span: 'md:col-span-2 lg:col-span-12',
+      highlight: 'Marketing Support',
+      accentColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/25',
     },
   ];
 
   return (
-    <section id="services" className="w-full py-28 sm:py-36 font-sans bg-[#050A17] border-y border-white/[0.08]">
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-16">
+    <section id="services" className="w-full font-sans">
+      <div className="space-y-8">
         {showHeader && (
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/[0.08]">
-            <div className="space-y-2">
-              <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase block font-mono">
-                Interactive Capabilities
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-white/[0.08]">
+            <div className="space-y-1.5">
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-cyan-400">
+                Distribution Infrastructure
               </span>
-              <h2 className="text-3xl sm:text-5xl font-heading font-extrabold text-white tracking-tight">
-                Growth & Scaling Capabilities
+              <h2 className="font-heading font-extrabold text-2xl sm:text-4xl text-white tracking-tight">
+                Wholesale Network Capabilities
               </h2>
             </div>
             <Link to="/services">
               <Button variant="outline" size="sm" iconRight={<ArrowRight size={13} />}>
-                Explore All Services
+                Explore All Capabilities
               </Button>
             </Link>
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 grid-flow-dense">
-          {flipServices.map((svc) => (
-            <CardFlip
-              key={svc.id}
-              id={svc.id}
-              categoryNumber={svc.categoryNumber}
-              title={svc.title}
-              subtitle={svc.subtitle}
-              description={svc.description}
-              features={svc.features}
-              impactBadge={svc.impactBadge}
-              icon={svc.icon}
-              frontImage={svc.frontImage}
-            />
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5">
+          {benefits.map((card) => {
+            const Icon = card.icon;
+            return (
+              <div
+                key={card.id}
+                className={`${card.span} p-6 sm:p-8 rounded-3xl bg-[#060B18] border border-white/[0.08] hover:border-cyan-400/30 transition-all flex flex-col justify-between space-y-5 shadow-xl group`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className={`w-10 h-10 rounded-2xl border flex items-center justify-center ${card.accentColor}`}>
+                      <Icon size={20} weight="fill" />
+                    </div>
+                    <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#030712] text-cyan-300 border border-white/10">
+                      {card.badge}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <h3 className="font-heading font-bold text-base sm:text-lg text-white group-hover:text-cyan-300 transition-colors">
+                      {card.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                      {card.description}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs font-medium">
+                  <span className="text-cyan-400 font-mono text-[11px]">{card.highlight}</span>
+                  <Link to="/services" className="text-slate-400 hover:text-white flex items-center space-x-1 font-mono text-[11px] transition-colors">
+                    <span>Learn more</span>
+                    <ArrowRight size={11} className="group-hover:translate-x-0.5 transition-transform" />
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

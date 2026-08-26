@@ -1,271 +1,143 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { useSiteSettings } from '@/hooks/useSiteSettings';
-import { DreamLogo } from '@/components/ui/DreamLogo';
 import { Button } from '@/components/ui/Button';
+import { DreamLogo } from '@/components/ui/DreamLogo';
 import {
-  WhatsappLogo,
+  List,
+  X,
   ArrowRight,
   ShieldCheck,
-  CheckCircle,
-  Sparkle,
   Package,
   Trophy,
-  TreeStructure,
-  Lightning,
-  FileText,
-  LockKey,
-  Scales,
-  Certificate,
-  EnvelopeSimple,
-  Globe,
-  ArrowSquareOut,
-  House,
-  ChatCircleDots,
+  ChartLineUp,
+  WhatsappLogo,
 } from '@phosphor-icons/react';
 
-// Crisp Vector TikTok Icon
-const TikTokIcon: React.FC<{ size?: number; className?: string }> = ({ size = 16, className = '' }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    className={className}
-  >
-    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.81 4.47 6.3 6.3 0 0 0 1.86-4.47V8.62a8.27 8.27 0 0 0 4.85 1.57v-3.5h-.93z" />
-  </svg>
-);
-
 export const PublicLayout: React.FC = () => {
-  const { isAuthenticated, isAdmin } = useAuth();
-  const siteConfig = useSiteSettings();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const { isAuthenticated, user, isAdmin } = useAuth();
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const location = useLocation();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Close mobile drawer on route change
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [location.pathname]);
-
   const navLinks = [
-    { label: 'Overview', href: '/' },
-    { label: 'How It Works', href: '/how-it-works' },
-    { label: 'Products', href: '/products' },
-    { label: 'Ranks', href: '/ranks' },
-    { label: 'Capabilities', href: '/services' },
-    { label: 'Founder', href: '/about' },
-    { label: 'Contact', href: '/contact' },
+    { label: 'Wholesale catalog', href: '/products' },
+    { label: 'Partner journey', href: '/ranks' },
+    { label: 'How it works', href: '/how-it-works' },
+    { label: 'Services', href: '/services' },
+    { label: 'About', href: '/about' },
   ];
 
-  const cleanWhatsApp = (siteConfig.whatsappNumber || '+92 305 4511395').replace(/[^0-9]/g, '');
-  const whatsappDirectUrl = `https://wa.me/${cleanWhatsApp}?text=${encodeURIComponent(
-    'Hi Dream to Achievers team, I would like to inquire about partner onboarding and catalog distribution.'
-  )}`;
-
   return (
-    <div className="min-h-screen bg-[#020612] text-[#F8FAFC] flex flex-col font-sans selection:bg-cyan-500/30 overflow-x-hidden w-full max-w-full">
-      {/* 1. Sleek Floating Glass Navigation Bar */}
-      <div className="fixed top-3 sm:top-5 inset-x-0 z-50 px-3 sm:px-6 pointer-events-none flex justify-center">
-        <header
-          className={`pointer-events-auto w-full max-w-5xl transition-all duration-300 rounded-full px-3.5 sm:px-6 py-2.5 flex items-center justify-between border ${
-            scrolled
-              ? 'bg-[#030712]/92 backdrop-blur-2xl border-white/15 shadow-[0_12px_40px_rgba(0,0,0,0.85),0_0_25px_rgba(0,242,254,0.12)]'
-              : 'bg-[#080E1E]/85 backdrop-blur-xl border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.6)]'
-          }`}
-        >
-          {/* Logo Left */}
-          <Link to="/" className="flex items-center space-x-2 shrink-0 group">
-            <DreamLogo size={30} />
+    <div className="min-h-screen flex flex-col bg-[#FAF7EF] text-[#1E241F] font-sans selection:bg-[#B8862E]/25">
+      
+      {/* 1. Clean Editorial Top Navigation Bar */}
+      <nav className="sticky top-0 z-40 bg-[#FAF7EF]/95 backdrop-blur-md border-b border-[#E3DCC8]">
+        <div className="max-w-[1180px] mx-auto px-6 sm:px-8 py-4 flex items-center justify-between">
+          
+          {/* Brand Logo */}
+          <Link to="/" className="flex items-center group">
+            <DreamLogo size={36} />
           </Link>
 
-          {/* Desktop Navigation Centered */}
-          <nav className="hidden lg:flex items-center space-x-1 text-xs">
-            {navLinks.map((link) => {
-              const isActive =
-                link.href === '/'
-                  ? location.pathname === '/'
-                  : location.pathname.startsWith(link.href);
+          {/* Desktop Navigation Links */}
+          <div className="hidden lg:flex items-center gap-8 text-[13.5px] font-medium text-[#5B5C50]">
+            {navLinks.map((item) => (
+              <NavLink
+                key={item.label}
+                to={item.href}
+                className={({ isActive }) =>
+                  `transition-colors hover:text-[#1E241F] ${
+                    isActive ? 'text-[#1F4D3E] font-semibold' : ''
+                  }`
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </div>
 
-              return (
-                <NavLink
-                  key={link.label}
-                  to={link.href}
-                  className={`px-3.5 py-1.5 rounded-full transition-all duration-200 font-medium ${
-                    isActive
-                      ? 'text-white bg-white/10 shadow-inner font-semibold border border-white/15'
-                      : 'text-slate-400 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  {link.label}
-                </NavLink>
-              );
-            })}
-          </nav>
-
-          {/* Right Action Cluster */}
-          <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-            {/* WhatsApp Quick Pill (Desktop) */}
-            <a
-              href={whatsappDirectUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all border border-emerald-500/25 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
-            >
-              <WhatsappLogo size={14} weight="fill" />
-              <span>WhatsApp</span>
-            </a>
+          {/* Header Action Controls */}
+          <div className="hidden md:flex items-center gap-3">
+            {isAdmin && (
+              <Link to="/admin">
+                <Button variant="outline" size="sm" className="text-xs font-medium">
+                  Admin portal
+                </Button>
+              </Link>
+            )}
 
             {isAuthenticated ? (
-              <div className="flex items-center space-x-2">
-                {isAdmin && (
-                  <Link to="/admin">
-                    <Button variant="outline" size="sm" className="rounded-full px-3 sm:px-3.5 text-xs font-semibold text-cyan-300 border-cyan-400/40 hover:bg-cyan-400/10 shadow-[0_0_12px_rgba(0,242,254,0.2)]">
-                      Admin Center
-                    </Button>
-                  </Link>
-                )}
-                <Link to="/dashboard">
-                  <Button variant="primary" size="sm" className="rounded-full px-3.5 sm:px-4 font-bold text-xs">
-                    Dashboard
-                  </Button>
-                </Link>
-              </div>
+              <Link to="/dashboard">
+                <Button variant="primary" size="sm" className="text-xs font-medium">
+                  Partner dashboard
+                </Button>
+              </Link>
             ) : (
-              <div className="flex items-center space-x-1 sm:space-x-1.5">
-                <Link to="/login" className="hidden sm:inline-block">
-                  <Button variant="ghost" size="sm" className="rounded-full px-3 text-xs text-slate-300 hover:text-white">
-                    Sign In
+              <>
+                <Link to="/login">
+                  <Button variant="outline" size="sm" className="text-xs font-medium">
+                    Sign in
                   </Button>
                 </Link>
                 <Link to="/signup">
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    className="rounded-full px-3.5 sm:px-4 group font-bold text-xs shadow-md"
-                    iconRight={
-                      <span className="w-3.5 h-3.5 rounded-full bg-slate-950/20 flex items-center justify-center text-slate-950 ml-0.5 group-hover:translate-x-0.5 transition-transform">
-                        <ArrowRight size={9} weight="bold" />
-                      </span>
-                    }
-                  >
-                    Join
+                  <Button variant="primary" size="sm" className="text-xs font-medium">
+                    Become a partner
                   </Button>
                 </Link>
-              </div>
+              </>
             )}
-
-            {/* Mobile Animated Hamburger Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden w-9 h-9 rounded-full bg-white/5 border border-white/10 flex flex-col items-center justify-center space-y-1 text-slate-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
-              aria-label="Toggle Navigation Menu"
-            >
-              <span
-                className={`w-4 h-0.5 bg-current rounded-full transition-transform duration-300 ${
-                  mobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''
-                }`}
-              />
-              <span
-                className={`w-4 h-0.5 bg-current rounded-full transition-opacity duration-300 ${
-                  mobileMenuOpen ? 'opacity-0' : 'opacity-100'
-                }`}
-              />
-              <span
-                className={`w-4 h-0.5 bg-current rounded-full transition-transform duration-300 ${
-                  mobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''
-                }`}
-              />
-            </button>
           </div>
-        </header>
-      </div>
 
-      {/* Screen-Filling Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-[#020612]/95 backdrop-blur-3xl p-5 pt-24 flex flex-col justify-between animate-in fade-in duration-300 overflow-y-auto font-sans">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between px-2 pb-2 border-b border-white/[0.08]">
-              <span className="text-[11px] font-mono text-cyan-400 uppercase tracking-wider font-semibold">
-                Platform Navigation
-              </span>
-              <span className="text-[10px] font-mono text-slate-400 bg-white/5 px-2 py-0.5 rounded-full">
-                7 Sections
-              </span>
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
+            className="md:hidden p-2 rounded-lg text-[#1E241F] hover:bg-[#F1ECDD] transition-colors"
+            aria-label="Toggle Navigation Menu"
+          >
+            {mobileDrawerOpen ? <X size={22} /> : <List size={22} />}
+          </button>
+
+        </div>
+      </nav>
+
+      {/* Mobile Drawer */}
+      {mobileDrawerOpen && (
+        <div className="md:hidden fixed inset-0 top-[65px] z-30 bg-[#FAF7EF] p-6 flex flex-col justify-between border-b border-[#E3DCC8] animate-in slide-in-from-top-2">
+          <div className="space-y-3">
+            <span className="text-[10px] font-mono uppercase text-[#7C7D70] font-semibold tracking-wider block">
+              Menu Navigation
+            </span>
+            <div className="space-y-1">
+              {navLinks.map((item) => (
+                <NavLink
+                  key={item.label}
+                  to={item.href}
+                  onClick={() => setMobileDrawerOpen(false)}
+                  className="block px-3 py-2.5 rounded-lg text-sm font-medium text-[#1E241F] hover:bg-[#F1ECDD] transition-colors"
+                >
+                  {item.label}
+                </NavLink>
+              ))}
             </div>
-
-            <nav className="space-y-1.5">
-              {navLinks.map((link) => {
-                const isActive =
-                  link.href === '/'
-                    ? location.pathname === '/'
-                    : location.pathname.startsWith(link.href);
-
-                return (
-                  <NavLink
-                    key={link.label}
-                    to={link.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center justify-between px-4 py-3 rounded-2xl text-base font-heading font-semibold transition-all ${
-                      isActive
-                        ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30'
-                        : 'text-slate-300 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    <span>{link.label}</span>
-                    <ArrowRight size={14} className="text-slate-500" />
-                  </NavLink>
-                );
-              })}
-            </nav>
           </div>
 
-          <div className="pt-6 border-t border-white/[0.08] space-y-3">
-            <a
-              href={whatsappDirectUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full flex items-center justify-center space-x-2 py-3 rounded-2xl text-sm font-semibold text-emerald-300 bg-emerald-500/15 border border-emerald-500/25 shadow-lg active:scale-98 transition-transform"
-            >
-              <WhatsappLogo size={18} weight="fill" />
-              <span>Official WhatsApp Help Desk</span>
-            </a>
-
-            {!isAuthenticated ? (
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="secondary" size="md" className="w-full justify-center rounded-2xl text-xs font-semibold">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="primary" size="md" className="w-full justify-center rounded-2xl text-xs font-bold shadow-lg">
-                    Join Partner
-                  </Button>
-                </Link>
-              </div>
+          <div className="pt-6 border-t border-[#E3DCC8] space-y-2.5">
+            {isAuthenticated ? (
+              <Link to="/dashboard" onClick={() => setMobileDrawerOpen(false)} className="block">
+                <Button variant="primary" size="md" className="w-full justify-center text-xs">
+                  Open Partner Dashboard
+                </Button>
+              </Link>
             ) : (
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                {isAdmin && (
-                  <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="outline" size="md" className="w-full justify-center rounded-2xl text-xs font-semibold text-cyan-300 border-cyan-400/40">
-                      Admin Panel
-                    </Button>
-                  </Link>
-                )}
-                <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className={isAdmin ? '' : 'col-span-2'}>
-                  <Button variant="primary" size="md" className="w-full justify-center rounded-2xl text-xs font-bold">
-                    Partner Dashboard
+              <div className="grid grid-cols-2 gap-3">
+                <Link to="/login" onClick={() => setMobileDrawerOpen(false)}>
+                  <Button variant="outline" size="md" className="w-full justify-center text-xs">
+                    Sign in
+                  </Button>
+                </Link>
+                <Link to="/signup" onClick={() => setMobileDrawerOpen(false)}>
+                  <Button variant="primary" size="md" className="w-full justify-center text-xs">
+                    Get started
                   </Button>
                 </Link>
               </div>
@@ -274,307 +146,130 @@ export const PublicLayout: React.FC = () => {
         </div>
       )}
 
-      {/* Page Content Outlet */}
-      <main className="flex-1 w-full overflow-x-hidden">
+      {/* Main Page Body */}
+      <main className="flex-1">
         <Outlet />
       </main>
 
-      {/* 2. Premium Responsive Enterprise Footer */}
-      <footer className="border-t border-white/[0.08] bg-[#01040E] text-[#94A3B8] font-sans relative overflow-hidden">
-        {/* Subtle Ambient Radial Glow */}
-        <div className="absolute top-0 left-1/4 w-[500px] h-[300px] bg-cyan-500/5 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[300px] bg-blue-600/5 rounded-full blur-[140px] pointer-events-none" />
-
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12 space-y-12 relative z-10">
+      {/* Enterprise Multi-Column Editorial Footer */}
+      <footer className="border-t border-[#E3DCC8] bg-[#F1ECDD] pt-14 pb-10 text-xs text-[#5B5C50]">
+        <div className="max-w-[1180px] mx-auto px-6 sm:px-8 space-y-12">
           
-          {/* A. Full-Width CTA Conversion Card */}
-          <div className="p-6 sm:p-10 rounded-3xl bg-gradient-to-b from-[#080E1E] to-[#030712] border border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(0,242,254,0.08)] relative overflow-hidden">
-            <div className="space-y-1.5 text-center md:text-left relative z-10">
-              <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-cyan-300 text-[10px] font-mono uppercase tracking-wider font-semibold">
-                <Sparkle size={11} weight="fill" className="text-cyan-400" />
-                <span>Enterprise Partner Opportunity</span>
-              </div>
-              <h3 className="text-xl sm:text-3xl font-heading font-extrabold text-white tracking-tight">
-                Scale your wholesale distribution today.
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
-                Unlock high-margin skincare and electronics inventory with direct milestone rewards.
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+            
+            {/* Col 1: Brand & Credibility */}
+            <div className="lg:col-span-2 space-y-3.5">
+              <Link to="/" className="inline-block">
+                <DreamLogo size={32} />
+              </Link>
+              <p className="text-xs text-[#5B5C50] max-w-sm leading-relaxed">
+                Direct-to-reseller wholesale commerce and structured partner growth platform. Transparent unit economics, nationwide COD fulfillment, and verified cash rewards.
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-3 relative z-10 shrink-0 w-full sm:w-auto">
-              <Link to="/signup" className="w-full sm:w-auto">
-                <Button variant="primary" size="md" className="w-full sm:w-auto rounded-xl px-7 font-bold text-xs shadow-xl" iconRight={<ArrowRight size={14} weight="bold" />}>
-                  Create Free Account
-                </Button>
-              </Link>
-              <a
-                href={whatsappDirectUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto"
-              >
-                <Button variant="secondary" size="md" className="w-full sm:w-auto rounded-xl px-5 text-xs font-semibold" iconLeft={<WhatsappLogo size={16} weight="fill" className="text-emerald-400" />}>
-                  WhatsApp Desk
-                </Button>
-              </a>
-            </div>
-          </div>
 
-          {/* B. Main Multi-Column Structured Grid (100% Responsive) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10 pt-2">
-            
-            {/* Column 1: Brand Authority & Support Desk (5 cols on Desktop, Full Width on Tablet/Mobile) */}
-            <div className="lg:col-span-5 md:col-span-2 col-span-1 p-6 sm:p-7 rounded-3xl bg-[#060B18] border border-white/[0.08] flex flex-col justify-between space-y-6 shadow-xl">
-              <div className="space-y-4">
-                {/* Brandmark + Verified Badge */}
-                <div className="flex items-center justify-between">
-                  <Link to="/" className="inline-block">
-                    <DreamLogo size={32} />
-                  </Link>
-                  <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shadow-[0_0_10px_rgba(0,242,254,0.15)]">
-                    <ShieldCheck size={12} weight="fill" className="text-cyan-400" />
-                    <span>VERIFIED ENTERPRISE</span>
-                  </span>
-                </div>
-
-                {/* Editorial Description */}
-                <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-md">
-                  DreamToAchievers connects ambitious partners with verified wholesale product margins, automated marketing systems, and cash milestone rewards.
-                </p>
-
-                {/* Social Media Interactive Pills */}
-                <div className="space-y-2 pt-2">
-                  <span className="text-[10px] font-mono uppercase text-slate-400 font-semibold block tracking-wider">
-                    Official Broadcast & Community
-                  </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {/* TikTok Pill */}
-                    <a
-                      href={siteConfig.tiktokUrl || 'https://www.tiktok.com/@dream.to.achievers'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 hover:border-rose-500/40 transition-all text-xs text-rose-300 font-mono shadow-sm active:scale-98"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <div className="w-5 h-5 rounded-lg bg-rose-500/20 flex items-center justify-center text-rose-300">
-                          <TikTokIcon size={12} />
-                        </div>
-                        <span className="font-semibold truncate max-w-[120px]">@dream.to.achievers</span>
-                      </div>
-                      <ArrowSquareOut size={13} className="text-rose-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </a>
-
-                    {/* WhatsApp VIP Channel Pill */}
-                    <a
-                      href={siteConfig.whatsappChannelUrl || 'https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 hover:border-emerald-500/40 transition-all text-xs text-emerald-300 font-mono shadow-sm active:scale-98"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <div className="w-5 h-5 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
-                          <WhatsappLogo size={13} weight="fill" />
-                        </div>
-                        <span className="font-semibold">VIP Channel</span>
-                      </div>
-                      <ArrowSquareOut size={13} className="text-emerald-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              {/* Direct Support Desk Strip */}
-              <div className="p-3.5 rounded-2xl bg-[#030712] border border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-slate-300 font-mono">
-                <a
-                  href={`mailto:${siteConfig.supportEmail || 'dreamtoachievers@gmail.com'}`}
-                  className="flex items-center space-x-1.5 hover:text-cyan-400 transition-colors"
-                >
-                  <EnvelopeSimple size={14} className="text-cyan-400" />
-                  <span className="truncate">{siteConfig.supportEmail || 'dreamtoachievers@gmail.com'}</span>
-                </a>
-                <span className="hidden sm:inline text-white/20">•</span>
-                <a
-                  href={whatsappDirectUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-1.5 text-emerald-400 hover:underline"
-                >
-                  <WhatsappLogo size={14} weight="fill" />
-                  <span>{siteConfig.whatsappNumber || '+92 305 4511395'}</span>
-                </a>
-              </div>
-            </div>
-
-            {/* Column 2: Platform Architecture (3 cols on Desktop, 1 on Tablet/Mobile) */}
-            <div className="lg:col-span-3 md:col-span-1 col-span-1 p-6 rounded-3xl bg-[#060B18] border border-white/[0.08] flex flex-col justify-between space-y-4 shadow-xl">
-              <div>
-                <div className="pb-3 border-b border-white/[0.08] flex items-center space-x-2">
-                  <Globe size={15} className="text-cyan-400" />
-                  <h4 className="text-white font-heading font-bold text-xs uppercase tracking-wider">
-                    Platform Architecture
-                  </h4>
-                </div>
-
-                <div className="space-y-1.5 pt-3">
-                  {[
-                    { label: 'Wholesale Catalog', href: '/products', icon: Package, badge: 'Live' },
-                    { label: 'Partner Dashboard', href: '/dashboard', icon: House },
-                    { label: '4-Tier Ranks', href: '/ranks', icon: Trophy, badge: 'PKR 10k' },
-                    { label: 'How It Works', href: '/how-it-works', icon: TreeStructure },
-                    { label: 'Growth Services', href: '/services', icon: Lightning },
-                  ].map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.label}
-                        to={item.href}
-                        className="group flex items-center justify-between p-2 rounded-xl hover:bg-white/5 transition-colors text-xs text-slate-300 hover:text-white"
-                      >
-                        <div className="flex items-center space-x-2.5 truncate">
-                          <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-500/20 transition-colors shrink-0">
-                            <Icon size={14} />
-                          </div>
-                          <span className="truncate">{item.label}</span>
-                        </div>
-                        {item.badge && (
-                          <span className="text-[9px] font-mono text-cyan-300 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20 shrink-0 ml-1">
-                            {item.badge}
-                          </span>
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-white/[0.06]">
-                <p className="text-[10px] font-mono text-slate-500">
-                  Decentralized Wholesale Ledger
-                </p>
-              </div>
-            </div>
-
-            {/* Column 3: Compliance & Security (2 cols on Desktop, 1 on Tablet/Mobile) */}
-            <div className="lg:col-span-2 md:col-span-1 col-span-1 p-6 rounded-3xl bg-[#060B18] border border-white/[0.08] flex flex-col justify-between space-y-4 shadow-xl">
-              <div>
-                <div className="pb-3 border-b border-white/[0.08] flex items-center space-x-2">
-                  <ShieldCheck size={15} className="text-cyan-400" />
-                  <h4 className="text-white font-heading font-bold text-xs uppercase tracking-wider">
-                    Compliance
-                  </h4>
-                </div>
-
-                <div className="space-y-1.5 pt-3">
-                  {[
-                    { label: 'Partner Terms', href: '/terms', icon: FileText },
-                    { label: 'Data Privacy', href: '/privacy', icon: LockKey },
-                    { label: 'Disclaimer', href: '/disclaimer', icon: Scales },
-                    { label: 'Standards', href: '/terms', icon: Certificate },
-                  ].map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.label}
-                        to={item.href}
-                        className="group flex items-center justify-between p-2 rounded-xl hover:bg-white/5 transition-colors text-xs text-slate-300 hover:text-white"
-                      >
-                        <div className="flex items-center space-x-2.5 truncate">
-                          <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-500/20 transition-colors shrink-0">
-                            <Icon size={14} />
-                          </div>
-                          <span className="truncate">{item.label}</span>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-white/[0.06]">
-                <p className="text-[10px] font-mono text-slate-500">
-                  Full Regulatory Transparency
-                </p>
-              </div>
-            </div>
-
-            {/* Column 4: Official Support & Security Badge (2 cols on Desktop, 2 on Tablet, 1 on Mobile) */}
-            <div className="lg:col-span-2 md:col-span-2 col-span-1 p-6 rounded-3xl bg-[#060B18] border border-white/[0.08] flex flex-col justify-between space-y-4 shadow-xl">
-              <div>
-                <div className="pb-3 border-b border-white/[0.08] flex items-center space-x-2">
-                  <ChatCircleDots size={15} className="text-cyan-400" />
-                  <h4 className="text-white font-heading font-bold text-xs uppercase tracking-wider">
-                    Support
-                  </h4>
-                </div>
-
-                <div className="space-y-1.5 pt-3">
-                  <Link
-                    to="/contact"
-                    className="flex items-center space-x-2.5 p-2 rounded-xl hover:bg-white/5 text-xs text-slate-300 hover:text-white transition-colors"
-                  >
-                    <EnvelopeSimple size={14} className="text-cyan-400 shrink-0" />
-                    <span>Contact Desk</span>
-                  </Link>
-                  <a
-                    href={siteConfig.whatsappChannelUrl || 'https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N'}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center space-x-2.5 p-2 rounded-xl hover:bg-white/5 text-xs text-slate-300 hover:text-white transition-colors"
-                  >
-                    <WhatsappLogo size={14} className="text-emerald-400 shrink-0" />
-                    <span>VIP Channel</span>
-                  </a>
-                  <a
-                    href={whatsappDirectUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center space-x-2.5 p-2 rounded-xl hover:bg-white/5 text-xs text-slate-300 hover:text-white transition-colors"
-                  >
-                    <Globe size={14} className="text-cyan-400 shrink-0" />
-                    <span>1-on-1 Consultation</span>
-                  </a>
-                </div>
-              </div>
-
-              {/* Prominent Verification Badge */}
-              <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/25 flex items-center space-x-2.5 text-xs text-cyan-300">
-                <ShieldCheck size={18} weight="fill" className="text-cyan-400 shrink-0" />
-                <div className="leading-tight">
-                  <p className="font-bold text-[11px]">Verified Platform</p>
-                  <p className="text-[9px] text-cyan-400/80 font-mono">Reg. DTA-78401 • SSL</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* C. Bottom Legal, Status & Copyright Bar */}
-          <div className="pt-8 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-            {/* Left: System Status */}
-            <div className="flex items-center space-x-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
-              <span className="font-mono text-[11px] text-slate-300">
-                System Status: <strong className="text-emerald-400 font-semibold">100% Operational</strong>
+            {/* Col 2: Wholesale Catalog */}
+            <div className="space-y-2.5">
+              <span className="font-serif font-semibold text-[13px] text-[#1E241F] block">
+                Wholesale Catalog
               </span>
+              <ul className="space-y-1.5">
+                <li>
+                  <Link to="/products?category=skincare" className="hover:text-[#1E241F] transition-colors">
+                    Skincare &amp; Beauty
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/products?category=electronics" className="hover:text-[#1E241F] transition-colors">
+                    Lifestyle Electronics
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/products?category=wellness" className="hover:text-[#1E241F] transition-colors">
+                    Health &amp; Wellness
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/products" className="hover:text-[#1E241F] transition-colors">
+                    All Verified SKUs
+                  </Link>
+                </li>
+              </ul>
             </div>
 
-            {/* Center: Copyright */}
-            <p className="text-[11px] text-center">
-              © {new Date().getFullYear()} {siteConfig.brandName || 'Dream to Achievers'}. All rights reserved.
-            </p>
-
-            {/* Right: Quick Links */}
-            <div className="flex items-center space-x-3 text-[11px] font-mono">
-              <Link to="/login" className="hover:text-cyan-300 transition-colors">Partner Portal</Link>
-              <span>•</span>
-              <Link to="/signup" className="hover:text-cyan-300 transition-colors">Register</Link>
-              <span>•</span>
-              <Link to="/privacy" className="hover:text-cyan-300 transition-colors">Privacy</Link>
-              <span>•</span>
-              <Link to="/terms" className="hover:text-cyan-300 transition-colors">Terms</Link>
+            {/* Col 3: Partner Program */}
+            <div className="space-y-2.5">
+              <span className="font-serif font-semibold text-[13px] text-[#1E241F] block">
+                Partner Growth
+              </span>
+              <ul className="space-y-1.5">
+                <li>
+                  <Link to="/ranks" className="hover:text-[#1E241F] transition-colors">
+                    Milestone Tiers
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/how-it-works" className="hover:text-[#1E241F] transition-colors">
+                    How It Works
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/services" className="hover:text-[#1E241F] transition-colors">
+                    Logistics &amp; Dispatch
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/signup" className="hover:text-[#1E241F] transition-colors">
+                    Become a Partner
+                  </Link>
+                </li>
+              </ul>
             </div>
+
+            {/* Col 4: Platform & Support */}
+            <div className="space-y-2.5">
+              <span className="font-serif font-semibold text-[13px] text-[#1E241F] block">
+                Support &amp; Desk
+              </span>
+              <ul className="space-y-1.5">
+                <li>
+                  <a
+                    href="https://wa.me/923237583685"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 hover:text-[#1E241F] transition-colors"
+                  >
+                    <WhatsappLogo size={14} className="text-[#1F4D3E]" />
+                    <span>WhatsApp Desk</span>
+                  </a>
+                </li>
+                <li>
+                  <Link to="/about" className="hover:text-[#1E241F] transition-colors">
+                    About DTA
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/terms" className="hover:text-[#1E241F] transition-colors">
+                    Partner Terms
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/privacy" className="hover:text-[#1E241F] transition-colors">
+                    Privacy Policy
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
           </div>
+
+          <div className="pt-6 border-t border-[#E3DCC8] flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] font-mono text-[#7C7D70]">
+            <p>© {new Date().getFullYear()} Dream to Achievers (DTA). All rights reserved.</p>
+            <p>Verified B2B Wholesale Distribution Network</p>
+          </div>
+
         </div>
       </footer>
+
     </div>
   );
 };

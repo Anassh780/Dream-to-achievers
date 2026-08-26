@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { DreamLogo } from '@/components/ui/DreamLogo';
 import { Button } from '@/components/ui/Button';
+import { DreamLogo } from '@/components/ui/DreamLogo';
 import {
   EnvelopeSimple,
   Lock,
@@ -10,8 +10,8 @@ import {
   EyeSlash,
   CheckCircle,
   ShieldCheck,
-  Sparkle,
   ArrowRight,
+  Sparkle,
 } from '@phosphor-icons/react';
 
 export const Login: React.FC = () => {
@@ -48,113 +48,100 @@ export const Login: React.FC = () => {
 
   const partnerHighlights = [
     'Instant wholesale catalog access with +PKR 500/unit gross profit',
-    'Milestone cash bonuses up to PKR 10,000 (Silver to Diamond)',
+    'Milestone cash bonuses up to PKR 10,000 (Level 01 to Level 04)',
     'Automated referral tracking & real-time sales performance ledgers',
   ];
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center px-4 sm:px-6 py-12 sm:py-16 font-sans selection:bg-cyan-500/30">
+    <div className="min-h-[85vh] bg-[#020612] text-[#F8FAFC] flex items-center justify-center px-4 sm:px-6 py-20 sm:py-24 font-sans selection:bg-cyan-500/30">
       <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
         
         {/* Left Column: Brand Story & Trust Perks */}
-        <div className="hidden lg:flex lg:col-span-5 flex-col justify-between space-y-8 p-2">
-          <div className="space-y-5">
-            <Link to="/" className="inline-block transition-transform hover:scale-105">
+        <div className="hidden lg:flex lg:col-span-5 flex-col justify-between space-y-6">
+          <div className="space-y-4">
+            <Link to="/" className="inline-block">
               <DreamLogo size={36} />
             </Link>
-
-            <div className="inline-flex items-center space-x-1.5 text-[10px] font-mono font-semibold px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/25 tracking-wider shadow-[0_0_12px_rgba(6,182,212,0.15)]">
-              <Sparkle size={12} weight="fill" className="text-cyan-400" />
-              <span>PARTNER PORTAL</span>
-            </div>
-
-            <h2 className="text-3xl font-outfit font-bold text-white tracking-tight leading-tight">
-              Welcome back to your partner portal.
-            </h2>
-
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Track customer sales, monitor your referral network volume, and review your progress toward the next cash milestone.
-            </p>
-          </div>
-
-          <div className="space-y-3 pt-4 border-t border-white/[0.08]">
-            {partnerHighlights.map((perk, i) => (
-              <div key={i} className="flex items-start space-x-2.5 text-xs text-slate-200">
-                <CheckCircle size={16} weight="fill" className="text-emerald-400 shrink-0 mt-0.5" />
-                <span className="leading-relaxed">{perk}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="p-4 rounded-2xl bg-[#080E1E] border border-white/[0.08] flex items-center space-x-3 text-xs text-slate-300">
-            <ShieldCheck size={20} className="text-cyan-400 shrink-0" />
-            <span>End-to-end encrypted partner sessions</span>
-          </div>
-        </div>
-
-        {/* Right Column: High-End Authentication Card */}
-        <div className="lg:col-span-7">
-          <div className="relative rounded-3xl bg-[#080E1E] border border-white/10 p-6 sm:p-9 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(0,242,254,0.1)] space-y-6">
-            
-            {/* Form Header */}
-            <div className="space-y-1.5 pb-4 border-b border-white/[0.08]">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl sm:text-2xl font-outfit font-bold text-white tracking-tight">
-                  Sign In to Dashboard
-                </h3>
-                <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider">
-                  Partner Access
-                </span>
-              </div>
-              <p className="text-xs text-slate-300">
-                Enter your verified email and password to manage your sales and team.
+            <div className="space-y-2">
+              <h2 className="text-2xl font-heading font-extrabold text-white tracking-tight">
+                Welcome back to your partner terminal.
+              </h2>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Access wholesale product margins, submit customer orders, and track your milestone bonuses in real time.
               </p>
             </div>
 
+            {/* Feature Perks */}
+            <div className="space-y-2.5 pt-2">
+              {partnerHighlights.map((perk, i) => (
+                <div key={i} className="flex items-start space-x-2.5 text-xs text-slate-300">
+                  <CheckCircle size={15} weight="fill" className="text-cyan-400 shrink-0 mt-0.5" />
+                  <span>{perk}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-[#060B18] border border-white/[0.08] flex items-center space-x-3 text-xs text-cyan-300">
+            <ShieldCheck size={18} weight="fill" className="text-cyan-400 shrink-0" />
+            <span className="text-[11px] font-mono">256-Bit Encrypted Partner Session</span>
+          </div>
+        </div>
+
+        {/* Right Column: Sign In Card */}
+        <div className="lg:col-span-7">
+          <div className="p-7 sm:p-9 rounded-3xl bg-[#060B18] border border-white/[0.08] shadow-2xl space-y-6">
+            <div className="space-y-1 pb-2 border-b border-white/[0.08]">
+              <div className="lg:hidden pb-3">
+                <DreamLogo size={28} />
+              </div>
+              <h3 className="text-lg sm:text-xl font-heading font-bold text-white">Partner Authentication</h3>
+              <p className="text-xs text-slate-400">Enter your credentials to enter your workspace.</p>
+            </div>
+
             {error && (
-              <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center space-x-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-                <span>{error}</span>
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-300 text-xs font-semibold animate-in fade-in">
+                {error}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              <div className="space-y-1.5">
-                <label className="block text-slate-200 font-medium">Work / Partner Email</label>
+              <div className="space-y-1">
+                <label className="block text-slate-300 font-semibold">Registered Email</label>
                 <div className="relative">
-                  <EnvelopeSimple size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <EnvelopeSimple size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="partner@domain.com"
-                    className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-[#030712] border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/25 transition-all text-xs"
+                    placeholder="partner@example.com"
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-[#030712] border border-white/10 text-white placeholder:text-slate-500 text-xs focus:outline-none focus:border-cyan-400 transition-all font-mono"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <label className="text-slate-200 font-medium">Password</label>
-                  <Link to="/forgot-password" className="text-cyan-400 hover:text-cyan-300 transition-colors text-[11px]">
-                    Forgot Password?
+                  <label className="block text-slate-300 font-semibold">Password</label>
+                  <Link to="/forgot-password" className="text-[11px] font-mono text-cyan-400 hover:underline">
+                    Forgot password?
                   </Link>
                 </div>
                 <div className="relative">
-                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-10 py-3 rounded-xl bg-[#030712] border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/25 transition-all text-xs"
+                    className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-[#030712] border border-white/10 text-white placeholder:text-slate-500 text-xs focus:outline-none focus:border-cyan-400 transition-all font-mono"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
                   >
                     {showPassword ? <EyeSlash size={16} /> : <Eye size={16} />}
                   </button>
@@ -163,23 +150,22 @@ export const Login: React.FC = () => {
 
               <Button
                 type="submit"
+                disabled={loading}
                 variant="primary"
                 size="md"
-                className="w-full justify-center rounded-xl font-bold mt-2 shadow-lg"
-                isLoading={loading}
+                className="w-full justify-center rounded-xl font-bold text-xs shadow-lg mt-2"
                 iconRight={<ArrowRight size={14} weight="bold" />}
               >
-                Sign In to Partner Portal
+                {loading ? 'Authenticating...' : 'Enter Partner Terminal'}
               </Button>
             </form>
 
-            {/* Bottom Link */}
-            <p className="text-center text-xs text-slate-400 pt-2 border-t border-white/[0.08]">
-              Don't have a partner account yet?{' '}
-              <Link to="/signup" className="text-cyan-400 font-semibold hover:text-cyan-300 transition-colors underline">
-                Create Free Account
+            <div className="text-center pt-2 border-t border-white/[0.08] text-xs text-slate-400">
+              <span>New to DreamToAchievers? </span>
+              <Link to="/signup" className="text-cyan-300 hover:underline font-bold">
+                Create Free Partner Account
               </Link>
-            </p>
+            </div>
           </div>
         </div>
       </div>
