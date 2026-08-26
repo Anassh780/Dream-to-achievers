@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
+import { DepthCarousel } from '@/components/ui/DepthCarousel';
 import { FAQSection } from '@/components/sections/FAQSection';
 import { OwnerProfile } from '@/components/sections/OwnerProfile';
 import { ScrollFloat } from '@/components/ui/ScrollFloat';
@@ -359,7 +360,67 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. MARGIN ESTIMATOR CALCULATOR */}
+      {/* 4. FEATURED PRODUCTS — 3D DEPTH CAROUSEL */}
+      <section className="px-6 sm:px-8 py-16 bg-[#F1ECDD] border-b border-[#E3DCC8]">
+        <div className="max-w-[1180px] mx-auto space-y-8">
+          <div className="text-center space-y-2">
+            <div className="text-xs font-semibold uppercase tracking-wider text-[#1F4D3E]">
+              Featured catalog
+            </div>
+            <ScrollFloat
+              animationDuration={1}
+              ease="back.inOut(2)"
+              scrollStart="top bottom-=10%"
+              scrollEnd="bottom center"
+              stagger={0.02}
+              containerClassName="font-serif text-3xl sm:text-4xl font-medium text-[#1E241F]"
+            >
+              Products your customers already want
+            </ScrollFloat>
+            <p className="text-[#5B5C50] text-sm sm:text-base max-w-[520px] mx-auto">
+              High-demand consumer goods with verified wholesale pricing and transparent margins on every unit.
+            </p>
+          </div>
+
+          <div style={{ height: '460px', position: 'relative' }}>
+            <DepthCarousel
+              items={SEED_PRODUCTS.map((p) => ({
+                image: p.imageUrl,
+                alt: p.name,
+              }))}
+              cardWidth={280}
+              cardHeight={360}
+              radius={16}
+              tint="#1E241F"
+              depth={180}
+              spread={80}
+              tilt={18}
+              tiltDirection="right"
+              perspective={1200}
+              visibleCards={4}
+              falloff={0.22}
+              blur={5}
+              duration={650}
+              ease="power3.out"
+              autoplay
+              autoplayDelay={3500}
+              loop
+              showControls
+              showIndicators
+            />
+          </div>
+
+          <div className="text-center">
+            <Link to="/products">
+              <Button variant="outline" size="md" className="font-medium text-xs">
+                View full wholesale catalog
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. MARGIN ESTIMATOR CALCULATOR */}
       <section className="px-6 sm:px-8 py-16 bg-[#F1ECDD] border-b border-[#E3DCC8]">
         <div className="max-w-[800px] mx-auto p-8 rounded-2xl bg-white border border-[#E3DCC8] shadow-sm space-y-6">
           <div className="space-y-1.5 text-center sm:text-left">
