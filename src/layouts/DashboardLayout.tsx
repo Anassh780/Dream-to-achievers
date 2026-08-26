@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
+import { SwitchButton } from '@/components/ui/SwitchButton';
 import {
   House,
   ChartLineUp,
@@ -177,6 +178,10 @@ export const DashboardLayout: React.FC = () => {
 
         {/* Sign Out Action */}
         <div className="pt-4 border-t border-[#E3DCC8]">
+          <div className="pt-2 border-t border-[#E3DCC8] flex items-center justify-between">
+            <SwitchButton size="sm" showLabel={true} className="w-full justify-start text-xs" />
+          </div>
+
           <button
             onClick={() => logout()}
             className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
@@ -197,6 +202,7 @@ export const DashboardLayout: React.FC = () => {
         </Link>
 
         <div className="flex items-center space-x-2">
+          <SwitchButton size="sm" showLabel={false} />
           <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#F1ECDD] text-[#1F4D3E] border border-[#E3DCC8] uppercase">
             {user.currentRankSlug}
           </span>

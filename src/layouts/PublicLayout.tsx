@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Button } from '@/components/ui/Button';
 import { DreamLogo } from '@/components/ui/DreamLogo';
+import { SwitchButton } from '@/components/ui/SwitchButton';
 import {
   List,
   X,
@@ -60,6 +61,8 @@ export const PublicLayout: React.FC = () => {
 
           {/* Header Action Controls */}
           <div className="hidden md:flex items-center gap-3">
+            <SwitchButton size="sm" showLabel={false} />
+
             {isAdmin && (
               <Link to="/admin">
                 <Button variant="outline" size="sm" className="text-xs font-medium">
@@ -90,15 +93,17 @@ export const PublicLayout: React.FC = () => {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
-            className="md:hidden p-2 rounded-lg text-[#1E241F] hover:bg-[#F1ECDD] transition-colors"
-            aria-label="Toggle Navigation Menu"
-          >
-            {mobileDrawerOpen ? <X size={22} /> : <List size={22} />}
-          </button>
-
+          {/* Mobile Menu Button with SwitchButton */}
+          <div className="md:hidden flex items-center gap-2">
+            <SwitchButton size="sm" showLabel={false} />
+            <button
+              onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
+              className="p-2 rounded-lg text-[#1E241F] hover:bg-[#F1ECDD] transition-colors"
+              aria-label="Toggle Navigation Menu"
+            >
+              {mobileDrawerOpen ? <X size={22} /> : <List size={22} />}
+            </button>
+          </div>
         </div>
       </nav>
 

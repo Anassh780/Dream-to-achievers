@@ -42,6 +42,20 @@
     --duration-fast: 150ms;
     --duration-base: 220ms;
   }
+
+  html.dark,
+  .dark {
+    --bg: #0F1512;
+    --surface: #17211C;
+    --surface-alt: #1D2B24;
+    --ink: #F4F3EE;
+    --ink-soft: #A3AFA8;
+    --primary: #2D6A56;
+    --primary-dark: #225243;
+    --accent: #D4A043;
+    --accent-soft: #382D19;
+    --line: #273830;
+  }
 }
 
 /* Global Reset & Base */

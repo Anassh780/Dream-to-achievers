@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
+import { SwitchButton } from '@/components/ui/SwitchButton';
 import {
   ShieldCheck,
   House,
@@ -150,9 +151,14 @@ export const AdminLayout: React.FC = () => {
         </div>
 
         {/* User Card & Sign Out */}
-        <div className="pt-4 border-t border-[#E3DCC8] space-y-2">
-          <div className="flex items-center justify-between px-2">
-            <div className="truncate">
+        <div className="space-y-2">
+          <div className="pt-2 border-t border-[#E3DCC8] flex items-center justify-between">
+            <SwitchButton size="sm" showLabel={true} className="w-full justify-start text-xs" />
+          </div>
+
+          {/* Admin User Info Card */}
+          <div className="p-2.5 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] flex items-center justify-between">
+            <div className="truncate pr-2">
               <p className="text-xs font-semibold text-[#1E241F] truncate">{user?.fullName}</p>
               <p className="text-[10px] font-mono text-[#5B5C50] truncate">{user?.email}</p>
             </div>
@@ -178,12 +184,15 @@ export const AdminLayout: React.FC = () => {
           </div>
           <span className="font-serif font-semibold text-sm text-[#1E241F]">Admin Portal</span>
         </Link>
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 rounded-lg text-[#1E241F] hover:bg-[#FAF7EF]"
-        >
-          {mobileMenuOpen ? <X size={18} /> : <List size={18} />}
-        </button>
+        <div className="flex items-center gap-2">
+          <SwitchButton size="sm" showLabel={false} />
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 rounded-lg text-[#1E241F] hover:bg-[#FAF7EF]"
+          >
+            {mobileMenuOpen ? <X size={18} /> : <List size={18} />}
+          </button>
+        </div>
       </header>
 
       {/* Mobile Menu */}

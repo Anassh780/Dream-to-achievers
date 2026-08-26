@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
+import { ThemeProvider } from '@/context/ThemeContext';
 
 // Layouts
 import { PublicLayout } from '@/layouts/PublicLayout';
@@ -52,59 +53,63 @@ import { AdminQuickSwitch } from '@/components/common/AdminQuickSwitch';
 
 export const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AdminQuickSwitch />
-        <Routes>
-          {/* Public Portal Routes */}
-          <Route path="/" element={<PublicLayout />}>
-            <Route index element={<Home />} />
-            <Route path="about" element={<About />} />
-            <Route path="how-it-works" element={<HowItWorks />} />
-            <Route path="products" element={<Products />} />
-            <Route path="products/:slug" element={<ProductDetail />} />
-            <Route path="ranks" element={<RanksPage />} />
-            <Route path="services" element={<ServicesPage />} />
-            <Route path="contact" element={<ContactPage />} />
-            <Route path="login" element={<Login />} />
-            <Route path="signup" element={<Signup />} />
-            <Route path="forgot-password" element={<ForgotPassword />} />
-            <Route path="terms" element={<TermsPage />} />
-            <Route path="privacy" element={<PrivacyPage />} />
-            <Route path="disclaimer" element={<DisclaimerPage />} />
-          </Route>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <AdminQuickSwitch />
+          <Routes>
+            {/* Public Portal Routes */}
+            <Route path="/" element={<PublicLayout />}>
+              <Route index element={<Home />} />
+              <Route path="about" element={<About />} />
+              <Route path="how-it-works" element={<HowItWorks />} />
+              <Route path="products" element={<Products />} />
+              <Route path="products/:slug" element={<ProductDetail />} />
+              <Route path="ranks" element={<RanksPage />} />
+              <Route path="services" element={<ServicesPage />} />
+              <Route path="contact" element={<ContactPage />} />
+              <Route path="terms" element={<TermsPage />} />
+              <Route path="privacy" element={<PrivacyPage />} />
+              <Route path="disclaimer" element={<DisclaimerPage />} />
+            </Route>
 
-          {/* User Partner Dashboard Routes */}
-          <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<DashboardOverview />} />
-            <Route path="rank-progress" element={<RankProgressPage />} />
-            <Route path="products" element={<DashboardProducts />} />
-            <Route path="sales" element={<DashboardSales />} />
-            <Route path="referrals" element={<DashboardReferrals />} />
-            <Route path="rewards" element={<DashboardRewards />} />
-            <Route path="notifications" element={<DashboardNotifications />} />
-            <Route path="profile" element={<DashboardProfile />} />
-          </Route>
+            {/* Auth Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          {/* Admin Management Portal Routes */}
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminOverviewPage />} />
-            <Route path="categories" element={<AdminCategoriesPage />} />
-            <Route path="users" element={<AdminUsersPage />} />
-            <Route path="products" element={<AdminProductsPage />} />
-            <Route path="sales" element={<AdminSalesPage />} />
-            <Route path="referrals" element={<AdminReferralsPage />} />
-            <Route path="ranks" element={<AdminRanksPage />} />
-            <Route path="rewards" element={<AdminRewardsPage />} />
-            <Route path="cms" element={<AdminCMSPage />} />
-            <Route path="audit-logs" element={<AdminAuditLogsPage />} />
-          </Route>
+            {/* Partner Protected Dashboard */}
+            <Route path="/dashboard" element={<DashboardLayout />}>
+              <Route index element={<DashboardOverview />} />
+              <Route path="rank-progress" element={<RankProgressPage />} />
+              <Route path="products" element={<DashboardProducts />} />
+              <Route path="sales" element={<DashboardSales />} />
+              <Route path="referrals" element={<DashboardReferrals />} />
+              <Route path="rewards" element={<DashboardRewards />} />
+              <Route path="notifications" element={<DashboardNotifications />} />
+              <Route path="profile" element={<DashboardProfile />} />
+            </Route>
 
-          {/* 404 Catch-all */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+            {/* Admin Management Panel */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminOverviewPage />} />
+              <Route path="categories" element={<AdminCategoriesPage />} />
+              <Route path="users" element={<AdminUsersPage />} />
+              <Route path="products" element={<AdminProductsPage />} />
+              <Route path="sales" element={<AdminSalesPage />} />
+              <Route path="referrals" element={<AdminReferralsPage />} />
+              <Route path="ranks" element={<AdminRanksPage />} />
+              <Route path="rewards" element={<AdminRewardsPage />} />
+              <Route path="cms" element={<AdminCMSPage />} />
+              <Route path="audit-logs" element={<AdminAuditLogsPage />} />
+            </Route>
+
+            {/* 404 Route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 
