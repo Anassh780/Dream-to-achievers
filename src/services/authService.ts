@@ -16,6 +16,7 @@ import {
 import { ref, get, set, child } from 'firebase/database';
 import { storage } from './storage';
 import { rankEngine } from './rankEngine';
+import { referralService } from './referralService';
 
 export const ADMIN_EMAILS = [
   'muskyna46@gmail.com',
@@ -40,6 +41,8 @@ export const authService = {
         const userProfile = await authService.getUserProfile(fbUser.uid, fbUser.email || '');
         if (userProfile) {
           storage.setRaw('CURRENT_USER_ID', userProfile.id);
+          // Sync referrals from Cloud Firestore/RTDB in background
+          referralService.syncUserReferrals(userProfile.id).catch(() => {});
           callback(userProfile);
         } else {
           callback(null);
@@ -239,11 +242,13 @@ export const authService = {
     const newReferralCode = `${baseCode}${randNum}`;
 
     let validReferrer: User | undefined;
-    const users = storage.get<User[]>('USERS', []);
 
     if (referralCode) {
       const cleanRef = referralCode.trim().toUpperCase();
-      validReferrer = users.find((u) => u.referralCode === cleanRef);
+      const found = await referralService.findReferrerByCode(cleanRef);
+      if (found) {
+        validReferrer = found;
+      }
     }
 
     try {
@@ -277,20 +282,21 @@ export const authService = {
 
       // Record referral relationship if referred
       if (validReferrer) {
-        const referrals = storage.get<any[]>('REFERRALS', []);
-        referrals.push({
-          id: `ref-${Date.now()}`,
+        const referralRecord = {
+          id: `ref-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
           referrerId: validReferrer.id,
           referredUserId: newUser.id,
           referredUserName: newUser.fullName,
           referredUserEmail: newUser.email,
-          referredUserRank: 'unranked',
+          referredUserRank: 'unranked' as const,
           referralCodeUsed: validReferrer.referralCode,
-          status: 'active',
+          status: 'active' as const,
           isQualifying: true,
           createdAt: new Date().toISOString(),
-        });
-        storage.set('REFERRALS', referrals);
+        };
+
+        // Save locally and to Cloud Firestore / RTDB
+        await referralService.saveReferralRecord(referralRecord);
 
         // Notify inviter
         const notifs = storage.get<any[]>('NOTIFICATIONS', []);

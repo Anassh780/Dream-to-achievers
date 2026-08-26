@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { DreamLogo } from '@/components/ui/DreamLogo';
 import { Loader } from '@/components/ui/Loader';
+import { storage } from '@/services/storage';
 import {
   User,
   EnvelopeSimple,
@@ -23,7 +24,9 @@ export const Signup: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [referralCode, setReferralCode] = useState(searchParams.get('ref') || '');
+  const [referralCode, setReferralCode] = useState(
+    searchParams.get('ref') || searchParams.get('r') || searchParams.get('referral') || storage.getRaw('CAPTURED_REF') || ''
+  );
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -34,9 +37,16 @@ export const Signup: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const refParam = searchParams.get('ref');
-    if (refParam) {
-      setReferralCode(refParam);
+    const urlRef = searchParams.get('ref') || searchParams.get('r') || searchParams.get('referral');
+    if (urlRef) {
+      const clean = urlRef.trim().toUpperCase();
+      setReferralCode(clean);
+      storage.setRaw('CAPTURED_REF', clean);
+    } else {
+      const stored = storage.getRaw('CAPTURED_REF');
+      if (stored) {
+        setReferralCode(stored.trim().toUpperCase());
+      }
     }
   }, [searchParams]);
 
