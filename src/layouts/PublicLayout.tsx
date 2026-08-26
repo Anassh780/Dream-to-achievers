@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Button } from '@/components/ui/Button';
 import { DreamLogo } from '@/components/ui/DreamLogo';
 import {
@@ -16,6 +17,7 @@ import {
 
 export const PublicLayout: React.FC = () => {
   const { isAuthenticated, user, isAdmin } = useAuth();
+  const siteConfig = useSiteSettings();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const location = useLocation();
 
@@ -233,7 +235,7 @@ export const PublicLayout: React.FC = () => {
               <ul className="space-y-1.5">
                 <li>
                   <a
-                    href="https://wa.me/923237583685"
+                    href={`https://wa.me/${(siteConfig.whatsappNumber || '+92 305 4511395').replace(/[^0-9]/g, '')}`}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center gap-1.5 hover:text-[#1E241F] transition-colors"
