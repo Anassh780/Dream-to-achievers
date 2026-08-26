@@ -43,6 +43,7 @@ import { AdminRanksPage } from '@/pages/admin/AdminRanksPage';
 import { AdminRewardsPage } from '@/pages/admin/AdminRewardsPage';
 import { AdminCMSPage } from '@/pages/admin/AdminCMSPage';
 import { AdminAuditLogsPage } from '@/pages/admin/AdminAuditLogsPage';
+import { AdminCategoriesPage } from '@/pages/admin/AdminCategoriesPage';
 
 // Common / 404
 import { NotFound } from '@/pages/NotFound';
@@ -88,6 +89,7 @@ export const App: React.FC = () => {
           {/* Admin Management Portal Routes */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminOverviewPage />} />
+            <Route path="categories" element={<AdminCategoriesPage />} />
             <Route path="users" element={<AdminUsersPage />} />
             <Route path="products" element={<AdminProductsPage />} />
             <Route path="sales" element={<AdminSalesPage />} />

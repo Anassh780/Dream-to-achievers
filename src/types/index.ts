@@ -43,6 +43,43 @@ export interface RankHistoryEntry {
 }
 
 export type ProductStatus = 'active' | 'draft' | 'out_of_stock';
+export type CategoryStatus = 'active' | 'archived' | 'draft';
+
+export interface Category {
+  id: string;                    // e.g. 'cat-skincare'
+  name: string;                  // e.g. 'Skincare & Beauty'
+  slug: string;                  // e.g. 'skincare'
+  description: string;           // editorial overview, 1-2 sentences
+  icon: string;                  // Lucide or Phosphor icon name, e.g. 'Sparkle'
+  bannerUrl?: string;            // 1600x600 recommended
+  thumbnailUrl?: string;         // 400x400, used in pill carousel
+  featured: boolean;
+  sortOrder: number;             // gap-indexed (10, 20, 30...)
+  status: CategoryStatus;
+
+  // --- Hierarchy ---
+  parentId: string | null;       // null = top-level category
+  depth: 0 | 1 | 2;              // enforce max 3 tiers (top / sub / leaf)
+  childIds: string[];            // denormalized for fast tree rendering
+
+  // --- SEO & metadata ---
+  metaTitle?: string;
+  metaDescription?: string;
+
+  // --- Computed fields ---
+  productCount?: number;
+  avgProfitMarginPKR?: number;
+
+  // --- Audit ---
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: string;
+  archivedAt?: string;
+}
+
+export interface CategoryTreeNode extends Category {
+  children: CategoryTreeNode[];
+}
 
 export interface Product {
   id: string;
@@ -50,7 +87,9 @@ export interface Product {
   slug: string;
   shortDescription: string;
   description: string;
-  category: 'Skincare & Beauty' | 'Electronics & Tech' | 'Fashion & Apparel' | 'Wellness & Fitness' | 'Home & Lifestyle';
+  category: string;
+  categoryId?: string;
+  categoryIds?: string[];
   retailPrice: number;
   partnerPrice: number;
   suggestedSellingPrice: number;
@@ -160,7 +199,7 @@ export interface AdminAuditLog {
   adminId: string;
   adminEmail: string;
   action: string;
-  entityType: 'rank' | 'user' | 'product' | 'sale' | 'reward' | 'settings';
+  entityType: 'rank' | 'user' | 'product' | 'sale' | 'reward' | 'settings' | 'category';
   entityId: string;
   details: string;
   timestamp: string;

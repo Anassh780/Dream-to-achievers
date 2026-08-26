@@ -18,7 +18,7 @@ export const auditService = {
     adminId: string;
     adminEmail: string;
     action: string;
-    entityType: 'rank' | 'user' | 'product' | 'sale' | 'reward' | 'settings';
+    entityType: 'rank' | 'user' | 'product' | 'sale' | 'reward' | 'settings' | 'category';
     entityId: string;
     details: string;
   }): void {

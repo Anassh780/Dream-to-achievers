@@ -12,6 +12,7 @@ import {
 } from '@/types';
 import { CANONICAL_RANKS } from '@/config/ranks';
 import { SEED_PRODUCTS } from '@/config/products';
+import { SEED_CATEGORIES } from '@/config/categories';
 import { SITE_CONFIG } from '@/config/site';
 
 const STORAGE_KEYS = {
@@ -19,6 +20,7 @@ const STORAGE_KEYS = {
   CURRENT_USER_ID: 'dta_current_user_id',
   RANKS: 'dta_ranks',
   PRODUCTS: 'dta_products',
+  CATEGORIES: 'dta_categories',
   SALES: 'dta_sales',
   REFERRALS: 'dta_referrals',
   REWARDS: 'dta_rewards',
@@ -40,6 +42,9 @@ export const storage = {
     }
     if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
       localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(SEED_PRODUCTS));
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.CATEGORIES)) {
+      localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(SEED_CATEGORIES));
     }
     if (!localStorage.getItem(STORAGE_KEYS.SALES)) {
       localStorage.setItem(STORAGE_KEYS.SALES, JSON.stringify([]));

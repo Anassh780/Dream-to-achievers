@@ -66,9 +66,10 @@ export const AdminLayout: React.FC = () => {
       title: 'MAIN',
       items: [
         { label: 'Dashboard Overview', href: '/admin', icon: House },
-        { label: 'Users Management', href: '/admin/users', icon: Users },
+        { label: 'Category Taxonomy', href: '/admin/categories', icon: Article },
         { label: 'Products & Inventory', href: '/admin/products', icon: Package },
         { label: 'Sales Verification', href: '/admin/sales', icon: ShoppingCart },
+        { label: 'Users Management', href: '/admin/users', icon: Users },
       ],
     },
     {
@@ -82,7 +83,7 @@ export const AdminLayout: React.FC = () => {
     {
       title: 'SYSTEM & CONFIG',
       items: [
-        { label: 'CMS Settings', href: '/admin/cms', icon: Article },
+        { label: 'CMS & Social Media', href: '/admin/cms', icon: Article },
         { label: 'System Audit Logs', href: '/admin/audit-logs', icon: Scroll },
       ],
     },
