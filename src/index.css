@@ -2,7 +2,7 @@
 
 @layer base {
   :root {
-    /* 1. Core Editorial B2B Color System */
+    /* 1. Light Mode System */
     --bg: #FAF7EF;
     --surface: #FFFFFF;
     --surface-alt: #F1ECDD;
@@ -13,6 +13,7 @@
     --accent: #B8862E;
     --accent-soft: #EFE2C4;
     --line: #E3DCC8;
+    color-scheme: light;
 
     /* Compatibility aliases */
     --color-bg: var(--bg);
@@ -36,7 +37,7 @@
     /* 3. Radii */
     --radius-sm: 8px;
     --radius-md: 12px;
-    --radius-lg: 14px;
+    --radius-lg: 16px;
     --radius-full: 9999px;
 
     /* 4. Motion Tokens */
@@ -47,16 +48,18 @@
 
   html.dark,
   .dark {
-    --bg: #0F1512;
-    --surface: #17211C;
-    --surface-alt: #1D2B24;
+    /* Rich Dark Mode Palette */
+    --bg: #0B100D;
+    --surface: #141C18;
+    --surface-alt: #1B2620;
     --ink: #F4F3EE;
-    --ink-soft: #A3AFA8;
-    --primary: #2D6A56;
-    --primary-dark: #225243;
-    --accent: #D4A043;
-    --accent-soft: #382D19;
-    --line: #273830;
+    --ink-soft: #A2B1A8;
+    --primary: #348E72;
+    --primary-dark: #276E57;
+    --accent: #E2B258;
+    --accent-soft: #2E2514;
+    --line: #24352B;
+    color-scheme: dark;
   }
 }
 
@@ -72,6 +75,8 @@
 html {
   scroll-behavior: smooth;
   background-color: var(--bg);
+  color: var(--ink);
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 body {
@@ -83,22 +88,90 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
 }
 
-/* Container Constraint */
-.wrap {
-  max-width: 1180px;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 32px;
-  padding-right: 32px;
+/* =========================================================
+   UNIVERSAL DARK MODE AUTO-MAPPINGS FOR ALL PAGES & COMPONENTS
+   ========================================================= */
+
+html.dark [class*="bg-[#FAF7EF]"],
+.dark [class*="bg-[#FAF7EF]"] {
+  background-color: var(--bg) !important;
 }
 
-@media (max-width: 860px) {
-  .wrap {
-    padding-left: 20px;
-    padding-right: 20px;
-  }
+html.dark [class*="bg-[#F1ECDD]"],
+.dark [class*="bg-[#F1ECDD]"] {
+  background-color: var(--surface-alt) !important;
+}
+
+html.dark [class*="bg-white"],
+.dark [class*="bg-white"] {
+  background-color: var(--surface) !important;
+}
+
+html.dark [class*="text-[#1E241F]"],
+.dark [class*="text-[#1E241F]"] {
+  color: var(--ink) !important;
+}
+
+html.dark [class*="text-[#5B5C50]"],
+html.dark [class*="text-[#7C7D70]"],
+.dark [class*="text-[#5B5C50]"],
+.dark [class*="text-[#7C7D70]"] {
+  color: var(--ink-soft) !important;
+}
+
+html.dark [class*="border-[#E3DCC8]"],
+.dark [class*="border-[#E3DCC8]"] {
+  border-color: var(--line) !important;
+}
+
+html.dark [class*="bg-[#1F4D3E]/8"],
+.dark [class*="bg-[#1F4D3E]/8"] {
+  background-color: rgba(52, 142, 114, 0.15) !important;
+}
+
+html.dark [class*="border-[#1F4D3E]/15"],
+.dark [class*="border-[#1F4D3E]/15"],
+html.dark [class*="border-[#1F4D3E]/20"],
+.dark [class*="border-[#1F4D3E]/20"] {
+  border-color: rgba(52, 142, 114, 0.3) !important;
+}
+
+html.dark [class*="text-[#1F4D3E]"],
+.dark [class*="text-[#1F4D3E]"] {
+  color: #48C79B !important;
+}
+
+html.dark [class*="text-[#B8862E]"],
+.dark [class*="text-[#B8862E]"] {
+  color: #E2B258 !important;
+}
+
+html.dark input,
+html.dark textarea,
+html.dark select,
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: var(--surface-alt) !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder,
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #6E7E75 !important;
+}
+
+/* Nav backdrop in dark */
+html.dark nav,
+.dark nav {
+  background-color: rgba(11, 16, 13, 0.95) !important;
+  border-color: var(--line) !important;
 }
 
 /* Typography Rules */
@@ -231,7 +304,7 @@ code, pre, .font-mono {
 
 .card:hover, .b2b-card:hover, .ledger-card:hover {
   transform: translateY(-2px);
-  border-color: #D2C8AF;
+  border-color: var(--primary);
 }
 
 .ledger-head {
@@ -347,7 +420,7 @@ code, pre, .font-mono {
 }
 
 .cap-card:hover {
-  border-color: #D2C8AF;
+  border-color: var(--primary);
 }
 
 .cap-icon {
@@ -380,7 +453,7 @@ code, pre, .font-mono {
   padding: 24px;
   border-right: 1px solid var(--line);
   display: flex;
-  flex-col: column;
+  flex-direction: column;
   justify-content: space-between;
 }
 
@@ -422,7 +495,7 @@ textarea:focus-visible {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D2C8AF;
+  background: var(--line);
   border-radius: var(--radius-full);
 }
 
