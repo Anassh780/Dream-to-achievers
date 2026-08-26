@@ -27,6 +27,7 @@ export const PublicLayout: React.FC = () => {
     { label: 'Products', href: '/products' },
     { label: 'How It Works', href: '/how-it-works' },
     { label: 'Ranks', href: '/ranks' },
+    { label: 'Services', href: '/services' },
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
   ];
