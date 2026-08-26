@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChartLineUp, CheckCircle } from '@phosphor-icons/react';
+import { CheckCircle } from '@phosphor-icons/react';
 
 export const Experience: React.FC = () => {
   const caseStudies = [
@@ -11,7 +11,7 @@ export const Experience: React.FC = () => {
       metrics: 'PKR 450k+ Margins Generated',
       highlights: [
         'Over 2.8M organic views generated across video reviews',
-        'Achieved Diamond Rank milestone qualification in 75 days',
+        'Achieved Level 04 milestone qualification in 75 days',
         'Integrated automated margin crediting to local partner ledgers',
       ],
     },
@@ -42,47 +42,47 @@ export const Experience: React.FC = () => {
   ];
 
   return (
-    <section id="case-studies" className="max-w-6xl mx-auto px-5 sm:px-8 space-y-8 font-sans">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-white/[0.08]">
+    <section id="case-studies" className="max-w-[1180px] mx-auto px-6 sm:px-8 space-y-8 font-sans">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-[#E3DCC8]">
         <div>
-          <span className="text-xs text-[#60A5FA] font-medium uppercase tracking-wider block mb-1">
+          <span className="text-xs text-[#1F4D3E] font-medium uppercase tracking-wider block mb-1">
             Proven Performance
           </span>
-          <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white">
-            Partner Case Studies
+          <h2 className="text-2xl sm:text-3xl font-serif font-medium text-[#1E241F]">
+            Partner Case Studies &amp; Distribution Results
           </h2>
         </div>
-        <p className="text-xs text-[#8996A8] max-w-sm">
+        <p className="text-xs text-[#5B5C50] max-w-sm">
           Documented metrics demonstrating product volume, community growth, and cash rewards unlocked.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {caseStudies.map((cs, idx) => (
           <div
             key={idx}
-            className="p-5 rounded-2xl bg-[#111A27] border border-white/[0.08] hover:border-white/[0.14] transition-colors flex flex-col justify-between space-y-4 text-xs"
+            className="p-6 rounded-2xl bg-white border border-[#E3DCC8] hover:border-[#D2C8AF] hover:-translate-y-0.5 transition-all flex flex-col justify-between space-y-4 text-xs shadow-xs"
           >
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono text-[#8996A8]">{cs.period}</span>
-                <span className="text-[10px] font-semibold text-[#22C55E] bg-[#22C55E]/10 px-2 py-0.5 rounded">
+                <span className="text-[10px] font-mono text-[#5B5C50]">{cs.period}</span>
+                <span className="text-[10px] font-mono font-semibold text-[#B8862E] bg-[#EFE2C4] px-2 py-0.5 rounded">
                   {cs.metrics}
                 </span>
               </div>
 
               <div className="space-y-1">
-                <h3 className="font-semibold text-sm text-white">{cs.title}</h3>
-                <p className="text-[11px] text-[#8996A8]">{cs.client}</p>
-                <p className="text-xs text-[#CBD5E1] leading-relaxed pt-1">{cs.description}</p>
+                <h3 className="font-serif font-semibold text-base text-[#1E241F]">{cs.title}</h3>
+                <p className="text-[11px] text-[#5B5C50] font-mono">{cs.client}</p>
+                <p className="text-xs text-[#5B5C50] leading-relaxed pt-1">{cs.description}</p>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-white/[0.06] space-y-1.5">
+            <div className="pt-3 border-t border-[#E3DCC8] space-y-1.5">
               {cs.highlights.map((hl, i) => (
-                <div key={i} className="flex items-start space-x-1.5 text-[11px] text-[#8996A8]">
-                  <CheckCircle size={13} className="text-[#3B82F6] shrink-0 mt-0.5" />
-                  <span className="text-[#CBD5E1]">{hl}</span>
+                <div key={i} className="flex items-start space-x-1.5 text-[11px] text-[#5B5C50]">
+                  <CheckCircle size={13} weight="bold" className="text-[#1F4D3E] shrink-0 mt-0.5" />
+                  <span>{hl}</span>
                 </div>
               ))}
             </div>

@@ -13,7 +13,6 @@ import {
   CheckCircle,
   ShieldCheck,
   ArrowRight,
-  Sparkle,
 } from '@phosphor-icons/react';
 
 export const Signup: React.FC = () => {
@@ -88,130 +87,130 @@ export const Signup: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-[85vh] bg-[#020612] text-[#F8FAFC] flex items-center justify-center px-4 sm:px-6 py-20 sm:py-24 font-sans selection:bg-cyan-500/30">
+    <div className="min-h-[85vh] bg-[#FAF7EF] text-[#1E241F] flex items-center justify-center px-4 sm:px-6 py-12 sm:py-16 font-sans selection:bg-[#B8862E]/25">
       <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
         
         {/* Left Column: Platform Promise */}
         <div className="hidden lg:flex lg:col-span-5 flex-col justify-between space-y-6">
           <div className="space-y-4">
             <Link to="/" className="inline-block">
-              <DreamLogo size={36} />
+              <DreamLogo size={38} />
             </Link>
             <div className="space-y-2">
-              <h2 className="text-2xl font-heading font-extrabold text-white tracking-tight">
+              <h2 className="text-2xl font-display font-medium text-[#1E241F] tracking-tight leading-tight">
                 Join Pakistan's leading wholesale distribution ecosystem.
               </h2>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-xs text-[#5B5C50] leading-relaxed">
                 Connect directly with vetted product suppliers, distribute high-margin inventory, and earn structured milestone bonuses.
               </p>
             </div>
 
             <div className="space-y-2.5 pt-2">
               {partnerPerks.map((perk, i) => (
-                <div key={i} className="flex items-start space-x-2.5 text-xs text-slate-300">
-                  <CheckCircle size={15} weight="fill" className="text-cyan-400 shrink-0 mt-0.5" />
+                <div key={i} className="flex items-start space-x-2.5 text-xs text-[#5B5C50]">
+                  <CheckCircle size={15} weight="bold" className="text-[#1F4D3E] shrink-0 mt-0.5" />
                   <span>{perk}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#060B18] border border-white/[0.08] flex items-center space-x-3 text-xs text-emerald-300">
-            <ShieldCheck size={18} weight="fill" className="text-emerald-400 shrink-0" />
+          <div className="p-4 rounded-xl bg-white border border-[#E3DCC8] flex items-center space-x-3 text-xs text-[#1F4D3E] shadow-xs">
+            <ShieldCheck size={18} weight="bold" className="text-[#1F4D3E] shrink-0" />
             <span className="text-[11px] font-mono">100% Free Partner Registration</span>
           </div>
         </div>
 
         {/* Right Column: Sign Up Form Card */}
         <div className="lg:col-span-7">
-          <div className="p-7 sm:p-9 rounded-3xl bg-[#060B18] border border-white/[0.08] shadow-2xl space-y-6">
-            <div className="space-y-1 pb-2 border-b border-white/[0.08]">
+          <div className="p-7 sm:p-9 rounded-xl bg-white border border-[#E3DCC8] shadow-xs space-y-6">
+            <div className="space-y-1 pb-2 border-b border-[#E3DCC8]">
               <div className="lg:hidden pb-3">
-                <DreamLogo size={28} />
+                <DreamLogo size={32} />
               </div>
-              <h3 className="text-lg sm:text-xl font-heading font-bold text-white">Create Partner Account</h3>
-              <p className="text-xs text-slate-400">Unlock wholesale catalog rates and start earning today.</p>
+              <h3 className="text-lg sm:text-xl font-display font-medium text-[#1E241F]">Create Partner Account</h3>
+              <p className="text-xs text-[#5B5C50]">Unlock wholesale catalog rates and start earning today.</p>
             </div>
 
             {error && (
-              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-300 text-xs font-semibold animate-in fade-in">
+              <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium">
                 {error}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
               <div className="space-y-1">
-                <label className="block text-slate-300 font-semibold">Full Name *</label>
+                <label className="block text-[#5B5C50] font-medium">Full Name *</label>
                 <div className="relative">
-                  <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B5C50]" />
                   <input
                     type="text"
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="e.g. Faria Ahmed"
-                    className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-[#030712] border border-white/10 text-white placeholder:text-slate-500 text-xs focus:outline-none focus:border-cyan-400 transition-all"
+                    className="w-full pl-9 pr-3.5 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] placeholder:text-[#5B5C50]/60 text-xs focus:outline-none focus:border-[#1F4D3E]"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="block text-slate-300 font-semibold">Email Address *</label>
+                <label className="block text-[#5B5C50] font-medium">Email Address *</label>
                 <div className="relative">
-                  <EnvelopeSimple size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <EnvelopeSimple size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B5C50]" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="partner@example.com"
-                    className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-[#030712] border border-white/10 text-white placeholder:text-slate-500 text-xs focus:outline-none focus:border-cyan-400 transition-all font-mono"
+                    className="w-full pl-9 pr-3.5 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] placeholder:text-[#5B5C50]/60 text-xs focus:outline-none focus:border-[#1F4D3E]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="block text-slate-300 font-semibold">Password *</label>
+                  <label className="block text-[#5B5C50] font-medium">Password *</label>
                   <div className="relative">
-                    <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B5C50]" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Min 6 chars"
-                      className="w-full pl-9 pr-8 py-2 rounded-xl bg-[#030712] border border-white/10 text-white placeholder:text-slate-500 text-xs focus:outline-none focus:border-cyan-400 transition-all font-mono"
+                      className="w-full pl-9 pr-8 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] placeholder:text-[#5B5C50]/60 text-xs focus:outline-none focus:border-[#1F4D3E]"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="block text-slate-300 font-semibold">Confirm Password *</label>
+                  <label className="block text-[#5B5C50] font-medium">Confirm Password *</label>
                   <div className="relative">
-                    <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B5C50]" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       required
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Confirm password"
-                      className="w-full pl-9 pr-8 py-2 rounded-xl bg-[#030712] border border-white/10 text-white placeholder:text-slate-500 text-xs focus:outline-none focus:border-cyan-400 transition-all font-mono"
+                      className="w-full pl-9 pr-8 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] placeholder:text-[#5B5C50]/60 text-xs focus:outline-none focus:border-[#1F4D3E]"
                     />
                   </div>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="block text-slate-300 font-semibold">Referral Sponsor Code (Optional)</label>
+                <label className="block text-[#5B5C50] font-medium">Referral Sponsor Code (Optional)</label>
                 <div className="relative">
-                  <Tag size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Tag size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B5C50]" />
                   <input
                     type="text"
                     value={referralCode}
                     onChange={(e) => setReferralCode(e.target.value)}
                     placeholder="e.g. DTA-FARIA-88"
-                    className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-[#030712] border border-white/10 text-cyan-300 placeholder:text-slate-500 text-xs focus:outline-none focus:border-cyan-400 transition-all font-mono uppercase"
+                    className="w-full pl-9 pr-3.5 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] placeholder:text-[#5B5C50]/60 text-xs focus:outline-none focus:border-[#1F4D3E] font-mono uppercase"
                   />
                 </div>
               </div>
@@ -222,10 +221,10 @@ export const Signup: React.FC = () => {
                   id="termsCheck"
                   checked={agreeTerms}
                   onChange={(e) => setAgreeTerms(e.target.checked)}
-                  className="w-4 h-4 rounded accent-cyan-400 mt-0.5"
+                  className="w-4 h-4 rounded accent-[#1F4D3E] mt-0.5"
                 />
-                <label htmlFor="termsCheck" className="text-slate-400 text-[11px] leading-snug cursor-pointer">
-                  I agree to the <Link to="/terms" className="text-cyan-300 hover:underline font-medium">Partner Terms</Link>, <Link to="/privacy" className="text-cyan-300 hover:underline font-medium">Privacy Policy</Link>, and <Link to="/disclaimer" className="text-cyan-300 hover:underline font-medium">Earnings Disclaimers</Link>.
+                <label htmlFor="termsCheck" className="text-[#5B5C50] text-[11px] leading-snug cursor-pointer">
+                  I agree to the <Link to="/terms" className="text-[#1F4D3E] hover:underline font-medium">Partner Terms</Link>, <Link to="/privacy" className="text-[#1F4D3E] hover:underline font-medium">Privacy Policy</Link>, and <Link to="/disclaimer" className="text-[#1F4D3E] hover:underline font-medium">Earnings Disclaimers</Link>.
                 </label>
               </div>
 
@@ -234,16 +233,16 @@ export const Signup: React.FC = () => {
                 disabled={loading}
                 variant="primary"
                 size="md"
-                className="w-full justify-center rounded-xl font-bold text-xs shadow-lg mt-2"
-                iconRight={<ArrowRight size={14} weight="bold" />}
+                className="w-full justify-center font-medium text-xs shadow-xs mt-2"
+                iconRight={<ArrowRight size={14} />}
               >
                 {loading ? 'Creating Workspace...' : 'Complete Partner Registration'}
               </Button>
             </form>
 
-            <div className="text-center pt-2 border-t border-white/[0.08] text-xs text-slate-400">
+            <div className="text-center pt-2 border-t border-[#E3DCC8] text-xs text-[#5B5C50]">
               <span>Already registered? </span>
-              <Link to="/login" className="text-cyan-300 hover:underline font-bold">
+              <Link to="/login" className="text-[#1F4D3E] hover:underline font-medium">
                 Sign In to Dashboard
               </Link>
             </div>

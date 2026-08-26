@@ -11,7 +11,7 @@ import {
   ChatCircleDots,
 } from '@phosphor-icons/react';
 
-// Custom Crisp TikTok SVG Icon for high visual fidelity
+// Custom Crisp TikTok SVG Icon
 const TikTokIcon: React.FC<{ size?: number; className?: string }> = ({ size = 20, className = '' }) => (
   <svg
     width={size}
@@ -37,30 +37,24 @@ export const SocialCommunityHub: React.FC = () => {
       title: 'Official TikTok',
       handle: '@dream.to.achievers',
       link: siteConfig.tiktokUrl || 'https://www.tiktok.com/@dream.to.achievers',
-      category: 'VIDEO COMMUNITY',
+      category: 'VIDEO CHANNELS',
       badge: 'Daily Content',
-      badgeClass: 'bg-rose-500/15 text-rose-300 border-rose-500/25',
-      desc: 'Watch daily product demonstration reels, direct selling tips, viral marketing playbooks, and partner rank achievements.',
+      desc: 'Watch daily product demonstration reels, direct selling tips, viral marketing playbooks, and partner achievements.',
       highlights: ['Product showcase reels', 'Organic viral strategies', 'Live partner milestones'],
       icon: TikTokIcon,
-      iconContainerClass: 'bg-rose-500/10 text-rose-400 border-rose-500/25 group-hover:border-rose-400 group-hover:bg-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.2)]',
       buttonText: 'Follow on TikTok',
-      buttonVariant: 'secondary' as const,
     },
     {
       id: 'whatsapp-channel',
       title: 'WhatsApp VIP Channel',
-      handle: 'Dream to Achievers Broadcast',
+      handle: 'DreamToAchievers Broadcast',
       link: siteConfig.whatsappChannelUrl || 'https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N',
       category: 'OFFICIAL BROADCAST',
       badge: 'Verified Channel',
-      badgeClass: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25 shadow-[0_0_10px_rgba(16,185,129,0.2)]',
       desc: 'Get immediate notifications on new wholesale stock arrivals, special flash margin bonuses, and leadership announcements.',
       highlights: ['Real-time inventory drops', 'Flash margin bonuses', 'Instant announcements'],
       icon: Megaphone,
-      iconContainerClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25 group-hover:border-emerald-400 group-hover:bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.2)]',
-      buttonText: 'Join WhatsApp Channel',
-      buttonVariant: 'emerald' as const,
+      buttonText: 'Join VIP Channel',
     },
     {
       id: 'email-support',
@@ -68,14 +62,11 @@ export const SocialCommunityHub: React.FC = () => {
       handle: siteConfig.supportEmail || 'dreamtoachievers@gmail.com',
       link: `mailto:${siteConfig.supportEmail || 'dreamtoachievers@gmail.com'}`,
       category: 'ADMIN & SUPPORT',
-      badge: '24/7 Desk',
-      badgeClass: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/25 shadow-[0_0_10px_rgba(0,242,254,0.2)]',
+      badge: 'Direct Desk',
       desc: 'Connect with our administration team for account onboarding, bulk order procurement, and payment verification.',
       highlights: ['Executive inquiries', 'Bulk catalog sourcing', 'Payout confirmations'],
       icon: EnvelopeSimple,
-      iconContainerClass: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/25 group-hover:border-cyan-400 group-hover:bg-cyan-500/20 shadow-[0_0_15px_rgba(0,242,254,0.2)]',
       buttonText: 'Email Support Team',
-      buttonVariant: 'outline' as const,
     },
     {
       id: 'whatsapp-chat',
@@ -84,85 +75,78 @@ export const SocialCommunityHub: React.FC = () => {
       link: directWhatsAppUrl,
       category: '1-ON-1 CONSULTATION',
       badge: 'Fast Response',
-      badgeClass: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25',
       desc: 'Direct one-on-one communication with our onboarding team to answer all questions before you begin.',
       highlights: ['Personal onboarding', 'Product catalog PDFs', 'Immediate assistance'],
       icon: ChatCircleDots,
-      iconContainerClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25 group-hover:border-emerald-400 group-hover:bg-emerald-500/20',
       buttonText: 'Chat on WhatsApp',
-      buttonVariant: 'secondary' as const,
     },
   ];
 
   return (
-    <section id="community" className="w-full py-20 sm:py-28 font-sans bg-[#040814] border-y border-white/[0.08] relative overflow-hidden">
-      {/* Background ambient lighting */}
-      <div className="absolute top-1/2 -left-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-0 -right-40 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
-
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-12 relative z-10">
+    <section id="community" className="w-full py-18 font-sans bg-[#FAF7EF] border-t border-[#E3DCC8]">
+      <div className="max-w-[1180px] mx-auto px-6 sm:px-8 space-y-12">
         
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/[0.08]">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-[#E3DCC8]">
           <div className="space-y-2">
-            <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-cyan-300 text-xs font-mono font-semibold uppercase tracking-wider">
-              <Sparkle size={12} weight="fill" className="text-cyan-400 animate-pulse" />
+            <div className="eyebrow">
+              <Sparkle size={13} weight="bold" />
               <span>Official Channels</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-outfit font-bold text-white tracking-tight">
-              Connect With Our Official Community
+            <h2 className="font-serif text-3xl sm:text-4xl font-medium text-[#1E241F] tracking-tight">
+              Connect With Our Official Community &amp; Desks
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#5B5C50] max-w-xl leading-relaxed">
               Stay updated with product releases, viral video playbooks, and verified announcements across our official network.
             </p>
           </div>
         </div>
 
-        {/* 4 Clean, Balanced Bento Cards */}
+        {/* 4 Clean Editorial Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {channels.map((ch) => {
             const Icon = ch.icon;
             return (
               <div
                 key={ch.id}
-                className="group relative rounded-3xl bg-[#080E1E] border border-white/[0.08] hover:border-cyan-400/30 p-6 sm:p-7 flex flex-col justify-between space-y-6 transition-all duration-300 shadow-xl hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.8),0_0_20px_rgba(0,242,254,0.1)]"
+                className="rounded-2xl bg-white border border-[#E3DCC8] hover:border-[#D2C8AF] hover:-translate-y-0.5 p-6 flex flex-col justify-between space-y-6 transition-all duration-200 shadow-xs"
               >
                 <div className="space-y-4">
                   {/* Top Bar with Category & Status Badge */}
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono text-slate-400 tracking-wider uppercase font-semibold">
+                    <span className="text-[10px] font-mono text-[#7C7D70] tracking-wider uppercase font-semibold">
                       {ch.category}
                     </span>
-                    <span className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border ${ch.badgeClass}`}>
+                    <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#FAF7EF] text-[#1F4D3E] border border-[#E3DCC8]">
                       {ch.badge}
                     </span>
                   </div>
 
                   {/* Icon & Title */}
                   <div className="flex items-start space-x-3.5 pt-1">
-                    <div className={`w-11 h-11 rounded-2xl border flex items-center justify-center shrink-0 transition-all duration-300 ${ch.iconContainerClass}`}>
-                      <Icon size={22} weight="fill" />
+                    <div className="w-10 h-10 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] flex items-center justify-center shrink-0 text-[#1F4D3E]">
+                      <Icon size={20} />
                     </div>
                     <div className="space-y-0.5 overflow-hidden">
-                      <h3 className="font-heading font-bold text-base text-white group-hover:text-cyan-400 transition-colors truncate">
+                      <h3 className="font-serif font-semibold text-sm text-[#1E241F] truncate">
                         {ch.title}
                       </h3>
-                      <p className="text-[11px] font-mono text-slate-400 truncate">
+                      <p className="text-[11px] font-mono text-[#5B5C50] truncate">
                         {ch.handle}
                       </p>
                     </div>
                   </div>
 
                   {/* Description */}
-                  <p className="text-xs text-slate-300 leading-relaxed min-h-[3rem]">
+                  <p className="text-xs text-[#5B5C50] leading-relaxed min-h-[3rem]">
                     {ch.desc}
                   </p>
 
                   {/* Bullet Highlights */}
-                  <div className="space-y-1.5 pt-3 border-t border-white/[0.06]">
+                  <div className="space-y-1.5 pt-3 border-t border-[#E3DCC8]">
                     {ch.highlights.map((item, idx) => (
-                      <div key={idx} className="flex items-center space-x-2 text-[11px] text-slate-200">
-                        <CheckCircle size={13} weight="fill" className="text-cyan-400 shrink-0" />
+                      <div key={idx} className="flex items-center space-x-2 text-[11px] text-[#1E241F]">
+                        <CheckCircle size={13} weight="bold" className="text-[#1F4D3E] shrink-0" />
                         <span>{item}</span>
                       </div>
                     ))}
@@ -178,12 +162,12 @@ export const SocialCommunityHub: React.FC = () => {
                     className="block w-full"
                   >
                     <Button
-                      variant={ch.buttonVariant}
+                      variant="outline"
                       size="sm"
-                      className="w-full justify-between rounded-xl text-xs font-semibold group/btn"
+                      className="w-full justify-between text-xs font-medium"
                     >
                       <span>{ch.buttonText}</span>
-                      <ArrowSquareOut size={14} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+                      <ArrowSquareOut size={14} />
                     </Button>
                   </a>
                 </div>

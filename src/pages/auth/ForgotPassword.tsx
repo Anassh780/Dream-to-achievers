@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { DreamLogo } from '@/components/ui/DreamLogo';
 import { authService } from '@/services/authService';
-import { EnvelopeSimple, CheckCircle, ArrowLeft, ArrowRight, ShieldCheck } from '@phosphor-icons/react';
+import { EnvelopeSimple, CheckCircle, ArrowLeft, ArrowRight } from '@phosphor-icons/react';
 
 export const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -29,35 +29,35 @@ export const ForgotPassword: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[85vh] bg-[#020612] text-[#F8FAFC] flex items-center justify-center px-4 sm:px-6 py-20 sm:py-24 font-sans selection:bg-cyan-500/30">
-      <div className="w-full max-w-md rounded-3xl bg-[#060B18] border border-white/[0.08] p-7 sm:p-9 shadow-2xl space-y-6">
-        <div className="text-center space-y-2 pb-2 border-b border-white/[0.08]">
+    <div className="min-h-[85vh] bg-[#FAF7EF] text-[#1E241F] flex items-center justify-center px-4 sm:px-6 py-12 sm:py-16 font-sans selection:bg-[#B8862E]/25">
+      <div className="w-full max-w-md rounded-xl bg-white border border-[#E3DCC8] p-7 sm:p-9 shadow-xs space-y-6">
+        <div className="text-center space-y-2 pb-2 border-b border-[#E3DCC8]">
           <Link to="/" className="flex items-center justify-center gap-3 mb-2">
-            <DreamLogo size={36} showText={false} />
+            <DreamLogo size={38} showText={false} />
           </Link>
-          <h1 className="font-heading text-xl sm:text-2xl font-bold text-white">
+          <h1 className="font-display text-xl sm:text-2xl font-medium text-[#1E241F]">
             Reset Partner Password
           </h1>
-          <p className="text-xs text-slate-400 leading-relaxed">
+          <p className="text-xs text-[#5B5C50] leading-relaxed">
             Enter your registered partner email address to receive password recovery instructions.
           </p>
         </div>
 
         {error && (
-          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-300 text-xs font-semibold animate-in fade-in">
+          <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium">
             {error}
           </div>
         )}
 
         {submitted ? (
-          <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-center space-y-3 text-xs animate-in fade-in">
-            <CheckCircle size={32} weight="fill" className="text-emerald-400 mx-auto" />
-            <h3 className="font-heading text-base font-bold text-white">Recovery Instructions Sent</h3>
-            <p className="text-slate-300 leading-relaxed">
-              If an active partner account exists for <strong className="text-white font-mono">{email}</strong>, a secure reset token has been dispatched.
+          <div className="p-6 rounded-xl bg-[#F1ECDD] border border-[#E3DCC8] text-center space-y-3 text-xs">
+            <CheckCircle size={32} weight="bold" className="text-[#1F4D3E] mx-auto" />
+            <h3 className="font-display font-medium text-base text-[#1E241F]">Recovery Instructions Sent</h3>
+            <p className="text-[#5B5C50] leading-relaxed">
+              If an active partner account exists for <strong className="text-[#1E241F] font-mono">{email}</strong>, a secure reset token has been dispatched.
             </p>
             <Link to="/login" className="block pt-2">
-              <Button variant="primary" size="sm" className="w-full justify-center rounded-xl font-bold">
+              <Button variant="primary" size="sm" className="w-full justify-center font-medium">
                 Back to Sign In
               </Button>
             </Link>
@@ -65,16 +65,16 @@ export const ForgotPassword: React.FC = () => {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div className="space-y-1">
-              <label className="block text-slate-300 font-semibold">Registered Email Address</label>
+              <label className="block text-[#5B5C50] font-medium">Registered Email Address</label>
               <div className="relative">
-                <EnvelopeSimple size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <EnvelopeSimple size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B5C50]" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="partner@domain.com"
-                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-[#030712] border border-white/10 text-white placeholder:text-slate-500 text-xs focus:outline-none focus:border-cyan-400 transition-all font-mono"
+                  className="w-full pl-9 pr-3.5 py-2.5 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] placeholder:text-[#5B5C50]/60 text-xs focus:outline-none focus:border-[#1F4D3E]"
                 />
               </div>
             </div>
@@ -84,16 +84,16 @@ export const ForgotPassword: React.FC = () => {
               disabled={loading}
               variant="primary"
               size="md"
-              className="w-full justify-center rounded-xl font-bold text-xs shadow-lg mt-2"
-              iconRight={<ArrowRight size={14} weight="bold" />}
+              className="w-full justify-center font-medium text-xs shadow-xs mt-2"
+              iconRight={<ArrowRight size={14} />}
             >
               {loading ? 'Transmitting...' : 'Send Password Reset'}
             </Button>
           </form>
         )}
 
-        <div className="text-center pt-2 border-t border-white/[0.08] text-xs">
-          <Link to="/login" className="inline-flex items-center space-x-1.5 text-slate-400 hover:text-white transition-colors">
+        <div className="text-center pt-2 border-t border-[#E3DCC8] text-xs">
+          <Link to="/login" className="inline-flex items-center space-x-1.5 text-[#5B5C50] hover:text-[#1E241F] transition-colors font-medium">
             <ArrowLeft size={13} />
             <span>Return to Sign In</span>
           </Link>

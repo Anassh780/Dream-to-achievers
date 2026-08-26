@@ -124,49 +124,48 @@ export const OwnerProfile: React.FC = () => {
   )}`;
 
   return (
-    <section id="founder" className="w-full py-16 sm:py-24 font-sans border-t border-white/[0.08] bg-[#020612]">
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-16">
+    <section id="founder" className="w-full py-16 font-sans border-t border-[#E3DCC8] bg-[#FAF7EF]">
+      <div className="max-w-[1180px] mx-auto px-6 sm:px-8 space-y-16">
         
         {/* 1. FOUNDER PROFILE & MISSION STATEMENT */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           
           {/* Left Column: Authentic Portrait Frame */}
           <div className="lg:col-span-5">
-            <div className="rounded-3xl p-3 sm:p-4 bg-[#060B18] border border-white/[0.08] shadow-2xl space-y-4">
-              <div className="rounded-2xl overflow-hidden bg-[#030712] relative border border-white/[0.06]">
+            <div className="rounded-xl p-3 bg-white border border-[#E3DCC8] shadow-xs space-y-3.5">
+              <div className="rounded-lg overflow-hidden bg-[#FAF7EF] relative border border-[#E3DCC8]">
                 <div className="aspect-[4/5] relative w-full overflow-hidden">
                   <img
                     src="/images/faria-imran.webp"
                     alt="Faria Imran — Founder & Executive Director"
                     loading="lazy"
-                    className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover object-top"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/images/faria-imran.jpg';
                     }}
                   />
                 </div>
 
-                <div className="absolute bottom-3 inset-x-3 p-3 rounded-2xl bg-[#060B18]/90 backdrop-blur-xl border border-white/10 flex items-center justify-between shadow-xl">
+                <div className="absolute bottom-3 inset-x-3 p-3 rounded-lg bg-white/95 backdrop-blur-md border border-[#E3DCC8] flex items-center justify-between shadow-xs">
                   <div>
-                    <p className="font-heading font-bold text-white text-sm">Faria Imran</p>
-                    <p className="text-[10px] text-slate-400 font-mono">Founder &amp; Executive Director</p>
+                    <p className="font-display font-semibold text-[#1E241F] text-sm">Faria Imran</p>
+                    <p className="text-[11px] text-[#5B5C50]">Founder &amp; Executive Director</p>
                   </div>
-                  <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-                    <ShieldCheck size={11} weight="fill" className="text-cyan-400" />
-                    <span>VERIFIED</span>
+                  <span className="stamp">
+                    Verified
                   </span>
                 </div>
               </div>
 
               {/* Verified Metrics Counter */}
               <div className="grid grid-cols-2 gap-3 text-center">
-                <div className="p-3 rounded-2xl bg-[#030712] border border-white/[0.06]">
-                  <p className="text-xl font-bold font-jetbrains text-white">25M+</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5 font-mono">Organic Impressions</p>
+                <div className="p-3 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8]">
+                  <p className="text-xl font-medium font-display text-[#1E241F]">25M+</p>
+                  <p className="text-[10.5px] text-[#5B5C50] mt-0.5">Organic Impressions</p>
                 </div>
-                <div className="p-3 rounded-2xl bg-[#030712] border border-white/[0.06]">
-                  <p className="text-xl font-bold font-jetbrains text-emerald-400">100%</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5 font-mono">Transparent Margins</p>
+                <div className="p-3 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8]">
+                  <p className="text-xl font-medium font-display text-[#1F4D3E]">100%</p>
+                  <p className="text-[10.5px] text-[#5B5C50] mt-0.5">Transparent Margins</p>
                 </div>
               </div>
             </div>
@@ -180,15 +179,15 @@ export const OwnerProfile: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <h2 className="font-heading text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-[40px] font-medium text-[#1E241F] tracking-tight leading-tight">
                 "We built DreamToAchievers to give everyday distributors enterprise wholesale power."
               </h2>
-              <p className="text-xs font-mono uppercase tracking-wider text-cyan-400 font-semibold">
+              <p className="text-xs font-mono uppercase tracking-wider text-[#B8862E] font-medium">
                 — Faria Imran, Founder &amp; Executive Director
               </p>
             </div>
 
-            <div className="space-y-3 text-xs sm:text-sm text-slate-300 leading-relaxed">
+            <div className="space-y-4 text-xs sm:text-sm text-[#5B5C50] leading-relaxed">
               <p>
                 As an entrepreneur and growth strategist, I recognized that traditional resale businesses in Pakistan struggle with inconsistent product quality, unreliable courier deliveries, and opaque pricing margins.
               </p>
@@ -198,25 +197,25 @@ export const OwnerProfile: React.FC = () => {
             </div>
 
             {/* Core Values Strip */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              <div className="p-3.5 rounded-2xl bg-[#060B18] border border-white/[0.08] space-y-1">
-                <span className="font-heading font-bold text-xs text-white block">Zero Inventory Risk</span>
-                <p className="text-[11px] text-slate-400">Distribute verified wholesale products without upfront bulk warehousing capital.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <div className="p-3.5 rounded-lg bg-white border border-[#E3DCC8] space-y-1">
+                <span className="font-display font-medium text-xs text-[#1E241F] block">Zero Inventory Risk</span>
+                <p className="text-[11px] text-[#5B5C50]">Distribute verified wholesale products without upfront bulk warehousing capital.</p>
               </div>
-              <div className="p-3.5 rounded-2xl bg-[#060B18] border border-white/[0.08] space-y-1">
-                <span className="font-heading font-bold text-xs text-white block">Guaranteed Milestone Bonuses</span>
-                <p className="text-[11px] text-slate-400">Clear dual qualification milestones unlocking up to PKR 10,000 cash rewards.</p>
+              <div className="p-3.5 rounded-lg bg-white border border-[#E3DCC8] space-y-1">
+                <span className="font-display font-medium text-xs text-[#1E241F] block">Guaranteed Milestone Bonuses</span>
+                <p className="text-[11px] text-[#5B5C50]">Clear dual qualification milestones unlocking up to PKR 10,000 cash rewards.</p>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                <Button variant="primary" size="md" iconLeft={<WhatsappLogo size={16} weight="fill" className="text-emerald-950" />}>
+                <Button variant="primary" size="md" iconLeft={<WhatsappLogo size={16} />}>
                   Direct WhatsApp Desk
                 </Button>
               </a>
               <Link to="/how-it-works">
-                <Button variant="secondary" size="md">
+                <Button variant="outline" size="md">
                   Explore Operational Model
                 </Button>
               </Link>
@@ -225,23 +224,23 @@ export const OwnerProfile: React.FC = () => {
         </div>
 
         {/* 2. SERVICES FLIP CARDS GRID */}
-        <div className="space-y-8 pt-8 border-t border-white/[0.08]">
+        <div className="space-y-8 pt-6 border-t border-[#E3DCC8]">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="space-y-1">
               <div className="eyebrow">
-                <Sparkle size={13} weight="fill" />
+                <Sparkle size={13} weight="bold" />
                 <span>Partner Enablement Solutions</span>
               </div>
-              <h2 className="font-heading text-xl sm:text-3xl font-extrabold text-white tracking-tight">
+              <h2 className="font-display text-2xl sm:text-3xl font-medium text-[#1E241F] tracking-tight">
                 Distribution &amp; Growth Services
               </h2>
-              <p className="text-xs text-slate-400 max-w-lg">
+              <p className="text-xs text-[#5B5C50] max-w-lg">
                 Click or hover over any service card to reveal the underlying execution deliverables and operational tools.
               </p>
             </div>
 
             <Link to="/services">
-              <Button variant="secondary" size="sm" iconRight={<ArrowRight size={13} />}>
+              <Button variant="outline" size="sm" iconRight={<ArrowRight size={13} />}>
                 View All Ecosystem Services
               </Button>
             </Link>
@@ -258,28 +257,28 @@ export const OwnerProfile: React.FC = () => {
                   className="relative h-[340px] cursor-pointer group [perspective:1000px]"
                 >
                   <div
-                    className={`w-full h-full duration-500 [transform-style:preserve-3d] transition-transform relative rounded-3xl ${
+                    className={`w-full h-full duration-500 [transform-style:preserve-3d] transition-transform relative rounded-xl ${
                       isFlipped ? '[transform:rotateY(180deg)]' : 'group-hover:[transform:rotateY(180deg)]'
                     }`}
                   >
                     {/* Front Face */}
-                    <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-3xl bg-[#060B18] border border-white/[0.08] p-5 flex flex-col justify-between shadow-xl overflow-hidden">
-                      <div className="space-y-3">
+                    <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-xl bg-white border border-[#E3DCC8] p-5 flex flex-col justify-between shadow-xs overflow-hidden">
+                      <div className="space-y-3.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[#FAF7EF] text-[#1F4D3E] border border-[#E3DCC8]">
                             {service.category}
                           </span>
-                          <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] font-mono font-medium text-[#B8862E] bg-[#EFE2C4] px-2 py-0.5 rounded">
                             {service.metric}
                           </span>
                         </div>
 
-                        <div className="w-full h-32 rounded-2xl overflow-hidden bg-[#030712] border border-white/5">
+                        <div className="w-full h-32 rounded-lg overflow-hidden bg-[#FAF7EF] border border-[#E3DCC8]">
                           <img
                             src={service.image}
                             alt={service.title}
                             loading="lazy"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             onError={(e) => {
                               (e.target as HTMLImageElement).src = '/images/logo.png';
                             }}
@@ -287,54 +286,54 @@ export const OwnerProfile: React.FC = () => {
                         </div>
 
                         <div>
-                          <h3 className="font-heading font-bold text-base text-white mb-1">
+                          <h3 className="font-display font-medium text-base text-[#1E241F] mb-1">
                             {service.title}
                           </h3>
-                          <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
+                          <p className="text-xs text-[#5B5C50] leading-relaxed line-clamp-2">
                             {service.frontSummary}
                           </p>
                         </div>
                       </div>
 
-                      <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-slate-400">
-                        <span className="flex items-center gap-1.5 text-cyan-400 font-medium">
+                      <div className="pt-2 border-t border-[#E3DCC8] flex items-center justify-between text-[11px] font-mono text-[#5B5C50]">
+                        <span className="flex items-center gap-1.5 text-[#1F4D3E] font-medium">
                           <ArrowsClockwise size={13} /> Tap to flip deliverables
                         </span>
-                        <span className="text-slate-500">Details &rarr;</span>
+                        <span className="text-[#5B5C50]">Details &rarr;</span>
                       </div>
                     </div>
 
                     {/* Back Face */}
-                    <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-3xl bg-[#0A1024] border border-cyan-500/30 p-5 flex flex-col justify-between shadow-2xl text-xs">
+                    <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-xl bg-[#F1ECDD] border border-[#E3DCC8] p-5 flex flex-col justify-between shadow-xs text-xs">
                       <div className="space-y-3">
-                        <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
-                          <h4 className="font-heading font-bold text-sm text-white">
+                        <div className="flex items-center justify-between pb-2 border-b border-[#E3DCC8]">
+                          <h4 className="font-display font-semibold text-sm text-[#1E241F]">
                             {service.title}
                           </h4>
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white text-[#1F4D3E] border border-[#E3DCC8]">
                             Specs
                           </span>
                         </div>
 
                         <div className="space-y-2">
-                          <span className="text-[10px] font-mono text-slate-400 block uppercase tracking-wider">
+                          <span className="text-[10.5px] font-mono text-[#5B5C50] block uppercase tracking-wider">
                             Key Deliverables:
                           </span>
                           {service.deliverables.map((item, idx) => (
-                            <div key={idx} className="flex items-start space-x-2 text-[11px] text-slate-200">
-                              <CheckCircle size={13} weight="fill" className="text-cyan-400 shrink-0 mt-0.5" />
+                            <div key={idx} className="flex items-start space-x-2 text-[11px] text-[#1E241F]">
+                              <CheckCircle size={13} weight="bold" className="text-[#1F4D3E] shrink-0 mt-0.5" />
                               <span className="leading-snug">{item}</span>
                             </div>
                           ))}
                         </div>
 
-                        <div className="pt-2 border-t border-white/[0.08] space-y-1">
-                          <span className="text-[10px] font-mono text-slate-400 block">Tools &amp; Stack:</span>
+                        <div className="pt-2 border-t border-[#E3DCC8] space-y-1">
+                          <span className="text-[10px] font-mono text-[#5B5C50] block">Tools &amp; Stack:</span>
                           <div className="flex flex-wrap gap-1">
                             {service.tools.map((tool, idx) => (
                               <span
                                 key={idx}
-                                className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10"
+                                className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white text-[#5B5C50] border border-[#E3DCC8]"
                               >
                                 {tool}
                               </span>
@@ -343,10 +342,10 @@ export const OwnerProfile: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between">
-                        <span className="text-[10px] font-mono text-slate-400">SLA: Active Support</span>
+                      <div className="pt-2 border-t border-[#E3DCC8] flex items-center justify-between">
+                        <span className="text-[10px] font-mono text-[#5B5C50]">SLA: Active Support</span>
                         <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                          <span className="font-mono text-[11px] text-cyan-400 font-bold hover:underline flex items-center gap-1">
+                          <span className="font-mono text-[11px] text-[#1F4D3E] font-medium hover:underline flex items-center gap-1">
                             Inquire via Desk &rarr;
                           </span>
                         </a>

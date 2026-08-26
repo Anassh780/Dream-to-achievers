@@ -4,25 +4,25 @@ import { ShieldCheck } from '@phosphor-icons/react';
 
 export const ContactPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-[#020612] text-[#F8FAFC] pb-24 font-sans selection:bg-cyan-500/30">
+    <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] pb-24 font-sans selection:bg-[#B8862E]/25">
       {/* 1. Header Banner */}
-      <section className="relative pt-24 sm:pt-28 pb-14 border-b border-white/[0.08] bg-radial-hero overflow-hidden">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 space-y-4 text-center">
-          <div className="eyebrow mx-auto">
+      <section className="px-6 sm:px-8 pt-16 pb-12 border-b border-[#E3DCC8]">
+        <div className="max-w-[1180px] mx-auto text-center max-w-2xl space-y-4">
+          <div className="eyebrow">
             <ShieldCheck size={13} weight="bold" />
-            <span>Direct Partner & Brand Support</span>
+            <span>Direct Partner &amp; Brand Support</span>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-heading font-extrabold text-white tracking-tight">
+          <h1 className="font-display font-medium text-3xl sm:text-5xl text-[#1E241F] tracking-tight leading-[1.1]">
             Connect with DreamToAchievers
           </h1>
-          <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#5B5C50] leading-relaxed max-w-lg mx-auto">
             Have an inquiry about wholesale catalog access, milestone reward verification, or enterprise partnerships? Reach out via our direct form or official WhatsApp desk.
           </p>
         </div>
       </section>
 
-      {/* 2. Contact Form & Support Desks */}
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 pt-12">
+      {/* 2. Contact Form & Desks */}
+      <div className="max-w-[1180px] mx-auto px-6 sm:px-8 pt-12">
         <Contact />
       </div>
     </div>
