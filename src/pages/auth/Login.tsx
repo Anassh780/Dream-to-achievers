@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { DreamLogo } from '@/components/ui/DreamLogo';
+import { Loader } from '@/components/ui/Loader';
 import {
   EnvelopeSimple,
   Lock,
@@ -19,6 +20,7 @@ export const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loaderSubtitle, setLoaderSubtitle] = useState('Verifying partner credentials & ledger access...');
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -34,6 +36,14 @@ export const Login: React.FC = () => {
     }
     setError('');
     setLoading(true);
+    setLoaderSubtitle('Verifying partner credentials...');
+
+    setTimeout(() => {
+      setLoaderSubtitle('Synchronizing wholesale catalog & margin ledger...');
+    }, 600);
+
+    // Smooth interactive pause for real feel
+    await new Promise((r) => setTimeout(r, 1200));
 
     const res = await login(email, password);
     setLoading(false);
@@ -52,7 +62,17 @@ export const Login: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-[85vh] bg-[#FAF7EF] text-[#1E241F] flex items-center justify-center px-4 sm:px-6 py-12 sm:py-16 font-sans selection:bg-[#B8862E]/25">
+    <div className="min-h-[85vh] bg-[#FAF7EF] text-[#1E241F] flex items-center justify-center px-4 sm:px-6 py-12 sm:py-16 font-sans selection:bg-[#B8862E]/25 relative">
+      {/* Fullscreen Smooth Animated Loader */}
+      {loading && (
+        <Loader
+          fullScreen
+          title="Authenticating Partner Session"
+          subtitle={loaderSubtitle}
+          size="md"
+        />
+      )}
+
       <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
         
         {/* Left Column: Brand Story & Trust Perks */}
@@ -99,7 +119,7 @@ export const Login: React.FC = () => {
             </div>
 
             {error && (
-              <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium">
+              <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium animate-in fade-in">
                 {error}
               </div>
             )}

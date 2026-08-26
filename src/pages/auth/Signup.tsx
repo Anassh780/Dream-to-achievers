@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { DreamLogo } from '@/components/ui/DreamLogo';
+import { Loader } from '@/components/ui/Loader';
 import {
   User,
   EnvelopeSimple,
@@ -26,6 +27,7 @@ export const Signup: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loaderSubtitle, setLoaderSubtitle] = useState('Registering partner identity & allocating tracking code...');
 
   const { signup } = useAuth();
   const navigate = useNavigate();
@@ -62,6 +64,18 @@ export const Signup: React.FC = () => {
 
     setError('');
     setLoading(true);
+    setLoaderSubtitle('Registering partner account & allocating unique referral code...');
+
+    setTimeout(() => {
+      setLoaderSubtitle('Initializing wholesale margin ledger & Level 01 progress...');
+    }, 700);
+
+    setTimeout(() => {
+      setLoaderSubtitle('Finalizing partner terminal setup...');
+    }, 1400);
+
+    // Smooth interactive pause for real feel
+    await new Promise((r) => setTimeout(r, 1800));
 
     const res = await signup({
       fullName: fullName.trim(),
@@ -87,7 +101,17 @@ export const Signup: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-[85vh] bg-[#FAF7EF] text-[#1E241F] flex items-center justify-center px-4 sm:px-6 py-12 sm:py-16 font-sans selection:bg-[#B8862E]/25">
+    <div className="min-h-[85vh] bg-[#FAF7EF] text-[#1E241F] flex items-center justify-center px-4 sm:px-6 py-12 sm:py-16 font-sans selection:bg-[#B8862E]/25 relative">
+      {/* Fullscreen Smooth Animated Loader */}
+      {loading && (
+        <Loader
+          fullScreen
+          title="Configuring Your Partner Account"
+          subtitle={loaderSubtitle}
+          size="md"
+        />
+      )}
+
       <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
         
         {/* Left Column: Platform Promise */}
@@ -133,7 +157,7 @@ export const Signup: React.FC = () => {
             </div>
 
             {error && (
-              <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium">
+              <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium animate-in fade-in">
                 {error}
               </div>
             )}
@@ -236,7 +260,7 @@ export const Signup: React.FC = () => {
                 className="w-full justify-center font-medium text-xs shadow-xs mt-2"
                 iconRight={<ArrowRight size={14} />}
               >
-                {loading ? 'Creating Workspace...' : 'Complete Partner Registration'}
+                {loading ? 'Configuring Account...' : 'Complete Partner Registration'}
               </Button>
             </form>
 
