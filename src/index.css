@@ -27,9 +27,10 @@
     --color-line: var(--line);
 
     /* 2. Typography */
-    --font-display: 'Lora', 'Fraunces', Georgia, serif;
-    --font-serif: 'Lora', Georgia, serif;
-    --font-sans: 'Lora', 'Inter', system-ui, -apple-system, sans-serif;
+    --font-display: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+    --font-serif: 'Fraunces', Georgia, serif;
+    --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
     --font-mono: 'IBM Plex Mono', monospace;
 
     /* 3. Radii */
@@ -60,10 +61,11 @@
 }
 
 @theme {
-  --font-display: 'Lora', 'Fraunces', Georgia, serif;
-  --font-serif: 'Lora', Georgia, serif;
-  --font-sans: 'Lora', 'Inter', system-ui, -apple-system, sans-serif;
-  --font-heading: 'Lora', Georgia, serif;
+  --font-display: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
 }
 
 /* Global Reset & Base */
@@ -73,11 +75,11 @@ html {
 }
 
 body {
-  font-family: 'Lora', 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
   background-color: var(--bg);
   color: var(--ink);
-  line-height: 1.6;
-  letter-spacing: -0.006em;
+  line-height: 1.55;
+  letter-spacing: -0.011em;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
