@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CaretDown, ChatCircleDots } from '@phosphor-icons/react';
+import { ScrollFloat } from '@/components/ui/ScrollFloat';
 
 interface FAQItem {
   question: string;
@@ -68,9 +69,16 @@ export const FAQSection: React.FC = () => {
           <div className="text-xs font-semibold uppercase tracking-wider text-[#1F4D3E]">
             Frequently Asked Questions
           </div>
-          <h2 className="font-serif text-3xl sm:text-4xl font-medium text-[#1E241F]">
-            Operational &amp; Partner Inquiries
-          </h2>
+          <ScrollFloat
+            animationDuration={1}
+            ease="back.inOut(2)"
+            scrollStart="top bottom-=10%"
+            scrollEnd="bottom center"
+            stagger={0.02}
+            containerClassName="font-serif text-3xl sm:text-4xl font-medium text-[#1E241F]"
+          >
+            Operational & Partner Inquiries
+          </ScrollFloat>
           <p className="text-xs sm:text-sm text-[#5B5C50] max-w-md mx-auto">
             Everything you need to know about wholesale product distribution, margin tracking, and milestone reward claims.
           </p>

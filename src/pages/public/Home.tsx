@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { FAQSection } from '@/components/sections/FAQSection';
 import { OwnerProfile } from '@/components/sections/OwnerProfile';
+import { ScrollFloat } from '@/components/ui/ScrollFloat';
 import { SEED_PRODUCTS } from '@/config/products';
 import {
   ArrowRight,
@@ -137,9 +138,16 @@ export const Home: React.FC = () => {
             <div className="text-xs font-semibold uppercase tracking-wider text-[#1F4D3E]">
               Network capabilities
             </div>
-            <h2 className="font-serif text-3xl sm:text-4xl font-medium text-[#1E241F]">
+            <ScrollFloat
+              animationDuration={1}
+              ease="back.inOut(2)"
+              scrollStart="top bottom-=10%"
+              scrollEnd="bottom center"
+              stagger={0.02}
+              containerClassName="font-serif text-3xl sm:text-4xl font-medium text-[#1E241F]"
+            >
               Built for people moving real inventory
-            </h2>
+            </ScrollFloat>
             <p className="text-[#5B5C50] text-sm sm:text-base max-w-[540px]">
               Every figure a partner sees is pulled from verified catalog data — not a projection.
             </p>
@@ -224,9 +232,16 @@ export const Home: React.FC = () => {
             <div className="text-xs font-semibold uppercase tracking-wider text-[#1F4D3E]">
               Partner levels
             </div>
-            <h2 className="font-serif text-3xl sm:text-4xl font-medium text-[#1E241F]">
+            <ScrollFloat
+              animationDuration={1}
+              ease="back.inOut(2)"
+              scrollStart="top bottom-=10%"
+              scrollEnd="bottom center"
+              stagger={0.02}
+              containerClassName="font-serif text-3xl sm:text-4xl font-medium text-[#1E241F]"
+            >
               Grow at your own pace
-            </h2>
+            </ScrollFloat>
             <p className="text-[#5B5C50] text-sm sm:text-base max-w-[540px]">
               Each level combines personal sales with team growth. Bonuses are cash, paid on qualification.
             </p>
@@ -350,9 +365,17 @@ export const Home: React.FC = () => {
             <div className="text-xs font-semibold uppercase tracking-wider text-[#1F4D3E]">
               Margin Calculator
             </div>
-            <h3 className="font-serif text-2xl font-medium text-[#1E241F]">
+            <ScrollFloat
+              animationDuration={1}
+              ease="back.inOut(2)"
+              scrollStart="top bottom-=10%"
+              scrollEnd="bottom center"
+              stagger={0.02}
+              as="h3"
+              containerClassName="font-serif text-2xl font-medium text-[#1E241F]"
+            >
               Estimate Your Monthly Partner Profit
-            </h3>
+            </ScrollFloat>
             <p className="text-xs sm:text-sm text-[#5B5C50]">
               Adjust monthly unit sales volume to calculate gross distributor profit margin.
             </p>
@@ -390,18 +413,25 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 5. FOUNDER PROFILE & SERVICES FLIP CARDS */}
+      {/* 5. FOUNDER PROFILE & SERVICES */}
       <OwnerProfile />
 
       {/* 6. FREQUENTLY ASKED QUESTIONS */}
       <FAQSection />
 
-      {/* 6. FINAL CONVERSION CTA */}
+      {/* 7. FINAL CONVERSION CTA */}
       <section className="px-6 sm:px-8 py-20">
         <div className="max-w-[1180px] mx-auto p-10 sm:p-14 rounded-2xl bg-[#1F4D3E] text-white text-center space-y-5 shadow-lg">
-          <h2 className="font-serif text-3xl sm:text-4xl font-normal tracking-tight max-w-xl mx-auto">
+          <ScrollFloat
+            animationDuration={1}
+            ease="back.inOut(2)"
+            scrollStart="top bottom-=10%"
+            scrollEnd="bottom center"
+            stagger={0.02}
+            containerClassName="font-serif text-3xl sm:text-4xl font-normal tracking-tight text-white max-w-xl mx-auto"
+          >
             Ready to distribute verified wholesale goods?
-          </h2>
+          </ScrollFloat>
           <p className="text-sm sm:text-base text-emerald-100 max-w-lg mx-auto leading-relaxed">
             Join hundreds of active distributors in Pakistan. Unlock wholesale pricing, direct margins, and milestone cash rewards.
           </p>
