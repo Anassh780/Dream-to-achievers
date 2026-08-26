@@ -113,13 +113,13 @@ export const OwnerProfile: React.FC = () => {
     <section id="founder" className="w-full py-16 sm:py-20 font-sans border-t border-[#E3DCC8] bg-[#FAF7EF]">
       <div className="max-w-[1180px] mx-auto px-6 sm:px-8 space-y-16">
         
-        {/* 1. FOUNDER PROFILE & MISSION STATEMENT */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+        {/* 1. FOUNDER PROFILE & MESSAGE */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
-          {/* Left Column: Authentic Portrait Frame */}
+          {/* Left Column: Portrait Frame */}
           <div className="lg:col-span-5">
-            <div className="rounded-xl p-3 bg-white border border-[#E3DCC8] shadow-xs space-y-3.5">
-              <div className="rounded-lg overflow-hidden bg-[#FAF7EF] relative border border-[#E3DCC8]">
+            <div className="rounded-2xl p-3.5 bg-white border border-[#E3DCC8] shadow-xs space-y-3">
+              <div className="rounded-xl overflow-hidden bg-[#FAF7EF] relative border border-[#E3DCC8]">
                 <div className="aspect-[4/5] relative w-full overflow-hidden">
                   <img
                     src="/images/faria-imran.webp"
@@ -132,7 +132,7 @@ export const OwnerProfile: React.FC = () => {
                   />
                 </div>
 
-                <div className="absolute bottom-3 inset-x-3 p-3 rounded-lg bg-white/95 backdrop-blur-md border border-[#E3DCC8] flex items-center justify-between shadow-xs">
+                <div className="absolute bottom-3 inset-x-3 p-3 rounded-xl bg-white/95 backdrop-blur-md border border-[#E3DCC8] flex items-center justify-between shadow-xs">
                   <div>
                     <p className="font-serif font-semibold text-[#1E241F] text-sm">Faria Imran</p>
                     <p className="text-[11px] text-[#5B5C50]">Founder &amp; Executive Director</p>
@@ -143,66 +143,76 @@ export const OwnerProfile: React.FC = () => {
                 </div>
               </div>
 
-              {/* Verified Metrics Counter */}
-              <div className="grid grid-cols-2 gap-3 text-center">
-                <div className="p-3 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8]">
-                  <p className="text-xl font-medium font-serif text-[#1E241F]">25M+</p>
-                  <p className="text-[10.5px] text-[#5B5C50] mt-0.5">Organic Impressions</p>
+              {/* Quick Trust Numbers */}
+              <div className="grid grid-cols-2 gap-2.5 text-center">
+                <div className="p-2.5 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8]">
+                  <p className="text-lg font-semibold font-serif text-[#1E241F]">25M+</p>
+                  <p className="text-[10px] text-[#5B5C50]">Audience Reach</p>
                 </div>
-                <div className="p-3 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8]">
-                  <p className="text-xl font-medium font-serif text-[#1F4D3E]">100%</p>
-                  <p className="text-[10.5px] text-[#5B5C50] mt-0.5">Transparent Margins</p>
+                <div className="p-2.5 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8]">
+                  <p className="text-lg font-semibold font-serif text-[#1F4D3E]">100%</p>
+                  <p className="text-[10px] text-[#5B5C50]">COD Delivered</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Right Column: Founder Narrative */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="eyebrow">
+          {/* Right Column: Clear, Friendly Mission Narrative */}
+          <div className="lg:col-span-7 space-y-5">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1F4D3E]/8 border border-[#1F4D3E]/15 text-[#1F4D3E] text-xs font-medium">
               <ShieldCheck size={13} weight="bold" />
-              <span>Leadership &amp; Brand Story</span>
+              <span>Founder's Vision</span>
             </div>
 
             <div className="space-y-2">
-              <h2 className="font-serif text-3xl sm:text-4xl lg:text-[38px] font-medium text-[#1E241F] tracking-tight leading-tight">
-                "We built DreamToAchievers to give everyday distributors enterprise wholesale power."
+              <h2 className="font-serif text-2xl sm:text-3xl lg:text-[34px] font-medium text-[#1E241F] tracking-tight leading-snug">
+                "We handle the stock, warehousing, and delivery — so you can focus on selling and earning."
               </h2>
               <p className="text-xs font-mono uppercase tracking-wider text-[#B8862E] font-medium">
                 — Faria Imran, Founder &amp; Executive Director
               </p>
             </div>
 
-            <div className="space-y-4 text-xs sm:text-sm text-[#5B5C50] leading-relaxed">
-              <p>
-                As an entrepreneur and growth strategist, I recognized that traditional resale businesses in Pakistan struggle with inconsistent product quality, unreliable courier deliveries, and opaque pricing margins.
-              </p>
-              <p>
-                DreamToAchievers bridges this gap by combining physical wholesale commerce with complete digital infrastructure. We handle product testing, warehousing, courier dispatch, and customer logistics — so our distributor partners can focus purely on marketing and generating profitable gross margins.
-              </p>
-            </div>
+            <p className="text-xs sm:text-sm text-[#5B5C50] leading-relaxed">
+              DreamToAchievers is built to make online selling simple and accessible for everyone in Pakistan. You don't need millions in capital or warehouse space. We provide high-demand products at wholesale prices, manage parcel delivery across 150+ cities, and pay your profits directly to you.
+            </p>
 
-            {/* Core Values Strip */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <div className="p-3.5 rounded-lg bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
-                <span className="font-serif font-medium text-xs text-[#1E241F] block">Zero Inventory Risk</span>
-                <p className="text-[11px] text-[#5B5C50]">Distribute verified wholesale products without upfront bulk warehousing capital.</p>
+            {/* 3 Clear Value Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+              <div className="p-3 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-2xs">
+                <div className="font-semibold text-xs text-[#1E241F] flex items-center gap-1.5">
+                  <CheckCircle size={14} weight="bold" className="text-[#1F4D3E]" />
+                  <span>No Inventory Cost</span>
+                </div>
+                <p className="text-[11px] text-[#5B5C50]">Start without buying upfront bulk inventory.</p>
               </div>
-              <div className="p-3.5 rounded-lg bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
-                <span className="font-serif font-medium text-xs text-[#1E241F] block">Guaranteed Milestone Bonuses</span>
-                <p className="text-[11px] text-[#5B5C50]">Clear dual qualification milestones unlocking up to PKR 10,000 cash rewards.</p>
+
+              <div className="p-3 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-2xs">
+                <div className="font-semibold text-xs text-[#1E241F] flex items-center gap-1.5">
+                  <CheckCircle size={14} weight="bold" className="text-[#1F4D3E]" />
+                  <span>Nationwide COD</span>
+                </div>
+                <p className="text-[11px] text-[#5B5C50]">Couriers deliver and collect cash across Pakistan.</p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-2xs">
+                <div className="font-semibold text-xs text-[#1E241F] flex items-center gap-1.5">
+                  <CheckCircle size={14} weight="bold" className="text-[#1F4D3E]" />
+                  <span>Direct Cash Bonuses</span>
+                </div>
+                <p className="text-[11px] text-[#5B5C50]">Earn milestone cash rewards up to PKR 10,000.</p>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
                 <Button variant="primary" size="md" iconLeft={<WhatsappLogo size={16} />}>
-                  Direct WhatsApp Desk
+                  Chat with Founder Desk
                 </Button>
               </a>
               <Link to="/how-it-works">
                 <Button variant="outline" size="md">
-                  Explore Operational Model
+                  See How It Works
                 </Button>
               </Link>
             </div>

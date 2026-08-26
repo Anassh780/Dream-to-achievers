@@ -10,46 +10,34 @@ interface FAQItem {
 
 const FAQS: FAQItem[] = [
   {
-    category: 'Wholesale & Margins',
-    question: 'How do partner profit margins work and when are they credited?',
+    category: 'Getting Started',
+    question: 'Do I need any investment or advance fee to join?',
     answer:
-      'Partners purchase or distribute products at fixed wholesale prices (e.g., PKR 2,000) and sell at recommended retail (e.g., PKR 2,500). The gross margin (+PKR 500) is directly credited to your profit ledger upon verified customer order delivery.',
+      'No. Joining DreamToAchievers is 100% free. You do not need to buy any inventory upfront or pay any registration fees.',
   },
   {
-    category: 'Wholesale & Margins',
-    question: 'Is there a minimum order quantity (MOQ) or mandatory upfront fee?',
+    category: 'Earnings & Profit',
+    question: 'How do I make a profit on each product sale?',
     answer:
-      'No. Dream to Achievers is designed for independent resellers. There is zero mandatory inventory buy-in or franchise fee required to register and start distributing catalog items.',
+      'You get products at wholesale rates (e.g. PKR 2,000) and sell to your customers at suggested retail (e.g. PKR 2,500). When our courier delivers the parcel and collects cash, your PKR 500 profit is credited directly to you.',
   },
   {
-    category: 'Logistics & Delivery',
-    question: 'How is nationwide order delivery and Cash on Delivery (COD) handled?',
+    category: 'Delivery & COD',
+    question: 'Who handles shipping and Cash on Delivery (COD)?',
     answer:
-      'Our centralized logistics infrastructure fulfills customer orders nationwide across Pakistan. Couriers collect cash on delivery, and our automated ledger reconciles the margin straight to your account.',
+      'We do! We pack and deliver orders to your customers across 150+ cities in Pakistan with fast courier Cash on Delivery (COD). You do not need to pack or ship anything yourself.',
   },
   {
-    category: 'Ranks & Rewards',
-    question: 'What are the requirements to achieve Level 01 to Level 04 partner milestones?',
+    category: 'Cash Bonuses',
+    question: 'How do I earn the PKR 2,000 to PKR 10,000 milestone cash bonuses?',
     answer:
-      'Milestones are achieved through dual qualification: Level 01 (10 sales, 20 members → PKR 2,000), Level 02 (25 sales, 45 members → PKR 4,000), Level 03 (35 sales, 60 members → PKR 6,000), and Level 04 (100 sales, 200 members → PKR 10,000).',
+      'As you complete personal sales and invite other resellers to your team, you unlock Level 01 to Level 04 milestones with guaranteed cash rewards up to PKR 10,000.',
   },
   {
-    category: 'Ranks & Rewards',
-    question: 'How do I claim and receive my milestone cash bonuses?',
+    category: 'Support & Help',
+    question: 'How can I get help if I need guidance with selling or orders?',
     answer:
-      'When your dashboard progress bar reaches 100% for a rank tier, a "Claim Reward" button is unlocked. Once submitted, our operations team verifies the volume and disburses funds via your preferred payment method within 24–48 hours.',
-  },
-  {
-    category: 'Community & Referrals',
-    question: 'How does partner network attribution work?',
-    answer:
-      'Every partner receives a unique referral code. When new partners register through your link, they are automatically permanently mapped into your team and attributed on transparent platform records.',
-  },
-  {
-    category: 'Support & Desk',
-    question: 'What dedicated support is available if I or my customer has an issue?',
-    answer:
-      'Partners have access to our official WhatsApp Help Desk, VIP broadcast channel, and email support for order tracking, catalog sheets, and technical guidance.',
+      'You have direct access to our WhatsApp Support Desk, product catalog images, and selling video scripts to help you start making sales from day one.',
   },
 ];
 

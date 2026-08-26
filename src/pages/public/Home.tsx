@@ -26,53 +26,72 @@ export const Home: React.FC = () => {
   return (
     <div className="w-full bg-[#FAF7EF] text-[#1E241F] font-sans selection:bg-[#B8862E]/25">
       
-      {/* 1. EDITORIAL HERO SECTION */}
-      <header className="px-6 sm:px-8 pt-16 pb-14 border-b border-[#E3DCC8]">
-        <div className="max-w-[1180px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-start">
+      {/* 1. CLEAN HERO SECTION */}
+      <header className="px-6 sm:px-8 pt-12 sm:pt-16 pb-12 sm:pb-16 border-b border-[#E3DCC8]">
+        <div className="max-w-[1180px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           
-          {/* Left Column: Core Value Proposition */}
+          {/* Left Column: Clear Value Proposition */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="eyebrow">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1F4D3E]/8 border border-[#1F4D3E]/15 text-[#1F4D3E] text-xs font-medium">
               <ShieldCheck size={14} weight="bold" />
-              <span>Verified B2B wholesale network</span>
+              <span>Pakistan's Verified Wholesale Reseller Network</span>
             </div>
 
-            <h1 className="font-serif font-normal text-4xl sm:text-5xl lg:text-[54px] tracking-tight leading-[1.08] text-[#1E241F]">
-              Source better.<br />
-              Sell smarter.<br />
-              Grow <em className="italic text-[#1F4D3E] font-medium">your</em> distribution business.
+            <h1 className="font-serif font-normal text-3xl sm:text-5xl lg:text-[50px] tracking-tight leading-[1.12] text-[#1E241F]">
+              Start your reselling business with <em className="italic text-[#1F4D3E] font-medium">zero upfront inventory</em>.
             </h1>
 
-            <p className="text-base text-[#5B5C50] max-w-[490px] leading-relaxed">
-              Access verified wholesale pricing on high-demand consumer goods, sell at suggested retail, and keep the full margin on every unit — with transparent partner-level rewards as your network grows.
+            <p className="text-sm sm:text-base text-[#5B5C50] max-w-[500px] leading-relaxed">
+              Source verified products at direct wholesale rates, set your own selling price, and keep 100% of your profit margin. We deliver nationwide with Cash on Delivery (COD).
             </p>
 
-            <div className="flex flex-wrap items-center gap-3.5 pt-1">
+            {/* Quick Benefits Bullet List */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs text-[#1E241F] font-medium">
+              <div className="flex items-center gap-2">
+                <CheckCircle size={15} weight="bold" className="text-[#1F4D3E] shrink-0" />
+                <span>Zero advance stock purchase needed</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle size={15} weight="bold" className="text-[#1F4D3E] shrink-0" />
+                <span>COD dispatch across 150+ cities</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle size={15} weight="bold" className="text-[#1F4D3E] shrink-0" />
+                <span>PKR 500 – 1,300 profit per item</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle size={15} weight="bold" className="text-[#1F4D3E] shrink-0" />
+                <span>Instant partner referral tracking</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center gap-3.5 pt-2">
               <Link to="/products">
-                <Button variant="primary" size="md" className="font-medium" iconRight={<ArrowRight size={14} />}>
-                  Explore wholesale catalog
+                <Button variant="primary" size="lg" className="font-medium text-xs sm:text-sm" iconRight={<ArrowRight size={14} />}>
+                  Browse Wholesale Catalog
                 </Button>
               </Link>
-              <Link to="/ranks">
-                <Button variant="outline" size="md" className="font-medium">
-                  See partner rewards
+              <Link to="/signup">
+                <Button variant="outline" size="lg" className="font-medium text-xs sm:text-sm">
+                  Join as Partner (Free)
                 </Button>
               </Link>
             </div>
 
-            {/* Credibility Stats Strip */}
+            {/* Quick Stats Strip */}
             <div className="pt-6 border-t border-[#E3DCC8] flex flex-wrap gap-8 sm:gap-12">
               <div>
-                <div className="text-xs text-[#5B5C50] font-sans">Verified SKUs</div>
-                <div className="font-serif text-2xl font-medium text-[#1E241F] mt-0.5">100+</div>
+                <div className="text-xs text-[#7C7D70]">Available Products</div>
+                <div className="font-serif text-2xl font-medium text-[#1E241F] mt-0.5">100+ SKUs</div>
               </div>
               <div>
-                <div className="text-xs text-[#5B5C50] font-sans">Unit margin</div>
-                <div className="font-serif text-2xl font-medium text-[#1E241F] mt-0.5">PKR 500–1,300</div>
+                <div className="text-xs text-[#7C7D70]">Avg. Profit per Unit</div>
+                <div className="font-serif text-2xl font-medium text-[#1F4D3E] mt-0.5">PKR 650+</div>
               </div>
               <div>
-                <div className="text-xs text-[#5B5C50] font-sans">Milestone bonus</div>
-                <div className="font-serif text-2xl font-medium text-[#1E241F] mt-0.5">Up to PKR 10,000</div>
+                <div className="text-xs text-[#7C7D70]">Milestone Rewards</div>
+                <div className="font-serif text-2xl font-medium text-[#B8862E] mt-0.5">Up to PKR 10K</div>
               </div>
             </div>
           </div>
@@ -86,7 +105,7 @@ export const Home: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-[#1F4D3E] animate-pulse" />
                   <span className="text-[13px] font-semibold text-[#1E241F] tracking-tight">
-                    Wholesale margin sheet
+                    Live Profit Example
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 font-mono text-[10px] font-medium uppercase tracking-wider text-[#1F4D3E] border border-[#1F4D3E]/20 bg-[#1F4D3E]/5 rounded-full px-3 py-1">
@@ -98,8 +117,7 @@ export const Home: React.FC = () => {
               {/* Hero Product Image + Details */}
               <div className="p-5 space-y-4">
                 <div className="flex gap-4 items-start">
-                  {/* Large product thumbnail */}
-                  <div className="w-[72px] h-[72px] rounded-xl overflow-hidden bg-gradient-to-br from-[#EFE2C4] to-[#F1ECDD] border border-[#E3DCC8] shrink-0 shadow-sm">
+                  <div className="w-[68px] h-[68px] rounded-xl overflow-hidden bg-gradient-to-br from-[#EFE2C4] to-[#F1ECDD] border border-[#E3DCC8] shrink-0 shadow-sm">
                     <img
                       src="https://images.unsplash.com/photo-1608248597359-bb4f53ca0c59?auto=format&fit=crop&w=200&q=80"
                       alt="Luxe botanical elixir"
@@ -112,55 +130,51 @@ export const Home: React.FC = () => {
                     />
                   </div>
                   <div className="min-w-0 flex-1 pt-0.5">
-                    <div className="font-mono text-[10px] text-[#7C7D70] uppercase tracking-[0.08em] mb-1">
+                    <div className="font-mono text-[10px] text-[#7C7D70] uppercase tracking-[0.08em] mb-0.5">
                       DTA-SKN-001 · Skincare
                     </div>
-                    <div className="text-[15px] font-semibold text-[#1E241F] leading-snug">
+                    <div className="text-[14px] font-semibold text-[#1E241F] leading-snug">
                       Luxe botanical skin repair elixir
                     </div>
                     <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-[10px] font-mono text-white bg-[#1F4D3E] rounded-full px-2 py-0.5">Best seller</span>
-                      <span className="text-[10px] font-mono text-[#5B5C50]">In stock</span>
+                      <span className="text-[9.5px] font-mono text-white bg-[#1F4D3E] rounded-full px-2 py-0.5">High Demand</span>
+                      <span className="text-[9.5px] font-mono text-[#5B5C50]">In stock</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Price Breakdown Grid */}
                 <div className="grid grid-cols-3 gap-0 rounded-xl border border-[#E3DCC8] overflow-hidden">
-                  <div className="p-3.5 bg-[#FAF7EF]">
-                    <div className="text-[10px] text-[#7C7D70] uppercase tracking-wider mb-1.5 font-medium">Retail</div>
-                    <div className="font-mono text-[15px] font-semibold text-[#1E241F]">PKR 2,500</div>
+                  <div className="p-3 bg-[#FAF7EF] text-center">
+                    <div className="text-[10px] text-[#7C7D70] uppercase tracking-wider mb-1 font-medium">Customer Pays</div>
+                    <div className="font-mono text-[14px] font-semibold text-[#1E241F]">PKR 2,500</div>
                   </div>
-                  <div className="p-3.5 bg-[#FAF7EF] border-x border-[#E3DCC8]">
-                    <div className="text-[10px] text-[#7C7D70] uppercase tracking-wider mb-1.5 font-medium">Your cost</div>
-                    <div className="font-mono text-[15px] font-semibold text-[#1F4D3E]">PKR 2,000</div>
+                  <div className="p-3 bg-[#FAF7EF] border-x border-[#E3DCC8] text-center">
+                    <div className="text-[10px] text-[#7C7D70] uppercase tracking-wider mb-1 font-medium">Your Cost</div>
+                    <div className="font-mono text-[14px] font-semibold text-[#1F4D3E]">PKR 2,000</div>
                   </div>
-                  <div className="p-3.5 bg-gradient-to-br from-[#FBF7ED] to-[#F5EDD8]">
-                    <div className="text-[10px] text-[#7C7D70] uppercase tracking-wider mb-1.5 font-medium">You keep</div>
-                    <div className="font-mono text-[15px] font-bold text-[#B8862E]">+PKR 500</div>
+                  <div className="p-3 bg-gradient-to-br from-[#FBF7ED] to-[#F5EDD8] text-center">
+                    <div className="text-[10px] text-[#7C7D70] uppercase tracking-wider mb-1 font-medium">Your Profit</div>
+                    <div className="font-mono text-[14px] font-bold text-[#B8862E]">+PKR 500</div>
                   </div>
                 </div>
 
                 {/* Visual margin bar */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[10px] font-mono text-[#7C7D70]">
-                    <span>Margin breakdown</span>
-                    <span className="text-[#B8862E] font-semibold">20% margin</span>
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-center justify-between text-[10.5px] font-mono text-[#7C7D70]">
+                    <span>Profit Margin</span>
+                    <span className="text-[#B8862E] font-semibold">+25% Net Gain</span>
                   </div>
                   <div className="h-2 rounded-full bg-[#F1ECDD] overflow-hidden">
                     <div className="h-full rounded-full bg-gradient-to-r from-[#1F4D3E] to-[#2D6A56]" style={{ width: '80%' }} />
-                  </div>
-                  <div className="flex justify-between text-[9px] font-mono text-[#7C7D70]">
-                    <span>Partner cost · 80%</span>
-                    <span className="text-[#B8862E]">Profit · 20%</span>
                   </div>
                 </div>
               </div>
 
               {/* Second product teaser */}
               <div className="flex items-center justify-between px-5 py-3 border-t border-[#E3DCC8] bg-gradient-to-r from-[#F1ECDD] to-[#FAF7EF]">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white border border-[#E3DCC8] overflow-hidden shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-white border border-[#E3DCC8] overflow-hidden shadow-2xs">
                     <img
                       src="https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=100&q=80"
                       alt="ANC Earbuds"
@@ -170,7 +184,7 @@ export const Home: React.FC = () => {
                   </div>
                   <span className="text-[12px] font-medium text-[#1E241F]">Quantum sound ANC earbuds</span>
                 </div>
-                <span className="font-mono text-[12px] font-bold text-[#B8862E] bg-[#B8862E]/8 rounded-full px-2.5 py-0.5">+PKR 1,000</span>
+                <span className="font-mono text-[11.5px] font-bold text-[#B8862E] bg-[#B8862E]/10 rounded-full px-2.5 py-0.5">+PKR 1,000 Profit</span>
               </div>
 
               {/* Bottom accent strip */}
@@ -181,92 +195,78 @@ export const Home: React.FC = () => {
         </div>
       </header>
 
-      {/* 2. NETWORK CAPABILITIES SECTION */}
+      {/* 2. SIMPLE 3-STEP "HOW IT WORKS" (EASY TO UNDERSTAND) */}
       <section className="px-6 sm:px-8 py-16 bg-[#F1ECDD] border-b border-[#E3DCC8]">
         <div className="max-w-[1180px] mx-auto space-y-10">
           
-          <div className="space-y-2">
+          <div className="text-center space-y-2 max-w-xl mx-auto">
             <div className="text-xs font-semibold uppercase tracking-wider text-[#1F4D3E]">
-              Network capabilities
+              Simple 3-Step Process
             </div>
-            <ScrollFloat
-              animationDuration={1}
-              ease="back.inOut(2)"
-              scrollStart="top bottom-=10%"
-              scrollEnd="bottom center"
-              stagger={0.02}
-              containerClassName="font-serif text-3xl sm:text-4xl font-medium text-[#1E241F]"
-            >
-              Built for people moving real inventory
-            </ScrollFloat>
-            <p className="text-[#5B5C50] text-sm sm:text-base max-w-[540px]">
-              Every figure a partner sees is pulled from verified catalog data — not a projection.
+            <h2 className="font-serif text-3xl sm:text-4xl font-medium text-[#1E241F]">
+              How DreamToAchievers Works
+            </h2>
+            <p className="text-[#5B5C50] text-xs sm:text-sm">
+              Anyone in Pakistan can start an online resale business in 3 easy steps.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
-            {/* Card 01 */}
-            <div className="p-6 rounded-xl bg-white border border-[#E3DCC8] space-y-3 shadow-xs">
-              <div className="w-9 h-9 rounded-lg bg-[#F1ECDD] border border-[#E3DCC8] flex items-center justify-center font-serif text-[#1F4D3E] font-medium text-sm">
-                01
+            {/* Step 01 */}
+            <div className="p-6 rounded-2xl bg-white border border-[#E3DCC8] space-y-4 shadow-xs hover:border-[#1F4D3E]/30 transition-all">
+              <div className="w-10 h-10 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] flex items-center justify-center font-serif text-[#1F4D3E] font-bold text-base">
+                1
               </div>
-              <h3 className="text-base font-semibold text-[#1E241F]">
-                Nationwide logistics &amp; COD dispatch
-              </h3>
-              <p className="text-xs sm:text-sm text-[#5B5C50] leading-relaxed">
-                Centralized order routing with delivery coverage across 150+ cities. Couriers handle cash on delivery with status updates on every order.
-              </p>
-              <div className="pt-3 border-t border-[#E3DCC8] text-xs text-[#5B5C50]">
-                <strong className="text-[#1E241F] font-semibold">99.4%</strong> fulfillment accuracy
+              <div className="space-y-1.5">
+                <h3 className="text-base font-semibold text-[#1E241F]">
+                  Pick Wholesale Products
+                </h3>
+                <p className="text-xs text-[#5B5C50] leading-relaxed">
+                  Browse 100+ verified skincare formulas, cosmetics, and electronics at factory-direct wholesale pricing.
+                </p>
               </div>
-            </div>
-
-            {/* Card 02 */}
-            <div className="p-6 rounded-xl bg-white border border-[#E3DCC8] space-y-3 shadow-xs">
-              <div className="w-9 h-9 rounded-lg bg-[#F1ECDD] border border-[#E3DCC8] flex items-center justify-center font-serif text-[#1F4D3E] font-medium text-sm">
-                02
-              </div>
-              <h3 className="text-base font-semibold text-[#1E241F]">
-                Wholesale price access
-              </h3>
-              <p className="text-xs sm:text-sm text-[#5B5C50] leading-relaxed">
-                Direct factory and verified distributor rates, with a healthy, consistent margin on every unit sold.
-              </p>
-              <div className="pt-3 border-t border-[#E3DCC8] text-xs text-[#5B5C50]">
-                Margins from <strong className="text-[#1E241F] font-semibold">PKR 500 to 1,300</strong> per unit
+              <div className="pt-2 text-[11px] font-mono text-[#1F4D3E] font-medium flex items-center gap-1.5">
+                <CheckCircle size={14} weight="bold" />
+                <span>Zero advance bulk stock cost</span>
               </div>
             </div>
 
-            {/* Card 03 */}
-            <div className="p-6 rounded-xl bg-white border border-[#E3DCC8] space-y-3 shadow-xs">
-              <div className="w-9 h-9 rounded-lg bg-[#F1ECDD] border border-[#E3DCC8] flex items-center justify-center font-serif text-[#1F4D3E] font-medium text-sm">
-                03
+            {/* Step 02 */}
+            <div className="p-6 rounded-2xl bg-white border border-[#E3DCC8] space-y-4 shadow-xs hover:border-[#1F4D3E]/30 transition-all">
+              <div className="w-10 h-10 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] flex items-center justify-center font-serif text-[#1F4D3E] font-bold text-base">
+                2
               </div>
-              <h3 className="text-base font-semibold text-[#1E241F]">
-                Verified catalog inventory
-              </h3>
-              <p className="text-xs sm:text-sm text-[#5B5C50] leading-relaxed">
-                A curated selection of high-demand skincare formulas and lifestyle electronics, with continuous stock availability checks.
-              </p>
-              <div className="pt-3 border-t border-[#E3DCC8] text-xs text-[#5B5C50]">
-                Restocked and <strong className="text-[#1E241F] font-semibold">quality-checked</strong> in batches
+              <div className="space-y-1.5">
+                <h3 className="text-base font-semibold text-[#1E241F]">
+                  Share &amp; Take Orders
+                </h3>
+                <p className="text-xs text-[#5B5C50] leading-relaxed">
+                  Post products on WhatsApp, TikTok, Instagram, or Facebook. Sell to customers at recommended retail prices.
+                </p>
+              </div>
+              <div className="pt-2 text-[11px] font-mono text-[#1F4D3E] font-medium flex items-center gap-1.5">
+                <CheckCircle size={14} weight="bold" />
+                <span>Free marketing video copy &amp; images</span>
               </div>
             </div>
 
-            {/* Card 04 */}
-            <div className="p-6 rounded-xl bg-white border border-[#E3DCC8] space-y-3 shadow-xs">
-              <div className="w-9 h-9 rounded-lg bg-[#F1ECDD] border border-[#E3DCC8] flex items-center justify-center font-serif text-[#1F4D3E] font-medium text-sm">
-                04
+            {/* Step 03 */}
+            <div className="p-6 rounded-2xl bg-white border border-[#E3DCC8] space-y-4 shadow-xs hover:border-[#1F4D3E]/30 transition-all">
+              <div className="w-10 h-10 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] flex items-center justify-center font-serif text-[#1F4D3E] font-bold text-base">
+                3
               </div>
-              <h3 className="text-base font-semibold text-[#1E241F]">
-                Partner network tracking
-              </h3>
-              <p className="text-xs sm:text-sm text-[#5B5C50] leading-relaxed">
-                Every partner gets a unique referral code that permanently attributes their team's sign-ups, visible on one shared dashboard.
-              </p>
-              <div className="pt-3 border-t border-[#E3DCC8] text-xs text-[#5B5C50]">
-                <strong className="text-[#1E241F] font-semibold">Transparent</strong> attribution, no manual reconciliation
+              <div className="space-y-1.5">
+                <h3 className="text-base font-semibold text-[#1E241F]">
+                  We Ship &amp; You Get Paid
+                </h3>
+                <p className="text-xs text-[#5B5C50] leading-relaxed">
+                  We pack and deliver the parcel with Cash on Delivery (COD) across 150+ cities. You receive your profit directly.
+                </p>
+              </div>
+              <div className="pt-2 text-[11px] font-mono text-[#1F4D3E] font-medium flex items-center gap-1.5">
+                <CheckCircle size={14} weight="bold" />
+                <span>Automated rider COD dispatch</span>
               </div>
             </div>
 
@@ -275,131 +275,128 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. PARTNER LEVELS SECTION */}
+      {/* 3. PARTNER LEVELS & REWARDS (CLEAR & MOTIVATING) */}
       <section className="px-6 sm:px-8 py-16 border-b border-[#E3DCC8]">
-        <div className="max-w-[1180px] mx-auto space-y-10">
+        <div className="max-w-[1180px] mx-auto space-y-8">
           
-          <div className="space-y-2">
+          <div className="text-center space-y-2 max-w-xl mx-auto">
             <div className="text-xs font-semibold uppercase tracking-wider text-[#1F4D3E]">
-              Partner levels
+              Partner Growth Milestones
             </div>
-            <ScrollFloat
-              animationDuration={1}
-              ease="back.inOut(2)"
-              scrollStart="top bottom-=10%"
-              scrollEnd="bottom center"
-              stagger={0.02}
-              containerClassName="font-serif text-3xl sm:text-4xl font-medium text-[#1E241F]"
-            >
-              Grow at your own pace
-            </ScrollFloat>
-            <p className="text-[#5B5C50] text-sm sm:text-base max-w-[540px]">
-              Each level combines personal sales with team growth. Bonuses are cash, paid on qualification.
+            <h2 className="font-serif text-3xl sm:text-4xl font-medium text-[#1E241F]">
+              Sell More, Earn Cash Bonuses
+            </h2>
+            <p className="text-[#5B5C50] text-xs sm:text-sm">
+              As your personal sales and reseller referrals grow, unlock direct cash bonuses up to PKR 10,000.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border border-[#E3DCC8] rounded-xl overflow-hidden bg-white shadow-xs divide-y sm:divide-y-0 sm:divide-x divide-[#E3DCC8]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
             {/* Level 01 */}
-            <div className="p-6 space-y-3 flex flex-col justify-between">
-              <div>
-                <div className="font-mono text-xs text-[#7C7D70] mb-2">Level 01</div>
-                <h3 className="font-serif text-lg font-medium text-[#1E241F] mb-1">Starter partner</h3>
-                <p className="text-xs text-[#5B5C50] leading-relaxed min-h-[48px]">
-                  Build your customer base and place your first team referrals.
-                </p>
+            <div className="p-5 rounded-2xl bg-white border border-[#E3DCC8] space-y-4 shadow-2xs hover:border-[#1F4D3E]/30 transition-all flex flex-col justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10.5px] uppercase font-semibold text-[#1F4D3E] bg-[#FAF7EF] px-2 py-0.5 rounded border border-[#E3DCC8]">
+                    Level 01
+                  </span>
+                  <span className="text-[10px] text-[#7C7D70]">Starter</span>
+                </div>
+                <div className="text-xl font-bold font-serif text-[#B8862E]">
+                  +PKR 2,000
+                </div>
+                <div className="text-[11.5px] text-[#5B5C50]">Cash bonus reward</div>
               </div>
 
-              <div className="space-y-2 pt-3 border-t border-[#E3DCC8]">
-                <div className="flex justify-between text-xs text-[#5B5C50]">
-                  <span>Product sales</span>
-                  <strong className="font-mono font-medium text-[#1E241F]">10 units</strong>
+              <div className="space-y-2 pt-3 border-t border-[#E3DCC8] text-xs">
+                <div className="flex justify-between text-[#5B5C50]">
+                  <span>Product Sales:</span>
+                  <strong className="text-[#1E241F]">10 units</strong>
                 </div>
-                <div className="flex justify-between text-xs text-[#5B5C50]">
-                  <span>Team size</span>
-                  <strong className="font-mono font-medium text-[#1E241F]">20 members</strong>
-                </div>
-                <div className="pt-2 border-t border-[#E3DCC8] flex justify-between items-center text-xs font-medium">
-                  <span className="text-[#1E241F]">Cash bonus</span>
-                  <span className="font-mono font-semibold text-[#B8862E]">PKR 2,000</span>
+                <div className="flex justify-between text-[#5B5C50]">
+                  <span>Team Referrals:</span>
+                  <strong className="text-[#1E241F]">20 members</strong>
                 </div>
               </div>
             </div>
 
             {/* Level 02 */}
-            <div className="p-6 space-y-3 flex flex-col justify-between">
-              <div>
-                <div className="font-mono text-xs text-[#7C7D70] mb-2">Level 02</div>
-                <h3 className="font-serif text-lg font-medium text-[#1E241F] mb-1">Growth partner</h3>
-                <p className="text-xs text-[#5B5C50] leading-relaxed min-h-[48px]">
-                  Scale wholesale volume and grow an active distributor team.
-                </p>
+            <div className="p-5 rounded-2xl bg-white border border-[#E3DCC8] space-y-4 shadow-2xs hover:border-[#1F4D3E]/30 transition-all flex flex-col justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10.5px] uppercase font-semibold text-[#1F4D3E] bg-[#FAF7EF] px-2 py-0.5 rounded border border-[#E3DCC8]">
+                    Level 02
+                  </span>
+                  <span className="text-[10px] text-[#7C7D70]">Growth</span>
+                </div>
+                <div className="text-xl font-bold font-serif text-[#B8862E]">
+                  +PKR 4,000
+                </div>
+                <div className="text-[11.5px] text-[#5B5C50]">Cash bonus reward</div>
               </div>
 
-              <div className="space-y-2 pt-3 border-t border-[#E3DCC8]">
-                <div className="flex justify-between text-xs text-[#5B5C50]">
-                  <span>Product sales</span>
-                  <strong className="font-mono font-medium text-[#1E241F]">25 units</strong>
+              <div className="space-y-2 pt-3 border-t border-[#E3DCC8] text-xs">
+                <div className="flex justify-between text-[#5B5C50]">
+                  <span>Product Sales:</span>
+                  <strong className="text-[#1E241F]">25 units</strong>
                 </div>
-                <div className="flex justify-between text-xs text-[#5B5C50]">
-                  <span>Team size</span>
-                  <strong className="font-mono font-medium text-[#1E241F]">45 members</strong>
-                </div>
-                <div className="pt-2 border-t border-[#E3DCC8] flex justify-between items-center text-xs font-medium">
-                  <span className="text-[#1E241F]">Cash bonus</span>
-                  <span className="font-mono font-semibold text-[#B8862E]">PKR 4,000</span>
+                <div className="flex justify-between text-[#5B5C50]">
+                  <span>Team Referrals:</span>
+                  <strong className="text-[#1E241F]">45 members</strong>
                 </div>
               </div>
             </div>
 
             {/* Level 03 */}
-            <div className="p-6 space-y-3 flex flex-col justify-between">
-              <div>
-                <div className="font-mono text-xs text-[#7C7D70] mb-2">Level 03</div>
-                <h3 className="font-serif text-lg font-medium text-[#1E241F] mb-1">Regional partner</h3>
-                <p className="text-xs text-[#5B5C50] leading-relaxed min-h-[48px]">
-                  Manage multi-channel resale and mentor a regional team.
-                </p>
+            <div className="p-5 rounded-2xl bg-white border border-[#E3DCC8] space-y-4 shadow-2xs hover:border-[#1F4D3E]/30 transition-all flex flex-col justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10.5px] uppercase font-semibold text-[#1F4D3E] bg-[#FAF7EF] px-2 py-0.5 rounded border border-[#E3DCC8]">
+                    Level 03
+                  </span>
+                  <span className="text-[10px] text-[#7C7D70]">Regional</span>
+                </div>
+                <div className="text-xl font-bold font-serif text-[#B8862E]">
+                  +PKR 6,000
+                </div>
+                <div className="text-[11.5px] text-[#5B5C50]">Cash bonus reward</div>
               </div>
 
-              <div className="space-y-2 pt-3 border-t border-[#E3DCC8]">
-                <div className="flex justify-between text-xs text-[#5B5C50]">
-                  <span>Product sales</span>
-                  <strong className="font-mono font-medium text-[#1E241F]">35 units</strong>
+              <div className="space-y-2 pt-3 border-t border-[#E3DCC8] text-xs">
+                <div className="flex justify-between text-[#5B5C50]">
+                  <span>Product Sales:</span>
+                  <strong className="text-[#1E241F]">35 units</strong>
                 </div>
-                <div className="flex justify-between text-xs text-[#5B5C50]">
-                  <span>Team size</span>
-                  <strong className="font-mono font-medium text-[#1E241F]">60 members</strong>
-                </div>
-                <div className="pt-2 border-t border-[#E3DCC8] flex justify-between items-center text-xs font-medium">
-                  <span className="text-[#1E241F]">Cash bonus</span>
-                  <span className="font-mono font-semibold text-[#B8862E]">PKR 6,000</span>
+                <div className="flex justify-between text-[#5B5C50]">
+                  <span>Team Referrals:</span>
+                  <strong className="text-[#1E241F]">60 members</strong>
                 </div>
               </div>
             </div>
 
             {/* Level 04 */}
-            <div className="p-6 space-y-3 flex flex-col justify-between">
-              <div>
-                <div className="font-mono text-xs text-[#7C7D70] mb-2">Level 04</div>
-                <h3 className="font-serif text-lg font-medium text-[#1E241F] mb-1">National partner</h3>
-                <p className="text-xs text-[#5B5C50] leading-relaxed min-h-[48px]">
-                  High-volume nationwide distribution with top-tier revenue share.
-                </p>
+            <div className="p-5 rounded-2xl bg-white border border-[#B8862E]/40 space-y-4 shadow-xs hover:border-[#B8862E] transition-all flex flex-col justify-between bg-gradient-to-b from-white to-[#FBF7ED]">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10.5px] uppercase font-semibold text-white bg-[#1F4D3E] px-2 py-0.5 rounded">
+                    Level 04 ★
+                  </span>
+                  <span className="text-[10px] text-[#B8862E] font-semibold">Top Tier</span>
+                </div>
+                <div className="text-xl font-bold font-serif text-[#1F4D3E]">
+                  +PKR 10,000
+                </div>
+                <div className="text-[11.5px] text-[#5B5C50]">Cash bonus reward</div>
               </div>
 
-              <div className="space-y-2 pt-3 border-t border-[#E3DCC8]">
-                <div className="flex justify-between text-xs text-[#5B5C50]">
-                  <span>Product sales</span>
-                  <strong className="font-mono font-medium text-[#1E241F]">100 units</strong>
+              <div className="space-y-2 pt-3 border-t border-[#E3DCC8] text-xs">
+                <div className="flex justify-between text-[#5B5C50]">
+                  <span>Product Sales:</span>
+                  <strong className="text-[#1E241F]">100 units</strong>
                 </div>
-                <div className="flex justify-between text-xs text-[#5B5C50]">
-                  <span>Team size</span>
-                  <strong className="font-mono font-medium text-[#1E241F]">200 members</strong>
-                </div>
-                <div className="pt-2 border-t border-[#E3DCC8] flex justify-between items-center text-xs font-medium">
-                  <span className="text-[#1E241F]">Cash bonus</span>
-                  <span className="font-mono font-semibold text-[#B8862E]">PKR 10,000</span>
+                <div className="flex justify-between text-[#5B5C50]">
+                  <span>Team Referrals:</span>
+                  <strong className="text-[#1E241F]">200 members</strong>
                 </div>
               </div>
             </div>
@@ -471,31 +468,25 @@ export const Home: React.FC = () => {
 
       {/* 5. MARGIN ESTIMATOR CALCULATOR */}
       <section className="px-6 sm:px-8 py-16 bg-[#F1ECDD] border-b border-[#E3DCC8]">
-        <div className="max-w-[800px] mx-auto p-8 rounded-2xl bg-white border border-[#E3DCC8] shadow-sm space-y-6">
-          <div className="space-y-1.5 text-center sm:text-left">
+        <div className="max-w-[800px] mx-auto p-6 sm:p-8 rounded-2xl bg-white border border-[#E3DCC8] shadow-xs space-y-6">
+          <div className="space-y-1 text-center sm:text-left">
             <div className="text-xs font-semibold uppercase tracking-wider text-[#1F4D3E]">
-              Margin Calculator
+              Profit Calculator
             </div>
-            <ScrollFloat
-              animationDuration={1}
-              ease="back.inOut(2)"
-              scrollStart="top bottom-=10%"
-              scrollEnd="bottom center"
-              stagger={0.02}
-              as="h3"
-              containerClassName="font-serif text-2xl font-medium text-[#1E241F]"
-            >
-              Estimate Your Monthly Partner Profit
-            </ScrollFloat>
+            <h3 className="font-serif text-2xl sm:text-3xl font-medium text-[#1E241F]">
+              Estimate Your Monthly Profit
+            </h3>
             <p className="text-xs sm:text-sm text-[#5B5C50]">
-              Adjust monthly unit sales volume to calculate gross distributor profit margin.
+              Drag the slider to see how much you can earn selling products in your spare time.
             </p>
           </div>
 
-          <div className="space-y-4 pt-2">
-            <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-[#5B5C50]">Monthly Volume:</span>
-              <span className="font-bold text-[#1E241F] text-sm">{calculatorQuantity} Units / Month</span>
+          <div className="space-y-4 pt-1">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[#5B5C50]">Products sold per month:</span>
+              <span className="font-bold text-[#1E241F] text-sm font-mono bg-[#FAF7EF] px-2.5 py-1 rounded-md border border-[#E3DCC8]">
+                {calculatorQuantity} Units / Month
+              </span>
             </div>
             <input
               type="range"
@@ -504,19 +495,25 @@ export const Home: React.FC = () => {
               step={1}
               value={calculatorQuantity}
               onChange={(e) => setCalculatorQuantity(Number(e.target.value))}
-              className="w-full accent-[#1F4D3E] cursor-pointer"
+              className="w-full accent-[#1F4D3E] cursor-pointer h-2 bg-[#F1ECDD] rounded-lg"
             />
+            <div className="flex justify-between text-[11px] text-[#7C7D70]">
+              <span>5 units (Part-time)</span>
+              <span>75 units</span>
+              <span>150+ units (Full-time)</span>
+            </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <span className="text-xs text-[#5B5C50] block">Estimated Gross Monthly Margin:</span>
-              <span className="font-mono text-2xl font-bold text-[#B8862E]">
-                +PKR {totalEarnings.toLocaleString()}
+          <div className="p-4 sm:p-5 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-center sm:text-left">
+              <span className="text-xs text-[#5B5C50] block">Estimated Take-Home Profit:</span>
+              <span className="font-mono text-2xl sm:text-3xl font-bold text-[#B8862E]">
+                PKR {totalEarnings.toLocaleString()}
               </span>
+              <span className="text-[10.5px] text-[#7C7D70] block mt-0.5">Based on average PKR 650 profit per unit</span>
             </div>
             <Link to="/signup">
-              <Button variant="primary" size="md" className="text-xs font-medium">
+              <Button variant="primary" size="md" className="text-xs font-medium shrink-0">
                 Start Selling Today
               </Button>
             </Link>
