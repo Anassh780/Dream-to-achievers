@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { SocialChannelsBar } from '@/components/ui/SocialIcons';
 import {
   Check,
   PaperPlaneRight,
@@ -8,6 +9,7 @@ import {
   ArrowUpRight,
   ShieldCheck,
   EnvelopeSimple,
+  ShareNetwork,
 } from '@phosphor-icons/react';
 
 export const Contact: React.FC = () => {
@@ -95,10 +97,17 @@ export const Contact: React.FC = () => {
               </a>
             </div>
 
-            <div className="pt-3 border-t border-[#E3DCC8] space-y-2">
+            <div className="pt-4 border-t border-[#E3DCC8] space-y-2">
               <div className="flex items-center space-x-2 text-[11px] text-[#5B5C50] font-mono">
                 <ShieldCheck size={14} className="text-[#1F4D3E]" weight="bold" />
                 <span>Fast response turnaround from dedicated staff</span>
+              </div>
+              
+              <div className="pt-2 border-t border-[#E3DCC8]/60 space-y-2">
+                <span className="text-[11px] font-mono text-[#1E241F] font-semibold block uppercase tracking-wider">
+                  Follow Official Social Handles:
+                </span>
+                <SocialChannelsBar size={16} />
               </div>
             </div>
           </div>

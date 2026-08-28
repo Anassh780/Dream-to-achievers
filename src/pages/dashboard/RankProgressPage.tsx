@@ -123,13 +123,16 @@ export const RankProgressPage: React.FC = () => {
               rankProgress.qualifyingCommunity >= rank.requiredCommunity;
             const isCurrent = user.currentRankSlug === rank.slug;
             const isNext = rankProgress.nextRank?.slug === rank.slug;
+            const isTopTier = rank.order === 4;
 
             return (
               <div
                 key={rank.slug}
                 className={`p-5 rounded-xl bg-white border transition-colors flex flex-col justify-between space-y-4 shadow-xs ${
                   isCurrent
-                    ? 'border-[#1F4D3E] ring-1 ring-[#1F4D3E]'
+                    ? 'border-[#1F4D3E] ring-2 ring-[#1F4D3E]/30 dark:ring-[#48C79B]/30'
+                    : isTopTier
+                    ? 'border-[#B8862E] dark:border-[#E2B258] ring-1 ring-[#B8862E]/20 dark:ring-[#E2B258]/20'
                     : isCompleted
                     ? 'border-[#E3DCC8] bg-[#FAF7EF]/50'
                     : 'border-[#E3DCC8]'
@@ -137,8 +140,12 @@ export const RankProgressPage: React.FC = () => {
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#FAF7EF] text-[#5B5C50] border border-[#E3DCC8]">
-                      Level 0{rank.order}
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                      isTopTier
+                        ? 'bg-[#1F4D3E] text-white dark:bg-[#276E57] border-[#1F4D3E]'
+                        : 'bg-[#FAF7EF] text-[#5B5C50] border-[#E3DCC8]'
+                    }`}>
+                      Level 0{rank.order} {isTopTier && '★'}
                     </span>
                     {isCompleted ? (
                       <span className="inline-flex items-center text-[10px] font-mono text-[#1F4D3E] font-semibold bg-[#F1ECDD] px-2 py-0.5 rounded border border-[#E3DCC8]">
@@ -155,7 +162,9 @@ export const RankProgressPage: React.FC = () => {
                     )}
                   </div>
 
-                  <h4 className="font-serif font-medium text-base text-[#1E241F]">{rank.name}</h4>
+                  <h4 className={`font-serif font-medium text-base ${
+                    isTopTier ? 'text-[#B8862E] dark:text-[#E2B258]' : 'text-[#1E241F]'
+                  }`}>{rank.name}</h4>
                   <p className="text-xs text-[#5B5C50] line-clamp-2">{rank.tagline}</p>
                 </div>
 

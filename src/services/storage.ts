@@ -18,6 +18,7 @@ import { SITE_CONFIG } from '@/config/site';
 const STORAGE_KEYS = {
   USERS: 'dta_users',
   CURRENT_USER_ID: 'dta_current_user_id',
+  CURRENT_USER_DATA: 'dta_current_user_data',
   RANKS: 'dta_ranks',
   PRODUCTS: 'dta_products',
   CATEGORIES: 'dta_categories',

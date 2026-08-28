@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Button } from '@/components/ui/Button';
 import { DreamLogo } from '@/components/ui/DreamLogo';
+import { SocialChannelsBar } from '@/components/ui/SocialIcons';
 import { SwitchButton } from '@/components/ui/SwitchButton';
 import {
   List,
@@ -173,6 +174,13 @@ export const PublicLayout: React.FC = () => {
                 </span>
               </Link>
             )}
+
+            <div className="pt-3 border-t border-[#E3DCC8] space-y-2">
+              <span className="text-[10.5px] font-mono text-[#5B5C50] uppercase tracking-wider block">
+                Connect With Us
+              </span>
+              <SocialChannelsBar size={16} />
+            </div>
           </div>
         </div>
       )}
@@ -189,13 +197,20 @@ export const PublicLayout: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
             
             {/* Col 1: Brand & Credibility */}
-            <div className="lg:col-span-2 space-y-3.5">
+            <div className="lg:col-span-2 space-y-4">
               <Link to="/" className="inline-block">
                 <DreamLogo size={32} />
               </Link>
               <p className="text-xs text-[#5B5C50] max-w-sm leading-relaxed">
                 Direct-to-reseller wholesale commerce and structured partner growth platform. Transparent unit economics, nationwide COD fulfillment, and verified cash rewards.
               </p>
+              
+              <div className="space-y-2 pt-1">
+                <span className="text-[11px] font-mono text-[#1E241F] font-semibold block uppercase tracking-wider">
+                  Official Channels &amp; Community:
+                </span>
+                <SocialChannelsBar size={16} />
+              </div>
             </div>
 
             {/* Col 2: Wholesale Catalog */}

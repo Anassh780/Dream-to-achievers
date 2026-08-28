@@ -211,8 +211,14 @@ export interface SiteSettings {
   supportEmail: string;
   adminEmail?: string;
   whatsappNumber: string;
-  tiktokUrl?: string;
   whatsappChannelUrl?: string;
+  youtubeUrl?: string;
+  xUrl?: string;
+  instagramUrl?: string;
+  linkedinUrl?: string;
+  threadsUrl?: string;
+  facebookUrl?: string;
+  tiktokUrl?: string;
   disclaimerText: string;
   communityRuleDescription: string;
   isReferralSignupEnabled: boolean;

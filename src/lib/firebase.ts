@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getDatabase } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
@@ -17,6 +17,14 @@ export const firebaseConfig = {
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
+
+// Explicitly ensure session persistence is locked to browserLocalPersistence
+if (typeof window !== 'undefined') {
+  setPersistence(auth, browserLocalPersistence).catch((err: any) => {
+    console.warn('Firebase setPersistence error:', err);
+  });
+}
+
 export const db = getFirestore(app);
 export const rtdb = getDatabase(app);
 export const storageBucket = getStorage(app);

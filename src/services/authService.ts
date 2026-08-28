@@ -32,24 +32,26 @@ export const authService = {
   onAuthStateChange(callback: (user: User | null) => void): () => void {
     return onAuthStateChanged(auth, async (fbUser: any) => {
       if (!fbUser) {
-        storage.remove('CURRENT_USER_ID');
-        callback(null);
+        // If no Firebase user but we have local active session, preserve it unless explicitly logged out
+        const localCached = authService.getCurrentUser();
+        callback(localCached);
         return;
       }
 
       try {
         const userProfile = await authService.getUserProfile(fbUser.uid, fbUser.email || '');
         if (userProfile) {
+          storage.set('CURRENT_USER_DATA', userProfile);
           storage.setRaw('CURRENT_USER_ID', userProfile.id);
           // Sync referrals from Cloud Firestore/RTDB in background
           referralService.syncUserReferrals(userProfile.id).catch(() => {});
           callback(userProfile);
         } else {
-          callback(null);
+          callback(authService.getCurrentUser());
         }
       } catch (err) {
         console.error('Error fetching user profile:', err);
-        callback(null);
+        callback(authService.getCurrentUser());
       }
     });
   },
@@ -147,6 +149,7 @@ export const authService = {
       localUsers.push(user);
     }
     storage.set('USERS', localUsers);
+    storage.set('CURRENT_USER_DATA', user);
     storage.setRaw('CURRENT_USER_ID', user.id);
 
     // Firestore
@@ -165,14 +168,24 @@ export const authService = {
   },
 
   /**
-   * Returns the currently active session user.
+   * Returns the currently active session user with robust multi-layer fallback.
    */
   getCurrentUser(): User | null {
     storage.init();
+    const cachedData = storage.get<User | null>('CURRENT_USER_DATA', null);
+    if (cachedData && cachedData.isActive) {
+      return cachedData;
+    }
+
     const currentId = storage.getRaw('CURRENT_USER_ID');
     if (!currentId) return null;
     const users = storage.get<User[]>('USERS', []);
-    return users.find((u) => u.id === currentId && u.isActive) || null;
+    const found = users.find((u) => u.id === currentId && u.isActive) || null;
+    if (found) {
+      storage.set('CURRENT_USER_DATA', found);
+      return found;
+    }
+    return null;
   },
 
   /**
@@ -366,11 +379,12 @@ export const authService = {
    * Log out current user from Firebase Auth and local session.
    */
   async logout(): Promise<void> {
+    storage.remove('CURRENT_USER_ID');
+    storage.remove('CURRENT_USER_DATA');
     try {
       await signOut(auth);
     } catch (err) {
       console.warn('Firebase signOut error:', err);
     }
-    storage.remove('CURRENT_USER_ID');
   },
 };
