@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Copy, Check, Users } from '@phosphor-icons/react';
 
 export const DashboardReferrals: React.FC = () => {
-  const { user, rankProgress } = useAuth();
+  const { user, rankProgress, refreshUserData } = useAuth();
   const [copied, setCopied] = useState(false);
   const [referrals, setReferrals] = useState(() => (user ? referralService.getUserReferrals(user.id) : []));
 
@@ -13,6 +13,7 @@ export const DashboardReferrals: React.FC = () => {
     if (!user) return;
     referralService.syncUserReferrals(user.id).then((synced) => {
       setReferrals(synced);
+      refreshUserData();
     }).catch(() => {
       setReferrals(referralService.getUserReferrals(user.id));
     });
@@ -23,7 +24,7 @@ export const DashboardReferrals: React.FC = () => {
 
     window.addEventListener('dta_storage_change', handleStorageChange);
     return () => window.removeEventListener('dta_storage_change', handleStorageChange);
-  }, [user]);
+  }, [user, refreshUserData]);
 
   if (!user || !rankProgress) return null;
 

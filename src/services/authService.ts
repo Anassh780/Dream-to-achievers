@@ -165,6 +165,9 @@ export const authService = {
     } catch (err) {
       console.warn('RTDB set failed:', err);
     }
+
+    // Index referral code in background
+    referralService.indexReferralCode(user).catch(() => {});
   },
 
   /**
@@ -255,9 +258,9 @@ export const authService = {
     const newReferralCode = `${baseCode}${randNum}`;
 
     let validReferrer: User | undefined;
+    const cleanRef = referralCode ? referralCode.trim().toUpperCase() : undefined;
 
-    if (referralCode) {
-      const cleanRef = referralCode.trim().toUpperCase();
+    if (cleanRef) {
       const found = await referralService.findReferrerByCode(cleanRef);
       if (found) {
         validReferrer = found;
@@ -276,13 +279,27 @@ export const authService = {
         console.warn('updateProfile failed:', pErr);
       }
 
+      // 2. Retry referrer lookup with newly authenticated credentials if not found earlier
+      if (cleanRef && !validReferrer) {
+        try {
+          const retryFound = await referralService.findReferrerByCode(cleanRef);
+          if (retryFound) {
+            validReferrer = retryFound;
+          }
+        } catch (retryErr) {
+          console.warn('Post-auth referrer lookup retry:', retryErr);
+        }
+      }
+
+      const assignedReferrerCode = validReferrer ? validReferrer.referralCode : cleanRef;
+
       const newUser: User = {
         id: fbUser.uid,
         fullName: fullName.trim(),
         email: cleanEmail,
         role: isAdminEmail ? 'admin' : 'user',
         referralCode: newReferralCode,
-        referredByCode: validReferrer ? validReferrer.referralCode : undefined,
+        referredByCode: assignedReferrerCode,
         currentRankSlug: isAdminEmail ? 'diamond' : 'unranked',
         phone: phone?.trim(),
         city: city?.trim(),
@@ -293,16 +310,16 @@ export const authService = {
       // Save to Cloud & Local
       await authService.saveUserProfile(newUser);
 
-      // Record referral relationship if referred
-      if (validReferrer) {
+      // Record referral relationship if referred by code or user
+      if (assignedReferrerCode) {
         const referralRecord = {
           id: `ref-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-          referrerId: validReferrer.id,
+          referrerId: validReferrer ? validReferrer.id : assignedReferrerCode,
           referredUserId: newUser.id,
           referredUserName: newUser.fullName,
           referredUserEmail: newUser.email,
           referredUserRank: 'unranked' as const,
-          referralCodeUsed: validReferrer.referralCode,
+          referralCodeUsed: assignedReferrerCode,
           status: 'active' as const,
           isQualifying: true,
           createdAt: new Date().toISOString(),
@@ -311,22 +328,24 @@ export const authService = {
         // Save locally and to Cloud Firestore / RTDB
         await referralService.saveReferralRecord(referralRecord);
 
-        // Notify inviter
-        const notifs = storage.get<any[]>('NOTIFICATIONS', []);
-        notifs.unshift({
-          id: `notif-${Date.now()}`,
-          userId: validReferrer.id,
-          type: 'referral_joined',
-          title: '👥 New Community Member Joined!',
-          message: `${newUser.fullName} registered using your referral code (${validReferrer.referralCode}).`,
-          isRead: false,
-          linkUrl: '/dashboard/referrals',
-          createdAt: new Date().toISOString(),
-        });
-        storage.set('NOTIFICATIONS', notifs);
+        // Notify inviter if user object is known
+        if (validReferrer) {
+          const notifs = storage.get<any[]>('NOTIFICATIONS', []);
+          notifs.unshift({
+            id: `notif-${Date.now()}`,
+            userId: validReferrer.id,
+            type: 'referral_joined',
+            title: '👥 New Community Member Joined!',
+            message: `${newUser.fullName} registered using your referral code (${validReferrer.referralCode}).`,
+            isRead: false,
+            linkUrl: '/dashboard/referrals',
+            createdAt: new Date().toISOString(),
+          });
+          storage.set('NOTIFICATIONS', notifs);
 
-        // Trigger rank re-evaluation for inviter
-        rankEngine.checkAndPromoteUser(validReferrer.id);
+          // Trigger rank re-evaluation for inviter
+          rankEngine.checkAndPromoteUser(validReferrer.id);
+        }
       }
 
       // Welcome notification
