@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { storage } from '@/services/storage';
+import { salesService } from '@/services/salesService';
+import { payoutService } from '@/services/payoutService';
 import { Button } from '@/components/ui/Button';
-import { SwitchButton } from '@/components/ui/SwitchButton';
 import { DreamLogo } from '@/components/ui/DreamLogo';
 import {
   ShieldCheck,
@@ -25,6 +27,7 @@ import {
   GearSix,
   CheckCircle,
   Sparkle,
+  Bell,
 } from '@phosphor-icons/react';
 
 interface NavGroup {
@@ -33,7 +36,8 @@ interface NavGroup {
     label: string;
     href: string;
     icon: React.ElementType;
-    badge?: string;
+    badgeCount?: number;
+    badgeColor?: string;
   }[];
 }
 
@@ -42,6 +46,37 @@ export const AdminLayout: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Dynamic real-time pending update counters
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+  const [pendingPayoutsCount, setPendingPayoutsCount] = useState(0);
+
+  const calculatePendingUpdates = () => {
+    try {
+      const sales = salesService.getAllSales();
+      const pendingOrders = sales.filter(
+        (s) => s.status === 'pending_verification' || s.status === 'payment_verified'
+      ).length;
+      setPendingOrdersCount(pendingOrders);
+
+      const withdrawals = payoutService.getAllWithdrawals();
+      const pendingWithdrawals = withdrawals.filter((w) => w.status === 'pending').length;
+      
+      const rewards = storage.get<any[]>('REWARDS', []);
+      const pendingRewards = rewards.filter((r) => r.status === 'pending_review').length;
+
+      setPendingPayoutsCount(pendingWithdrawals + pendingRewards);
+    } catch {
+      // Fallback
+    }
+  };
+
+  useEffect(() => {
+    calculatePendingUpdates();
+    const handleStorageChange = () => calculatePendingUpdates();
+    window.addEventListener('dta_storage_change', handleStorageChange);
+    return () => window.removeEventListener('dta_storage_change', handleStorageChange);
+  }, []);
 
   if (!isAuthenticated || !isAdmin) {
     return (
@@ -69,12 +104,19 @@ export const AdminLayout: React.FC = () => {
     );
   }
 
+  const totalAdminAlerts = pendingOrdersCount + pendingPayoutsCount;
+
   const navGroups: NavGroup[] = [
     {
       title: 'STORE & COMMERCE',
       items: [
         { label: 'Dashboard Overview', href: '/admin', icon: House },
-        { label: 'Orders & Shipping', href: '/admin/sales', icon: ShoppingCart },
+        {
+          label: 'Orders & Shipping',
+          href: '/admin/sales',
+          icon: ShoppingCart,
+          badgeCount: pendingOrdersCount,
+        },
         { label: 'Product Categories', href: '/admin/categories', icon: FolderSimple },
         { label: 'Products & Wholesale', href: '/admin/products', icon: Package },
         { label: 'User Accounts', href: '/admin/users', icon: Users },
@@ -85,7 +127,12 @@ export const AdminLayout: React.FC = () => {
       items: [
         { label: 'Referrals & Team Tree', href: '/admin/referrals', icon: TreeStructure },
         { label: 'Rank Levels', href: '/admin/ranks', icon: Crown },
-        { label: 'Payouts & Bonuses', href: '/admin/rewards', icon: HandCoins },
+        {
+          label: 'Payouts & Bonuses',
+          href: '/admin/rewards',
+          icon: HandCoins,
+          badgeCount: pendingPayoutsCount,
+        },
       ],
     },
     {
@@ -149,9 +196,16 @@ export const AdminLayout: React.FC = () => {
                           <Icon size={16} weight={isActive ? 'fill' : 'regular'} className={isActive ? 'text-[#D4AF37]' : ''} />
                           <span className="text-xs">{item.label}</span>
                         </div>
-                        {isActive && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]"></span>
-                        )}
+                        <div className="flex items-center space-x-1.5">
+                          {item.badgeCount !== undefined && item.badgeCount > 0 && (
+                            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-red-600 text-white font-mono font-bold text-[9.5px] shadow-2xs animate-pulse">
+                              {item.badgeCount}
+                            </span>
+                          )}
+                          {isActive && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]"></span>
+                          )}
+                        </div>
                       </NavLink>
                     );
                   })}
@@ -213,6 +267,11 @@ export const AdminLayout: React.FC = () => {
           </div>
         </Link>
         <div className="flex items-center gap-2">
+          {totalAdminAlerts > 0 && (
+            <span className="inline-flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-full bg-red-600 text-white font-mono font-bold text-[10px] animate-pulse">
+              {totalAdminAlerts}
+            </span>
+          )}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 rounded-xl text-[#1E241F] hover:bg-[#FAF7EF] border border-[#E3DCC8]"
@@ -245,14 +304,21 @@ export const AdminLayout: React.FC = () => {
                         key={item.href}
                         to={item.href}
                         onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-sm font-medium ${
+                        className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium ${
                           isActive
                             ? 'bg-[#1F4D3E] text-white font-semibold shadow-xs'
                             : 'text-[#1E241F] hover:bg-[#F1ECDD]'
                         }`}
                       >
-                        <Icon size={16} />
-                        <span>{item.label}</span>
+                        <div className="flex items-center space-x-2.5">
+                          <Icon size={16} />
+                          <span>{item.label}</span>
+                        </div>
+                        {item.badgeCount !== undefined && item.badgeCount > 0 && (
+                          <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-red-600 text-white font-mono font-bold text-[10px]">
+                            {item.badgeCount}
+                          </span>
+                        )}
                       </NavLink>
                     );
                   })}

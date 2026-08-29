@@ -60,7 +60,13 @@ export const DashboardLayout: React.FC = () => {
     { label: 'Direct Sales', href: '/dashboard/sales', icon: ShoppingCart, count: rankProgress?.qualifyingSales },
     { label: 'Referral Network', href: '/dashboard/referrals', icon: Users, count: rankProgress?.qualifyingCommunity },
     { label: 'Rewards', href: '/dashboard/rewards', icon: Gift },
-    { label: 'Notifications', href: '/dashboard/notifications', icon: Bell, count: unreadNotifsCount || undefined },
+    {
+      label: 'Notifications',
+      href: '/dashboard/notifications',
+      icon: Bell,
+      count: unreadNotifsCount || undefined,
+      isAlert: true,
+    },
     { label: 'Profile', href: '/dashboard/profile', icon: UserCircle },
   ];
 
@@ -159,16 +165,26 @@ export const DashboardLayout: React.FC = () => {
                     <span className="truncate">{item.label}</span>
                   </div>
 
-                  {item.badge && (
-                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${isActive ? 'bg-white/20 text-white' : 'bg-[#F1ECDD] text-[#5B5C50]'}`}>
-                      {item.badge}
-                    </span>
-                  )}
-                  {item.count !== undefined && (
-                    <span className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-[#F1ECDD] text-[#5B5C50]'}`}>
-                      {item.count}
-                    </span>
-                  )}
+                  <div className="flex items-center space-x-1.5">
+                    {item.badge && (
+                      <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${isActive ? 'bg-white/20 text-white' : 'bg-[#F1ECDD] text-[#5B5C50]'}`}>
+                        {item.badge}
+                      </span>
+                    )}
+                    {item.count !== undefined && item.count > 0 && (
+                      <span
+                        className={`text-[9.5px] font-mono font-bold px-1.5 py-0.2 rounded-full ${
+                          item.isAlert
+                            ? 'bg-red-600 text-white shadow-2xs animate-pulse'
+                            : isActive
+                            ? 'bg-white/20 text-white'
+                            : 'bg-[#F1ECDD] text-[#5B5C50]'
+                        }`}
+                      >
+                        {item.count}
+                      </span>
+                    )}
+                  </div>
                 </NavLink>
               );
             })}
@@ -199,7 +215,18 @@ export const DashboardLayout: React.FC = () => {
         </Link>
 
         <div className="flex items-center space-x-2">
-          <SwitchButton size="sm" showLabel={false} />
+          <Link
+            to="/dashboard/notifications"
+            className="relative p-2 rounded-lg text-[#5B5C50] hover:text-[#1E241F] hover:bg-[#FAF7EF]"
+            title="Notifications"
+          >
+            <Bell size={18} />
+            {unreadNotifsCount > 0 && (
+              <span className="absolute top-1 right-1 flex items-center justify-center min-w-[16px] h-[16px] px-1 rounded-full bg-red-600 text-white font-mono font-bold text-[9px] animate-pulse">
+                {unreadNotifsCount}
+              </span>
+            )}
+          </Link>
           <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#F1ECDD] text-[#1F4D3E] border border-[#E3DCC8] uppercase">
             {user.currentRankSlug}
           </span>
@@ -238,7 +265,22 @@ export const DashboardLayout: React.FC = () => {
                     <Icon size={18} />
                     <span>{item.label}</span>
                   </div>
-                  {item.badge && <span className="text-xs font-mono">{item.badge}</span>}
+                  <div className="flex items-center space-x-2">
+                    {item.badge && <span className="text-xs font-mono">{item.badge}</span>}
+                    {item.count !== undefined && item.count > 0 && (
+                      <span
+                        className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                          item.isAlert
+                            ? 'bg-red-600 text-white animate-pulse'
+                            : isActive
+                            ? 'bg-white/20 text-white'
+                            : 'bg-[#F1ECDD] text-[#5B5C50]'
+                        }`}
+                      >
+                        {item.count}
+                      </span>
+                    )}
+                  </div>
                 </NavLink>
               );
             })}
