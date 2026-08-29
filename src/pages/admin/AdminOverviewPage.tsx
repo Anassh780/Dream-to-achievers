@@ -29,22 +29,22 @@ export const AdminOverviewPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3DCC8]">
         <div className="space-y-1">
           <div className="flex items-center space-x-2 text-xs font-mono text-[#5B5C50]">
-            <span>Management</span>
+            <span>Executive Console</span>
             <span>•</span>
             <span>Platform Overview</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F]">
-            System Administration Overview
+            Executive Business Dashboard
           </h1>
           <p className="text-xs text-[#5B5C50]">
-            Core operational metrics, commercial volume, and pending partner rewards.
+            High-level operational overview of commercial sales, reseller profit distributions, and pending disbursements.
           </p>
         </div>
 
         <div className="flex items-center space-x-2.5">
           <Link to="/admin/rewards">
             <Button variant="outline" size="sm" className="text-xs">
-              Review Rewards ({pendingRewardsCount})
+              Payouts Queue ({pendingRewardsCount})
             </Button>
           </Link>
           <Link to="/admin/products">
@@ -57,60 +57,75 @@ export const AdminOverviewPage: React.FC = () => {
 
       {/* Primary KPI Matrix */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-        <div className="p-5 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
-          <span className="text-[#5B5C50] font-mono block">Total Registered Partners</span>
+        <div className="p-5 rounded-2xl bg-white border border-[#E3DCC8] space-y-2 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[#5B5C50] text-xs font-medium">Registered Partners</span>
+            <span className="w-2 h-2 rounded-full bg-[#1F4D3E]"></span>
+          </div>
           <p className="text-2xl font-bold font-mono text-[#1E241F]">{users.length}</p>
-          <span className="text-[11px] text-[#7C7D70] font-mono">Active accounts</span>
+          <span className="text-[11px] text-[#7C7D70]">Active platform members</span>
         </div>
 
-        <div className="p-5 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
-          <span className="text-[#5B5C50] font-mono block">Wholesale Sales Volume</span>
+        <div className="p-5 rounded-2xl bg-white border border-[#E3DCC8] space-y-2 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[#5B5C50] text-xs font-medium">Total Orders Revenue</span>
+            <span className="w-2 h-2 rounded-full bg-[#B8862E]"></span>
+          </div>
           <p className="text-2xl font-bold font-mono text-[#1E241F]">PKR {totalSalesRevenue.toLocaleString()}</p>
-          <span className="text-[11px] text-[#7C7D70] font-mono">{sales.length} transactions</span>
+          <span className="text-[11px] text-[#7C7D70]">{sales.length} customer purchases</span>
         </div>
 
-        <div className="p-5 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
-          <span className="text-[#5B5C50] font-mono block">Profit Margins Credited</span>
+        <div className="p-5 rounded-2xl bg-white border border-[#E3DCC8] space-y-2 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[#5B5C50] text-xs font-medium">Seller Profit Margins</span>
+            <span className="w-2 h-2 rounded-full bg-[#1F4D3E]"></span>
+          </div>
           <p className="text-2xl font-bold font-mono text-[#1F4D3E]">PKR {totalProfitIssued.toLocaleString()}</p>
-          <span className="text-[11px] text-[#7C7D70] font-mono">Gross partner margins</span>
+          <span className="text-[11px] text-[#7C7D70]">Earned by reseller partners</span>
         </div>
 
-        <div className="p-5 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
-          <span className="text-[#5B5C50] font-mono block">Milestone Rewards Approved</span>
+        <div className="p-5 rounded-2xl bg-white border border-[#E3DCC8] space-y-2 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[#5B5C50] text-xs font-medium">Milestone Rank Bonuses</span>
+            <span className="w-2 h-2 rounded-full bg-[#D4AF37]"></span>
+          </div>
           <p className="text-2xl font-bold font-mono text-[#B8862E]">PKR {totalRewardsApproved.toLocaleString()}</p>
-          <span className="text-[11px] text-[#7C7D70] font-mono">{pendingRewardsCount} pending review</span>
+          <span className="text-[11px] text-[#7C7D70]">{pendingRewardsCount} pending review</span>
         </div>
       </div>
 
       {/* Rank Distribution Snapshot */}
       <div className="p-6 rounded-2xl bg-white border border-[#E3DCC8] space-y-4 text-xs shadow-xs">
         <div className="flex items-center justify-between pb-3 border-b border-[#E3DCC8]">
-          <h3 className="font-serif font-medium text-base text-[#1E241F]">Partner Rank Distribution</h3>
-          <Link to="/admin/ranks" className="text-xs text-[#1F4D3E] hover:underline font-mono">
-            Manage Thresholds →
+          <div>
+            <h3 className="font-serif font-medium text-base text-[#1E241F]">Partner Rank Progression</h3>
+            <p className="text-[11px] text-[#5B5C50]">Active distributors across rank milestone levels</p>
+          </div>
+          <Link to="/admin/ranks" className="text-xs text-[#1F4D3E] hover:underline font-medium">
+            Manage Level Criteria →
           </Link>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
-          <div className="p-3 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8]">
-            <span className="text-[#5B5C50] block text-[11px] font-mono">Unranked</span>
-            <span className="text-xl font-bold font-mono text-[#1E241F]">{rankCounts.unranked}</span>
+          <div className="p-3.5 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8]">
+            <span className="text-[#5B5C50] block text-xs font-medium">Unranked</span>
+            <span className="text-2xl font-bold font-mono text-[#1E241F] mt-1 block">{rankCounts.unranked}</span>
           </div>
-          <div className="p-3 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8]">
-            <span className="text-[#5B5C50] block text-[11px] font-mono">Level 01</span>
-            <span className="text-xl font-bold font-mono text-[#1E241F]">{rankCounts.silver}</span>
+          <div className="p-3.5 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8]">
+            <span className="text-[#1F4D3E] block text-xs font-semibold">Level 01 (Silver)</span>
+            <span className="text-2xl font-bold font-mono text-[#1E241F] mt-1 block">{rankCounts.silver}</span>
           </div>
-          <div className="p-3 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8]">
-            <span className="text-[#5B5C50] block text-[11px] font-mono">Level 02</span>
-            <span className="text-xl font-bold font-mono text-[#1E241F]">{rankCounts.platinum}</span>
+          <div className="p-3.5 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8]">
+            <span className="text-[#1F4D3E] block text-xs font-semibold">Level 02 (Platinum)</span>
+            <span className="text-2xl font-bold font-mono text-[#1E241F] mt-1 block">{rankCounts.platinum}</span>
           </div>
-          <div className="p-3 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8]">
-            <span className="text-[#5B5C50] block text-[11px] font-mono">Level 03</span>
-            <span className="text-xl font-bold font-mono text-[#1E241F]">{rankCounts.gold}</span>
+          <div className="p-3.5 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8]">
+            <span className="text-[#B8862E] block text-xs font-semibold">Level 03 (Gold)</span>
+            <span className="text-2xl font-bold font-mono text-[#1E241F] mt-1 block">{rankCounts.gold}</span>
           </div>
-          <div className="p-3 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8]">
-            <span className="text-[#5B5C50] block text-[11px] font-mono">Level 04</span>
-            <span className="text-xl font-bold font-mono text-[#B8862E]">{rankCounts.diamond}</span>
+          <div className="p-3.5 rounded-xl bg-[#F1ECDD] border border-[#E3DCC8]">
+            <span className="text-[#B8862E] block text-xs font-bold">Level 04 (Diamond)</span>
+            <span className="text-2xl font-bold font-mono text-[#B8862E] mt-1 block">{rankCounts.diamond}</span>
           </div>
         </div>
       </div>

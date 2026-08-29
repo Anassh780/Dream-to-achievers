@@ -78,15 +78,15 @@ export const AdminReferralsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3DCC8]">
         <div className="space-y-1">
           <div className="flex items-center space-x-2 text-xs font-mono text-[#5B5C50]">
-            <span>Network</span>
+            <span>Growth &amp; Network</span>
             <span>/</span>
-            <span>Referral Graph</span>
+            <span>Referrals</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F]">
-            Referral Attribution Engine &amp; Tree Audit
+            Partner Referral Network &amp; Team Connections
           </h1>
           <p className="text-xs text-[#5B5C50]">
-            Immutable ledger of sponsor-partner affiliations powering the dual-qualification milestone engine.
+            Track referral connections between partners and verify team size requirements for rank milestone achievements.
           </p>
         </div>
 
@@ -99,7 +99,7 @@ export const AdminReferralsPage: React.FC = () => {
             iconLeft={<Wrench size={14} className={isReconciling ? 'animate-spin' : ''} />}
             className="text-xs font-medium"
           >
-            {isReconciling ? 'Reconciling...' : 'Run Network Audit & Reconcile'}
+            {isReconciling ? 'Checking...' : 'Sync & Reconcile Network'}
           </Button>
         </div>
       </div>

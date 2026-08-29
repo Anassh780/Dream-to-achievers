@@ -43,15 +43,15 @@ export const AdminRanksPage: React.FC = () => {
     <div className="space-y-6 font-sans max-w-7xl">
       <div className="space-y-1 pb-4 border-b border-[#E3DCC8]">
         <div className="flex items-center space-x-2 text-xs font-mono text-[#5B5C50]">
-          <span>Configuration</span>
+          <span>Growth Engine</span>
           <span>/</span>
-          <span>Milestone Ladder</span>
+          <span>Rank Milestones</span>
         </div>
         <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F]">
-          Milestone Rank Configuration &amp; Economics
+          Rank Levels &amp; Milestone Bonuses
         </h1>
         <p className="text-xs text-[#5B5C50]">
-          Configure sales volumes, team size requirements, and cash bonuses for Level 01–04 tiers.
+          Configure sales volumes, active team size requirements, and cash bonuses for Level 01–04 partner promotions.
         </p>
       </div>
 

@@ -20,6 +20,11 @@ import {
   LockKey,
   X,
   List,
+  FolderSimple,
+  HandCoins,
+  GearSix,
+  CheckCircle,
+  Sparkle,
 } from '@phosphor-icons/react';
 
 interface NavGroup {
@@ -28,6 +33,7 @@ interface NavGroup {
     label: string;
     href: string;
     icon: React.ElementType;
+    badge?: string;
   }[];
 }
 
@@ -39,7 +45,7 @@ export const AdminLayout: React.FC = () => {
 
   if (!isAuthenticated || !isAdmin) {
     return (
-      <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] flex flex-col items-center justify-center p-6 text-center space-y-4 font-sans selection:bg-[#B8862E]/25">
+      <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] flex flex-col items-center justify-center p-6 text-center space-y-4 font-sans">
         <div className="w-16 h-16 rounded-2xl bg-[#1F4D3E]/10 border border-[#1F4D3E]/20 flex items-center justify-center text-[#1F4D3E] mx-auto">
           <LockKey size={36} weight="bold" />
         </div>
@@ -65,28 +71,28 @@ export const AdminLayout: React.FC = () => {
 
   const navGroups: NavGroup[] = [
     {
-      title: 'COMMERCE OPERATIONS',
+      title: 'STORE & COMMERCE',
       items: [
-        { label: 'Overview', href: '/admin', icon: House },
-        { label: 'Category Taxonomy', href: '/admin/categories', icon: Article },
-        { label: 'Products & Inventory', href: '/admin/products', icon: Package },
-        { label: 'Sales Verification', href: '/admin/sales', icon: ShoppingCart },
-        { label: 'Users Management', href: '/admin/users', icon: Users },
+        { label: 'Dashboard Overview', href: '/admin', icon: House },
+        { label: 'Orders & Shipping', href: '/admin/sales', icon: ShoppingCart },
+        { label: 'Product Categories', href: '/admin/categories', icon: FolderSimple },
+        { label: 'Products & Wholesale', href: '/admin/products', icon: Package },
+        { label: 'User Accounts', href: '/admin/users', icon: Users },
       ],
     },
     {
-      title: 'BUSINESS ENGINE',
+      title: 'NETWORK & PAYOUTS',
       items: [
-        { label: 'Referral Audits', href: '/admin/referrals', icon: TreeStructure },
-        { label: 'Rank Milestones', href: '/admin/ranks', icon: Crown },
-        { label: 'Milestone Rewards', href: '/admin/rewards', icon: Gift },
+        { label: 'Referrals & Team Tree', href: '/admin/referrals', icon: TreeStructure },
+        { label: 'Rank Levels', href: '/admin/ranks', icon: Crown },
+        { label: 'Payouts & Bonuses', href: '/admin/rewards', icon: HandCoins },
       ],
     },
     {
-      title: 'SYSTEM & AUDIT',
+      title: 'SYSTEM & SETTINGS',
       items: [
-        { label: 'CMS & Settings', href: '/admin/cms', icon: Article },
-        { label: 'System Audit Logs', href: '/admin/audit-logs', icon: Scroll },
+        { label: 'Website CMS & Config', href: '/admin/cms', icon: GearSix },
+        { label: 'Activity Logs', href: '/admin/audit-logs', icon: Scroll },
       ],
     },
   ];
@@ -94,32 +100,31 @@ export const AdminLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] flex flex-col md:flex-row font-sans selection:bg-[#B8862E]/25">
       
-      {/* Desktop Admin Sidebar */}
-      <aside className="hidden md:flex flex-col justify-between w-64 bg-white border-r border-[#E3DCC8] p-4 shrink-0 min-h-screen sticky top-0 shadow-xs">
-        <div className="space-y-6">
+      {/* Desktop VIP Admin Sidebar */}
+      <aside className="hidden md:flex flex-col justify-between w-68 bg-white border-r border-[#E3DCC8] shrink-0 min-h-screen sticky top-0 shadow-xs z-30">
+        <div className="p-4 space-y-6">
           {/* Header Brand */}
-          <div className="flex items-center justify-between px-2 py-1">
+          <div className="flex items-center justify-between pb-3 border-b border-[#E3DCC8] px-1">
             <Link to="/admin" className="flex items-center gap-2.5">
-              <DreamLogo size={28} />
+              <DreamLogo size={32} />
               <div>
-                <span className="font-serif font-semibold text-sm text-[#1E241F] block">Admin Engine</span>
-                <span className="text-[10px] font-mono text-[#5B5C50]">Super Admin</span>
+                <div className="flex items-center space-x-1.5">
+                  <span className="font-serif font-bold text-sm text-[#1E241F] tracking-tight">DreamToAchievers</span>
+                </div>
+                <div className="flex items-center space-x-1 mt-0.5">
+                  <span className="inline-flex items-center px-1.5 py-0.2 rounded bg-[#1F4D3E] text-white text-[9.5px] font-mono font-semibold uppercase tracking-wider">
+                    Executive Admin
+                  </span>
+                </div>
               </div>
-            </Link>
-            <Link
-              to="/dashboard"
-              className="p-1.5 rounded-lg text-[#5B5C50] hover:text-[#1E241F] hover:bg-[#FAF7EF] transition-colors"
-              title="Switch to Partner Dashboard"
-            >
-              <ArrowSquareOut size={16} />
             </Link>
           </div>
 
           {/* Navigation Groups */}
           <nav className="space-y-5 text-xs">
             {navGroups.map((group) => (
-              <div key={group.title} className="space-y-1.5">
-                <p className="px-3 text-[10px] font-mono font-semibold tracking-wider text-[#7C7D70]">
+              <div key={group.title} className="space-y-1">
+                <p className="px-3 text-[10px] font-mono font-bold tracking-wider text-[#7C7D70]">
                   {group.title}
                 </p>
                 <div className="space-y-0.5">
@@ -134,14 +139,19 @@ export const AdminLayout: React.FC = () => {
                       <NavLink
                         key={item.href}
                         to={item.href}
-                        className={`flex items-center space-x-2.5 px-3 py-2 rounded-lg transition-colors font-medium ${
+                        className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all font-medium ${
                           isActive
-                            ? 'bg-[#1F4D3E] text-white font-medium shadow-xs'
+                            ? 'bg-[#1F4D3E] text-white shadow-xs font-semibold'
                             : 'text-[#5B5C50] hover:text-[#1E241F] hover:bg-[#FAF7EF]'
                         }`}
                       >
-                        <Icon size={15} />
-                        <span>{item.label}</span>
+                        <div className="flex items-center space-x-2.5">
+                          <Icon size={16} weight={isActive ? 'fill' : 'regular'} className={isActive ? 'text-[#D4AF37]' : ''} />
+                          <span className="text-xs">{item.label}</span>
+                        </div>
+                        {isActive && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]"></span>
+                        )}
                       </NavLink>
                     );
                   })}
@@ -152,23 +162,39 @@ export const AdminLayout: React.FC = () => {
         </div>
 
         {/* User Card & Sign Out */}
-        <div className="space-y-2">
-          <div className="pt-2 border-t border-[#E3DCC8] flex items-center justify-between">
-            <SwitchButton size="sm" showLabel={true} className="w-full justify-start text-xs" />
+        <div className="p-4 border-t border-[#E3DCC8] space-y-3 bg-[#FAF7EF]/40">
+          <div className="flex items-center justify-between gap-2">
+            <Link
+              to="/dashboard"
+              className="flex-1 text-center py-1.5 px-2 rounded-lg bg-white border border-[#E3DCC8] text-[11px] font-mono font-medium text-[#1F4D3E] hover:bg-[#FAF7EF] transition-colors"
+            >
+              Partner Hub ↗
+            </Link>
+            <Link
+              to="/"
+              className="flex-1 text-center py-1.5 px-2 rounded-lg bg-white border border-[#E3DCC8] text-[11px] font-mono font-medium text-[#5B5C50] hover:bg-[#FAF7EF] transition-colors"
+            >
+              Live Store ↗
+            </Link>
           </div>
 
           {/* Admin User Info Card */}
-          <div className="p-2.5 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] flex items-center justify-between">
-            <div className="truncate pr-2">
-              <p className="text-xs font-semibold text-[#1E241F] truncate">{user?.fullName}</p>
-              <p className="text-[10px] font-mono text-[#5B5C50] truncate">{user?.email}</p>
+          <div className="p-2.5 rounded-xl bg-white border border-[#E3DCC8] flex items-center justify-between shadow-2xs">
+            <div className="flex items-center space-x-2.5 truncate pr-1">
+              <div className="w-8 h-8 rounded-full bg-[#1F4D3E] text-white flex items-center justify-center font-serif font-bold text-xs shrink-0">
+                {user?.fullName?.charAt(0).toUpperCase()}
+              </div>
+              <div className="truncate">
+                <p className="text-xs font-semibold text-[#1E241F] truncate leading-tight">{user?.fullName}</p>
+                <p className="text-[9.5px] font-mono text-[#5B5C50] truncate">{user?.email}</p>
+              </div>
             </div>
             <button
               onClick={() => {
                 logout();
                 navigate('/login');
               }}
-              className="p-1.5 rounded-lg text-rose-700 hover:bg-rose-50 cursor-pointer"
+              className="p-1.5 rounded-lg text-[#7C7D70] hover:text-rose-700 hover:bg-rose-50 cursor-pointer transition-colors"
               title="Sign Out"
             >
               <SignOut size={16} />
@@ -177,14 +203,16 @@ export const AdminLayout: React.FC = () => {
         </div>
       </aside>
 
-      {/* Mobile Top Header (Android / Touch Devices) */}
+      {/* Mobile Top Header */}
       <header className="md:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E3DCC8] px-4 py-3 flex items-center justify-between">
         <Link to="/admin" className="flex items-center gap-2">
           <DreamLogo size={26} />
-          <span className="font-serif font-semibold text-sm text-[#1E241F]">Admin Portal</span>
+          <div>
+            <span className="font-serif font-semibold text-sm text-[#1E241F] block">Admin Portal</span>
+            <span className="text-[9px] font-mono text-[#1F4D3E] font-semibold uppercase">Executive</span>
+          </div>
         </Link>
         <div className="flex items-center gap-2">
-          <SwitchButton size="sm" showLabel={false} />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 rounded-xl text-[#1E241F] hover:bg-[#FAF7EF] border border-[#E3DCC8]"
@@ -195,13 +223,13 @@ export const AdminLayout: React.FC = () => {
         </div>
       </header>
 
-      {/* Mobile Full Menu Overlay (Android / Mobile Responsive) */}
+      {/* Mobile Full Menu Overlay */}
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-0 top-[57px] z-50 bg-[#FAF7EF] p-5 flex flex-col justify-between overflow-y-auto border-b border-[#E3DCC8] animate-in slide-in-from-top-2">
           <nav className="space-y-4 text-xs">
             {navGroups.map((group) => (
               <div key={group.title} className="space-y-1">
-                <p className="text-[10px] font-mono font-semibold tracking-wider text-[#7C7D70]">
+                <p className="text-[10px] font-mono font-bold tracking-wider text-[#7C7D70]">
                   {group.title}
                 </p>
                 <div className="space-y-1">
@@ -274,3 +302,4 @@ export const AdminLayout: React.FC = () => {
 };
 
 export default AdminLayout;
+

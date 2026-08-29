@@ -210,15 +210,15 @@ export const AdminProductsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3DCC8]">
         <div className="space-y-1">
           <div className="flex items-center space-x-2 text-xs font-mono text-[#5B5C50]">
-            <span>Admin Console</span>
+            <span>Store Admin</span>
             <span>/</span>
-            <span>Product Catalog</span>
+            <span>Products &amp; Inventory</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F] tracking-tight">
-            Wholesale Products &amp; Inventory
+            Products &amp; Wholesale Catalog
           </h1>
           <p className="text-xs text-[#5B5C50]">
-            Manage SKU records, category assignments, and unit economics margins.
+            Manage products, wholesale pricing, retail margins, and in-stock inventory for your store.
           </p>
         </div>
 
@@ -229,7 +229,7 @@ export const AdminProductsPage: React.FC = () => {
           className="text-xs font-medium shrink-0"
           iconLeft={<Plus size={14} />}
         >
-          Add New Product
+          + Add New Product
         </Button>
       </div>
 
@@ -239,6 +239,26 @@ export const AdminProductsPage: React.FC = () => {
           <span className="font-semibold">{toastMsg}</span>
         </div>
       )}
+
+      {/* KPI Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-4 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
+          <span className="text-xs text-[#5B5C50] font-mono block">Listed Products</span>
+          <span className="text-2xl font-bold font-mono text-[#1E241F]">{products.length}</span>
+        </div>
+        <div className="p-4 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
+          <span className="text-xs text-[#5B5C50] font-mono block">In Stock &amp; Available</span>
+          <span className="text-2xl font-bold font-mono text-[#1F4D3E]">
+            {products.filter((p) => p.inStock).length}
+          </span>
+        </div>
+        <div className="p-4 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
+          <span className="text-xs text-[#5B5C50] font-mono block">Featured Highlights</span>
+          <span className="text-2xl font-bold font-mono text-[#B8862E]">
+            {products.filter((p) => p.isFeatured).length}
+          </span>
+        </div>
+      </div>
 
       {/* 2. Search & Category Filter Toolbar */}
       <div className="p-3.5 rounded-xl bg-white border border-[#E3DCC8] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs shadow-xs">

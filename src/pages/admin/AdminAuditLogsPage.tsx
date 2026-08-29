@@ -14,15 +14,15 @@ export const AdminAuditLogsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3DCC8]">
         <div className="space-y-1">
           <div className="flex items-center space-x-2 text-xs font-mono text-[#5B5C50]">
-            <span>Security</span>
+            <span>System</span>
             <span>/</span>
-            <span>Audit Trail</span>
+            <span>Activity Logs</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F]">
-            System Operations &amp; Audit Logs
+            Administrative Activity Logs
           </h1>
           <p className="text-xs text-[#5B5C50]">
-            Tamper-resistant audit registry capturing all admin modifications, rank promotions, and catalog adjustments.
+            Live history log tracking all administrative changes, product updates, user promotions, and payout disbursements.
           </p>
         </div>
 

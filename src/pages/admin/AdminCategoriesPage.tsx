@@ -155,15 +155,15 @@ export const AdminCategoriesPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3DCC8]">
         <div className="space-y-1">
           <div className="flex items-center space-x-2 text-xs font-mono text-[#5B5C50]">
-            <span>Admin Console</span>
+            <span>Store Admin</span>
             <span>/</span>
-            <span>Commerce Taxonomy</span>
+            <span>Product Categories</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F] tracking-tight">
-            Category Taxonomy &amp; Hierarchy Management
+            Product Categories &amp; Collections
           </h1>
           <p className="text-xs text-[#5B5C50]">
-            Manage 3-tier parent/subcategory taxonomy with drag ordering and product count protection.
+            Organize catalog categories and sub-collections so partners and buyers can easily explore products.
           </p>
         </div>
 
@@ -174,7 +174,7 @@ export const AdminCategoriesPage: React.FC = () => {
           className="text-xs font-medium shrink-0"
           iconLeft={<Plus size={14} />}
         >
-          Add Root Category
+          + Add New Category
         </Button>
       </div>
 
@@ -191,87 +191,116 @@ export const AdminCategoriesPage: React.FC = () => {
         </div>
       )}
 
-      {/* 2. Taxonomy Hierarchy Tree Table */}
-      <div className="rounded-xl border border-[#E3DCC8] bg-white overflow-hidden text-xs shadow-xs">
-        <div className="p-3.5 bg-[#F1ECDD] border-b border-[#E3DCC8] flex items-center justify-between font-mono">
-          <span className="font-semibold text-[#1E241F]">Category Hierarchy Tree</span>
-          <span className="text-[10px] text-[#5B5C50]">{rawCategories.length} Categories</span>
+      {/* KPI Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-4 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
+          <span className="text-xs text-[#5B5C50] font-mono block">Main Categories</span>
+          <span className="text-2xl font-bold font-mono text-[#1E241F]">{categoryTree.length}</span>
+        </div>
+        <div className="p-4 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
+          <span className="text-xs text-[#5B5C50] font-mono block">Total Sub-Collections</span>
+          <span className="text-2xl font-bold font-mono text-[#1F4D3E]">
+            {rawCategories.length - categoryTree.length}
+          </span>
+        </div>
+        <div className="p-4 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
+          <span className="text-xs text-[#5B5C50] font-mono block">Total Products Mapped</span>
+          <span className="text-2xl font-bold font-mono text-[#B8862E]">{allProducts.length}</span>
+        </div>
+      </div>
+
+      {/* 2. Categories Hierarchy Cards */}
+      <div className="rounded-2xl border border-[#E3DCC8] bg-white overflow-hidden text-xs shadow-xs">
+        <div className="p-4 bg-[#F1ECDD] border-b border-[#E3DCC8] flex items-center justify-between">
+          <div>
+            <span className="font-serif font-bold text-[#1E241F] text-sm block">Catalog Categories</span>
+            <span className="text-[11px] text-[#5B5C50]">Organized in parent categories and sub-items</span>
+          </div>
+          <span className="text-xs font-mono font-bold text-[#1F4D3E] px-2.5 py-1 rounded bg-white border border-[#E3DCC8]">
+            {rawCategories.length} Total
+          </span>
         </div>
 
         <div className="divide-y divide-[#E3DCC8]">
           {categoryTree.map((parent) => (
-            <div key={parent.id} className="p-4 hover:bg-[#FAF7EF] transition-colors space-y-3">
-              {/* Parent Level 1 Row */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] flex items-center justify-center text-[#1F4D3E]">
-                    <CategoryIcon name={parent.icon} size={16} />
+            <div key={parent.id} className="p-5 hover:bg-[#FAF7EF]/60 transition-colors space-y-3">
+              {/* Parent Level Row */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center space-x-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] flex items-center justify-center text-[#1F4D3E] shrink-0 shadow-2xs">
+                    <CategoryIcon name={parent.icon} size={20} />
                   </div>
                   <div>
                     <div className="flex items-center space-x-2">
-                      <h3 className="font-serif font-semibold text-sm text-[#1E241F]">{parent.name}</h3>
-                      <span className="text-[10px] font-mono px-2 py-0.2 rounded bg-[#F1ECDD] text-[#1F4D3E] border border-[#E3DCC8]">
-                        Tier 1 (Root)
+                      <h3 className="font-serif font-semibold text-base text-[#1E241F]">{parent.name}</h3>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#F1ECDD] text-[#1F4D3E] border border-[#E3DCC8] font-medium">
+                        Main Category
                       </span>
                     </div>
-                    <p className="text-[11px] text-[#5B5C50] font-mono">
-                      Slug: /{parent.slug} • {parent.productCount || 0} Products
+                    <p className="text-xs text-[#5B5C50] mt-0.5">
+                      {parent.description || `Collection path: /${parent.slug}`} • <span className="font-semibold text-[#1E241F] font-mono">{parent.productCount || 0} Products</span>
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 shrink-0">
                   <button
                     onClick={() => handleOpenCreate(parent.id)}
-                    className="px-2 py-1 rounded bg-[#FAF7EF] hover:bg-[#F1ECDD] text-[#1E241F] border border-[#E3DCC8] text-[11px] font-mono flex items-center gap-1"
+                    className="px-3 py-1.5 rounded-lg bg-white hover:bg-[#FAF7EF] text-[#1F4D3E] border border-[#E3DCC8] text-xs font-medium flex items-center gap-1.5 shadow-2xs transition-colors"
                   >
-                    <Plus size={12} /> Subcategory
+                    <Plus size={13} weight="bold" /> Add Subcategory
                   </button>
                   <button
                     onClick={() => handleOpenEdit(parent)}
-                    className="p-1.5 rounded bg-[#FAF7EF] hover:bg-[#F1ECDD] text-[#1E241F] border border-[#E3DCC8]"
+                    className="p-2 rounded-lg bg-white hover:bg-[#FAF7EF] text-[#5B5C50] hover:text-[#1E241F] border border-[#E3DCC8] shadow-2xs transition-colors"
                     title="Edit Category"
                   >
-                    <PencilSimple size={13} />
+                    <PencilSimple size={14} />
                   </button>
                   <button
                     onClick={() => handleDelete(parent)}
-                    className="p-1.5 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200"
+                    className="p-2 rounded-lg bg-white hover:bg-rose-50 text-[#7C7D70] hover:text-rose-700 border border-[#E3DCC8] hover:border-rose-200 shadow-2xs transition-colors"
                     title="Delete Category"
                   >
-                    <Trash size={13} />
+                    <Trash size={14} />
                   </button>
                 </div>
               </div>
 
-              {/* Subcategories Level 2 Tier */}
+              {/* Subcategories Level */}
               {parent.children && parent.children.length > 0 && (
-                <div className="pl-6 ml-4 border-l-2 border-[#E3DCC8] space-y-2">
+                <div className="pl-6 ml-5 border-l-2 border-[#E3DCC8] space-y-2 pt-1">
                   {parent.children.map((sub) => (
                     <div
                       key={sub.id}
-                      className="p-2.5 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] flex items-center justify-between"
+                      className="p-3 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] flex items-center justify-between hover:bg-white transition-colors"
                     >
-                      <div className="flex items-center space-x-2.5">
-                        <CategoryIcon name={sub.icon} size={14} className="text-[#5B5C50]" />
-                        <span className="font-serif font-medium text-[#1E241F] text-xs">{sub.name}</span>
-                        <span className="text-[10px] font-mono text-[#7C7D70]">
-                          ({sub.productCount || 0} items)
-                        </span>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-6 h-6 rounded-md bg-white border border-[#E3DCC8] flex items-center justify-center text-[#5B5C50]">
+                          <CategoryIcon name={sub.icon} size={13} />
+                        </div>
+                        <div>
+                          <span className="font-serif font-medium text-[#1E241F] text-xs block">{sub.name}</span>
+                          <span className="text-[10px] font-mono text-[#7C7D70]">
+                            {sub.productCount || 0} products in sub-collection
+                          </span>
+                        </div>
                       </div>
 
                       <div className="flex items-center space-x-1.5">
                         <button
                           onClick={() => handleOpenEdit(sub)}
-                          className="p-1 rounded bg-white hover:bg-[#F1ECDD] text-[#1E241F] border border-[#E3DCC8]"
+                          className="p-1.5 rounded-lg text-[#5B5C50] hover:text-[#1E241F] hover:bg-white"
+                          title="Edit Subcategory"
                         >
-                          <PencilSimple size={12} />
+                          <PencilSimple size={13} />
                         </button>
                         <button
                           onClick={() => handleDelete(sub)}
-                          className="p-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200"
+                          className="p-1.5 rounded-lg text-[#7C7D70] hover:text-rose-700 hover:bg-rose-50"
+                          title="Delete Subcategory"
                         >
-                          <Trash size={12} />
+                          <Trash size={13} />
                         </button>
                       </div>
                     </div>
@@ -292,8 +321,8 @@ export const AdminCategoriesPage: React.FC = () => {
                 <h3 className="font-serif font-medium text-lg text-[#1E241F]">
                   {editingCategory ? 'Edit Category' : 'Create New Category'}
                 </h3>
-                <p className="text-[11px] font-mono text-[#5B5C50]">
-                  Configure taxonomy parameters &amp; parent relationships
+                <p className="text-xs text-[#5B5C50]">
+                  Configure category name, icon, collection banner, and hierarchy placement.
                 </p>
               </div>
               <button

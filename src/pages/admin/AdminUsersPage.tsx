@@ -34,15 +34,15 @@ export const AdminUsersPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3DCC8]">
         <div className="space-y-1">
           <div className="flex items-center space-x-2 text-xs font-mono text-[#5B5C50]">
-            <span>Operations</span>
+            <span>Store Admin</span>
             <span>/</span>
-            <span>Partners Directory</span>
+            <span>User Accounts</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F]">
-            Partner Accounts &amp; Access Control
+            User Accounts &amp; Permissions
           </h1>
           <p className="text-xs text-[#5B5C50]">
-            Manage registered distributors, modify milestone levels, and adjust account permissions.
+            Manage registered members, view referral codes, adjust rank milestones, and control account permissions.
           </p>
         </div>
 
@@ -55,6 +55,26 @@ export const AdminUsersPage: React.FC = () => {
             placeholder="Search name, email, code..."
             className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-white border border-[#E3DCC8] text-[#1E241F] placeholder:text-[#7C7D70] focus:outline-none focus:border-[#1F4D3E]"
           />
+        </div>
+      </div>
+
+      {/* User Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-4 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
+          <span className="text-xs text-[#5B5C50] font-mono block">Total Accounts</span>
+          <span className="text-2xl font-bold font-mono text-[#1E241F]">{users.length}</span>
+        </div>
+        <div className="p-4 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
+          <span className="text-xs text-[#5B5C50] font-mono block">Active Partners</span>
+          <span className="text-2xl font-bold font-mono text-[#1F4D3E]">
+            {users.filter((u) => u.isActive !== false).length}
+          </span>
+        </div>
+        <div className="p-4 rounded-xl bg-white border border-[#E3DCC8] space-y-1 shadow-xs">
+          <span className="text-xs text-[#5B5C50] font-mono block">Administrators</span>
+          <span className="text-2xl font-bold font-mono text-[#B8862E]">
+            {users.filter((u) => u.role === 'admin').length}
+          </span>
         </div>
       </div>
 

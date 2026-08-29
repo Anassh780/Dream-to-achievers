@@ -120,15 +120,15 @@ export const AdminCMSPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3DCC8]">
         <div className="space-y-1">
           <div className="flex items-center space-x-2 text-xs font-mono text-[#5B5C50]">
-            <span>System</span>
+            <span>System Settings</span>
             <span>/</span>
-            <span>CMS &amp; Brand Settings</span>
+            <span>Brand &amp; Social Links</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F] tracking-tight">
-            Platform Brand Configuration &amp; Social Desks
+            Website Branding &amp; Social Channels
           </h1>
           <p className="text-xs text-[#5B5C50]">
-            Manage brand identity, support emails, WhatsApp lines, and official social media handles anytime.
+            Manage platform contact information, WhatsApp support number, and official social media handles.
           </p>
         </div>
 
