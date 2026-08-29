@@ -11,40 +11,50 @@ export const AdminReferralsPage: React.FC = () => {
   const [isReconciling, setIsReconciling] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
 
-  const fetchLatestReferrals = useCallback(async () => {
-    try {
-      const allUsers = storage.get<any[]>('USERS', []);
-      for (const u of allUsers) {
-        if (u.id) {
-          await referralService.syncUserReferrals(u.id).catch(() => {});
+  useEffect(() => {
+    let isMounted = true;
+    const fetchLatest = async () => {
+      try {
+        const allUsers = storage.get<any[]>('USERS', []);
+        for (const u of allUsers) {
+          if (u.id) {
+            await referralService.syncUserReferrals(u.id).catch(() => {});
+          }
+        }
+        if (isMounted) {
+          setReferrals(storage.get<ReferralRecord[]>('REFERRALS', []));
+        }
+      } catch {
+        if (isMounted) {
+          setReferrals(storage.get<ReferralRecord[]>('REFERRALS', []));
         }
       }
-      setReferrals(storage.get<ReferralRecord[]>('REFERRALS', []));
-    } catch {
-      setReferrals(storage.get<ReferralRecord[]>('REFERRALS', []));
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchLatestReferrals();
+    };
+    fetchLatest();
 
     const handleStorageChange = () => {
-      setReferrals(storage.get<ReferralRecord[]>('REFERRALS', []));
+      if (isMounted) {
+        setReferrals(storage.get<ReferralRecord[]>('REFERRALS', []));
+      }
     };
 
     window.addEventListener('dta_storage_change', handleStorageChange);
-    return () => window.removeEventListener('dta_storage_change', handleStorageChange);
-  }, [fetchLatestReferrals]);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('dta_storage_change', handleStorageChange);
+    };
+  }, []);
 
   const handleRunReconciliation = async () => {
     setIsReconciling(true);
     setStatusMessage('');
     try {
       const res = await referralService.runPlatformReconciliation();
-      await fetchLatestReferrals();
+      setReferrals(storage.get<ReferralRecord[]>('REFERRALS', []));
       setStatusMessage(`Reconciliation completed. ${res.totalReferrals} total referral connections verified.`);
       setTimeout(() => setStatusMessage(''), 4000);
     } catch (e: any) {
+      setReferrals(storage.get<ReferralRecord[]>('REFERRALS', []));
       setStatusMessage('Reconciliation finished with local graph updates.');
       setTimeout(() => setStatusMessage(''), 4000);
     } finally {

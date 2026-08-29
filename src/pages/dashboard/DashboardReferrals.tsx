@@ -10,35 +10,54 @@ export const DashboardReferrals: React.FC = () => {
   const [copiedCode, setCopiedCode] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
-  const [referrals, setReferrals] = useState(() => (user ? referralService.getUserReferrals(user.id) : []));
+  const [referrals, setReferrals] = useState<any[]>(() => (user ? referralService.getUserReferrals(user.id) : []));
 
-  const handleSync = useCallback(async () => {
-    if (!user) return;
+  // Manual sync triggered on button click
+  const handleManualSync = async () => {
+    if (!user || isSyncing) return;
     setIsSyncing(true);
+    setSyncMessage('');
     try {
       const synced = await referralService.syncUserReferrals(user.id);
       setReferrals(synced);
       refreshUserData();
       setSyncMessage('Team network synchronized successfully.');
-      setTimeout(() => setSyncMessage(''), 3000);
+      setTimeout(() => setSyncMessage(''), 3500);
     } catch {
       setReferrals(referralService.getUserReferrals(user.id));
     } finally {
       setIsSyncing(false);
     }
-  }, [user, refreshUserData]);
+  };
 
+  // Initial silent background sync on component mount
   useEffect(() => {
     if (!user) return;
-    handleSync();
+    
+    let isMounted = true;
+    referralService.syncUserReferrals(user.id).then((synced) => {
+      if (isMounted) {
+        setReferrals(synced);
+        refreshUserData();
+      }
+    }).catch(() => {
+      if (isMounted) {
+        setReferrals(referralService.getUserReferrals(user.id));
+      }
+    });
 
     const handleStorageChange = () => {
-      if (user) setReferrals(referralService.getUserReferrals(user.id));
+      if (isMounted && user) {
+        setReferrals(referralService.getUserReferrals(user.id));
+      }
     };
 
     window.addEventListener('dta_storage_change', handleStorageChange);
-    return () => window.removeEventListener('dta_storage_change', handleStorageChange);
-  }, [user, handleSync]);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('dta_storage_change', handleStorageChange);
+    };
+  }, [user?.id]);
 
   if (!user || !rankProgress) return null;
 
@@ -86,7 +105,7 @@ export const DashboardReferrals: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={handleSync}
+            onClick={handleManualSync}
             disabled={isSyncing}
             iconLeft={<ArrowClockwise size={14} className={isSyncing ? 'animate-spin text-[#1F4D3E]' : ''} />}
             className="text-xs"

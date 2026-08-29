@@ -49,21 +49,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  // Synchronous local state refresh (never triggers storage writes or network loops)
   const refreshUserData = useCallback(() => {
     storage.init();
     referralService.captureFromUrl();
     const currentUser = authService.getCurrentUser();
     setUser(currentUser);
     calculateUserMetrics(currentUser);
-
-    if (currentUser?.id) {
-      referralService.syncUserReferrals(currentUser.id).then(() => {
-        rankEngine.checkAndPromoteUser(currentUser.id);
-        const updated = authService.getCurrentUser();
-        setUser(updated);
-        calculateUserMetrics(updated);
-      }).catch(() => {});
-    }
   }, [calculateUserMetrics]);
 
   useEffect(() => {
@@ -76,9 +68,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       calculateUserMetrics(firebaseUser);
     });
 
-    // 3. Storage event listener for cross-tab sync
+    // 3. Storage event listener for cross-tab and local state updates (pure read-only)
     const handleStorageChange = () => {
-      refreshUserData();
+      const currentUser = authService.getCurrentUser();
+      setUser(currentUser);
+      calculateUserMetrics(currentUser);
     };
 
     window.addEventListener('dta_storage_change', handleStorageChange);
