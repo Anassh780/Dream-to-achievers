@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { referralService } from '@/services/referralService';
 import { Button } from '@/components/ui/Button';
 import { DreamLogo } from '@/components/ui/DreamLogo';
 import { Loader } from '@/components/ui/Loader';
 import { storage } from '@/services/storage';
+import { User as UserType } from '@/types';
 import {
   User,
   EnvelopeSimple,
@@ -16,6 +18,8 @@ import {
   ShieldCheck,
   ArrowRight,
   ArrowLeft,
+  Check,
+  WarningCircle,
 } from '@phosphor-icons/react';
 
 export const Signup: React.FC = () => {
@@ -27,6 +31,8 @@ export const Signup: React.FC = () => {
   const [referralCode, setReferralCode] = useState(
     searchParams.get('ref') || searchParams.get('r') || searchParams.get('referral') || storage.getRaw('CAPTURED_REF') || ''
   );
+  const [verifiedSponsor, setVerifiedSponsor] = useState<UserType | null>(null);
+  const [validatingSponsor, setValidatingSponsor] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -49,6 +55,30 @@ export const Signup: React.FC = () => {
       }
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!referralCode.trim()) {
+      setVerifiedSponsor(null);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setValidatingSponsor(true);
+      try {
+        const res = await referralService.validateReferralCode(referralCode);
+        if (res.valid && res.referrer) {
+          setVerifiedSponsor(res.referrer);
+        } else {
+          setVerifiedSponsor(null);
+        }
+      } catch {
+        setVerifiedSponsor(null);
+      } finally {
+        setValidatingSponsor(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [referralCode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -249,7 +279,12 @@ export const Signup: React.FC = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="block text-[#5B5C50] font-medium">Referral Sponsor Code (Optional)</label>
+                <div className="flex items-center justify-between">
+                  <label className="block text-[#5B5C50] font-medium">Referral Sponsor Code (Optional)</label>
+                  {validatingSponsor && (
+                    <span className="text-[10px] font-mono text-[#7C7D70]">Checking sponsor...</span>
+                  )}
+                </div>
                 <div className="relative">
                   <Tag size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B5C50]" />
                   <input
@@ -260,6 +295,24 @@ export const Signup: React.FC = () => {
                     className="w-full pl-9 pr-3.5 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] placeholder:text-[#5B5C50]/60 text-xs focus:outline-none focus:border-[#1F4D3E] font-mono uppercase"
                   />
                 </div>
+                {verifiedSponsor && (
+                  <div className="p-2.5 rounded-lg bg-[#F1ECDD] border border-[#E3DCC8] flex items-center justify-between text-xs text-[#1F4D3E] animate-in fade-in">
+                    <div className="flex items-center space-x-2 truncate">
+                      <CheckCircle size={15} weight="fill" className="text-[#1F4D3E] shrink-0" />
+                      <span className="truncate">
+                        Sponsor: <strong>{verifiedSponsor.fullName}</strong> ({verifiedSponsor.referralCode})
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-white/70 text-[#1F4D3E] shrink-0">
+                      Verified
+                    </span>
+                  </div>
+                )}
+                {!verifiedSponsor && referralCode.trim().length >= 3 && !validatingSponsor && (
+                  <p className="text-[10px] text-[#7C7D70] font-mono">
+                    Code will be registered and verified upon account setup.
+                  </p>
+                )}
               </div>
 
               <div className="flex items-start space-x-2 pt-1">

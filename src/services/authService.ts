@@ -261,9 +261,13 @@ export const authService = {
     const cleanRef = referralCode ? referralCode.trim().toUpperCase() : undefined;
 
     if (cleanRef) {
-      const found = await referralService.findReferrerByCode(cleanRef);
-      if (found) {
-        validReferrer = found;
+      try {
+        const found = await referralService.findReferrerByCode(cleanRef);
+        if (found) {
+          validReferrer = found;
+        }
+      } catch (e) {
+        console.warn('Pre-auth referrer check error:', e);
       }
     }
 
@@ -279,7 +283,7 @@ export const authService = {
         console.warn('updateProfile failed:', pErr);
       }
 
-      // 2. Retry referrer lookup with newly authenticated credentials if not found earlier
+      // 2. Retry referrer lookup with newly authenticated session if not found earlier
       if (cleanRef && !validReferrer) {
         try {
           const retryFound = await referralService.findReferrerByCode(cleanRef);
@@ -363,6 +367,12 @@ export const authService = {
         createdAt: new Date().toISOString(),
       });
       storage.set('NOTIFICATIONS', userNotifs);
+
+      // Clear captured referral URL storage after successful signup
+      storage.remove('CAPTURED_REF');
+      try {
+        sessionStorage.removeItem('dta_captured_ref');
+      } catch {}
 
       return { success: true, user: newUser };
     } catch (err: any) {

@@ -1,7 +1,19 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { referralService } from '@/services/referralService';
+
+// Global Referral URL Interceptor
+const ReferralTracker: React.FC = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    referralService.captureFromUrl();
+  }, [location]);
+
+  return null;
+};
 
 // Layouts
 import { PublicLayout } from '@/layouts/PublicLayout';
@@ -54,6 +66,7 @@ export const App: React.FC = () => {
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
+          <ReferralTracker />
           <Routes>
             {/* Public Portal Routes */}
             <Route path="/" element={<PublicLayout />}>

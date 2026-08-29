@@ -58,7 +58,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (currentUser?.id) {
       referralService.syncUserReferrals(currentUser.id).then(() => {
-        calculateUserMetrics(authService.getCurrentUser());
+        rankEngine.checkAndPromoteUser(currentUser.id);
+        const updated = authService.getCurrentUser();
+        setUser(updated);
+        calculateUserMetrics(updated);
       }).catch(() => {});
     }
   }, [calculateUserMetrics]);

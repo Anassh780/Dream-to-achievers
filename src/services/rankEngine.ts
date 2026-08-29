@@ -1,6 +1,8 @@
 import { RankDefinition, RankSlug, UserRankProgress, User } from '@/types';
 import { CANONICAL_RANKS, UNRANKED_DEFINITION } from '@/config/ranks';
 import { storage } from './storage';
+import { referralService } from './referralService';
+import { salesService } from './salesService';
 
 export const rankEngine = {
   /**
@@ -101,11 +103,11 @@ export const rankEngine = {
 
     const user = users[userIndex];
 
-    // Compute qualifying metrics for this user
-    const sales = storage.get<any[]>('SALES', []).filter((s) => s.userId === userId && s.isQualifying);
-    const referrals = storage.get<any[]>('REFERRALS', []).filter((r) => r.referrerId === userId && r.isQualifying);
+    // Compute qualifying metrics for this user using unified service functions
+    const qualifyingSales = salesService.getQualifyingSalesCount(userId);
+    const qualifyingCommunity = referralService.getQualifyingCommunityCount(userId);
 
-    const achievedRank = this.evaluateRank(sales.length, referrals.length);
+    const achievedRank = this.evaluateRank(qualifyingSales, qualifyingCommunity);
 
     if (achievedRank.order > 0 && achievedRank.slug !== user.currentRankSlug) {
       // Check if user already claimed this rank historically to prevent duplicate rewards
@@ -143,8 +145,8 @@ export const rankEngine = {
           previousRankSlug: user.currentRankSlug || 'unranked',
           newRankSlug: achievedRank.slug,
           achievedAt: new Date().toISOString(),
-          qualifyingSalesAtAchievement: sales.length,
-          qualifyingCommunityAtAchievement: referrals.length,
+          qualifyingSalesAtAchievement: qualifyingSales,
+          qualifyingCommunityAtAchievement: qualifyingCommunity,
           rewardAmountIssued: achievedRank.rewardAmount,
           rewardId,
         };
