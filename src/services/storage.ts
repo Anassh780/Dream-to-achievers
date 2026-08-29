@@ -25,6 +25,8 @@ const STORAGE_KEYS = {
   SALES: 'dta_sales',
   REFERRALS: 'dta_referrals',
   REWARDS: 'dta_rewards',
+  WITHDRAWALS: 'dta_withdrawals',
+  PAYMENT_METHODS: 'dta_payment_methods',
   RANK_HISTORY: 'dta_rank_history',
   NOTIFICATIONS: 'dta_notifications',
   AUDIT_LOGS: 'dta_audit_logs',
@@ -55,6 +57,12 @@ export const storage = {
     }
     if (!localStorage.getItem(STORAGE_KEYS.REWARDS)) {
       localStorage.setItem(STORAGE_KEYS.REWARDS, JSON.stringify([]));
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.WITHDRAWALS)) {
+      localStorage.setItem(STORAGE_KEYS.WITHDRAWALS, JSON.stringify([]));
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.PAYMENT_METHODS)) {
+      localStorage.setItem(STORAGE_KEYS.PAYMENT_METHODS, JSON.stringify([]));
     }
     if (!localStorage.getItem(STORAGE_KEYS.RANK_HISTORY)) {
       localStorage.setItem(STORAGE_KEYS.RANK_HISTORY, JSON.stringify([]));

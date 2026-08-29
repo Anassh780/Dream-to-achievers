@@ -37,7 +37,12 @@ export const DashboardProducts: React.FC = () => {
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
+  const [customerAddress, setCustomerAddress] = useState('');
+  const [customerCity, setCustomerCity] = useState('');
+  const [paymentScreenshotUrl, setPaymentScreenshotUrl] = useState('');
+  const [paymentProofNotes, setPaymentProofNotes] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -56,28 +61,49 @@ export const DashboardProducts: React.FC = () => {
     return productService.sortProducts(filtered, sortBy);
   }, [allProducts, selectedCategorySlug, searchQuery, sortBy]);
 
-  const handleRecordSale = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !selectedProduct || !customerName) return;
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    salesService.recordSale({
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      if (typeof uploadEvent.target?.result === 'string') {
+        setPaymentScreenshotUrl(uploadEvent.target.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRecordSale = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !selectedProduct || !customerName || !customerPhone || !customerAddress) return;
+
+    await salesService.recordSale({
       userId: user.id,
       product: selectedProduct,
       customerName,
+      customerPhone,
       customerEmail,
+      customerAddress,
+      customerCity,
+      paymentScreenshotUrl: paymentScreenshotUrl || undefined,
+      paymentProofNotes: paymentProofNotes || undefined,
       quantity,
     });
 
     setSuccessMsg(
-      `Sale recorded for ${selectedProduct.name}. +PKR ${(
-        selectedProduct.grossMargin * quantity
-      ).toLocaleString()} gross profit margin credited to your ledger.`
+      `Order submitted for ${selectedProduct.name}! Admin operations will verify the client payment screenshot and update dispatch tracking.`
     );
     setSelectedProduct(null);
     setCustomerName('');
+    setCustomerPhone('');
     setCustomerEmail('');
+    setCustomerAddress('');
+    setCustomerCity('');
+    setPaymentScreenshotUrl('');
+    setPaymentProofNotes('');
     setQuantity(1);
-    setTimeout(() => setSuccessMsg(''), 4500);
+    setTimeout(() => setSuccessMsg(''), 5500);
   };
 
   const handleExportCatalog = () => {
@@ -353,14 +379,14 @@ export const DashboardProducts: React.FC = () => {
       {/* 5. Record Client Sale Modal */}
       {selectedProduct && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="rounded-2xl bg-white border border-[#E3DCC8] p-6 max-w-md w-full space-y-4 shadow-xl animate-in zoom-in-95">
+          <div className="rounded-2xl bg-white border border-[#E3DCC8] p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto space-y-4 shadow-xl animate-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-[#E3DCC8]">
               <div>
                 <h3 className="font-serif font-medium text-base text-[#1E241F]">
-                  Record Customer Sale
+                  Submit Customer Order &amp; Proof
                 </h3>
                 <p className="text-[11px] font-mono text-[#5B5C50]">
-                  {selectedProduct.name} ({selectedProduct.sku})
+                  {selectedProduct.name} (SKU: {selectedProduct.sku})
                 </p>
               </div>
               <button
@@ -372,31 +398,47 @@ export const DashboardProducts: React.FC = () => {
             </div>
 
             <form onSubmit={handleRecordSale} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block text-[#5B5C50] mb-1 font-medium">Customer Full Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="e.g. Tariq Mehmood"
-                  className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#5B5C50] mb-1 font-medium">Customer Contact</label>
+                  <label className="block text-[#5B5C50] mb-1 font-medium">Customer Full Name *</label>
                   <input
                     type="text"
-                    value={customerEmail}
-                    onChange={(e) => setCustomerEmail(e.target.value)}
-                    placeholder="client@email.com"
+                    required
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder="e.g. Tariq Mehmood"
                     className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E]"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-[#5B5C50] mb-1 font-medium">Quantity Sold</label>
+                  <label className="block text-[#5B5C50] mb-1 font-medium">Customer WhatsApp Number *</label>
+                  <input
+                    type="tel"
+                    required
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    placeholder="0300 1234567"
+                    className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E] font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[#5B5C50] mb-1 font-medium">Destination City *</label>
+                  <input
+                    type="text"
+                    required
+                    value={customerCity}
+                    onChange={(e) => setCustomerCity(e.target.value)}
+                    placeholder="e.g. Lahore / Rawalpindi"
+                    className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[#5B5C50] mb-1 font-medium">Quantity *</label>
                   <input
                     type="number"
                     min={1}
@@ -406,6 +448,76 @@ export const DashboardProducts: React.FC = () => {
                     className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E] font-mono"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-[#5B5C50] mb-1 font-medium">Complete Shipping Address *</label>
+                <textarea
+                  required
+                  rows={2}
+                  value={customerAddress}
+                  onChange={(e) => setCustomerAddress(e.target.value)}
+                  placeholder="House #, Street #, Sector/Area, Landmark..."
+                  className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E]"
+                />
+              </div>
+
+              {/* Payment Proof / Screenshot Upload */}
+              <div className="space-y-1.5">
+                <label className="block text-[#5B5C50] font-medium">
+                  Client Payment Proof / Screenshot *
+                </label>
+                <div className="p-3 rounded-xl bg-[#FAF7EF] border border-dashed border-[#E3DCC8] space-y-2 text-center">
+                  {paymentScreenshotUrl ? (
+                    <div className="relative inline-block">
+                      <img
+                        src={paymentScreenshotUrl}
+                        alt="Payment Proof"
+                        className="max-h-36 max-w-full rounded-lg object-contain border border-[#E3DCC8] mx-auto bg-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPaymentScreenshotUrl('')}
+                        className="absolute -top-2 -right-2 p-1 rounded-full bg-rose-600 text-white shadow-sm hover:bg-rose-700"
+                        title="Remove image"
+                      >
+                        <X size={12} weight="bold" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <input
+                        type="file"
+                        id="proofUpload"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="proofUpload"
+                        className="cursor-pointer inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white border border-[#E3DCC8] text-[#1F4D3E] hover:bg-[#F1ECDD] transition-colors font-medium text-xs shadow-2xs"
+                      >
+                        <span>Attach Payment Slip / Screenshot</span>
+                      </label>
+                      <p className="text-[10px] text-[#7C7D70] mt-1 font-mono">
+                        Supports JPG, PNG, WebP (Bank Transfer / EasyPaisa / JazzCash receipt)
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[#5B5C50] mb-1 font-medium">
+                  Transaction Notes / Reference (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={paymentProofNotes}
+                  onChange={(e) => setPaymentProofNotes(e.target.value)}
+                  placeholder="e.g. Paid via EasyPaisa TRX 982183"
+                  className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E]"
+                />
               </div>
 
               {/* Instant Calculation Ledger Card */}
@@ -419,7 +531,7 @@ export const DashboardProducts: React.FC = () => {
                   <span className="text-[#1E241F]">PKR {selectedProduct.retailPrice.toLocaleString()}</span>
                 </div>
                 <div className="pt-1.5 border-t border-[#E3DCC8] flex justify-between font-bold text-[#B8862E]">
-                  <span>Total Calculated Profit:</span>
+                  <span>Total Margin Credit (Upon Delivery):</span>
                   <span>+PKR {(selectedProduct.grossMargin * quantity).toLocaleString()}</span>
                 </div>
               </div>
@@ -434,7 +546,7 @@ export const DashboardProducts: React.FC = () => {
                   Cancel
                 </Button>
                 <Button type="submit" variant="primary" size="sm" className="font-medium">
-                  Confirm &amp; Credit Sale
+                  Submit Order for Verification
                 </Button>
               </div>
             </form>

@@ -103,7 +103,17 @@ export interface Product {
   createdAt: string;
 }
 
-export type SaleStatus = 'pending' | 'confirmed' | 'fulfilled' | 'cancelled' | 'refunded';
+export type SaleStatus =
+  | 'pending_verification'
+  | 'payment_verified'
+  | 'processing'
+  | 'dispatched'
+  | 'in_transit'
+  | 'delivered'
+  | 'cancelled'
+  | 'rejected'
+  | 'confirmed'
+  | 'fulfilled';
 
 export interface Sale {
   id: string;
@@ -111,7 +121,12 @@ export interface Sale {
   productId: string;
   productName: string;
   customerName: string;
+  customerPhone?: string; // WhatsApp number
   customerEmail?: string;
+  customerAddress?: string; // Full delivery address
+  customerCity?: string;
+  paymentScreenshotUrl?: string; // Base64 or Image URL
+  paymentProofNotes?: string;
   quantity: number;
   retailPrice: number;
   partnerPrice: number;
@@ -119,9 +134,46 @@ export interface Sale {
   profitMargin: number;
   currency: string;
   status: SaleStatus;
+  shippingCourier?: string; // TCS, Leopard, Trax, PostEx, etc.
+  trackingNumber?: string;
+  shippingNotes?: string;
   isQualifying: boolean;
   createdAt: string;
   confirmedAt?: string;
+  deliveredAt?: string;
+  adminReviewNote?: string;
+}
+
+export type PaymentMethodType = 'bank_transfer' | 'easypaisa' | 'jazzcash' | 'sadapay' | 'nayapay' | 'other';
+
+export interface PaymentMethod {
+  id: string;
+  userId: string;
+  methodType: PaymentMethodType;
+  accountTitle: string;
+  accountNumber: string;
+  bankName: string;
+  branchCity?: string;
+  isDefault: boolean;
+  createdAt: string;
+}
+
+export type WithdrawalStatus = 'pending' | 'approved' | 'paid' | 'rejected';
+
+export interface WithdrawalRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  userPhone?: string;
+  amount: number;
+  currency: string;
+  payoutMethod: PaymentMethod;
+  status: WithdrawalStatus;
+  requestedAt: string;
+  processedAt?: string;
+  transactionReference?: string;
+  adminNote?: string;
 }
 
 export type ReferralStatus = 'active' | 'pending' | 'inactive';
@@ -169,6 +221,7 @@ export interface User {
   avatarUrl?: string;
   phone?: string;
   city?: string;
+  paymentMethods?: PaymentMethod[];
   isActive: boolean;
   createdAt: string;
 }
@@ -176,11 +229,18 @@ export interface User {
 export type NotificationType =
   | 'welcome'
   | 'referral_joined'
+  | 'sale_submitted'
   | 'sale_confirmed'
+  | 'sale_dispatched'
+  | 'sale_delivered'
   | 'rank_achieved'
   | 'reward_earned'
   | 'reward_approved'
   | 'reward_paid'
+  | 'withdrawal_requested'
+  | 'withdrawal_approved'
+  | 'withdrawal_paid'
+  | 'withdrawal_rejected'
   | 'system_announcement';
 
 export interface AppNotification {

@@ -25,6 +25,8 @@ export const DashboardOverview: React.FC = () => {
   const totalSales = rankProgress.qualifyingSales;
   const totalCommunity = rankProgress.qualifyingCommunity;
   const totalProfit = salesService.getTotalProfitEarned(user.id);
+  const availableProfit = salesService.getAvailableProfitBalance(user.id);
+  const pendingProfit = salesService.getPendingProfit(user.id);
   const totalRewards = rewardService.getTotalRewardsEarned(user.id);
   const recentSales = salesService.getUserSales(user.id).slice(0, 4);
   const featuredInventory = productService.getAllProducts().slice(0, 3);
@@ -63,6 +65,11 @@ export const DashboardOverview: React.FC = () => {
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
+          <Link to="/dashboard/sales">
+            <Button variant="outline" size="sm" className="text-xs">
+              Payouts &amp; Withdrawals
+            </Button>
+          </Link>
           <Link to="/dashboard/products">
             <Button variant="primary" size="sm" iconLeft={<ShoppingCart size={14} />}>
               Record Client Sale
@@ -90,17 +97,19 @@ export const DashboardOverview: React.FC = () => {
           </div>
         </div>
 
-        {/* Metric 2: Estimated Direct Gross Margin */}
+        {/* Metric 2: Available & Total Margin */}
         <div className="p-5 rounded-xl bg-white border border-[#E3DCC8] flex flex-col justify-between space-y-3 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-[#5B5C50] font-mono">Estimated Direct Margin</span>
-            <TrendUp size={16} className="text-[#B8862E]" />
+            <span className="text-xs text-[#1F4D3E] font-mono font-medium">Available Payout Margin</span>
+            <TrendUp size={16} className="text-[#1F4D3E]" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-[#B8862E] font-mono">
-              PKR {totalProfit.toLocaleString()}
+            <p className="text-2xl font-bold text-[#1F4D3E] font-mono">
+              PKR {availableProfit.toLocaleString()}
             </p>
-            <p className="text-[11px] text-[#7C7D70] font-mono mt-0.5">Gross Product Margin</p>
+            <p className="text-[10px] text-[#7C7D70] font-mono mt-0.5">
+              +PKR {pendingProfit.toLocaleString()} in transit
+            </p>
           </div>
         </div>
 
