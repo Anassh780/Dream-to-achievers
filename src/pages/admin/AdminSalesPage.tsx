@@ -146,7 +146,7 @@ export const AdminSalesPage: React.FC = () => {
           <span>/</span>
           <span>Order Fulfillment &amp; Shipping</span>
         </div>
-        <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F]">
+        <h1 className="text-xl sm:text-2xl font-bold text-[#1E241F]">
           Platform Customer Sales &amp; Shipping Operations
         </h1>
         <p className="text-xs text-[#5B5C50]">

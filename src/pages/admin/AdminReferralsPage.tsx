@@ -82,7 +82,7 @@ export const AdminReferralsPage: React.FC = () => {
             <span>/</span>
             <span>Referrals</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F]">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#1E241F]">
             Partner Referral Network &amp; Team Connections
           </h1>
           <p className="text-xs text-[#5B5C50]">

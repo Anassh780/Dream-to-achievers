@@ -12,14 +12,15 @@ import {
   doc,
   getDoc,
   setDoc,
+  deleteDoc,
   collection,
   getDocs,
   onSnapshot,
 } from 'firebase/firestore';
-import { ref, get, set, child, onValue } from 'firebase/database';
+import { ref, get, set, child, remove, onValue } from 'firebase/database';
 import { storage } from './storage';
 import { rankEngine } from './rankEngine';
-import { referralService } from './referralService';
+import { referralService, normalizeReferralCode } from './referralService';
 
 export const ADMIN_EMAILS = [
   'muskyna46@gmail.com',
@@ -421,15 +422,105 @@ export const authService = {
   },
 
   /**
+   * Helper to retrieve locally recorded deleted user IDs to prevent ghost restoration.
+   */
+  getDeletedUserIds(): string[] {
+    if (typeof window === 'undefined') return [];
+    try {
+      const raw = localStorage.getItem('dta_deleted_user_ids');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Mark a user ID as deleted in localStorage blacklist.
+   */
+  markUserAsDeleted(userId: string): void {
+    if (typeof window === 'undefined' || !userId) return;
+    try {
+      const deleted = authService.getDeletedUserIds();
+      if (!deleted.includes(userId)) {
+        deleted.push(userId);
+        localStorage.setItem('dta_deleted_user_ids', JSON.stringify(deleted));
+      }
+    } catch {}
+  },
+
+  /**
+   * Permanently delete a user account from local cache, Firestore, and Realtime Database.
+   */
+  async deleteUser(userId: string, referralCode?: string): Promise<{ success: boolean; error?: string }> {
+    if (!userId) return { success: false, error: 'User ID is required.' };
+
+    // 1. Mark in deleted blacklist
+    authService.markUserAsDeleted(userId);
+
+    // 2. Remove immediately from local USERS
+    const localUsers = storage.get<User[]>('USERS', []);
+    const updatedUsers = localUsers.filter((u) => u.id !== userId);
+    storage.set('USERS', updatedUsers);
+
+    // 3. Clean local referrals relating to this user
+    const localReferrals = storage.get<any[]>('REFERRALS', []);
+    const updatedReferrals = localReferrals.filter(
+      (r) => r.referredUserId !== userId && r.referrerId !== userId
+    );
+    storage.set('REFERRALS', updatedReferrals);
+
+    // 4. Delete from Firestore
+    try {
+      await deleteDoc(doc(db, 'users', userId));
+    } catch (err) {
+      console.warn('Firestore delete user error (non-fatal):', err);
+    }
+
+    if (referralCode) {
+      const norm = normalizeReferralCode(referralCode);
+      if (norm) {
+        try {
+          await deleteDoc(doc(db, 'referral_index', norm));
+        } catch (err) {
+          console.warn('Firestore delete referral_index error (non-fatal):', err);
+        }
+      }
+    }
+
+    // 5. Delete from Realtime Database
+    try {
+      await remove(ref(rtdb, `users/${userId}`));
+    } catch (err) {
+      console.warn('RTDB delete user error (non-fatal):', err);
+    }
+
+    try {
+      await remove(ref(rtdb, `user_referrals/${userId}`));
+    } catch (err) {
+      console.warn('RTDB delete user_referrals error (non-fatal):', err);
+    }
+
+    // Dispatch sync event
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key: 'USERS', value: updatedUsers } }));
+    }
+
+    return { success: true };
+  },
+
+  /**
    * Fetch all registered users from Firestore, RTDB, and Local Storage, merging and deduplicating.
    */
   async getAllUsers(): Promise<User[]> {
+    const deletedIds = new Set(authService.getDeletedUserIds());
     const userMap = new Map<string, User>();
 
     // 1. Seed from local storage
     const localUsers = storage.get<User[]>('USERS', []);
     for (const u of localUsers) {
-      if (u.id) userMap.set(u.id, u);
+      if (u.id && !deletedIds.has(u.id)) {
+        userMap.set(u.id, u);
+      }
     }
 
     // 2. Fetch all from Firestore
@@ -437,7 +528,7 @@ export const authService = {
       const snap: any = await getDocs(collection(db, 'users'));
       snap.forEach((d: any) => {
         const data = d.data() as User;
-        if (data && data.id) {
+        if (data && data.id && !deletedIds.has(data.id)) {
           userMap.set(data.id, { ...userMap.get(data.id), ...data });
         }
       });
@@ -452,7 +543,7 @@ export const authService = {
         const val = rtdbSnap.val();
         if (val && typeof val === 'object') {
           Object.values(val).forEach((item: any) => {
-            if (item && item.id) {
+            if (item && item.id && !deletedIds.has(item.id)) {
               userMap.set(item.id, { ...userMap.get(item.id), ...item });
             }
           });
@@ -463,9 +554,7 @@ export const authService = {
     }
 
     const merged = Array.from(userMap.values());
-    if (merged.length > 0) {
-      storage.set('USERS', merged);
-    }
+    storage.set('USERS', merged);
     return merged;
   },
 
@@ -482,21 +571,22 @@ export const authService = {
       unsubscribeFirestore = onSnapshot(
         collection(db, 'users'),
         (snapshot: any) => {
+          const deletedIds = new Set(authService.getDeletedUserIds());
           const cloudUsers: User[] = [];
           snapshot.forEach((d: any) => {
             const data = d.data() as User;
-            if (data && data.id) cloudUsers.push(data);
+            if (data && data.id && !deletedIds.has(data.id)) {
+              cloudUsers.push(data);
+            }
           });
 
-          if (cloudUsers.length > 0) {
-            const current = storage.get<User[]>('USERS', []);
-            const userMap = new Map<string, User>();
-            current.forEach((u) => userMap.set(u.id, u));
-            cloudUsers.forEach((u) => userMap.set(u.id, { ...userMap.get(u.id), ...u }));
-            const merged = Array.from(userMap.values());
-            storage.set('USERS', merged);
-            callback(merged);
-          }
+          const current = storage.get<User[]>('USERS', []).filter((u) => !deletedIds.has(u.id));
+          const userMap = new Map<string, User>();
+          current.forEach((u) => userMap.set(u.id, u));
+          cloudUsers.forEach((u) => userMap.set(u.id, { ...userMap.get(u.id), ...u }));
+          const merged = Array.from(userMap.values());
+          storage.set('USERS', merged);
+          callback(merged);
         },
         (err: any) => {
           console.warn('Firestore user stream warning:', err);

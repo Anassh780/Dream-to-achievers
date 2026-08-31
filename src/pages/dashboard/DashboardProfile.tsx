@@ -118,7 +118,7 @@ export const DashboardProfile: React.FC = () => {
           <span>/</span>
           <span>Profile &amp; Payout Settings</span>
         </div>
-        <h1 className="font-serif text-2xl sm:text-3xl font-medium text-[#1E241F] tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#1E241F] tracking-tight">
           Partner Identity &amp; Payout Methods
         </h1>
         <p className="text-xs text-[#5B5C50]">

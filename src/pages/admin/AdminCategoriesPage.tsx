@@ -159,7 +159,7 @@ export const AdminCategoriesPage: React.FC = () => {
             <span>/</span>
             <span>Product Categories</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#1E241F] tracking-tight">
             Product Categories &amp; Collections
           </h1>
           <p className="text-xs text-[#5B5C50]">

@@ -130,7 +130,7 @@ export const AdminRewardsPage: React.FC = () => {
           <span>/</span>
           <span>Payouts &amp; Milestone Disbursements</span>
         </div>
-        <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F]">
+        <h1 className="text-xl sm:text-2xl font-bold text-[#1E241F]">
           Platform Disbursements &amp; Profit Payouts
         </h1>
         <p className="text-xs text-[#5B5C50]">

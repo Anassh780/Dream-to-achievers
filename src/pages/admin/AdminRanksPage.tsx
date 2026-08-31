@@ -47,7 +47,7 @@ export const AdminRanksPage: React.FC = () => {
           <span>/</span>
           <span>Rank Milestones</span>
         </div>
-        <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F]">
+        <h1 className="text-xl sm:text-2xl font-bold text-[#1E241F]">
           Rank Levels &amp; Milestone Bonuses
         </h1>
         <p className="text-xs text-[#5B5C50]">
