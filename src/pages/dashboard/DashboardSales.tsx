@@ -182,7 +182,7 @@ export const DashboardSales: React.FC = () => {
             <span>/</span>
             <span>Sales &amp; Profit Ledger</span>
           </div>
-          <h1 className="font-serif text-2xl sm:text-3xl font-medium text-[#1E241F] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#1E241F] tracking-tight">
             Direct Customer Sales &amp; Profit Ledger
           </h1>
           <p className="text-xs text-[#5B5C50]">
@@ -196,16 +196,27 @@ export const DashboardSales: React.FC = () => {
             size="sm"
             onClick={() => setShowWithdrawModal(true)}
             iconLeft={<HandCoins size={15} className="text-[#1F4D3E]" />}
-            className="text-xs"
+            className="text-xs font-semibold py-2.5"
           >
             Request Withdrawal
           </Button>
 
           <Link to="/dashboard/products">
-            <Button variant="primary" size="sm" iconLeft={<ShoppingCart size={14} />} className="text-xs">
+            <Button variant="primary" size="sm" iconLeft={<ShoppingCart size={14} />} className="text-xs font-semibold py-2.5">
               Record New Sale
             </Button>
           </Link>
+        </div>
+      </div>
+
+      {/* Beginner Helper Tip */}
+      <div className="p-4 rounded-xl bg-[#F1ECDD] border border-[#E3DCC8] text-xs text-[#1E241F] flex items-start space-x-3">
+        <span className="text-base leading-none">💡</span>
+        <div className="space-y-0.5">
+          <p className="font-bold text-[#1F4D3E]">How Order Verification &amp; Profit Withdrawal Works:</p>
+          <p className="text-[#5B5C50] text-[11.5px] leading-relaxed">
+            When you submit a customer order with their shipping details, admin operations verify the payment proof and updates shipping progress live. Once verified, your unit profit is credited directly to <strong className="text-[#1E241F]">Available Balance</strong> for instant withdrawal into your added Easypaisa, JazzCash, or Bank Account.
+          </p>
         </div>
       </div>
 

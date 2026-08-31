@@ -12,8 +12,11 @@ import {
   doc,
   getDoc,
   setDoc,
+  collection,
+  getDocs,
+  onSnapshot,
 } from 'firebase/firestore';
-import { ref, get, set, child } from 'firebase/database';
+import { ref, get, set, child, onValue } from 'firebase/database';
 import { storage } from './storage';
 import { rankEngine } from './rankEngine';
 import { referralService } from './referralService';
@@ -415,5 +418,96 @@ export const authService = {
     } catch (err) {
       console.warn('Firebase signOut error:', err);
     }
+  },
+
+  /**
+   * Fetch all registered users from Firestore, RTDB, and Local Storage, merging and deduplicating.
+   */
+  async getAllUsers(): Promise<User[]> {
+    const userMap = new Map<string, User>();
+
+    // 1. Seed from local storage
+    const localUsers = storage.get<User[]>('USERS', []);
+    for (const u of localUsers) {
+      if (u.id) userMap.set(u.id, u);
+    }
+
+    // 2. Fetch all from Firestore
+    try {
+      const snap: any = await getDocs(collection(db, 'users'));
+      snap.forEach((d: any) => {
+        const data = d.data() as User;
+        if (data && data.id) {
+          userMap.set(data.id, { ...userMap.get(data.id), ...data });
+        }
+      });
+    } catch (err) {
+      console.warn('Firestore getAllUsers fetch warning:', err);
+    }
+
+    // 3. Fetch all from RTDB
+    try {
+      const rtdbSnap = await get(ref(rtdb, 'users'));
+      if (rtdbSnap.exists()) {
+        const val = rtdbSnap.val();
+        if (val && typeof val === 'object') {
+          Object.values(val).forEach((item: any) => {
+            if (item && item.id) {
+              userMap.set(item.id, { ...userMap.get(item.id), ...item });
+            }
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('RTDB getAllUsers fetch warning:', err);
+    }
+
+    const merged = Array.from(userMap.values());
+    if (merged.length > 0) {
+      storage.set('USERS', merged);
+    }
+    return merged;
+  },
+
+  /**
+   * Real-time subscription to all registered users from Firestore and RTDB.
+   */
+  subscribeToAllUsers(callback: (users: User[]) => void): () => void {
+    // Initial fetch
+    authService.getAllUsers().then(callback).catch(() => {});
+
+    // Listen to Firestore updates
+    let unsubscribeFirestore: (() => void) | null = null;
+    try {
+      unsubscribeFirestore = onSnapshot(
+        collection(db, 'users'),
+        (snapshot: any) => {
+          const cloudUsers: User[] = [];
+          snapshot.forEach((d: any) => {
+            const data = d.data() as User;
+            if (data && data.id) cloudUsers.push(data);
+          });
+
+          if (cloudUsers.length > 0) {
+            const current = storage.get<User[]>('USERS', []);
+            const userMap = new Map<string, User>();
+            current.forEach((u) => userMap.set(u.id, u));
+            cloudUsers.forEach((u) => userMap.set(u.id, { ...userMap.get(u.id), ...u }));
+            const merged = Array.from(userMap.values());
+            storage.set('USERS', merged);
+            callback(merged);
+          }
+        },
+        (err: any) => {
+          console.warn('Firestore user stream warning:', err);
+        }
+      );
+    } catch (e) {
+      console.warn('Firestore onSnapshot setup warning:', e);
+    }
+
+    return () => {
+      if (unsubscribeFirestore) unsubscribeFirestore();
+    };
   },
 };

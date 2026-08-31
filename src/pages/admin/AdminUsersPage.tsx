@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { storage } from '@/services/storage';
+import { authService } from '@/services/authService';
 import { referralService } from '@/services/referralService';
 import { auditService } from '@/services/auditService';
 import { useAuth } from '@/context/AuthContext';
@@ -21,6 +22,7 @@ import {
   Check,
   Warning,
   Eye,
+  ArrowClockwise,
 } from '@phosphor-icons/react';
 
 export const AdminUsersPage: React.FC = () => {
@@ -28,6 +30,7 @@ export const AdminUsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>(() => storage.get<User[]>('USERS', []));
   const [referrals, setReferrals] = useState<ReferralRecord[]>(() => storage.get<ReferralRecord[]>('REFERRALS', []));
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
   
   // Modals state
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -41,16 +44,41 @@ export const AdminUsersPage: React.FC = () => {
     setTimeout(() => setToastMsg(null), 4000);
   };
 
-  const refreshData = () => {
-    setUsers(storage.get<User[]>('USERS', []));
-    setReferrals(storage.get<ReferralRecord[]>('REFERRALS', []));
+  const refreshData = async () => {
+    try {
+      const allUsers = await authService.getAllUsers();
+      setUsers(allUsers);
+      setReferrals(storage.get<ReferralRecord[]>('REFERRALS', []));
+    } catch {
+      setUsers(storage.get<User[]>('USERS', []));
+    }
+  };
+
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    try {
+      const synced = await authService.getAllUsers();
+      setUsers(synced);
+      showToast(`Successfully synchronized ${synced.length} registered users from cloud database.`);
+    } catch (e) {
+      showToast('Could not reach cloud database. Showing local cached users.', 'error');
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   useEffect(() => {
-    refreshData();
+    // 1. Initial sync & Real-time Cloud Firestore/RTDB stream listener
+    const unsubscribe = authService.subscribeToAllUsers((cloudUsers) => {
+      setUsers(cloudUsers);
+    });
+
     const handleStorage = () => refreshData();
     window.addEventListener('dta_storage_change', handleStorage);
-    return () => window.removeEventListener('dta_storage_change', handleStorage);
+    return () => {
+      unsubscribe();
+      window.removeEventListener('dta_storage_change', handleStorage);
+    };
   }, []);
 
   const filteredUsers = users.filter(
@@ -143,23 +171,37 @@ export const AdminUsersPage: React.FC = () => {
             <span>/</span>
             <span>User Accounts &amp; Onboarding</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F]">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#1E241F]">
             User Accounts &amp; Partner Directory
           </h1>
           <p className="text-xs text-[#5B5C50]">
-            Inspect partner onboarding numbers, view referral downlines, adjust milestone ranks, or delete accounts.
+            All registered users across Cloud Firestore, Realtime DB, and local ledger are synchronized here live.
           </p>
         </div>
 
-        <div className="relative w-full sm:max-w-xs text-xs">
-          <MagnifyingGlass size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5B5C50]" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search name, email, code..."
-            className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-white border border-[#E3DCC8] text-[#1E241F] placeholder:text-[#7C7D70] focus:outline-none focus:border-[#1F4D3E]"
-          />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
+          <Button
+            onClick={handleManualSync}
+            variant="outline"
+            size="sm"
+            className="text-xs font-medium shrink-0"
+            isLoading={isSyncing}
+            iconLeft={<ArrowClockwise size={14} className={isSyncing ? 'animate-spin' : ''} />}
+            title="Fetch all registered users from Cloud Firestore & RTDB"
+          >
+            {isSyncing ? 'Syncing Cloud...' : 'Sync Cloud Database'}
+          </Button>
+
+          <div className="relative w-full sm:w-64 text-xs">
+            <MagnifyingGlass size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5B5C50]" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search name, email, code..."
+              className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-white border border-[#E3DCC8] text-[#1E241F] placeholder:text-[#7C7D70] focus:outline-none focus:border-[#1F4D3E]"
+            />
+          </div>
         </div>
       </div>
 

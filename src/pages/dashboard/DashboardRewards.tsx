@@ -31,7 +31,7 @@ export const DashboardRewards: React.FC = () => {
           <span>/</span>
           <span>Level Milestone Rewards</span>
         </div>
-        <h1 className="font-serif text-2xl sm:text-3xl font-medium text-[#1E241F] tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#1E241F] tracking-tight">
           Milestone Cash Rewards Ledger
         </h1>
         <p className="text-xs text-[#5B5C50]">

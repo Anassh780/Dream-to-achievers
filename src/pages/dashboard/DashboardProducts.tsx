@@ -265,7 +265,7 @@ export const DashboardProducts: React.FC = () => {
                     </span>
                   </div>
 
-                  <h3 className="font-serif font-medium text-[15px] text-[#1E241F] line-clamp-1">
+                  <h3 className="font-bold text-[15px] text-[#1E241F] line-clamp-1">
                     {p.name}
                   </h3>
                   <p className="text-xs text-[#5B5C50] line-clamp-2 leading-relaxed">
@@ -275,18 +275,18 @@ export const DashboardProducts: React.FC = () => {
               </div>
 
               <div className="p-4 pt-0 space-y-3">
-                <div className="p-2.5 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] space-y-1 text-xs">
+                <div className="p-3 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] space-y-1.5 text-xs">
                   <div className="flex justify-between text-[#5B5C50]">
-                    <span>Retail Price:</span>
-                    <span className="text-[#1E241F] font-mono">PKR {p.retailPrice.toLocaleString()}</span>
+                    <span>Suggested Retail:</span>
+                    <span className="text-[#1E241F] font-mono font-semibold">PKR {p.retailPrice.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-[#5B5C50]">
                     <span>Wholesale Cost:</span>
-                    <span className="text-[#1F4D3E] font-mono">PKR {p.partnerPrice.toLocaleString()}</span>
+                    <span className="text-[#1F4D3E] font-mono font-semibold">PKR {p.partnerPrice.toLocaleString()}</span>
                   </div>
-                  <div className="pt-1 border-t border-[#E3DCC8] flex justify-between font-medium">
-                    <span className="text-[#1E241F]">Partner Margin:</span>
-                    <span className="text-[#B8862E] font-mono font-bold">
+                  <div className="pt-1.5 border-t border-[#E3DCC8] flex justify-between items-center">
+                    <span className="text-[#1E241F] font-bold">Your Profit Margin:</span>
+                    <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-mono font-bold text-xs">
                       +PKR {p.grossMargin.toLocaleString()}
                     </span>
                   </div>
@@ -296,10 +296,10 @@ export const DashboardProducts: React.FC = () => {
                   onClick={() => setSelectedProduct(p)}
                   variant="primary"
                   size="sm"
-                  className="w-full justify-center text-xs font-medium"
-                  iconLeft={<ShoppingCart size={13} />}
+                  className="w-full justify-center text-xs font-semibold py-2.5 shadow-xs cursor-pointer"
+                  iconLeft={<ShoppingCart size={15} />}
                 >
-                  Record Client Sale
+                  Record Client Sale &amp; Keep Profit
                 </Button>
               </div>
             </div>
