@@ -82,8 +82,17 @@ export const storage = {
     if (typeof window === 'undefined') return defaultValue;
     try {
       const item = localStorage.getItem(STORAGE_KEYS[key]);
-      return item ? JSON.parse(item) : defaultValue;
+      if (!item) {
+        if (key === 'PRODUCTS') return SEED_PRODUCTS as unknown as T;
+        return defaultValue;
+      }
+      const parsed = JSON.parse(item);
+      if (key === 'PRODUCTS' && Array.isArray(parsed) && parsed.length === 0) {
+        return SEED_PRODUCTS as unknown as T;
+      }
+      return parsed;
     } catch {
+      if (key === 'PRODUCTS') return SEED_PRODUCTS as unknown as T;
       return defaultValue;
     }
   },

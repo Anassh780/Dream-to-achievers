@@ -203,6 +203,22 @@ export const AdminProductsPage: React.FC = () => {
     });
   }, [products, searchQuery, categoryFilter]);
 
+  const handleRestoreDefaults = () => {
+    storage.set('PRODUCTS', SEED_PRODUCTS);
+    setProducts(SEED_PRODUCTS);
+    if (currentAdmin) {
+      auditService.logAction({
+        adminId: currentAdmin.id,
+        adminEmail: currentAdmin.email,
+        action: 'UPDATE_PRODUCT',
+        entityType: 'product',
+        entityId: 'seed-all',
+        details: 'Restored original seed catalog products',
+      });
+    }
+    showToast('Restored all original catalog products successfully!');
+  };
+
   return (
     <div className="space-y-6 font-sans max-w-7xl">
       
@@ -214,7 +230,7 @@ export const AdminProductsPage: React.FC = () => {
             <span>/</span>
             <span>Products &amp; Inventory</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-serif font-medium text-[#1E241F] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#1E241F] tracking-tight">
             Products &amp; Wholesale Catalog
           </h1>
           <p className="text-xs text-[#5B5C50]">
@@ -222,15 +238,26 @@ export const AdminProductsPage: React.FC = () => {
           </p>
         </div>
 
-        <Button
-          onClick={handleOpenCreate}
-          variant="primary"
-          size="sm"
-          className="text-xs font-medium shrink-0"
-          iconLeft={<Plus size={14} />}
-        >
-          + Add New Product
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            onClick={handleRestoreDefaults}
+            variant="outline"
+            size="sm"
+            className="text-xs font-medium"
+            title="Restore all default seed products"
+          >
+            Restore Default Products
+          </Button>
+          <Button
+            onClick={handleOpenCreate}
+            variant="primary"
+            size="sm"
+            className="text-xs font-medium"
+            iconLeft={<Plus size={14} />}
+          >
+            + Add New Product
+          </Button>
+        </div>
       </div>
 
       {toastMsg && (
