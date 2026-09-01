@@ -6,7 +6,8 @@ import { useAuth } from '@/context/AuthContext';
 import { Product } from '@/types';
 import { SEED_PRODUCTS } from '@/config/products';
 import { Button } from '@/components/ui/Button';
-import { cloudSyncService } from '@/services/cloudSyncService';
+import { cloudSyncService, OFFICIAL_ADMIN_USER } from '@/services/cloudSyncService';
+import { uploadProductImage } from '@/services/imageService';
 import {
   Plus,
   Trash,
@@ -67,6 +68,7 @@ export const AdminProductsPage: React.FC = () => {
   const [description, setDescription] = useState('');
   const [inStock, setInStock] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [toastMsg, setToastMsg] = useState('');
 
@@ -119,9 +121,10 @@ export const AdminProductsPage: React.FC = () => {
     setIsCreating(true);
   };
 
-  const handleSaveProduct = (e: React.FormEvent) => {
+  const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !currentAdmin) return;
+    if (!name.trim()) return;
+    const adminUser = currentAdmin || OFFICIAL_ADMIN_USER;
 
     const slug = name
       .toLowerCase()
@@ -129,7 +132,7 @@ export const AdminProductsPage: React.FC = () => {
       .replace(/(^-|-$)/g, '');
 
     const targetCat = allCategories.find((c) => c.id === categoryId);
-    const categoryName = targetCat ? targetCat.name : 'Skincare & Beauty';
+    const categoryName = targetCat ? targetCat.name : 'General';
     const grossMargin = Math.max(0, retailPrice - partnerPrice);
 
     if (editingProd) {
@@ -144,7 +147,7 @@ export const AdminProductsPage: React.FC = () => {
         suggestedSellingPrice: Number(retailPrice),
         grossMargin,
         sku: sku.trim(),
-        imageUrl: imageUrl.trim(),
+        imageUrl: imageUrl.trim() || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80',
         shortDescription: shortDescription.trim(),
         description: description.trim(),
         inStock,
@@ -157,18 +160,18 @@ export const AdminProductsPage: React.FC = () => {
 
       storage.set('PRODUCTS', updated);
       setProducts(updated);
-      cloudSyncService.syncProductToCloud(updatedProdObj);
+      await cloudSyncService.syncProductToCloud(updatedProdObj);
 
       auditService.logAction({
-        adminId: currentAdmin.id,
-        adminEmail: currentAdmin.email,
+        adminId: adminUser.id,
+        adminEmail: adminUser.email,
         action: 'UPDATE_PRODUCT',
         entityType: 'product',
         entityId: editingProd.id,
         details: `Updated product "${name}" (SKU: ${sku})`,
       });
 
-      showToast(`Product "${name}" updated successfully.`);
+      showToast(`Product "${name}" updated and synced across all devices.`);
     } else {
       const newProduct: Product = {
         id: `prod-${Date.now()}`,
@@ -181,7 +184,7 @@ export const AdminProductsPage: React.FC = () => {
         suggestedSellingPrice: Number(retailPrice),
         grossMargin,
         currency: 'PKR',
-        imageUrl: imageUrl.trim(),
+        imageUrl: imageUrl.trim() || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80',
         sku: sku.trim(),
         inStock,
         isFeatured,
@@ -194,18 +197,18 @@ export const AdminProductsPage: React.FC = () => {
       const updated = [newProduct, ...products];
       storage.set('PRODUCTS', updated);
       setProducts(updated);
-      cloudSyncService.syncProductToCloud(newProduct);
+      await cloudSyncService.syncProductToCloud(newProduct);
 
       auditService.logAction({
-        adminId: currentAdmin.id,
-        adminEmail: currentAdmin.email,
+        adminId: adminUser.id,
+        adminEmail: adminUser.email,
         action: 'CREATE_PRODUCT',
         entityType: 'product',
         entityId: newProduct.id,
         details: `Created product "${name}" (SKU: ${sku})`,
       });
 
-      showToast(`Product "${name}" created successfully.`);
+      showToast(`Product "${name}" created and synced across all devices.`);
     }
 
     setIsCreating(false);
@@ -584,22 +587,34 @@ export const AdminProductsPage: React.FC = () => {
                       placeholder="https://images.unsplash.com/..."
                       className="flex-1 px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] text-xs focus:outline-none focus:border-[#1F4D3E]"
                     />
-                    <label className="px-2.5 py-2 rounded-lg bg-white border border-[#E3DCC8] hover:bg-[#FAF7EF] text-[#1E241F] text-xs font-medium cursor-pointer shrink-0">
-                      <span>Upload</span>
+                    <label
+                      className={`px-2.5 py-2 rounded-lg bg-white border border-[#E3DCC8] hover:bg-[#FAF7EF] text-[#1E241F] text-xs font-medium cursor-pointer shrink-0 flex items-center gap-1 ${
+                        isUploadingImage ? 'opacity-50 pointer-events-none' : ''
+                      }`}
+                    >
+                      <span>{isUploadingImage ? 'Uploading...' : 'Upload'}</span>
                       <input
                         type="file"
                         accept="image/*"
+                        disabled={isUploadingImage}
                         className="hidden"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              if (typeof reader.result === 'string') {
-                                setImageUrl(reader.result);
-                              }
-                            };
-                            reader.readAsDataURL(file);
+                            setIsUploadingImage(true);
+                            try {
+                              const optimizedUrl = await uploadProductImage(
+                                file,
+                                editingProd?.id || `prod-${Date.now()}`
+                              );
+                              setImageUrl(optimizedUrl);
+                              showToast('Image uploaded and synced successfully.');
+                            } catch (err) {
+                              console.error('Image upload failed:', err);
+                              showToast('Image upload failed. Please try a different image or paste a URL.');
+                            } finally {
+                              setIsUploadingImage(false);
+                            }
                           }
                         }}
                       />
