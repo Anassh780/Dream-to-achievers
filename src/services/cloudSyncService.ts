@@ -121,10 +121,10 @@ class CloudSyncService {
 
   /**
    * Real-time Cloud First Initial Sync:
-   * Firestore & RTDB are the single source of truth across all devices.
+   * Safely synchronizes cloud products without overwriting custom admin images on reload.
    */
   public async initialCloudSync() {
-    // 1. Delete legacy items from Cloud
+    // 1. Delete legacy mock items from Cloud
     for (const legacyId of LEGACY_PRODUCT_IDS) {
       try {
         await deleteDoc(doc(db, 'products', legacyId));
@@ -133,43 +133,65 @@ class CloudSyncService {
     }
 
     try {
-      // 2. Fetch all products from Firestore
-      const cloudProductsSnap: any = await getDocs(collection(db, 'products'));
-      let validCloudProducts: Product[] = [];
+      const currentLocal = storage.get<Product[]>('PRODUCTS', SEED_PRODUCTS).filter(
+        (p) => p && !LEGACY_PRODUCT_IDS.includes(p.id)
+      );
 
-      if (!cloudProductsSnap.empty) {
-        cloudProductsSnap.forEach((d: any) => {
-          const cp = d.data() as Product;
-          if (cp && cp.id && !LEGACY_PRODUCT_IDS.includes(cp.id)) {
-            validCloudProducts.push(cp);
-          }
-        });
+      // 2. Fetch all products from Firestore
+      let validCloudProducts: Product[] = [];
+      try {
+        const cloudProductsSnap: any = await getDocs(collection(db, 'products'));
+        if (!cloudProductsSnap.empty) {
+          cloudProductsSnap.forEach((d: any) => {
+            const cp = d.data() as Product;
+            if (cp && cp.id && !LEGACY_PRODUCT_IDS.includes(cp.id)) {
+              validCloudProducts.push(cp);
+            }
+          });
+        }
+      } catch (err) {
+        console.warn('[CloudSync] Firestore read warning, checking RTDB:', err);
       }
 
-      // If cloud is empty, seed them now
+      // 3. Fallback to RTDB if Firestore yielded no products
       if (validCloudProducts.length === 0) {
-        await this.seedCloudProducts();
-        validCloudProducts = SEED_PRODUCTS;
-      } else {
-        // Ensure any missing seed products are in cloud
-        for (const sp of SEED_PRODUCTS) {
-          if (!validCloudProducts.some((p) => p.id === sp.id || p.sku === sp.sku)) {
-            await this.syncProductToCloud(sp);
-            validCloudProducts.push(sp);
+        try {
+          const rtdbSnap = await get(ref(rtdb, 'products'));
+          if (rtdbSnap.exists()) {
+            const val = rtdbSnap.val();
+            if (val && typeof val === 'object') {
+              Object.values(val).forEach((cp: any) => {
+                if (cp && cp.id && !LEGACY_PRODUCT_IDS.includes(cp.id)) {
+                  validCloudProducts.push(cp);
+                }
+              });
+            }
           }
+        } catch (err) {
+          console.warn('[CloudSync] RTDB read warning:', err);
         }
       }
 
-      // Pure cloud override: all devices will now display the exact same products
-      storage.set('PRODUCTS', validCloudProducts);
-      window.dispatchEvent(new CustomEvent('dta_products_update', { detail: validCloudProducts }));
+      // 4. Resolve final product catalog
+      let finalProducts: Product[] = [];
+      if (validCloudProducts.length > 0) {
+        finalProducts = validCloudProducts;
+      } else if (currentLocal.length > 0) {
+        finalProducts = currentLocal;
+        this.syncAllProductsToCloud(finalProducts);
+      } else {
+        finalProducts = SEED_PRODUCTS;
+        this.syncAllProductsToCloud(finalProducts);
+      }
+
+      storage.set('PRODUCTS', finalProducts);
+      window.dispatchEvent(new CustomEvent('dta_products_update', { detail: finalProducts }));
     } catch (err) {
-      console.warn('[CloudSync] Products initial sync error:', err);
-      storage.set('PRODUCTS', SEED_PRODUCTS);
+      console.warn('[CloudSync] Products initial sync notice:', err);
     }
 
     try {
-      // 3. Sync Categories
+      // 5. Sync Categories
       const cloudCatSnap: any = await getDocs(collection(db, 'categories'));
       let categories: Category[] = [];
 
@@ -192,7 +214,7 @@ class CloudSyncService {
     }
 
     try {
-      // 4. Sync Users
+      // 6. Sync Users
       const cloudUsersSnap: any = await getDocs(collection(db, 'users'));
       const userMap = new Map<string, User>();
       userMap.set(OFFICIAL_ADMIN_USER.id, OFFICIAL_ADMIN_USER);
@@ -218,7 +240,7 @@ class CloudSyncService {
     }
 
     try {
-      // 5. Sync Sales
+      // 7. Sync Sales
       const cloudSalesSnap: any = await getDocs(collection(db, 'sales'));
       if (!cloudSalesSnap.empty) {
         const sales: Sale[] = [];
@@ -232,7 +254,7 @@ class CloudSyncService {
     } catch {}
 
     try {
-      // 6. Sync Withdrawals
+      // 8. Sync Withdrawals
       const cloudWdSnap: any = await getDocs(collection(db, 'withdrawals'));
       if (!cloudWdSnap.empty) {
         const wds: WithdrawalRequest[] = [];
