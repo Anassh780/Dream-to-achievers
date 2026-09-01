@@ -33,26 +33,19 @@ export const ADMIN_EMAILS = [
 ];
 
 export function cleanUserForCloud(u: User): User {
-  const clean: any = {
+  return {
     id: String(u.id || '').trim(),
     fullName: String(u.fullName || 'Partner Reseller').trim(),
     email: String(u.email || '').toLowerCase().trim(),
     role: u.role || 'user',
     referralCode: String(u.referralCode || '').trim().toUpperCase(),
+    referredByCode: u.referredByCode ? String(u.referredByCode).trim().toUpperCase() : '',
     currentRankSlug: u.currentRankSlug || 'unranked',
+    phone: u.phone ? String(u.phone).trim() : '',
+    city: u.city ? String(u.city).trim() : '',
     isActive: u.isActive !== false,
     createdAt: u.createdAt || new Date().toISOString(),
   };
-  if (u.referredByCode && String(u.referredByCode).trim()) {
-    clean.referredByCode = String(u.referredByCode).trim().toUpperCase();
-  }
-  if (u.phone && String(u.phone).trim()) {
-    clean.phone = String(u.phone).trim();
-  }
-  if (u.city && String(u.city).trim()) {
-    clean.city = String(u.city).trim();
-  }
-  return clean as User;
 }
 
 export const authService = {
@@ -304,15 +297,11 @@ export const authService = {
     email,
     password = 'password123',
     referralCode,
-    phone,
-    city,
   }: {
     fullName: string;
     email: string;
     password?: string;
     referralCode?: string;
-    phone?: string;
-    city?: string;
   }): Promise<{ success: boolean; user?: User; error?: string }> {
     const cleanEmail = email.toLowerCase().trim();
     const isAdminEmail = authService.isConfiguredAdmin(cleanEmail);
@@ -401,7 +390,7 @@ export const authService = {
 
       const assignedReferrerCode = validReferrer
         ? validReferrer.referralCode
-        : (cleanRef || existingProfile?.referredByCode);
+        : (cleanRef || existingProfile?.referredByCode || '');
 
       const userToSave: User = {
         id: fbUser.uid,
@@ -411,8 +400,6 @@ export const authService = {
         referralCode: existingProfile?.referralCode || newReferralCode,
         referredByCode: assignedReferrerCode,
         currentRankSlug: isAdminEmail ? 'diamond' : (existingProfile?.currentRankSlug || 'unranked'),
-        phone: phone?.trim() || existingProfile?.phone,
-        city: city?.trim() || existingProfile?.city,
         isActive: true,
         createdAt: existingProfile?.createdAt || new Date().toISOString(),
       };

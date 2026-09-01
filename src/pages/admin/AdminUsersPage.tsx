@@ -195,17 +195,15 @@ export const AdminUsersPage: React.FC = () => {
           qualifyingCount: 0,
         };
 
-        // 1. Search Query (Name, Email, Referral Code, Phone, City, Sponsor)
+        // 1. Search Query (Name, Email, Referral Code, Sponsor)
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase().trim();
           const matchesName = u.fullName.toLowerCase().includes(q);
           const matchesEmail = u.email.toLowerCase().includes(q);
           const matchesCode = u.referralCode.toLowerCase().includes(q);
           const matchesSponsor = (u.referredByCode || '').toLowerCase().includes(q);
-          const matchesPhone = (u.phone || '').toLowerCase().includes(q);
-          const matchesCity = (u.city || '').toLowerCase().includes(q);
 
-          if (!matchesName && !matchesEmail && !matchesCode && !matchesSponsor && !matchesPhone && !matchesCity) {
+          if (!matchesName && !matchesEmail && !matchesCode && !matchesSponsor) {
             return false;
           }
         }
@@ -277,8 +275,6 @@ export const AdminUsersPage: React.FC = () => {
       'User ID',
       'Full Name',
       'Email Address',
-      'Phone Number',
-      'City',
       'Referral Code',
       'Referred By (Sponsor)',
       'Current Rank',
@@ -299,8 +295,6 @@ export const AdminUsersPage: React.FC = () => {
         `"${u.id}"`,
         `"${u.fullName.replace(/"/g, '""')}"`,
         `"${u.email}"`,
-        `"${u.phone || 'N/A'}"`,
-        `"${u.city || 'N/A'}"`,
         `"${u.referralCode}"`,
         `"${sponsor ? `${sponsor.name} (${sponsor.code})` : 'Organic / Direct'}"`,
         `"${u.currentRankSlug.toUpperCase()}"`,
@@ -714,13 +708,6 @@ export const AdminUsersPage: React.FC = () => {
                           <div className="min-w-0">
                             <p className="font-bold text-[#1E241F] text-xs sm:text-sm truncate">{u.fullName}</p>
                             <p className="text-[10.5px] font-mono text-[#7C7D70] truncate">{u.email}</p>
-                            {(u.city || u.phone) && (
-                              <p className="text-[9.5px] text-[#5B5C50] font-mono mt-0.5 truncate">
-                                {u.city && <span>📍 {u.city}</span>}
-                                {u.city && u.phone && <span> • </span>}
-                                {u.phone && <span>📞 {u.phone}</span>}
-                              </p>
-                            )}
                           </div>
                         </div>
                       </td>

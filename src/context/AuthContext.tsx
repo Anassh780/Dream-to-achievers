@@ -19,8 +19,6 @@ interface AuthContextType {
     email: string;
     password?: string;
     referralCode?: string;
-    phone?: string;
-    city?: string;
   }) => Promise<{
     success: boolean;
     error?: string;
@@ -97,8 +95,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     email: string;
     password?: string;
     referralCode?: string;
-    phone?: string;
-    city?: string;
   }) => {
     const res = await authService.signup(data);
     if (res.success && res.user) {

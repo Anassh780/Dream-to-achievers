@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { storage } from '@/services/storage';
+import { authService } from '@/services/authService';
 import { payoutService } from '@/services/payoutService';
 import { User as UserType, PaymentMethod, PaymentMethodType } from '@/types';
 import { Button } from '@/components/ui/Button';
@@ -47,13 +48,17 @@ export const DashboardProfile: React.FC = () => {
 
   if (!user) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const users = storage.get<UserType[]>('USERS', []);
-    const updatedUsers = users.map((u) => (u.id === user.id ? { ...u, fullName, phone, city } : u));
-    storage.set('USERS', updatedUsers);
+    const updatedUser: UserType = {
+      ...user,
+      fullName: fullName.trim() || user.fullName,
+      phone: phone.trim() || '',
+      city: city.trim() || '',
+    };
+    await authService.saveUserProfile(updatedUser);
 
     refreshUserData();
     setLoading(false);
