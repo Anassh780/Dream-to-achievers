@@ -2,7 +2,7 @@ import { db, rtdb } from '@/lib/firebase';
 import { collection, onSnapshot, getDocs, setDoc, doc, deleteDoc } from 'firebase/firestore';
 import { ref, onValue, get, set } from 'firebase/database';
 import { storage } from './storage';
-import { Product, Category, User, Sale } from '@/types';
+import { Product, Category, User, Sale, WithdrawalRequest, Reward } from '@/types';
 import { SEED_PRODUCTS } from '@/config/products';
 import { SEED_CATEGORIES } from '@/config/categories';
 
@@ -189,6 +189,34 @@ class CloudSyncService {
     } catch (err) {
       console.warn('[CloudSync] Users sync error:', err);
     }
+
+    try {
+      // 5. Sync Sales
+      const cloudSalesSnap: any = await getDocs(collection(db, 'sales'));
+      if (!cloudSalesSnap.empty) {
+        const sales: Sale[] = [];
+        cloudSalesSnap.forEach((d: any) => {
+          const s = d.data() as Sale;
+          if (s && s.id) sales.push(s);
+        });
+        storage.set('SALES', sales);
+        window.dispatchEvent(new CustomEvent('dta_sales_update', { detail: sales }));
+      }
+    } catch {}
+
+    try {
+      // 6. Sync Withdrawals
+      const cloudWdSnap: any = await getDocs(collection(db, 'withdrawals'));
+      if (!cloudWdSnap.empty) {
+        const wds: WithdrawalRequest[] = [];
+        cloudWdSnap.forEach((d: any) => {
+          const w = d.data() as WithdrawalRequest;
+          if (w && w.id) wds.push(w);
+        });
+        storage.set('WITHDRAWALS', wds);
+        window.dispatchEvent(new CustomEvent('dta_withdrawals_update', { detail: wds }));
+      }
+    } catch {}
   }
 
   /**
@@ -256,7 +284,6 @@ class CloudSyncService {
           }
         });
         if (cloudList.length > 0) {
-          // Cloud directly sets the single source of truth
           storage.set('PRODUCTS', cloudList);
           window.dispatchEvent(new CustomEvent('dta_products_update', { detail: cloudList }));
         }
@@ -327,6 +354,40 @@ class CloudSyncService {
       this.unsubscribers.push(unsubUsers);
     } catch (err) {
       console.warn('[CloudSync] Users stream setup error:', err);
+    }
+
+    // 5. Withdrawals Stream
+    try {
+      const unsubWd = onSnapshot(collection(db, 'withdrawals'), (snapshot: any) => {
+        if (snapshot.empty) return;
+        const wds: WithdrawalRequest[] = [];
+        snapshot.forEach((d: any) => {
+          const w = d.data() as WithdrawalRequest;
+          if (w && w.id) wds.push(w);
+        });
+        storage.set('WITHDRAWALS', wds);
+        window.dispatchEvent(new CustomEvent('dta_withdrawals_update', { detail: wds }));
+      });
+      this.unsubscribers.push(unsubWd);
+    } catch (err) {
+      console.warn('[CloudSync] Withdrawals stream setup error:', err);
+    }
+
+    // 6. Rewards Stream
+    try {
+      const unsubRewards = onSnapshot(collection(db, 'rewards'), (snapshot: any) => {
+        if (snapshot.empty) return;
+        const rewards: Reward[] = [];
+        snapshot.forEach((d: any) => {
+          const r = d.data() as Reward;
+          if (r && r.id) rewards.push(r);
+        });
+        storage.set('REWARDS', rewards);
+        window.dispatchEvent(new CustomEvent('dta_rewards_update', { detail: rewards }));
+      });
+      this.unsubscribers.push(unsubRewards);
+    } catch (err) {
+      console.warn('[CloudSync] Rewards stream setup error:', err);
     }
   }
 

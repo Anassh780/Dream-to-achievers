@@ -1,5 +1,8 @@
 import { Reward, RewardStatus } from '@/types';
 import { storage } from './storage';
+import { db, rtdb } from '@/lib/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { ref, set } from 'firebase/database';
 
 export const rewardService = {
   getUserRewards(userId: string): Reward[] {
@@ -20,7 +23,7 @@ export const rewardService = {
       .reduce((sum, r) => sum + r.amount, 0);
   },
 
-  updateRewardStatus({
+  async updateRewardStatus({
     rewardId,
     status,
     adminNote,
@@ -30,7 +33,7 @@ export const rewardService = {
     status: RewardStatus;
     adminNote?: string;
     transactionReference?: string;
-  }): void {
+  }): Promise<void> {
     const rewards = storage.get<Reward[]>('REWARDS', []);
     const index = rewards.findIndex((r) => r.id === rewardId);
     if (index >= 0) {
@@ -40,6 +43,16 @@ export const rewardService = {
       if (status === 'approved') rewards[index].approvedAt = new Date().toISOString();
       if (status === 'paid') rewards[index].paidAt = new Date().toISOString();
       storage.set('REWARDS', rewards);
+
+      // Sync to Cloud Firestore & RTDB
+      try {
+        await setDoc(doc(db, 'rewards', rewardId), rewards[index], { merge: true });
+        await setDoc(doc(db, `users/${rewards[index].userId}/rewards`, rewardId), rewards[index], { merge: true });
+      } catch {}
+      try {
+        await set(ref(rtdb, `rewards/${rewardId}`), rewards[index]);
+        await set(ref(rtdb, `user_rewards/${rewards[index].userId}/${rewardId}`), rewards[index]);
+      } catch {}
 
       // Create notification for user
       const targetUserId = rewards[index].userId;
