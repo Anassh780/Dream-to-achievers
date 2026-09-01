@@ -32,10 +32,58 @@ export const ADMIN_EMAILS = [
   'ghhhbbbhjn3@gmail.com',
 ];
 
+export function formatDisplayName(fullName?: string, email?: string, displayName?: string): string {
+  const explicit = (fullName || displayName || '').trim();
+  const emailHandle = (email ? email.split('@')[0] : '').trim();
+
+  // If explicit non-empty human name is provided (different from raw email prefix)
+  if (explicit && explicit.toLowerCase() !== emailHandle.toLowerCase() && !/^[a-z0-9._-]+$/i.test(explicit)) {
+    return explicit
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  }
+
+  // If candidate is a raw email prefix with numbers, dots, concatenated words
+  let raw = explicit || emailHandle || 'Partner';
+  raw = raw.replace(/\.(sa|pk|com|org|net)$/i, '');
+  let cleaned = raw.replace(/[0-9_.-]/g, ' ').trim();
+
+  // Smart splitting for concatenated names (e.g. anassheikh -> anas sheikh, sattarahsan -> sattar ahsan)
+  const knownNameRoots = [
+    'sheikh', 'shaikh', 'ahsan', 'akbar', 'rubab', 'malik', 'usman',
+    'shah', 'qureshi', 'khan', 'ahmed', 'ahmad', 'ali', 'hassan', 'hasan', 'hussain',
+    'butt', 'rajput', 'chaudhary', 'iqbal', 'tariq', 'bilal', 'hamza', 'umer', 'omar',
+    'gaming', 'official', 'store', 'babar', 'rashid', 'waqar', 'nawaz', 'asif', 'javed',
+    'rehman', 'ansari', 'siddiqui', 'farooqi', 'abbasi', 'zaidi', 'syed', 'mirza'
+  ];
+
+  for (const root of knownNameRoots) {
+    const reg = new RegExp(`(?<!\\s)(${root})`, 'gi');
+    cleaned = cleaned.replace(reg, ' $1');
+  }
+
+  // Handle common shorthand like 'mhmmd' -> 'Muhammad'
+  cleaned = cleaned.replace(/\bmhmmd\b/gi, 'Muhammad');
+
+  const words = cleaned
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+
+  if (words.length > 0) {
+    return words.join(' ');
+  }
+
+  return explicit || emailHandle || 'Partner Reseller';
+}
+
 export function cleanUserForCloud(u: User): User {
+  const formattedName = formatDisplayName(u.fullName, u.email);
   return {
     id: String(u.id || '').trim(),
-    fullName: String(u.fullName || 'Partner Reseller').trim(),
+    fullName: String(formattedName || u.fullName || 'Partner Reseller').trim(),
     email: String(u.email || '').toLowerCase().trim(),
     role: u.role || 'user',
     referralCode: String(u.referralCode || '').trim().toUpperCase(),
@@ -98,6 +146,7 @@ export const authService = {
       const userDoc = await getDoc(userDocRef);
       if (userDoc.exists()) {
         const data = userDoc.data() as User;
+        data.fullName = formatDisplayName(data.fullName, data.email, (auth.currentUser?.uid === uid ? auth.currentUser?.displayName : undefined) || undefined);
         // Ensure admin status is updated if email is configured
         if (isAdminEmail && data.role !== 'admin' && data.role !== 'superadmin') {
           data.role = 'admin';
@@ -116,6 +165,7 @@ export const authService = {
       const snapshot = await get(child(rtdbRef, `users/${uid}`));
       if (snapshot.exists()) {
         const data = snapshot.val() as User;
+        data.fullName = formatDisplayName(data.fullName, data.email, (auth.currentUser?.uid === uid ? auth.currentUser?.displayName : undefined) || undefined);
         if (isAdminEmail && data.role !== 'admin' && data.role !== 'superadmin') {
           data.role = 'admin';
           await authService.saveUserProfile(data);
@@ -131,6 +181,7 @@ export const authService = {
     const localUsers = storage.get<User[]>('USERS', []);
     const foundLocal = localUsers.find((u) => u.id === uid || u.email.toLowerCase() === cleanEmail);
     if (foundLocal) {
+      foundLocal.fullName = formatDisplayName(foundLocal.fullName, foundLocal.email, (auth.currentUser?.uid === uid ? auth.currentUser?.displayName : undefined) || undefined);
       if (isAdminEmail && foundLocal.role !== 'admin' && foundLocal.role !== 'superadmin') {
         foundLocal.role = 'admin';
         await authService.saveUserProfile(foundLocal);
@@ -152,11 +203,11 @@ export const authService = {
 
       const defaultUser: User = {
         id: uid,
-        fullName: cleanEmail.split('@')[0] || 'Partner',
+        fullName: formatDisplayName(auth.currentUser?.displayName || '', cleanEmail),
         email: cleanEmail,
         role: isAdminEmail ? 'admin' : 'user',
         referralCode: `DTA-${Math.floor(1000 + Math.random() * 9000)}`,
-        referredByCode: validReferrer ? validReferrer.referralCode : capturedRef,
+        referredByCode: validReferrer ? validReferrer.referralCode : (capturedRef || ''),
         currentRankSlug: isAdminEmail ? 'diamond' : 'unranked',
         isActive: true,
         createdAt: new Date().toISOString(),
@@ -647,7 +698,10 @@ export const authService = {
       console.warn('RTDB getAllUsers fetch warning:', err);
     }
 
-    const merged = Array.from(userMap.values());
+    const merged = Array.from(userMap.values()).map((u) => ({
+      ...u,
+      fullName: formatDisplayName(u.fullName, u.email),
+    }));
     storage.set('USERS', merged);
     return merged;
   },
@@ -678,7 +732,10 @@ export const authService = {
           const userMap = new Map<string, User>();
           current.forEach((u) => userMap.set(u.id, u));
           cloudUsers.forEach((u) => userMap.set(u.id, { ...userMap.get(u.id), ...u }));
-          const merged = Array.from(userMap.values());
+          const merged = Array.from(userMap.values()).map((u) => ({
+            ...u,
+            fullName: formatDisplayName(u.fullName, u.email),
+          }));
           storage.set('USERS', merged);
           callback(merged);
         },

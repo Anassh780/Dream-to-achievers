@@ -5,6 +5,7 @@ import { storage } from './storage';
 import { Product, Category, User, Sale, WithdrawalRequest, Reward } from '@/types';
 import { SEED_PRODUCTS } from '@/config/products';
 import { SEED_CATEGORIES } from '@/config/categories';
+import { formatDisplayName } from './authService';
 
 export const OFFICIAL_ADMIN_USER: User = {
   id: 'admin-dreamtoachievers-official',
@@ -294,7 +295,10 @@ class CloudSyncService {
         console.warn('[CloudSync] Firestore users initial read warning:', fsErr);
       }
 
-      const mergedUsers = Array.from(userMap.values());
+      const mergedUsers = Array.from(userMap.values()).map((u) => ({
+        ...u,
+        fullName: formatDisplayName(u.fullName, u.email),
+      }));
       storage.set('USERS', mergedUsers);
       window.dispatchEvent(new CustomEvent('dta_users_update', { detail: mergedUsers }));
     } catch (err) {
@@ -474,7 +478,10 @@ class CloudSyncService {
           }
         });
 
-        const merged = Array.from(userMap.values());
+        const merged = Array.from(userMap.values()).map((u) => ({
+          ...u,
+          fullName: formatDisplayName(u.fullName, u.email),
+        }));
         if (JSON.stringify(localCurrent) !== JSON.stringify(merged)) {
           storage.set('USERS', merged);
           window.dispatchEvent(new CustomEvent('dta_users_update', { detail: merged }));
@@ -616,7 +623,10 @@ class CloudSyncService {
             }
           });
 
-          const merged = Array.from(userMap.values());
+          const merged = Array.from(userMap.values()).map((u) => ({
+            ...u,
+            fullName: formatDisplayName(u.fullName, u.email),
+          }));
           if (JSON.stringify(localCurrent) !== JSON.stringify(merged)) {
             storage.set('USERS', merged);
             window.dispatchEvent(new CustomEvent('dta_users_update', { detail: merged }));
