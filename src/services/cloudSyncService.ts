@@ -47,6 +47,33 @@ class CloudSyncService {
   }
 
   /**
+   * Cleans an object so Firestore and RTDB will NEVER reject it due to undefined values.
+   */
+  public cleanProductForCloud(p: Product): Record<string, any> {
+    return {
+      id: String(p.id || `prod-${Date.now()}`),
+      name: String(p.name || '').trim(),
+      slug: String(p.slug || '').trim(),
+      shortDescription: String(p.shortDescription || '').trim(),
+      description: String(p.description || '').trim(),
+      category: String(p.category || 'General'),
+      categoryId: String(p.categoryId || 'cat-lifestyle-gifting'),
+      categoryIds: Array.isArray(p.categoryIds) ? p.categoryIds : [p.categoryId || 'cat-lifestyle-gifting'],
+      retailPrice: Number(p.retailPrice || 0),
+      partnerPrice: Number(p.partnerPrice || 0),
+      suggestedSellingPrice: Number(p.suggestedSellingPrice || p.retailPrice || 0),
+      grossMargin: Number(p.grossMargin ?? Math.max(0, (p.retailPrice || 0) - (p.partnerPrice || 0))),
+      currency: 'PKR',
+      imageUrl: String(p.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80').trim(),
+      sku: String(p.sku || `DTA-${Math.floor(1000 + Math.random() * 9000)}`).trim(),
+      inStock: Boolean(p.inStock ?? true),
+      isFeatured: Boolean(p.isFeatured ?? false),
+      status: String(p.status || 'active'),
+      createdAt: String(p.createdAt || new Date().toISOString()),
+    };
+  }
+
+  /**
    * Removes outdated mock IDs from local storage
    */
   private cleanLegacyStorage() {
@@ -119,12 +146,12 @@ class CloudSyncService {
         });
       }
 
-      // If cloud is empty or missing the 4 core products, seed them now
+      // If cloud is empty, seed them now
       if (validCloudProducts.length === 0) {
         await this.seedCloudProducts();
         validCloudProducts = SEED_PRODUCTS;
       } else {
-        // Check if all SEED_PRODUCTS are in cloud; if not, add missing seed items
+        // Ensure any missing seed products are in cloud
         for (const sp of SEED_PRODUCTS) {
           if (!validCloudProducts.some((p) => p.id === sp.id || p.sku === sp.sku)) {
             await this.syncProductToCloud(sp);
@@ -242,8 +269,9 @@ class CloudSyncService {
   public async seedCloudProducts() {
     try {
       for (const prod of SEED_PRODUCTS) {
-        await setDoc(doc(db, 'products', prod.id), prod, { merge: true });
-        await set(ref(rtdb, `products/${prod.id}`), prod);
+        const clean = this.cleanProductForCloud(prod);
+        await setDoc(doc(db, 'products', clean.id), clean, { merge: true });
+        await set(ref(rtdb, `products/${clean.id}`), clean);
       }
       storage.set('PRODUCTS', SEED_PRODUCTS);
       window.dispatchEvent(new CustomEvent('dta_products_update', { detail: SEED_PRODUCTS }));
@@ -419,8 +447,9 @@ class CloudSyncService {
    */
   public async syncProductToCloud(product: Product) {
     try {
-      await setDoc(doc(db, 'products', product.id), product, { merge: true });
-      await set(ref(rtdb, `products/${product.id}`), product);
+      const clean = this.cleanProductForCloud(product);
+      await setDoc(doc(db, 'products', clean.id), clean, { merge: true });
+      await set(ref(rtdb, `products/${clean.id}`), clean);
     } catch (err) {
       console.warn('[CloudSync] Failed to sync product to cloud:', err);
     }

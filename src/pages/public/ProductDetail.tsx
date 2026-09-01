@@ -17,7 +17,19 @@ import {
 
 export const ProductDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const product = productService.getProductBySlug(slug || '');
+  const [syncKey, setSyncKey] = useState(0);
+
+  React.useEffect(() => {
+    const handleSync = () => setSyncKey((prev) => prev + 1);
+    window.addEventListener('dta_products_update', handleSync);
+    window.addEventListener('dta_storage_change', handleSync);
+    return () => {
+      window.removeEventListener('dta_products_update', handleSync);
+      window.removeEventListener('dta_storage_change', handleSync);
+    };
+  }, []);
+
+  const product = useMemo(() => productService.getProductBySlug(slug || ''), [slug, syncKey]);
   const { user, isAuthenticated } = useAuth();
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
@@ -25,13 +37,13 @@ export const ProductDetail: React.FC = () => {
   const [saleRecorded, setSaleRecorded] = useState(false);
   const navigate = useNavigate();
 
-  const allProducts = useMemo(() => productService.getAllProducts(), []);
+  const allProducts = useMemo(() => productService.getAllProducts(), [syncKey]);
   const relatedProducts = useMemo(() => {
     if (!product) return [];
     return allProducts
       .filter((p) => p.id !== product.id && p.category === product.category)
       .slice(0, 3);
-  }, [product, allProducts]);
+  }, [product, allProducts, syncKey]);
 
   if (!product) {
     return (
