@@ -17,6 +17,8 @@ export const OFFICIAL_ADMIN_USER: User = {
   createdAt: '2026-01-01T00:00:00.000Z',
 };
 
+const LEGACY_PRODUCT_IDS = ['prod-001', 'prod-002', 'prod-003', 'prod-004', 'prod-005', 'prod-006'];
+
 class CloudSyncService {
   private isInitialized = false;
   private unsubscribers: Array<() => void> = [];
@@ -28,17 +30,33 @@ class CloudSyncService {
     if (this.isInitialized || typeof window === 'undefined') return;
     this.isInitialized = true;
 
-    // 1. Guarantee official admin user presence
+    // 1. Clean legacy mock data from local storage
+    this.cleanLegacyStorage();
+
+    // 2. Guarantee official admin user presence
     await this.ensureOfficialAdmin();
 
-    // 2. Initial cloud fetch, merge, and upload missing
+    // 3. Initial cloud fetch and seed
     await this.initialCloudSync();
 
-    // 3. Start real-time Firestore listeners
+    // 4. Start real-time Firestore listeners
     this.startFirestoreListeners();
 
-    // 4. Start real-time Realtime Database listeners
+    // 5. Start real-time Realtime Database listeners
     this.startRTDBListeners();
+  }
+
+  /**
+   * Removes outdated mock IDs from local storage
+   */
+  private cleanLegacyStorage() {
+    try {
+      const local = storage.get<Product[]>('PRODUCTS', []);
+      const filtered = local.filter((p) => p && !LEGACY_PRODUCT_IDS.includes(p.id));
+      if (filtered.length === 0 || filtered.length !== local.length) {
+        storage.set('PRODUCTS', filtered.length > 0 ? filtered : SEED_PRODUCTS);
+      }
+    } catch {}
   }
 
   /**
@@ -75,106 +93,82 @@ class CloudSyncService {
   }
 
   /**
-   * True Two-Way Initial Cloud Sync:
-   * Merges local and cloud data, then pushes all local items to cloud so no products are lost!
+   * Real-time Cloud First Initial Sync:
+   * Firestore & RTDB are the single source of truth across all devices.
    */
   public async initialCloudSync() {
-    try {
-      // 1. Sync Products
-      const localProducts = storage.get<Product[]>('PRODUCTS', SEED_PRODUCTS);
-      const productMap = new Map<string, Product>();
-
-      // Seed with built-in SEED_PRODUCTS first
-      SEED_PRODUCTS.forEach((p) => productMap.set(p.id, p));
-
-      // Merge local items
-      localProducts.forEach((p) => {
-        if (p && p.id) productMap.set(p.id, { ...productMap.get(p.id), ...p });
-      });
-
-      // Fetch cloud Firestore items
+    // 1. Delete legacy items from Cloud
+    for (const legacyId of LEGACY_PRODUCT_IDS) {
       try {
-        const cloudProductsSnap: any = await getDocs(collection(db, 'products'));
-        if (!cloudProductsSnap.empty) {
-          cloudProductsSnap.forEach((d: any) => {
-            const cp = d.data() as Product;
-            if (cp && cp.id) {
-              productMap.set(cp.id, { ...productMap.get(cp.id), ...cp });
-            }
-          });
-        }
-      } catch (err) {
-        console.warn('[CloudSync] Firestore products read warning:', err);
-      }
-
-      // Fetch RTDB items
-      try {
-        const rtdbSnap = await get(ref(rtdb, 'products'));
-        if (rtdbSnap.exists()) {
-          const val = rtdbSnap.val();
-          if (val && typeof val === 'object') {
-            Object.values(val).forEach((cp: any) => {
-              if (cp && cp.id) {
-                productMap.set(cp.id, { ...productMap.get(cp.id), ...cp });
-              }
-            });
-          }
-        }
-      } catch (err) {
-        console.warn('[CloudSync] RTDB products read warning:', err);
-      }
-
-      const mergedProducts = Array.from(productMap.values());
-      storage.set('PRODUCTS', mergedProducts);
-      window.dispatchEvent(new CustomEvent('dta_products_update', { detail: mergedProducts }));
-
-      // Push all unified products to Firestore & RTDB in background
-      this.syncAllProductsToCloud(mergedProducts);
-    } catch (err) {
-      console.warn('[CloudSync] Products initial sync error:', err);
+        await deleteDoc(doc(db, 'products', legacyId));
+        await set(ref(rtdb, `products/${legacyId}`), null);
+      } catch {}
     }
 
     try {
-      // 2. Sync Categories
-      const localCategories = storage.get<Category[]>('CATEGORIES', SEED_CATEGORIES);
-      const categoryMap = new Map<string, Category>();
+      // 2. Fetch all products from Firestore
+      const cloudProductsSnap: any = await getDocs(collection(db, 'products'));
+      let validCloudProducts: Product[] = [];
 
-      SEED_CATEGORIES.forEach((c) => categoryMap.set(c.id, c));
-      localCategories.forEach((c) => {
-        if (c && c.id) categoryMap.set(c.id, { ...categoryMap.get(c.id), ...c });
-      });
-
-      try {
-        const cloudCatSnap: any = await getDocs(collection(db, 'categories'));
-        if (!cloudCatSnap.empty) {
-          cloudCatSnap.forEach((d: any) => {
-            const cc = d.data() as Category;
-            if (cc && cc.id) categoryMap.set(cc.id, { ...categoryMap.get(cc.id), ...cc });
-          });
-        }
-      } catch {}
-
-      const mergedCategories = Array.from(categoryMap.values());
-      storage.set('CATEGORIES', mergedCategories);
-      window.dispatchEvent(new CustomEvent('dta_categories_update', { detail: mergedCategories }));
-
-      // Push categories to cloud
-      for (const cat of mergedCategories) {
-        this.syncCategoryToCloud(cat);
+      if (!cloudProductsSnap.empty) {
+        cloudProductsSnap.forEach((d: any) => {
+          const cp = d.data() as Product;
+          if (cp && cp.id && !LEGACY_PRODUCT_IDS.includes(cp.id)) {
+            validCloudProducts.push(cp);
+          }
+        });
       }
+
+      // If cloud is empty or missing the 4 core products, seed them now
+      if (validCloudProducts.length === 0) {
+        await this.seedCloudProducts();
+        validCloudProducts = SEED_PRODUCTS;
+      } else {
+        // Check if all SEED_PRODUCTS are in cloud; if not, add missing seed items
+        for (const sp of SEED_PRODUCTS) {
+          if (!validCloudProducts.some((p) => p.id === sp.id || p.sku === sp.sku)) {
+            await this.syncProductToCloud(sp);
+            validCloudProducts.push(sp);
+          }
+        }
+      }
+
+      // Pure cloud override: all devices will now display the exact same products
+      storage.set('PRODUCTS', validCloudProducts);
+      window.dispatchEvent(new CustomEvent('dta_products_update', { detail: validCloudProducts }));
+    } catch (err) {
+      console.warn('[CloudSync] Products initial sync error:', err);
+      storage.set('PRODUCTS', SEED_PRODUCTS);
+    }
+
+    try {
+      // 3. Sync Categories
+      const cloudCatSnap: any = await getDocs(collection(db, 'categories'));
+      let categories: Category[] = [];
+
+      if (!cloudCatSnap.empty) {
+        cloudCatSnap.forEach((d: any) => {
+          const cc = d.data() as Category;
+          if (cc && cc.id) categories.push(cc);
+        });
+      }
+
+      if (categories.length === 0) {
+        await this.seedCloudCategories();
+        categories = SEED_CATEGORIES;
+      }
+
+      storage.set('CATEGORIES', categories);
+      window.dispatchEvent(new CustomEvent('dta_categories_update', { detail: categories }));
     } catch (err) {
       console.warn('[CloudSync] Categories sync error:', err);
     }
 
     try {
-      // 3. Sync Users
+      // 4. Sync Users
       const cloudUsersSnap: any = await getDocs(collection(db, 'users'));
       const userMap = new Map<string, User>();
       userMap.set(OFFICIAL_ADMIN_USER.id, OFFICIAL_ADMIN_USER);
-
-      storage.get<User[]>('USERS', []).forEach((u: User) => {
-        if (u && u.id) userMap.set(u.id, u);
-      });
 
       if (!cloudUsersSnap.empty) {
         cloudUsersSnap.forEach((d: any) => {
@@ -201,7 +195,9 @@ class CloudSyncService {
    * Pushes all products directly to Firestore and RTDB
    */
   public async syncAllProductsToCloud(productsToSync?: Product[]): Promise<number> {
-    const list = productsToSync || storage.get<Product[]>('PRODUCTS', SEED_PRODUCTS);
+    const list = (productsToSync || storage.get<Product[]>('PRODUCTS', SEED_PRODUCTS)).filter(
+      (p) => p && !LEGACY_PRODUCT_IDS.includes(p.id)
+    );
     let count = 0;
     for (const prod of list) {
       if (prod && prod.id) {
@@ -229,7 +225,23 @@ class CloudSyncService {
   }
 
   /**
-   * Real-time Firestore Listeners
+   * Seeds default categories into cloud database
+   */
+  public async seedCloudCategories() {
+    try {
+      for (const cat of SEED_CATEGORIES) {
+        await setDoc(doc(db, 'categories', cat.id), cat, { merge: true });
+        await set(ref(rtdb, `categories/${cat.id}`), cat);
+      }
+      storage.set('CATEGORIES', SEED_CATEGORIES);
+      window.dispatchEvent(new CustomEvent('dta_categories_update', { detail: SEED_CATEGORIES }));
+    } catch (err) {
+      console.warn('[CloudSync] Seeding categories failed:', err);
+    }
+  }
+
+  /**
+   * Real-time Firestore Listeners: Single Source of Truth
    */
   private startFirestoreListeners() {
     // 1. Products Stream
@@ -237,15 +249,16 @@ class CloudSyncService {
       const unsubProducts = onSnapshot(collection(db, 'products'), (snapshot: any) => {
         if (snapshot.empty) return;
         const cloudList: Product[] = [];
-        snapshot.forEach((d: any) => cloudList.push(d.data() as Product));
+        snapshot.forEach((d: any) => {
+          const item = d.data() as Product;
+          if (item && item.id && !LEGACY_PRODUCT_IDS.includes(item.id)) {
+            cloudList.push(item);
+          }
+        });
         if (cloudList.length > 0) {
-          const localList = storage.get<Product[]>('PRODUCTS', SEED_PRODUCTS);
-          const map = new Map<string, Product>();
-          localList.forEach((p) => map.set(p.id, p));
-          cloudList.forEach((p) => map.set(p.id, { ...map.get(p.id), ...p }));
-          const merged = Array.from(map.values());
-          storage.set('PRODUCTS', merged);
-          window.dispatchEvent(new CustomEvent('dta_products_update', { detail: merged }));
+          // Cloud directly sets the single source of truth
+          storage.set('PRODUCTS', cloudList);
+          window.dispatchEvent(new CustomEvent('dta_products_update', { detail: cloudList }));
         }
       });
       this.unsubscribers.push(unsubProducts);
@@ -258,7 +271,10 @@ class CloudSyncService {
       const unsubCategories = onSnapshot(collection(db, 'categories'), (snapshot: any) => {
         if (snapshot.empty) return;
         const categories: Category[] = [];
-        snapshot.forEach((d: any) => categories.push(d.data() as Category));
+        snapshot.forEach((d: any) => {
+          const item = d.data() as Category;
+          if (item && item.id) categories.push(item);
+        });
         if (categories.length > 0) {
           storage.set('CATEGORIES', categories);
           window.dispatchEvent(new CustomEvent('dta_categories_update', { detail: categories }));
@@ -273,15 +289,13 @@ class CloudSyncService {
     try {
       const unsubSales = onSnapshot(collection(db, 'sales'), (snapshot: any) => {
         if (snapshot.empty) return;
-        const salesMap = new Map<string, Sale>();
-        storage.get<Sale[]>('SALES', []).forEach((s: Sale) => salesMap.set(s.id, s));
+        const sales: Sale[] = [];
         snapshot.forEach((d: any) => {
           const s = d.data() as Sale;
-          if (s && s.id) salesMap.set(s.id, s);
+          if (s && s.id) sales.push(s);
         });
-        const merged = Array.from(salesMap.values());
-        storage.set('SALES', merged);
-        window.dispatchEvent(new CustomEvent('dta_sales_update', { detail: merged }));
+        storage.set('SALES', sales);
+        window.dispatchEvent(new CustomEvent('dta_sales_update', { detail: sales }));
       });
       this.unsubscribers.push(unsubSales);
     } catch (err) {
@@ -294,9 +308,6 @@ class CloudSyncService {
         if (snapshot.empty) return;
         const userMap = new Map<string, User>();
         userMap.set(OFFICIAL_ADMIN_USER.id, OFFICIAL_ADMIN_USER);
-        storage.get<User[]>('USERS', []).forEach((u: User) => {
-          if (u && u.id) userMap.set(u.id, u);
-        });
 
         snapshot.forEach((d: any) => {
           const u = d.data() as User;
@@ -328,15 +339,12 @@ class CloudSyncService {
       onValue(productsRef, (snap: any) => {
         const val = snap.val();
         if (val && typeof val === 'object') {
-          const rtdbProducts = Object.values(val) as Product[];
+          const rtdbProducts = (Object.values(val) as Product[]).filter(
+            (p) => p && p.id && !LEGACY_PRODUCT_IDS.includes(p.id)
+          );
           if (rtdbProducts.length > 0) {
-            const localList = storage.get<Product[]>('PRODUCTS', SEED_PRODUCTS);
-            const map = new Map<string, Product>();
-            localList.forEach((p) => map.set(p.id, p));
-            rtdbProducts.forEach((p) => map.set(p.id, { ...map.get(p.id), ...p }));
-            const merged = Array.from(map.values());
-            storage.set('PRODUCTS', merged);
-            window.dispatchEvent(new CustomEvent('dta_products_update', { detail: merged }));
+            storage.set('PRODUCTS', rtdbProducts);
+            window.dispatchEvent(new CustomEvent('dta_products_update', { detail: rtdbProducts }));
           }
         }
       });

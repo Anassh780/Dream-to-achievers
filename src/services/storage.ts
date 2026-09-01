@@ -35,6 +35,8 @@ const STORAGE_KEYS = {
   DELETED_PRODUCTS: 'dta_deleted_products',
 };
 
+const LEGACY_PRODUCT_IDS = ['prod-001', 'prod-002', 'prod-003', 'prod-004', 'prod-005', 'prod-006'];
+
 export const storage = {
   init() {
     if (typeof window === 'undefined') return;
@@ -88,8 +90,10 @@ export const storage = {
         return defaultValue;
       }
       const parsed = JSON.parse(item);
-      if (key === 'PRODUCTS' && Array.isArray(parsed) && parsed.length === 0) {
-        return SEED_PRODUCTS as unknown as T;
+      if (key === 'PRODUCTS' && Array.isArray(parsed)) {
+        const cleaned = parsed.filter((p: any) => p && p.id && !LEGACY_PRODUCT_IDS.includes(p.id));
+        if (cleaned.length === 0) return SEED_PRODUCTS as unknown as T;
+        return cleaned as unknown as T;
       }
       return parsed;
     } catch {
