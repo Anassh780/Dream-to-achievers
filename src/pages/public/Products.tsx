@@ -312,9 +312,12 @@ export const Products: React.FC = () => {
                       {/* Product Image Tile */}
                       <div className="aspect-[16/10] bg-[#FAF7EF] relative overflow-hidden border-b border-[#E3DCC8]">
                         <img
-                          src={product.imageUrl}
+                          src={product.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
                           alt={product.name}
                           className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300 opacity-95 group-hover:opacity-100"
+                          onError={(e) => {
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
+                          }}
                         />
                         <div className="absolute top-2.5 left-2.5">
                           <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/90 text-[#1E241F] border border-[#E3DCC8] shadow-2xs">

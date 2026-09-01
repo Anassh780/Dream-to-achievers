@@ -262,9 +262,12 @@ export const DashboardProducts: React.FC = () => {
               <div>
                 <div className="aspect-[16/10] bg-[#FAF7EF] relative overflow-hidden border-b border-[#E3DCC8]">
                   <img
-                    src={p.imageUrl}
+                    src={p.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
                     alt={p.name}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
+                    }}
                   />
                   <span className="absolute top-2.5 left-2.5 text-[10px] font-mono px-2 py-0.5 rounded bg-white/90 text-[#1E241F] border border-[#E3DCC8]">
                     {p.category}
@@ -340,9 +343,12 @@ export const DashboardProducts: React.FC = () => {
                   <td className="p-3.5">
                     <div className="flex items-center space-x-3">
                       <img
-                        src={p.imageUrl}
+                        src={p.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
                         alt={p.name}
                         className="w-9 h-9 rounded-lg object-cover bg-white border border-[#E3DCC8] shrink-0"
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
+                        }}
                       />
                       <span className="font-serif font-medium text-[#1E241F] truncate max-w-[200px]">
                         {p.name}
