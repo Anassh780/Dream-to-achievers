@@ -410,7 +410,7 @@ export const authService = {
 
       const userToSave: User = {
         id: fbUser.uid,
-        fullName: cleanName || existingProfile?.fullName || cleanEmail.split('@')[0],
+        fullName: cleanName,
         email: cleanEmail,
         role: isAdminEmail ? 'admin' : (existingProfile?.role || 'user'),
         referralCode: existingProfile?.referralCode || newReferralCode,
@@ -519,52 +519,25 @@ export const authService = {
   /**
    * Helper to retrieve locally recorded deleted user IDs to prevent ghost restoration.
    */
-  getDeletedUserIds(): string[] {
-    if (typeof window === 'undefined') return [];
-    try {
-      const raw = localStorage.getItem('dta_deleted_user_ids');
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  },
-
-  /**
-   * Mark a user ID as deleted in localStorage blacklist.
-   */
-  markUserAsDeleted(userId: string): void {
-    if (typeof window === 'undefined' || !userId) return;
-    try {
-      const deleted = authService.getDeletedUserIds();
-      if (!deleted.includes(userId)) {
-        deleted.push(userId);
-        localStorage.setItem('dta_deleted_user_ids', JSON.stringify(deleted));
-      }
-    } catch {}
-  },
-
   /**
    * Permanently delete a user account from local cache, Firestore, and Realtime Database.
    */
   async deleteUser(userId: string, referralCode?: string): Promise<{ success: boolean; error?: string }> {
     if (!userId) return { success: false, error: 'User ID is required.' };
 
-    // 1. Mark in deleted blacklist
-    authService.markUserAsDeleted(userId);
-
-    // 2. Remove immediately from local USERS
+    // 1. Remove immediately from local USERS
     const localUsers = storage.get<User[]>('USERS', []);
     const updatedUsers = localUsers.filter((u) => u.id !== userId);
     storage.set('USERS', updatedUsers);
 
-    // 3. Clean local referrals relating to this user
+    // 2. Clean local referrals relating to this user
     const localReferrals = storage.get<any[]>('REFERRALS', []);
     const updatedReferrals = localReferrals.filter(
       (r) => r.referredUserId !== userId && r.referrerId !== userId
     );
     storage.set('REFERRALS', updatedReferrals);
 
-    // 4. Delete from Firestore
+    // 3. Delete from Firestore
     try {
       await deleteDoc(doc(db, 'users', userId));
     } catch (err) {
@@ -582,7 +555,7 @@ export const authService = {
       }
     }
 
-    // 5. Delete from Realtime Database
+    // 4. Delete from Realtime Database
     try {
       await remove(ref(rtdb, `users/${userId}`));
     } catch (err) {
@@ -595,9 +568,10 @@ export const authService = {
       console.warn('RTDB delete user_referrals error (non-fatal):', err);
     }
 
-    // Dispatch sync event
+    // Dispatch sync events so all views refresh immediately
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key: 'USERS', value: updatedUsers } }));
+      window.dispatchEvent(new CustomEvent('dta_users_update', { detail: updatedUsers }));
     }
 
     return { success: true };
@@ -605,9 +579,9 @@ export const authService = {
 
   /**
    * Fetch all registered users from Firestore, RTDB, and Local Storage, merging and deduplicating.
+   * All users are 100% visible with zero hidden filters.
    */
   async getAllUsers(): Promise<User[]> {
-    const deletedIds = new Set(authService.getDeletedUserIds());
     const userMap = new Map<string, User>();
 
     // 0. Always guarantee Official Executive Admin user presence
@@ -616,7 +590,7 @@ export const authService = {
     // 1. Seed from local storage
     const localUsers = storage.get<User[]>('USERS', []);
     for (const u of localUsers) {
-      if (u.id && !deletedIds.has(u.id)) {
+      if (u.id) {
         if (u.email && ADMIN_EMAILS.includes(u.email.toLowerCase())) {
           u.role = 'admin';
           u.currentRankSlug = 'diamond';
@@ -630,7 +604,7 @@ export const authService = {
       const snap: any = await getDocs(collection(db, 'users'));
       snap.forEach((d: any) => {
         const data = d.data() as User;
-        if (data && data.id && !deletedIds.has(data.id)) {
+        if (data && data.id) {
           if (data.email && ADMIN_EMAILS.includes(data.email.toLowerCase())) {
             data.role = 'admin';
             data.currentRankSlug = 'diamond';
@@ -649,7 +623,7 @@ export const authService = {
         const val = rtdbSnap.val();
         if (val && typeof val === 'object') {
           Object.values(val).forEach((item: any) => {
-            if (item && item.id && !deletedIds.has(item.id)) {
+            if (item && item.id) {
               if (item.email && ADMIN_EMAILS.includes(item.email.toLowerCase())) {
                 item.role = 'admin';
                 item.currentRankSlug = 'diamond';
@@ -684,16 +658,15 @@ export const authService = {
       unsubscribeFirestore = onSnapshot(
         collection(db, 'users'),
         (snapshot: any) => {
-          const deletedIds = new Set(authService.getDeletedUserIds());
           const cloudUsers: User[] = [];
           snapshot.forEach((d: any) => {
             const data = d.data() as User;
-            if (data && data.id && !deletedIds.has(data.id)) {
+            if (data && data.id) {
               cloudUsers.push(data);
             }
           });
 
-          const current = storage.get<User[]>('USERS', []).filter((u) => !deletedIds.has(u.id));
+          const current = storage.get<User[]>('USERS', []);
           const userMap = new Map<string, User>();
           current.forEach((u) => userMap.set(u.id, u));
           cloudUsers.forEach((u) => userMap.set(u.id, { ...userMap.get(u.id), ...u }));
