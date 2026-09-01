@@ -32,6 +32,29 @@ export const ADMIN_EMAILS = [
   'ghhhbbbhjn3@gmail.com',
 ];
 
+export function cleanUserForCloud(u: User): User {
+  const clean: any = {
+    id: String(u.id || '').trim(),
+    fullName: String(u.fullName || 'Partner Reseller').trim(),
+    email: String(u.email || '').toLowerCase().trim(),
+    role: u.role || 'user',
+    referralCode: String(u.referralCode || '').trim().toUpperCase(),
+    currentRankSlug: u.currentRankSlug || 'unranked',
+    isActive: u.isActive !== false,
+    createdAt: u.createdAt || new Date().toISOString(),
+  };
+  if (u.referredByCode && String(u.referredByCode).trim()) {
+    clean.referredByCode = String(u.referredByCode).trim().toUpperCase();
+  }
+  if (u.phone && String(u.phone).trim()) {
+    clean.phone = String(u.phone).trim();
+  }
+  if (u.city && String(u.city).trim()) {
+    clean.city = String(u.city).trim();
+  }
+  return clean as User;
+}
+
 export const authService = {
   /**
    * Listen to real-time Firebase Auth state changes
@@ -48,8 +71,7 @@ export const authService = {
       try {
         const userProfile = await authService.getUserProfile(fbUser.uid, fbUser.email || '');
         if (userProfile) {
-          storage.set('CURRENT_USER_DATA', userProfile);
-          storage.setRaw('CURRENT_USER_ID', userProfile.id);
+          await authService.saveUserProfile(userProfile);
           // Sync referrals from Cloud Firestore/RTDB in background
           referralService.syncUserReferrals(userProfile.id).catch(() => {});
           callback(userProfile);
@@ -174,19 +196,21 @@ export const authService = {
    * Save user profile to both Firestore, RTDB, and Local Storage for reliable persistence
    */
   async saveUserProfile(user: User): Promise<void> {
+    const clean = cleanUserForCloud(user);
+
     // Local storage
     const localUsers = storage.get<User[]>('USERS', []);
     const existingIndex = localUsers.findIndex(
-      (u) => u.id === user.id || (u.email && u.email.toLowerCase() === user.email.toLowerCase())
+      (u) => u.id === clean.id || (u.email && u.email.toLowerCase() === clean.email.toLowerCase())
     );
     if (existingIndex >= 0) {
-      localUsers[existingIndex] = { ...localUsers[existingIndex], ...user };
+      localUsers[existingIndex] = { ...localUsers[existingIndex], ...clean };
     } else {
-      localUsers.push(user);
+      localUsers.push(clean);
     }
     storage.set('USERS', localUsers);
-    storage.set('CURRENT_USER_DATA', user);
-    storage.setRaw('CURRENT_USER_ID', user.id);
+    storage.set('CURRENT_USER_DATA', clean);
+    storage.setRaw('CURRENT_USER_ID', clean.id);
 
     // Dispatch real-time cross-tab & component events
     if (typeof window !== 'undefined') {
@@ -195,20 +219,20 @@ export const authService = {
 
     // Firestore
     try {
-      await setDoc(doc(db, 'users', user.id), user, { merge: true });
+      await setDoc(doc(db, 'users', clean.id), clean, { merge: true });
     } catch (err) {
       console.warn('Firestore setDoc failed:', err);
     }
 
     // Realtime Database
     try {
-      await set(ref(rtdb, `users/${user.id}`), user);
+      await set(ref(rtdb, `users/${clean.id}`), clean);
     } catch (err) {
       console.warn('RTDB set failed:', err);
     }
 
     // Index referral code in background
-    referralService.indexReferralCode(user).catch(() => {});
+    referralService.indexReferralCode(clean).catch(() => {});
   },
 
   /**

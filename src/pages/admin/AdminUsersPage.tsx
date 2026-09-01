@@ -102,11 +102,12 @@ export const AdminUsersPage: React.FC = () => {
   const handleManualSync = async () => {
     setIsSyncing(true);
     try {
+      await referralService.runPlatformReconciliation().catch(() => {});
       const synced = await authService.getAllUsers();
       setUsers(synced);
       setSales(storage.get<Sale[]>('SALES', []));
       setReferrals(storage.get<ReferralRecord[]>('REFERRALS', []));
-      showToast(`Synchronized ${synced.length} registered users from cloud database.`);
+      showToast(`Synchronized ${synced.length} registered partners from cloud database.`);
     } catch (e) {
       showToast('Could not reach cloud database. Showing local cached users.', 'error');
     } finally {
@@ -115,16 +116,20 @@ export const AdminUsersPage: React.FC = () => {
   };
 
   useEffect(() => {
-    // 1. Initial sync & Real-time Cloud Firestore/RTDB stream listener
+    // 1. Initial reconciliation & Real-time Cloud Firestore/RTDB stream listener
+    referralService.runPlatformReconciliation().catch(() => {});
     const unsubscribe = authService.subscribeToAllUsers((cloudUsers) => {
       setUsers(cloudUsers);
+      setReferrals(storage.get<ReferralRecord[]>('REFERRALS', []));
     });
 
     const handleStorage = () => refreshData();
     window.addEventListener('dta_storage_change', handleStorage);
+    window.addEventListener('dta_users_update', handleStorage);
     return () => {
       unsubscribe();
       window.removeEventListener('dta_storage_change', handleStorage);
+      window.removeEventListener('dta_users_update', handleStorage);
     };
   }, []);
 

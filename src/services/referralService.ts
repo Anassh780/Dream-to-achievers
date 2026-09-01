@@ -17,6 +17,21 @@ export function normalizeReferralCode(code?: string | null): string {
     .replace(/[^A-Z0-9]/g, '');
 }
 
+export function cleanReferralForCloud(r: ReferralRecord): ReferralRecord {
+  return {
+    id: String(r.id || `ref-${Date.now()}`).trim(),
+    referrerId: String(r.referrerId || '').trim(),
+    referredUserId: String(r.referredUserId || '').trim(),
+    referredUserName: String(r.referredUserName || 'Partner Reseller').trim(),
+    referredUserEmail: String(r.referredUserEmail || '').toLowerCase().trim(),
+    referredUserRank: r.referredUserRank || 'unranked',
+    referralCodeUsed: String(r.referralCodeUsed || '').trim().toUpperCase(),
+    status: r.status || 'active',
+    isQualifying: r.isQualifying !== false,
+    createdAt: r.createdAt || new Date().toISOString(),
+  };
+}
+
 export const referralService = {
   /**
    * Generates the public referral URL for a given referral code.
@@ -512,22 +527,23 @@ export const referralService = {
    */
   async saveReferralRecord(record: ReferralRecord): Promise<void> {
     if (!record || !record.id) return;
+    const clean = cleanReferralForCloud(record);
 
     // 1. Local Storage
     const referrals = storage.get<ReferralRecord[]>('REFERRALS', []);
-    const exists = referrals.findIndex((r) => r.id === record.id);
+    const exists = referrals.findIndex((r) => r.id === clean.id);
     if (exists >= 0) {
-      referrals[exists] = record;
+      referrals[exists] = clean;
     } else {
-      referrals.unshift(record);
+      referrals.unshift(clean);
     }
     storage.set('REFERRALS', referrals);
 
     // 2. Cloud Firestore
     try {
-      await setDoc(doc(db, 'referrals', record.id), record, { merge: true });
-      if (record.referrerId) {
-        await setDoc(doc(db, `users/${record.referrerId}/referrals`, record.id), record, { merge: true });
+      await setDoc(doc(db, 'referrals', clean.id), clean, { merge: true });
+      if (clean.referrerId) {
+        await setDoc(doc(db, `users/${clean.referrerId}/referrals`, clean.id), clean, { merge: true });
       }
     } catch (err) {
       console.warn('Firestore save referral failed:', err);
@@ -535,9 +551,9 @@ export const referralService = {
 
     // 3. Realtime Database
     try {
-      await set(ref(rtdb, `referrals/${record.id}`), record);
-      if (record.referrerId) {
-        await set(ref(rtdb, `user_referrals/${record.referrerId}/${record.id}`), record);
+      await set(ref(rtdb, `referrals/${clean.id}`), clean);
+      if (clean.referrerId) {
+        await set(ref(rtdb, `user_referrals/${clean.referrerId}/${clean.id}`), clean);
       }
     } catch (err) {
       console.warn('RTDB save referral failed:', err);
@@ -553,11 +569,11 @@ export const referralService = {
     if (!normalized) return;
 
     const payload = {
-      userId: user.id,
-      referralCode: user.referralCode,
+      userId: String(user.id || '').trim(),
+      referralCode: String(user.referralCode || '').trim().toUpperCase(),
       normalizedCode: normalized,
-      fullName: user.fullName,
-      email: user.email,
+      fullName: String(user.fullName || 'Partner Reseller').trim(),
+      email: String(user.email || '').toLowerCase().trim(),
       currentRankSlug: user.currentRankSlug || 'unranked',
       updatedAt: new Date().toISOString(),
     };
