@@ -19,6 +19,10 @@ import {
   ArrowRight,
   ShieldCheck,
   Check,
+  MagnifyingGlassPlus,
+  MagnifyingGlassMinus,
+  ArrowClockwise,
+  DownloadSimple,
 } from '@phosphor-icons/react';
 
 export const DashboardSales: React.FC = () => {
@@ -37,6 +41,24 @@ export const DashboardSales: React.FC = () => {
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const [withdrawError, setWithdrawError] = useState('');
   const [withdrawSuccess, setWithdrawSuccess] = useState('');
+
+  // Slip Lightbox Modal
+  const [previewSlipUrl, setPreviewSlipUrl] = useState<string | null>(null);
+  const [previewZoom, setPreviewZoom] = useState<number>(1);
+  const [previewRotation, setPreviewRotation] = useState<number>(0);
+
+  const handleDownloadSlip = (dataUrl: string, fileName = 'payment_slip.jpg') => {
+    try {
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch {
+      window.open(dataUrl, '_blank');
+    }
+  };
 
   const loadData = () => {
     if (!user) return;
@@ -720,14 +742,36 @@ export const DashboardSales: React.FC = () => {
             {/* Payment Proof Screenshot */}
             {selectedSale.paymentScreenshotUrl && (
               <div className="space-y-1.5">
-                <h4 className="font-serif font-semibold text-xs text-[#1E241F]">
-                  Attached Payment Proof Screenshot
-                </h4>
-                <div className="p-2 rounded-xl border border-[#E3DCC8] bg-[#FAF7EF] text-center">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-xs text-[#1E241F]">
+                    Attached Payment Proof Screenshot
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreviewSlipUrl(selectedSale.paymentScreenshotUrl!);
+                      setPreviewZoom(1);
+                      setPreviewRotation(0);
+                    }}
+                    className="text-[10px] font-mono text-[#1F4D3E] font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <MagnifyingGlassPlus size={12} />
+                    <span>Zoom Slip</span>
+                  </button>
+                </div>
+                <div
+                  onClick={() => {
+                    setPreviewSlipUrl(selectedSale.paymentScreenshotUrl!);
+                    setPreviewZoom(1);
+                    setPreviewRotation(0);
+                  }}
+                  className="p-2 rounded-2xl border border-[#E3DCC8] bg-[#FAF7EF] text-center cursor-zoom-in group relative"
+                  title="Click to view full receipt"
+                >
                   <img
                     src={selectedSale.paymentScreenshotUrl}
                     alt="Payment Slip"
-                    className="max-h-56 max-w-full rounded-lg object-contain mx-auto border border-[#E3DCC8] bg-white shadow-2xs"
+                    className="max-h-56 max-w-full rounded-xl object-contain mx-auto border border-[#E3DCC8] bg-white shadow-2xs group-hover:opacity-90 transition-opacity"
                   />
                   {selectedSale.paymentProofNotes && (
                     <p className="text-[10px] text-[#5B5C50] font-mono mt-1.5">
@@ -743,6 +787,83 @@ export const DashboardSales: React.FC = () => {
                 Close Details
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Slip Lightbox Zoom Modal */}
+      {previewSlipUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in fade-in"
+          onClick={() => setPreviewSlipUrl(null)}
+        >
+          <div
+            className="flex items-center justify-between w-full max-w-3xl pb-3 text-white"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center space-x-2">
+              <span className="font-bold text-sm">Payment Proof Preview</span>
+              <span className="text-xs text-gray-400 font-mono">({Math.round(previewZoom * 100)}% Zoom)</span>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={() => setPreviewZoom((z) => Math.min(3, z + 0.25))}
+                className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                title="Zoom In"
+              >
+                <MagnifyingGlassPlus size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewZoom((z) => Math.max(0.5, z - 0.25))}
+                className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                title="Zoom Out"
+              >
+                <MagnifyingGlassMinus size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewRotation((r) => (r + 90) % 360)}
+                className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                title="Rotate 90°"
+              >
+                <ArrowClockwise size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDownloadSlip(previewSlipUrl, `order_${selectedSale?.id || 'slip'}_receipt.jpg`)}
+                className="p-2 rounded-xl bg-[#1F4D3E] hover:bg-[#183D31] text-white transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-semibold px-3"
+                title="Save & Download Slip"
+              >
+                <DownloadSimple size={16} />
+                <span>Download Slip</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewSlipUrl(null)}
+                className="p-2 rounded-xl bg-white/10 hover:bg-rose-600 text-white transition-colors cursor-pointer ml-2"
+                title="Close Lightbox (Esc)"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+
+          <div
+            className="flex-1 flex items-center justify-center w-full max-w-4xl max-h-[80vh] overflow-hidden p-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={previewSlipUrl}
+              alt="Payment Slip Preview"
+              style={{
+                transform: `scale(${previewZoom}) rotate(${previewRotation}deg)`,
+                transition: 'transform 0.2s ease-in-out',
+              }}
+              className="max-h-full max-w-full rounded-2xl shadow-2xl object-contain select-none"
+            />
           </div>
         </div>
       )}

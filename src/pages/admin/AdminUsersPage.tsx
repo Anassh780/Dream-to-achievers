@@ -33,11 +33,35 @@ import {
   Phone,
   MapPin,
   CaretUpDown,
+  Clock,
 } from '@phosphor-icons/react';
 
 export const AdminUsersPage: React.FC = () => {
   const { user: currentAdmin } = useAuth();
   const [users, setUsers] = useState<User[]>(() => storage.get<User[]>('USERS', []));
+
+  const formatTimeAgo = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      const now = new Date();
+      const diffSec = Math.floor((now.getTime() - d.getTime()) / 1000);
+      if (isNaN(diffSec) || diffSec < 0) return 'Just now';
+      if (diffSec < 60) return `${diffSec}s ago`;
+      const diffMin = Math.floor(diffSec / 60);
+      if (diffMin < 60) return `${diffMin}m ago`;
+      const diffHour = Math.floor(diffMin / 60);
+      if (diffHour < 24) return `${diffHour}h ago`;
+      const diffDay = Math.floor(diffHour / 24);
+      if (diffDay === 1) return 'Yesterday';
+      if (diffDay < 30) return `${diffDay}d ago`;
+      const diffMonth = Math.floor(diffDay / 30);
+      if (diffMonth < 12) return `${diffMonth}mo ago`;
+      const diffYear = Math.floor(diffDay / 365);
+      return `${diffYear}y ago`;
+    } catch {
+      return dateStr;
+    }
+  };
   const [referrals, setReferrals] = useState<ReferralRecord[]>(() => storage.get<ReferralRecord[]>('REFERRALS', []));
   const [sales, setSales] = useState<Sale[]>(() => storage.get<Sale[]>('SALES', []));
   const [isSyncing, setIsSyncing] = useState(false);
@@ -658,6 +682,7 @@ export const AdminUsersPage: React.FC = () => {
                   <th className="p-3.5 font-semibold text-right">Delivered Sales (Sold High)</th>
                   <th className="p-3.5 font-semibold text-center">Downline Team</th>
                   <th className="p-3.5 font-semibold text-center">Status</th>
+                  <th className="p-3.5 font-semibold text-center">Registered</th>
                   <th className="p-3.5 font-semibold text-center">Actions</th>
                 </tr>
               </thead>
@@ -766,7 +791,18 @@ export const AdminUsersPage: React.FC = () => {
                         )}
                       </td>
 
-                      {/* 7. Actions */}
+                      {/* 7. Registered Time Ago */}
+                      <td className="p-3.5 text-center">
+                        <span
+                          className="font-mono text-[10.5px] text-[#1E241F] bg-[#FAF7EF] px-2.5 py-1 rounded-lg border border-[#E3DCC8] inline-flex items-center gap-1 font-medium shadow-2xs whitespace-nowrap"
+                          title={new Date(u.createdAt).toLocaleString()}
+                        >
+                          <Clock size={12} className="text-[#1F4D3E]" />
+                          <span>{formatTimeAgo(u.createdAt)}</span>
+                        </span>
+                      </td>
+
+                      {/* 8. Actions */}
                       <td className="p-3.5 text-center">
                         <div className="flex items-center justify-center space-x-1.5">
                           <button

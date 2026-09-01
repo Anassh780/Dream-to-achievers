@@ -241,7 +241,9 @@ export type NotificationType =
   | 'withdrawal_approved'
   | 'withdrawal_paid'
   | 'withdrawal_rejected'
-  | 'system_announcement';
+  | 'system_announcement'
+  | 'system'
+  | 'info';
 
 export interface AppNotification {
   id: string;
@@ -250,6 +252,7 @@ export interface AppNotification {
   title: string;
   message: string;
   isRead: boolean;
+  link?: string;
   linkUrl?: string;
   createdAt: string;
 }

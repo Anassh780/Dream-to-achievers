@@ -14,6 +14,10 @@ import {
   Package,
   Check,
   MagnifyingGlass,
+  ArrowCounterClockwise,
+  CheckSquare,
+  Square,
+  Sparkle,
 } from '@phosphor-icons/react';
 
 export const AdminProductsPage: React.FC = () => {
@@ -27,6 +31,11 @@ export const AdminProductsPage: React.FC = () => {
   const [editingProd, setEditingProd] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+
+  // Selective Restore Modal States
+  const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
+  const [selectedRestoreIds, setSelectedRestoreIds] = useState<string[]>([]);
+  const [restoreSearch, setRestoreSearch] = useState('');
 
   // Form State
   const [name, setName] = useState('');
@@ -42,14 +51,12 @@ export const AdminProductsPage: React.FC = () => {
   const [inStock, setInStock] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
 
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [toastMsg, setToastMsg] = useState('');
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 4000);
+    setTimeout(() => setToastMsg(''), 4000);
   };
-
-  const calculatedGrossMargin = Math.max(0, retailPrice - partnerPrice);
 
   const handleOpenCreate = () => {
     setEditingProd(null);
@@ -92,6 +99,7 @@ export const AdminProductsPage: React.FC = () => {
 
     const targetCat = allCategories.find((c) => c.id === categoryId);
     const categoryName = targetCat ? targetCat.name : 'Skincare & Beauty';
+    const grossMargin = Math.max(0, retailPrice - partnerPrice);
 
     if (editingProd) {
       const updated: Product[] = products.map((p) =>
@@ -105,7 +113,7 @@ export const AdminProductsPage: React.FC = () => {
               retailPrice: Number(retailPrice),
               partnerPrice: Number(partnerPrice),
               suggestedSellingPrice: Number(retailPrice),
-              grossMargin: calculatedGrossMargin,
+              grossMargin,
               sku: sku.trim(),
               imageUrl: imageUrl.trim(),
               shortDescription: shortDescription.trim(),
@@ -139,7 +147,7 @@ export const AdminProductsPage: React.FC = () => {
         retailPrice: Number(retailPrice),
         partnerPrice: Number(partnerPrice),
         suggestedSellingPrice: Number(retailPrice),
-        grossMargin: calculatedGrossMargin,
+        grossMargin,
         currency: 'PKR',
         imageUrl: imageUrl.trim(),
         sku: sku.trim(),
@@ -172,10 +180,15 @@ export const AdminProductsPage: React.FC = () => {
 
   const handleDelete = (p: Product) => {
     if (!currentAdmin) return;
-    if (confirm(`Are you sure you want to delete ${p.name}?`)) {
+    if (confirm(`Are you sure you want to delete ${p.name}? You can restore it anytime from the Restore Products popup.`)) {
       const updated = products.filter((item) => item.id !== p.id);
       storage.set('PRODUCTS', updated);
       setProducts(updated);
+
+      const archived = storage.get<Product[]>('DELETED_PRODUCTS', []);
+      if (!archived.some((item) => item.id === p.id)) {
+        storage.set('DELETED_PRODUCTS', [p, ...archived]);
+      }
 
       auditService.logAction({
         adminId: currentAdmin.id,
@@ -186,8 +199,68 @@ export const AdminProductsPage: React.FC = () => {
         details: `Deleted product "${p.name}" (SKU: ${p.sku})`,
       });
 
-      showToast(`Product "${p.name}" deleted.`);
+      showToast(`Product "${p.name}" moved to deleted archive.`);
     }
+  };
+
+  const recoverableProducts = useMemo(() => {
+    const archived = storage.get<Product[]>('DELETED_PRODUCTS', []);
+    const missingSeeds = SEED_PRODUCTS.filter(
+      (sp) => !products.some((p) => p.id === sp.id || p.sku === sp.sku) && !archived.some((a) => a.id === sp.id || a.sku === sp.sku)
+    );
+    return [...archived, ...missingSeeds];
+  }, [products, isRestoreModalOpen]);
+
+  const filteredRecoverable = useMemo(() => {
+    if (!restoreSearch.trim()) return recoverableProducts;
+    const q = restoreSearch.toLowerCase();
+    return recoverableProducts.filter(
+      (p) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)
+    );
+  }, [recoverableProducts, restoreSearch]);
+
+  const handleOpenRestoreModal = () => {
+    setSelectedRestoreIds(recoverableProducts.map((p) => p.id));
+    setRestoreSearch('');
+    setIsRestoreModalOpen(true);
+  };
+
+  const handleToggleSelectRestore = (id: string) => {
+    setSelectedRestoreIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllRestore = () => {
+    if (selectedRestoreIds.length === filteredRecoverable.length) {
+      setSelectedRestoreIds([]);
+    } else {
+      setSelectedRestoreIds(filteredRecoverable.map((p) => p.id));
+    }
+  };
+
+  const handleConfirmSelectiveRestore = () => {
+    if (selectedRestoreIds.length === 0) return;
+    const itemsToRestore = recoverableProducts.filter((p) => selectedRestoreIds.includes(p.id));
+    const updatedProducts = [...itemsToRestore, ...products];
+    storage.set('PRODUCTS', updatedProducts);
+    setProducts(updatedProducts);
+
+    const remainingArchive = storage
+      .get<Product[]>('DELETED_PRODUCTS', [])
+      .filter((p) => !selectedRestoreIds.includes(p.id));
+    storage.set('DELETED_PRODUCTS', remainingArchive);
+
+    setIsRestoreModalOpen(false);
+    showToast(`Restored ${itemsToRestore.length} products to active catalog.`);
+  };
+
+  const handleRestoreAllOriginalSeed = () => {
+    storage.set('PRODUCTS', SEED_PRODUCTS);
+    storage.set('DELETED_PRODUCTS', []);
+    setProducts(SEED_PRODUCTS);
+    setIsRestoreModalOpen(false);
+    showToast('Restored all original catalog products successfully!');
   };
 
   const filteredList = useMemo(() => {
@@ -203,26 +276,8 @@ export const AdminProductsPage: React.FC = () => {
     });
   }, [products, searchQuery, categoryFilter]);
 
-  const handleRestoreDefaults = () => {
-    storage.set('PRODUCTS', SEED_PRODUCTS);
-    setProducts(SEED_PRODUCTS);
-    if (currentAdmin) {
-      auditService.logAction({
-        adminId: currentAdmin.id,
-        adminEmail: currentAdmin.email,
-        action: 'UPDATE_PRODUCT',
-        entityType: 'product',
-        entityId: 'seed-all',
-        details: 'Restored original seed catalog products',
-      });
-    }
-    showToast('Restored all original catalog products successfully!');
-  };
-
   return (
     <div className="space-y-6 font-sans max-w-7xl">
-      
-      {/* 1. Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3DCC8]">
         <div className="space-y-1">
           <div className="flex items-center space-x-2 text-xs font-mono text-[#5B5C50]">
@@ -233,20 +288,17 @@ export const AdminProductsPage: React.FC = () => {
           <h1 className="text-xl sm:text-2xl font-bold text-[#1E241F] tracking-tight">
             Products &amp; Wholesale Catalog
           </h1>
-          <p className="text-xs text-[#5B5C50]">
-            Manage products, wholesale pricing, retail margins, and in-stock inventory for your store.
-          </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
           <Button
-            onClick={handleRestoreDefaults}
+            onClick={handleOpenRestoreModal}
             variant="outline"
             size="sm"
             className="text-xs font-medium"
-            title="Restore all default seed products"
+            iconLeft={<ArrowCounterClockwise size={14} />}
           >
-            Restore Default Products
+            Restore Deleted ({recoverableProducts.length})
           </Button>
           <Button
             onClick={handleOpenCreate}
@@ -499,7 +551,7 @@ export const AdminProductsPage: React.FC = () => {
                   <input
                     type="text"
                     disabled
-                    value={`+PKR ${calculatedGrossMargin.toLocaleString()}`}
+                    value={`+PKR ${Math.max(0, retailPrice - partnerPrice).toLocaleString()}`}
                     className="w-full px-3 py-2 rounded-lg bg-[#F1ECDD] border border-[#E3DCC8] text-[#B8862E] font-mono font-bold cursor-not-allowed"
                   />
                 </div>
@@ -563,6 +615,167 @@ export const AdminProductsPage: React.FC = () => {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Selective Restore Deleted Products Modal */}
+      {isRestoreModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-3xl bg-white border border-[#E3DCC8] shadow-2xl overflow-hidden text-xs">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-[#E3DCC8] flex items-center justify-between bg-[#FAF7EF]">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#1F4D3E] text-white flex items-center justify-center shadow-xs">
+                  <ArrowCounterClockwise size={18} weight="bold" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-[#1E241F]">
+                    Restore Deleted / Archived Products
+                  </h3>
+                  <p className="text-[11px] text-[#5B5C50]">
+                    Select specific products to recover back into the active catalog.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsRestoreModalOpen(false)}
+                className="p-1.5 rounded-lg text-[#5B5C50] hover:text-[#1E241F] hover:bg-[#F1ECDD]"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Search & Selection Actions Bar */}
+            <div className="p-4 border-b border-[#E3DCC8] flex flex-col sm:flex-row items-center justify-between gap-3 bg-white">
+              <div className="relative w-full sm:w-72">
+                <MagnifyingGlass size={14} className="absolute left-3 top-2.5 text-[#7C7D70]" />
+                <input
+                  type="text"
+                  placeholder="Search deleted products..."
+                  value={restoreSearch}
+                  onChange={(e) => setRestoreSearch(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] text-xs focus:outline-none focus:border-[#1F4D3E]"
+                />
+              </div>
+
+              <div className="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-end">
+                <button
+                  onClick={handleSelectAllRestore}
+                  className="text-[11px] font-mono font-semibold text-[#1F4D3E] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  {selectedRestoreIds.length === filteredRecoverable.length ? (
+                    <>
+                      <CheckSquare size={15} weight="fill" />
+                      <span>Deselect All</span>
+                    </>
+                  ) : (
+                    <>
+                      <Square size={15} />
+                      <span>Select All ({filteredRecoverable.length})</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={handleRestoreAllOriginalSeed}
+                  className="text-[11px] font-mono text-[#B8862E] hover:underline cursor-pointer"
+                  title="Reset to 3 standard original catalog items"
+                >
+                  Reset Default 3
+                </button>
+              </div>
+            </div>
+
+            {/* Recoverable Product Cards List */}
+            <div className="p-4 flex-1 overflow-y-auto space-y-2.5 divide-y divide-[#E3DCC8]">
+              {filteredRecoverable.length === 0 ? (
+                <div className="p-8 text-center text-[#5B5C50] space-y-2">
+                  <Package size={32} className="text-[#7C7D70] mx-auto" />
+                  <p className="font-bold text-sm text-[#1E241F]">No deleted or archived products found</p>
+                  <p className="text-xs text-[#7C7D70]">
+                    All seed products are currently active in your live store catalog.
+                  </p>
+                </div>
+              ) : (
+                filteredRecoverable.map((p) => {
+                  const isSelected = selectedRestoreIds.includes(p.id);
+
+                  return (
+                    <div
+                      key={p.id}
+                      onClick={() => handleToggleSelectRestore(p.id)}
+                      className={`pt-2.5 first:pt-0 flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-[#FAF7EF] border-[#1F4D3E]/40 shadow-xs'
+                          : 'bg-white border-[#E3DCC8] hover:bg-[#FAF7EF]/50'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3 min-w-0">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleToggleSelectRestore(p.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-4 h-4 rounded accent-[#1F4D3E] cursor-pointer shrink-0"
+                        />
+                        <img
+                          src={p.imageUrl}
+                          alt={p.name}
+                          className="w-12 h-12 rounded-xl object-cover border border-[#E3DCC8] bg-white shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <p className="font-bold text-[#1E241F] text-xs truncate">{p.name}</p>
+                          <div className="flex items-center space-x-2 text-[10px] font-mono text-[#7C7D70] mt-0.5">
+                            <span className="bg-white px-1.5 py-0.2 rounded border border-[#E3DCC8]">{p.sku}</span>
+                            <span>•</span>
+                            <span className="text-[#1F4D3E]">{p.category}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0 font-mono space-y-0.5 ml-3">
+                        <span className="font-bold text-[#1E241F] text-xs block">
+                          PKR {p.retailPrice.toLocaleString()}
+                        </span>
+                        <span className="text-[10px] text-[#B8862E] font-semibold block">
+                          Margin: +PKR {p.grossMargin.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-[#E3DCC8] bg-[#FAF7EF] flex items-center justify-between">
+              <span className="font-mono text-xs text-[#5B5C50]">
+                Selected: <strong className="text-[#1F4D3E]">{selectedRestoreIds.length}</strong> items
+              </span>
+
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsRestoreModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={handleConfirmSelectiveRestore}
+                  disabled={selectedRestoreIds.length === 0}
+                  className="bg-[#1F4D3E] text-white"
+                >
+                  Restore Selected ({selectedRestoreIds.length})
+                </Button>
+              </div>
+            </div>
+
           </div>
         </div>
       )}

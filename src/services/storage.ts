@@ -32,6 +32,7 @@ const STORAGE_KEYS = {
   AUDIT_LOGS: 'dta_audit_logs',
   SETTINGS: 'dta_settings',
   CAPTURED_REF: 'dta_captured_ref',
+  DELETED_PRODUCTS: 'dta_deleted_products',
 };
 
 export const storage = {

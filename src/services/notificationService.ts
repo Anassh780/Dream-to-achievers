@@ -1,5 +1,6 @@
 import { AppNotification } from '@/types';
 import { storage } from './storage';
+import { webNotificationService } from './webNotificationService';
 
 export const notificationService = {
   getUserNotifications(userId: string): AppNotification[] {
@@ -11,6 +12,28 @@ export const notificationService = {
 
   getUnreadCount(userId: string): number {
     return this.getUserNotifications(userId).filter((n) => !n.isRead).length;
+  },
+
+  createNotification(notif: Omit<AppNotification, 'id' | 'createdAt' | 'isRead'>): AppNotification {
+    const notifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
+    const newNotif: AppNotification = {
+      ...notif,
+      id: `NOTIF-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      createdAt: new Date().toISOString(),
+      isRead: false,
+    };
+
+    notifs.unshift(newNotif);
+    storage.set('NOTIFICATIONS', notifs);
+
+    // Dispatch Web Push notification to user device
+    webNotificationService.sendLocalNotification(
+      newNotif.title,
+      newNotif.message,
+      newNotif.link || '/dashboard/notifications'
+    );
+
+    return newNotif;
   },
 
   markAsRead(notificationId: string): void {
@@ -28,3 +51,4 @@ export const notificationService = {
     storage.set('NOTIFICATIONS', updated);
   },
 };
+

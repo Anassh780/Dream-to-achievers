@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { storage } from '@/services/storage';
 import { rewardService } from '@/services/rewardService';
 import { payoutService } from '@/services/payoutService';
+import { notificationService } from '@/services/notificationService';
 import { Reward, WithdrawalRequest, User } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Gift, HandCoins, X, Check, CheckCircle, Bank, DeviceMobile, WhatsappLogo } from '@phosphor-icons/react';
@@ -105,16 +106,47 @@ export const AdminRewardsPage: React.FC = () => {
     setTimeout(() => setActionSuccessMsg(''), 3000);
   };
 
-  const handleRejectWithdrawal = async (w: WithdrawalRequest) => {
-    const reason = prompt('Please enter reason for rejecting this payout request:', 'Account details mismatch');
-    if (reason === null) return;
+  // Rejection modal states
+  const [rejectingWithdrawal, setRejectingWithdrawal] = useState<WithdrawalRequest | null>(null);
+  const [selectedPayoutReason, setSelectedPayoutReason] = useState<string>('Account Title Name Mismatch with Partner Profile');
+  const [customPayoutReason, setCustomPayoutReason] = useState<string>('');
+  const [isRejectingPayout, setIsRejectingPayout] = useState(false);
+
+  const PAYOUT_REJECTION_REASONS = [
+    'Account Title Name Mismatch with Partner Profile',
+    'Invalid / Closed Bank Account or Wallet Number',
+    'Incorrect Account Number / IBAN Length',
+    'Suspicious / Duplicate Withdrawal Request',
+    'Other / Custom Reason',
+  ];
+
+  const handleConfirmRejectWithdrawal = async () => {
+    if (!rejectingWithdrawal) return;
+    setIsRejectingPayout(true);
+
+    const finalReason =
+      selectedPayoutReason === 'Other / Custom Reason'
+        ? customPayoutReason.trim() || 'Payout request rejected by administrator'
+        : selectedPayoutReason + (customPayoutReason.trim() ? ` - Note: ${customPayoutReason.trim()}` : '');
 
     await payoutService.updateWithdrawalStatus({
-      requestId: w.id,
+      requestId: rejectingWithdrawal.id,
       status: 'rejected',
-      adminNote: reason || 'Rejected by administrator',
+      adminNote: finalReason,
     });
+
+    notificationService.createNotification({
+      userId: rejectingWithdrawal.userId,
+      title: 'Withdrawal Request Rejected ❌',
+      message: `Your profit withdrawal of PKR ${rejectingWithdrawal.amount.toLocaleString()} was rejected: "${finalReason}". Please check your payout account details in Profile and re-submit.`,
+      type: 'system',
+      link: '/dashboard/rewards',
+    });
+
     refreshData();
+    setIsRejectingPayout(false);
+    setRejectingWithdrawal(null);
+    setCustomPayoutReason('');
   };
 
   const pendingWithdrawalsCount = withdrawals.filter((w) => w.status === 'pending').length;
@@ -286,8 +318,8 @@ export const AdminRewardsPage: React.FC = () => {
                             )}
                             {w.status !== 'rejected' && w.status !== 'paid' && (
                               <button
-                                onClick={() => handleRejectWithdrawal(w)}
-                                className="px-2 py-1 rounded bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-[11px] font-mono"
+                                onClick={() => setRejectingWithdrawal(w)}
+                                className="px-2 py-1 rounded bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-[11px] font-mono cursor-pointer"
                               >
                                 Reject
                               </button>

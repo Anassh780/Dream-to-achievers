@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
@@ -23,6 +23,7 @@ import {
   CaretRight,
 } from '@phosphor-icons/react';
 import { referralService } from '@/services/referralService';
+import { badgeTrackerService } from '@/services/badgeTrackerService';
 import { DreamLogo } from '@/components/ui/DreamLogo';
 
 export const DashboardLayout: React.FC = () => {
@@ -33,6 +34,7 @@ export const DashboardLayout: React.FC = () => {
     return localStorage.getItem('dta_user_sidebar_collapsed') === 'true';
   });
   const [copiedRef, setCopiedRef] = useState(false);
+  const [, setBadgeTrigger] = useState(0);
   const location = useLocation();
 
   const toggleSidebarCollapse = () => {
@@ -42,6 +44,26 @@ export const DashboardLayout: React.FC = () => {
       return next;
     });
   };
+
+  // Track and auto-decrement unseen badges when user visits a section
+  useEffect(() => {
+    if (!user) return;
+
+    if (location.pathname.startsWith('/dashboard/referrals')) {
+      badgeTrackerService.markReferralsSeen(user.id, rankProgress?.qualifyingCommunity || 0);
+      setBadgeTrigger((prev) => prev + 1);
+    } else if (location.pathname.startsWith('/dashboard/sales')) {
+      badgeTrackerService.markSalesSeen(user.id, rankProgress?.qualifyingSales || 0);
+      setBadgeTrigger((prev) => prev + 1);
+    } else if (location.pathname.startsWith('/dashboard/rewards')) {
+      badgeTrackerService.markRewardsSeen(user.id, 10);
+      setBadgeTrigger((prev) => prev + 1);
+    }
+
+    const handleBadgeUpdate = () => setBadgeTrigger((prev) => prev + 1);
+    window.addEventListener('dta_badge_update', handleBadgeUpdate);
+    return () => window.removeEventListener('dta_badge_update', handleBadgeUpdate);
+  }, [location.pathname, user?.id, rankProgress?.qualifyingCommunity, rankProgress?.qualifyingSales]);
 
   if (!isAuthenticated || !user) {
     return (
@@ -67,18 +89,41 @@ export const DashboardLayout: React.FC = () => {
     );
   }
 
+  // Calculate unseen counts that decrement once viewed
+  const unseenReferrals = user
+    ? badgeTrackerService.getUnseenReferralsCount(user.id, rankProgress?.qualifyingCommunity || 0)
+    : 0;
+  const unseenSales = user
+    ? badgeTrackerService.getUnseenSalesCount(user.id, rankProgress?.qualifyingSales || 0)
+    : 0;
+
   const navItems = [
     { label: 'Overview', href: '/dashboard', icon: House },
     { label: 'Wholesale Inventory', href: '/dashboard/products', icon: Package },
-    { label: 'Rank Progress', href: '/dashboard/rank-progress', icon: ChartLineUp, badge: rankProgress?.nextRank ? `${rankProgress.overallProgressPercent}%` : 'MAX' },
-    { label: 'Direct Sales', href: '/dashboard/sales', icon: ShoppingCart, count: rankProgress?.qualifyingSales },
-    { label: 'Referral Network', href: '/dashboard/referrals', icon: Users, count: rankProgress?.qualifyingCommunity },
+    {
+      label: 'Rank Progress',
+      href: '/dashboard/rank-progress',
+      icon: ChartLineUp,
+      badge: rankProgress?.nextRank ? `${rankProgress.overallProgressPercent}%` : 'MAX',
+    },
+    {
+      label: 'Direct Sales',
+      href: '/dashboard/sales',
+      icon: ShoppingCart,
+      count: unseenSales > 0 ? unseenSales : undefined,
+    },
+    {
+      label: 'Referral Network',
+      href: '/dashboard/referrals',
+      icon: Users,
+      count: unseenReferrals > 0 ? unseenReferrals : undefined,
+    },
     { label: 'Rewards', href: '/dashboard/rewards', icon: Gift },
     {
       label: 'Notifications',
       href: '/dashboard/notifications',
       icon: Bell,
-      count: unreadNotifsCount || undefined,
+      count: unreadNotifsCount > 0 ? unreadNotifsCount : undefined,
       isAlert: true,
     },
     { label: 'Profile', href: '/dashboard/profile', icon: UserCircle },
@@ -97,7 +142,7 @@ export const DashboardLayout: React.FC = () => {
       
       {/* Desktop Persistent Sidebar with Expand/Collapse */}
       <aside
-        className={`hidden md:flex flex-col justify-between bg-white border-r border-[#E3DCC8] p-3 shrink-0 min-h-screen sticky top-0 shadow-xs transition-all duration-300 ease-in-out ${
+        className={`hidden md:flex flex-col justify-between bg-white border-r border-[#E3DCC8] p-3 shrink-0 min-h-screen sticky top-0 shadow-xs transition-all duration-300 ease-in-out z-30 ${
           isCollapsed ? 'w-20' : 'w-64'
         }`}
       >
@@ -139,10 +184,10 @@ export const DashboardLayout: React.FC = () => {
               <p className="text-[10.5px] font-mono text-[#5B5C50] truncate">{user.email}</p>
             </div>
           ) : (
-            <div className="flex justify-center">
-              <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-[#F1ECDD] text-[#1F4D3E] border border-[#E3DCC8] uppercase text-center">
-                {user.currentRankSlug?.slice(0, 3)}
-              </span>
+            <div className="flex justify-center" title={`${user.fullName} (${user.currentRankSlug})`}>
+              <div className="w-9 h-9 rounded-xl bg-[#1F4D3E] text-white flex items-center justify-center font-bold text-xs shadow-2xs">
+                {user.fullName.charAt(0).toUpperCase()}
+              </div>
             </div>
           )}
 
@@ -193,33 +238,37 @@ export const DashboardLayout: React.FC = () => {
                 <NavLink
                   key={item.label}
                   to={item.href}
-                  title={isCollapsed ? item.label : undefined}
-                  className={`relative flex items-center ${
-                    isCollapsed ? 'justify-center px-2 py-2.5' : 'justify-between px-3 py-2'
-                  } rounded-xl transition-colors font-medium ${
+                  title={item.label}
+                  className={`flex items-center ${
+                    isCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2.5'
+                  } rounded-xl transition-all font-medium group ${
                     isActive
-                      ? 'bg-[#1F4D3E] text-white font-medium shadow-xs'
+                      ? 'bg-[#1F4D3E] text-white font-semibold shadow-xs'
                       : 'text-[#5B5C50] hover:text-[#1E241F] hover:bg-[#FAF7EF]'
                   }`}
                 >
                   <div className="flex items-center space-x-2.5 truncate">
-                    <Icon size={18} weight={isActive ? 'fill' : 'regular'} />
+                    {/* Collapsed Icon with pinned badge */}
+                    <div className="relative flex items-center justify-center">
+                      <Icon size={19} weight={isActive ? 'fill' : 'regular'} className="shrink-0" />
+                      {isCollapsed && item.count !== undefined && item.count > 0 && (
+                        <span className="absolute -top-1.5 -right-2 flex items-center justify-center min-w-[16px] h-[16px] px-1 rounded-full bg-red-600 text-white font-mono font-bold text-[9px] ring-2 ring-white shadow-xs animate-pulse">
+                          {item.count}
+                        </span>
+                      )}
+                    </div>
                     {!isCollapsed && <span className="truncate">{item.label}</span>}
                   </div>
 
-                  {/* Red Notification Bubble (Image 2 style) */}
-                  {item.count !== undefined && item.count > 0 && (
+                  {/* Expanded Mode Red Notification Bubble */}
+                  {!isCollapsed && item.count !== undefined && item.count > 0 && (
                     <span
-                      className={`${
-                        isCollapsed
-                          ? 'absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white font-mono font-bold text-[9.5px] ring-2 ring-white shadow-xs animate-pulse'
-                          : `text-[9.5px] font-mono font-bold px-1.5 py-0.2 rounded-full ${
-                              item.isAlert
-                                ? 'bg-red-600 text-white shadow-xs animate-pulse'
-                                : isActive
-                                ? 'bg-white/20 text-white'
-                                : 'bg-[#F1ECDD] text-[#5B5C50]'
-                            }`
+                      className={`text-[9.5px] font-mono font-bold px-1.5 py-0.2 rounded-full ${
+                        item.isAlert
+                          ? 'bg-red-600 text-white shadow-xs animate-pulse'
+                          : isActive
+                          ? 'bg-red-600 text-white ring-1 ring-white/30 shadow-xs'
+                          : 'bg-red-600 text-white shadow-xs'
                       }`}
                     >
                       {item.count}
@@ -252,8 +301,8 @@ export const DashboardLayout: React.FC = () => {
           <button
             onClick={() => logout()}
             className={`w-full flex items-center ${
-              isCollapsed ? 'justify-center' : 'space-x-2'
-            } px-3 py-2 rounded-lg text-xs text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer`}
+              isCollapsed ? 'justify-center p-2' : 'space-x-2 px-3 py-2'
+            } rounded-xl text-xs text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer`}
             title="Sign Out"
           >
             <SignOut size={16} />
@@ -327,9 +376,7 @@ export const DashboardLayout: React.FC = () => {
                         className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
                           item.isAlert
                             ? 'bg-red-600 text-white animate-pulse'
-                            : isActive
-                            ? 'bg-white/20 text-white'
-                            : 'bg-[#F1ECDD] text-[#5B5C50]'
+                            : 'bg-red-600 text-white'
                         }`}
                       >
                         {item.count}
@@ -339,29 +386,42 @@ export const DashboardLayout: React.FC = () => {
                 </NavLink>
               );
             })}
+
+            {isAdmin && (
+              <Link
+                to="/admin"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between px-4 py-2.5 rounded-lg font-semibold text-[#1F4D3E] bg-[#F1ECDD] mt-3"
+              >
+                <div className="flex items-center space-x-3">
+                  <ShieldCheck size={18} />
+                  <span>Admin Portal</span>
+                </div>
+                <ArrowSquareOut size={14} />
+              </Link>
+            )}
           </nav>
 
-          <div className="pt-4 border-t border-[#E3DCC8] space-y-2">
+          <div className="pt-6 border-t border-[#E3DCC8] space-y-3">
             <SwitchButton size="sm" showLabel={true} className="w-full justify-start text-xs" />
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
                 logout();
               }}
-              className="w-full py-2.5 rounded-lg text-xs font-semibold text-rose-700 bg-rose-50 text-center"
+              className="w-full flex items-center justify-center space-x-2 py-2.5 rounded-lg text-sm text-rose-700 bg-rose-50"
             >
-              Sign Out
+              <SignOut size={18} />
+              <span>Sign Out</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* Main Dashboard Content */}
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl overflow-x-hidden min-w-0">
+      {/* Main Content Viewport */}
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-7xl">
         <Outlet />
       </main>
     </div>
   );
 };
-
-export default DashboardLayout;

@@ -225,9 +225,9 @@ export const AdminLayout: React.FC = () => {
                       <NavLink
                         key={item.href}
                         to={item.href}
-                        title={isCollapsed ? item.label : undefined}
-                        className={`relative flex items-center ${
-                          isCollapsed ? 'justify-center px-2 py-2.5' : 'justify-between px-3 py-2'
+                        title={item.label}
+                        className={`flex items-center ${
+                          isCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'
                         } rounded-xl transition-all font-medium ${
                           isActive
                             ? 'bg-[#1F4D3E] text-white shadow-xs font-semibold'
@@ -235,23 +235,25 @@ export const AdminLayout: React.FC = () => {
                         }`}
                       >
                         <div className="flex items-center space-x-2.5 min-w-0">
-                          <Icon
-                            size={18}
-                            weight={isActive ? 'fill' : 'regular'}
-                            className={isActive ? 'text-[#D4AF37]' : ''}
-                          />
+                          {/* Collapsed Icon with pinned badge */}
+                          <div className="relative flex items-center justify-center">
+                            <Icon
+                              size={19}
+                              weight={isActive ? 'fill' : 'regular'}
+                              className={isActive ? 'text-[#D4AF37]' : ''}
+                            />
+                            {isCollapsed && item.badgeCount !== undefined && item.badgeCount > 0 && (
+                              <span className="absolute -top-1.5 -right-2 flex items-center justify-center min-w-[16px] h-[16px] px-1 rounded-full bg-red-600 text-white font-mono font-bold text-[9px] ring-2 ring-white shadow-xs animate-pulse">
+                                {item.badgeCount}
+                              </span>
+                            )}
+                          </div>
                           {!isCollapsed && <span className="text-xs truncate">{item.label}</span>}
                         </div>
 
-                        {/* Red Notification Bubble (Image 2 style) */}
-                        {item.badgeCount !== undefined && item.badgeCount > 0 && (
-                          <span
-                            className={`${
-                              isCollapsed
-                                ? 'absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white font-mono font-bold text-[9.5px] ring-2 ring-white shadow-xs animate-pulse'
-                                : 'inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-red-600 text-white font-mono font-bold text-[9.5px] shadow-xs animate-pulse'
-                            }`}
-                          >
+                        {/* Expanded Mode Red Notification Bubble */}
+                        {!isCollapsed && item.badgeCount !== undefined && item.badgeCount > 0 && (
+                          <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-red-600 text-white font-mono font-bold text-[9.5px] shadow-xs animate-pulse">
                             {item.badgeCount}
                           </span>
                         )}
