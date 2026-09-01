@@ -238,22 +238,60 @@ class CloudSyncService {
     }
 
     try {
-      // 6. Sync Users
-      const cloudUsersSnap: any = await getDocs(collection(db, 'users'));
+      // 6. Sync Users with multi-source merging (Firestore + RTDB + LocalStorage)
       const userMap = new Map<string, User>();
       userMap.set(OFFICIAL_ADMIN_USER.id, OFFICIAL_ADMIN_USER);
 
-      if (!cloudUsersSnap.empty) {
-        cloudUsersSnap.forEach((d: any) => {
-          const u = d.data() as User;
-          if (u && u.id) {
-            if (u.email.toLowerCase() === OFFICIAL_ADMIN_USER.email.toLowerCase()) {
-              u.role = 'admin';
-              u.currentRankSlug = 'diamond';
-            }
-            userMap.set(u.id, { ...userMap.get(u.id), ...u });
+      // A. Seed from local storage
+      const localUsers = storage.get<User[]>('USERS', []);
+      localUsers.forEach((u) => {
+        if (u && u.id) {
+          if (u.email && u.email.toLowerCase() === OFFICIAL_ADMIN_USER.email.toLowerCase()) {
+            u.role = 'admin';
+            u.currentRankSlug = 'diamond';
           }
-        });
+          userMap.set(u.id, u);
+        }
+      });
+
+      // B. Fetch from Realtime Database
+      try {
+        const rtdbUsersSnap = await get(ref(rtdb, 'users'));
+        if (rtdbUsersSnap.exists()) {
+          const val = rtdbUsersSnap.val();
+          if (val && typeof val === 'object') {
+            Object.values(val).forEach((u: any) => {
+              if (u && u.id) {
+                if (u.email && u.email.toLowerCase() === OFFICIAL_ADMIN_USER.email.toLowerCase()) {
+                  u.role = 'admin';
+                  u.currentRankSlug = 'diamond';
+                }
+                userMap.set(u.id, { ...userMap.get(u.id), ...u });
+              }
+            });
+          }
+        }
+      } catch (rtdbErr) {
+        console.warn('[CloudSync] RTDB users initial read warning:', rtdbErr);
+      }
+
+      // C. Fetch from Firestore
+      try {
+        const cloudUsersSnap: any = await getDocs(collection(db, 'users'));
+        if (!cloudUsersSnap.empty) {
+          cloudUsersSnap.forEach((d: any) => {
+            const u = d.data() as User;
+            if (u && u.id) {
+              if (u.email && u.email.toLowerCase() === OFFICIAL_ADMIN_USER.email.toLowerCase()) {
+                u.role = 'admin';
+                u.currentRankSlug = 'diamond';
+              }
+              userMap.set(u.id, { ...userMap.get(u.id), ...u });
+            }
+          });
+        }
+      } catch (fsErr) {
+        console.warn('[CloudSync] Firestore users initial read warning:', fsErr);
       }
 
       const mergedUsers = Array.from(userMap.values());
@@ -419,10 +457,16 @@ class CloudSyncService {
         const userMap = new Map<string, User>();
         userMap.set(OFFICIAL_ADMIN_USER.id, OFFICIAL_ADMIN_USER);
 
+        // Seed with current local users
+        const localCurrent = storage.get<User[]>('USERS', []);
+        localCurrent.forEach((u) => {
+          if (u && u.id) userMap.set(u.id, u);
+        });
+
         snapshot.forEach((d: any) => {
           const u = d.data() as User;
           if (u && u.id) {
-            if (u.email.toLowerCase() === OFFICIAL_ADMIN_USER.email.toLowerCase()) {
+            if (u.email && u.email.toLowerCase() === OFFICIAL_ADMIN_USER.email.toLowerCase()) {
               u.role = 'admin';
               u.currentRankSlug = 'diamond';
             }
@@ -431,8 +475,7 @@ class CloudSyncService {
         });
 
         const merged = Array.from(userMap.values());
-        const current = storage.get<User[]>('USERS', []);
-        if (JSON.stringify(current) !== JSON.stringify(merged)) {
+        if (JSON.stringify(localCurrent) !== JSON.stringify(merged)) {
           storage.set('USERS', merged);
           window.dispatchEvent(new CustomEvent('dta_users_update', { detail: merged }));
         }
@@ -557,6 +600,12 @@ class CloudSyncService {
           const userMap = new Map<string, User>();
           userMap.set(OFFICIAL_ADMIN_USER.id, OFFICIAL_ADMIN_USER);
 
+          // Seed with current local users
+          const localCurrent = storage.get<User[]>('USERS', []);
+          localCurrent.forEach((u) => {
+            if (u && u.id) userMap.set(u.id, u);
+          });
+
           Object.values(val).forEach((u: any) => {
             if (u && u.id) {
               if (u.email?.toLowerCase() === OFFICIAL_ADMIN_USER.email.toLowerCase()) {
@@ -568,8 +617,7 @@ class CloudSyncService {
           });
 
           const merged = Array.from(userMap.values());
-          const current = storage.get<User[]>('USERS', []);
-          if (JSON.stringify(current) !== JSON.stringify(merged)) {
+          if (JSON.stringify(localCurrent) !== JSON.stringify(merged)) {
             storage.set('USERS', merged);
             window.dispatchEvent(new CustomEvent('dta_users_update', { detail: merged }));
           }

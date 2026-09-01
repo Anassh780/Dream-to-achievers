@@ -218,7 +218,7 @@ export const referralService = {
 
   /**
    * Returns list of community referrals for a specific user.
-   * Matches by UID, normalized referral code, or legacy code formats.
+   * Matches by UID, normalized referral code, or legacy code formats, with instant local user reconciliation.
    */
   getUserReferrals(userId: string): ReferralRecord[] {
     const referrals = storage.get<ReferralRecord[]>('REFERRALS', []);
@@ -228,19 +228,47 @@ export const referralService = {
     const userRefNorm = normalizeReferralCode(currentUser?.referralCode || '');
     const userRefRaw = (currentUser?.referralCode || '').trim().toUpperCase();
 
-    return referrals
-      .filter((r) => {
-        if (!r) return false;
-        // Direct UID match
-        if (r.referrerId === userId) return true;
-        // Referral code match
-        if (userRefNorm && normalizeReferralCode(r.referralCodeUsed || '') === userRefNorm) return true;
-        if (userRefRaw && r.referralCodeUsed?.toUpperCase() === userRefRaw) return true;
-        // Fallback: legacy record where referrerId was set to code
-        if (userRefNorm && normalizeReferralCode(r.referrerId || '') === userRefNorm) return true;
-        return false;
-      })
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const matchedRecords = referrals.filter((r) => {
+      if (!r) return false;
+      // Direct UID match
+      if (r.referrerId === userId) return true;
+      // Referral code match
+      if (userRefNorm && normalizeReferralCode(r.referralCodeUsed || '') === userRefNorm) return true;
+      if (userRefRaw && r.referralCodeUsed?.toUpperCase() === userRefRaw) return true;
+      // Fallback: legacy record where referrerId was set to code
+      if (userRefNorm && normalizeReferralCode(r.referrerId || '') === userRefNorm) return true;
+      if (userRefRaw && r.referrerId?.toUpperCase() === userRefRaw) return true;
+      return false;
+    });
+
+    // Also check localUsers in case any referred user is in memory but referral record was delayed
+    const existingReferredIds = new Set(matchedRecords.map((r) => r.referredUserId));
+    for (const u of localUsers) {
+      if (!u || u.id === userId || existingReferredIds.has(u.id)) continue;
+      const uRefNorm = normalizeReferralCode(u.referredByCode || '');
+      const uRefRaw = (u.referredByCode || '').trim().toUpperCase();
+      if (
+        (userRefNorm && uRefNorm === userRefNorm) ||
+        (userRefRaw && uRefRaw === userRefRaw) ||
+        u.referredByCode === userId
+      ) {
+        matchedRecords.push({
+          id: `ref-local-${u.id}`,
+          referrerId: userId,
+          referredUserId: u.id,
+          referredUserName: u.fullName || 'Partner Reseller',
+          referredUserEmail: u.email,
+          referredUserRank: u.currentRankSlug || 'unranked',
+          referralCodeUsed: currentUser?.referralCode || userRefRaw || 'CODE',
+          status: 'active',
+          isQualifying: true,
+          createdAt: u.createdAt || new Date().toISOString(),
+        });
+        existingReferredIds.add(u.id);
+      }
+    }
+
+    return matchedRecords.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   },
 
   /**
@@ -261,6 +289,17 @@ export const referralService = {
     if (!currentUser) {
       const cached = storage.get<User | null>('CURRENT_USER_DATA', null);
       if (cached && cached.id === userId) currentUser = cached;
+    }
+
+    // If still not found locally, fetch from Firestore / RTDB
+    if (!currentUser) {
+      try {
+        const uDoc = await getDoc(doc(db, 'users', userId));
+        if (uDoc.exists()) {
+          currentUser = uDoc.data() as User;
+          this.cacheLocalUser(currentUser);
+        }
+      } catch {}
     }
 
     const userRefNorm = normalizeReferralCode(currentUser?.referralCode || '');
@@ -294,7 +333,22 @@ export const referralService = {
         });
       }
 
-      // Query 3: user subcollection users/{userId}/referrals
+      // Query 3: by referralCodeUsed == userRefNorm
+      if (userRefNorm && userRefNorm !== currentUser?.referralCode) {
+        try {
+          const q3 = query(refColl, where('referralCodeUsed', '==', userRefNorm));
+          const snap3 = await getDocs(q3);
+          snap3.forEach((d: any) => {
+            const data = d.data() as ReferralRecord;
+            if (data && data.id) {
+              data.referrerId = userId;
+              mergedMap.set(data.id, data);
+            }
+          });
+        } catch {}
+      }
+
+      // Query 4: user subcollection users/{userId}/referrals
       try {
         const subColl = collection(db, `users/${userId}/referrals`);
         const subSnap = await getDocs(subColl);
@@ -341,7 +395,8 @@ export const referralService = {
             rec.referrerId === userId ||
             (userRefNorm && recNorm === userRefNorm) ||
             (userRefRaw && rec.referralCodeUsed?.toUpperCase() === userRefRaw) ||
-            (userRefNorm && normalizeReferralCode(rec.referrerId || '') === userRefNorm)
+            (userRefNorm && normalizeReferralCode(rec.referrerId || '') === userRefNorm) ||
+            (userRefRaw && rec.referrerId?.toUpperCase() === userRefRaw)
           ) {
             rec.referrerId = userId;
             mergedMap.set(rec.id, rec);
@@ -352,15 +407,50 @@ export const referralService = {
       console.warn('RTDB syncUserReferrals failed:', err);
     }
 
-    // 3. SELF-HEALING ENGINE: Scan users in Firestore & RTDB who were referred by this user
+    // 3. SELF-HEALING ENGINE: Scan users in Firestore, RTDB, and LocalStorage who were referred by this user
     try {
-      // Check Firestore users
-      const usersColl = collection(db, 'users');
-      const allUsersSnap = await getDocs(usersColl);
+      const usersToScan: User[] = [];
+      const scannedIds = new Set<string>();
+
+      // A. Firestore users
+      try {
+        const usersColl = collection(db, 'users');
+        const allUsersSnap = await getDocs(usersColl);
+        allUsersSnap.forEach((docSnap: any) => {
+          const u = docSnap.data() as User;
+          if (u && u.id && !scannedIds.has(u.id)) {
+            usersToScan.push(u);
+            scannedIds.add(u.id);
+          }
+        });
+      } catch {}
+
+      // B. RTDB users
+      try {
+        const rtdbUsersSnap = await get(ref(rtdb, 'users'));
+        if (rtdbUsersSnap.exists()) {
+          const val = rtdbUsersSnap.val();
+          if (val && typeof val === 'object') {
+            Object.values(val).forEach((u: any) => {
+              if (u && u.id && !scannedIds.has(u.id)) {
+                usersToScan.push(u);
+                scannedIds.add(u.id);
+              }
+            });
+          }
+        }
+      } catch {}
+
+      // C. Local storage users
+      localUsers.forEach((lu) => {
+        if (lu && lu.id && !scannedIds.has(lu.id)) {
+          usersToScan.push(lu);
+          scannedIds.add(lu.id);
+        }
+      });
       
-      allUsersSnap.forEach((docSnap: any) => {
-        const u = docSnap.data() as User;
-        if (!u || u.id === userId) return;
+      for (const u of usersToScan) {
+        if (!u || u.id === userId) continue;
 
         const uRefByNorm = normalizeReferralCode(u.referredByCode || '');
         const uRefByRaw = (u.referredByCode || '').trim().toUpperCase();
@@ -372,7 +462,7 @@ export const referralService = {
         ) {
           // Check if already in mergedMap
           const alreadyTracked = Array.from(mergedMap.values()).some(
-            (r) => r.referredUserId === u.id || (r.referredUserEmail && r.referredUserEmail === u.email)
+            (r) => r.referredUserId === u.id || (r.referredUserEmail && u.email && r.referredUserEmail.toLowerCase() === u.email.toLowerCase())
           );
 
           if (!alreadyTracked) {
@@ -395,7 +485,7 @@ export const referralService = {
             this.saveReferralRecord(healedRecord).catch(() => {});
           }
         }
-      });
+      }
     } catch (healErr) {
       console.warn('Self-healing user scan failed:', healErr);
     }
@@ -410,6 +500,8 @@ export const referralService = {
       if (r.referrerId === userId) return true;
       if (userRefNorm && normalizeReferralCode(r.referralCodeUsed || '') === userRefNorm) return true;
       if (userRefRaw && r.referralCodeUsed?.toUpperCase() === userRefRaw) return true;
+      if (userRefNorm && normalizeReferralCode(r.referrerId || '') === userRefNorm) return true;
+      if (userRefRaw && r.referrerId?.toUpperCase() === userRefRaw) return true;
       return false;
     });
   },
@@ -521,26 +613,54 @@ export const referralService = {
 
   /**
    * Platform-wide Reconciliation Tool for Admins.
-   * Scans all registered users, repairs missing referral records, and recalculates rank progress.
+   * Scans all registered users across Firestore, RTDB, and LocalStorage,
+   * repairs missing referral records, indexes all sponsor codes, and recalculates rank progress.
    */
   async runPlatformReconciliation(): Promise<{ totalHealed: number; totalReferrals: number }> {
     let totalHealed = 0;
     try {
-      const usersColl = collection(db, 'users');
-      const usersSnap = await getDocs(usersColl);
-      const allUsers: User[] = [];
-      usersSnap.forEach((d: any) => allUsers.push(d.data() as User));
+      const allUsersMap = new Map<string, User>();
 
-      // Also merge local users
+      // 1. Firestore users
+      try {
+        const usersColl = collection(db, 'users');
+        const usersSnap = await getDocs(usersColl);
+        usersSnap.forEach((d: any) => {
+          const u = d.data() as User;
+          if (u && u.id) allUsersMap.set(u.id, u);
+        });
+      } catch {}
+
+      // 2. RTDB users
+      try {
+        const rtdbSnap = await get(ref(rtdb, 'users'));
+        if (rtdbSnap.exists()) {
+          const val = rtdbSnap.val();
+          if (val && typeof val === 'object') {
+            Object.values(val).forEach((ru: any) => {
+              if (ru && ru.id) {
+                allUsersMap.set(ru.id, { ...allUsersMap.get(ru.id), ...ru });
+              }
+            });
+          }
+        }
+      } catch {}
+
+      // 3. Local users
       const localUsers = storage.get<User[]>('USERS', []);
       localUsers.forEach((lu) => {
-        if (!allUsers.some((u) => u.id === lu.id)) allUsers.push(lu);
+        if (lu && lu.id) {
+          allUsersMap.set(lu.id, { ...allUsersMap.get(lu.id), ...lu });
+        }
       });
 
-      // Index every user's referral code
+      const allUsers = Array.from(allUsersMap.values());
+      storage.set('USERS', allUsers);
+
+      // Index every user's referral code in Firestore and RTDB
       for (const u of allUsers) {
         if (u.referralCode) {
-          await this.indexReferralCode(u);
+          await this.indexReferralCode(u).catch(() => {});
         }
       }
 

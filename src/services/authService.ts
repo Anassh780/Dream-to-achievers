@@ -1,4 +1,4 @@
-import { User } from '@/types';
+import { User, ReferralRecord } from '@/types';
 import { auth, db, rtdb } from '@/lib/firebase';
 import {
   signInWithEmailAndPassword,
@@ -126,17 +126,44 @@ export const authService = {
 
     // 4. Create default profile if user exists in Firebase Auth but no profile yet
     if (cleanEmail) {
+      const capturedRef = storage.getRaw('CAPTURED_REF') || undefined;
+      let validReferrer: User | undefined;
+      if (capturedRef) {
+        try {
+          const found = await referralService.findReferrerByCode(capturedRef);
+          if (found) validReferrer = found;
+        } catch {}
+      }
+
       const defaultUser: User = {
         id: uid,
         fullName: cleanEmail.split('@')[0] || 'Partner',
         email: cleanEmail,
         role: isAdminEmail ? 'admin' : 'user',
         referralCode: `DTA-${Math.floor(1000 + Math.random() * 9000)}`,
+        referredByCode: validReferrer ? validReferrer.referralCode : capturedRef,
         currentRankSlug: isAdminEmail ? 'diamond' : 'unranked',
         isActive: true,
         createdAt: new Date().toISOString(),
       };
       await authService.saveUserProfile(defaultUser);
+
+      if (defaultUser.referredByCode) {
+        const refRecord = {
+          id: `ref-${uid}`,
+          referrerId: validReferrer ? validReferrer.id : defaultUser.referredByCode,
+          referredUserId: defaultUser.id,
+          referredUserName: defaultUser.fullName,
+          referredUserEmail: defaultUser.email,
+          referredUserRank: 'unranked' as const,
+          referralCodeUsed: defaultUser.referredByCode,
+          status: 'active' as const,
+          isQualifying: true,
+          createdAt: defaultUser.createdAt,
+        };
+        await referralService.saveReferralRecord(refRecord).catch(() => {});
+      }
+
       return defaultUser;
     }
 
@@ -149,15 +176,22 @@ export const authService = {
   async saveUserProfile(user: User): Promise<void> {
     // Local storage
     const localUsers = storage.get<User[]>('USERS', []);
-    const existingIndex = localUsers.findIndex((u) => u.id === user.id);
+    const existingIndex = localUsers.findIndex(
+      (u) => u.id === user.id || (u.email && u.email.toLowerCase() === user.email.toLowerCase())
+    );
     if (existingIndex >= 0) {
-      localUsers[existingIndex] = user;
+      localUsers[existingIndex] = { ...localUsers[existingIndex], ...user };
     } else {
       localUsers.push(user);
     }
     storage.set('USERS', localUsers);
     storage.set('CURRENT_USER_DATA', user);
     storage.setRaw('CURRENT_USER_ID', user.id);
+
+    // Dispatch real-time cross-tab & component events
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('dta_users_update', { detail: localUsers }));
+    }
 
     // Firestore
     try {
@@ -239,7 +273,7 @@ export const authService = {
   },
 
   /**
-   * Real Firebase User Registration with referral validation.
+   * Real Firebase User Registration with referral validation and seamless login healing.
    */
   async signup({
     fullName,
@@ -258,14 +292,15 @@ export const authService = {
   }): Promise<{ success: boolean; user?: User; error?: string }> {
     const cleanEmail = email.toLowerCase().trim();
     const isAdminEmail = authService.isConfiguredAdmin(cleanEmail);
+    const cleanName = fullName.trim() || cleanEmail.split('@')[0] || 'Partner';
 
-    // Generate unique referral code for the new user (e.g. HAMZA482)
-    const baseCode = fullName.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 5) || 'DTA';
+    // Generate unique referral code for the new user (e.g. FARIA482)
+    const baseCode = cleanName.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 5) || 'DTA';
     const randNum = Math.floor(100 + Math.random() * 900);
     const newReferralCode = `${baseCode}${randNum}`;
 
     let validReferrer: User | undefined;
-    const cleanRef = referralCode ? referralCode.trim().toUpperCase() : undefined;
+    const cleanRef = referralCode?.trim().toUpperCase() || storage.getRaw('CAPTURED_REF')?.trim().toUpperCase() || undefined;
 
     if (cleanRef) {
       try {
@@ -278,19 +313,54 @@ export const authService = {
       }
     }
 
-    try {
-      // 1. Create User in Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
-      const fbUser = userCredential.user;
+    let fbUser: any = null;
 
+    try {
+      // 1. Try to create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+      fbUser = userCredential.user;
+    } catch (createErr: any) {
+      if (createErr?.code === 'auth/email-already-in-use') {
+        // User is already registered in Firebase Auth!
+        // Attempt to authenticate with the entered password so we can load/sync their profile & referral
+        try {
+          const loginCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
+          fbUser = loginCredential.user;
+        } catch (signInErr: any) {
+          console.warn('Auth email exists and signIn failed:', signInErr);
+          if (signInErr?.code === 'auth/wrong-password' || signInErr?.code === 'auth/invalid-credential') {
+            return {
+              success: false,
+              error: 'This email is already registered, but the password entered does not match. Please sign in with your existing password or reset your password.',
+            };
+          }
+          return {
+            success: false,
+            error: 'An account with this email address already exists. Please sign in to access your dashboard.',
+          };
+        }
+      } else if (createErr?.code === 'auth/weak-password') {
+        return { success: false, error: 'Password should be at least 6 characters long.' };
+      } else if (createErr?.code === 'auth/invalid-email') {
+        return { success: false, error: 'Please enter a valid email address.' };
+      } else {
+        return { success: false, error: createErr?.message || 'Failed to create account. Please try again.' };
+      }
+    }
+
+    if (!fbUser) {
+      return { success: false, error: 'Failed to authenticate user.' };
+    }
+
+    try {
       // Update Firebase Auth Display Name
       try {
-        await updateProfile(fbUser, { displayName: fullName.trim() });
+        await updateProfile(fbUser, { displayName: cleanName });
       } catch (pErr) {
         console.warn('updateProfile failed:', pErr);
       }
 
-      // 2. Retry referrer lookup with newly authenticated session if not found earlier
+      // 2. Retry referrer lookup if not found earlier
       if (cleanRef && !validReferrer) {
         try {
           const retryFound = await referralService.findReferrerByCode(cleanRef);
@@ -302,38 +372,43 @@ export const authService = {
         }
       }
 
-      const assignedReferrerCode = validReferrer ? validReferrer.referralCode : cleanRef;
+      // Check if user profile already exists
+      let existingProfile = await authService.getUserProfile(fbUser.uid, cleanEmail);
 
-      const newUser: User = {
+      const assignedReferrerCode = validReferrer
+        ? validReferrer.referralCode
+        : (cleanRef || existingProfile?.referredByCode);
+
+      const userToSave: User = {
         id: fbUser.uid,
-        fullName: fullName.trim(),
+        fullName: cleanName || existingProfile?.fullName || cleanEmail.split('@')[0],
         email: cleanEmail,
-        role: isAdminEmail ? 'admin' : 'user',
-        referralCode: newReferralCode,
+        role: isAdminEmail ? 'admin' : (existingProfile?.role || 'user'),
+        referralCode: existingProfile?.referralCode || newReferralCode,
         referredByCode: assignedReferrerCode,
-        currentRankSlug: isAdminEmail ? 'diamond' : 'unranked',
-        phone: phone?.trim(),
-        city: city?.trim(),
+        currentRankSlug: isAdminEmail ? 'diamond' : (existingProfile?.currentRankSlug || 'unranked'),
+        phone: phone?.trim() || existingProfile?.phone,
+        city: city?.trim() || existingProfile?.city,
         isActive: true,
-        createdAt: new Date().toISOString(),
+        createdAt: existingProfile?.createdAt || new Date().toISOString(),
       };
 
       // Save to Cloud & Local
-      await authService.saveUserProfile(newUser);
+      await authService.saveUserProfile(userToSave);
 
       // Record referral relationship if referred by code or user
       if (assignedReferrerCode) {
-        const referralRecord = {
-          id: `ref-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        const referralRecord: ReferralRecord = {
+          id: `ref-${userToSave.id}`,
           referrerId: validReferrer ? validReferrer.id : assignedReferrerCode,
-          referredUserId: newUser.id,
-          referredUserName: newUser.fullName,
-          referredUserEmail: newUser.email,
-          referredUserRank: 'unranked' as const,
+          referredUserId: userToSave.id,
+          referredUserName: userToSave.fullName,
+          referredUserEmail: userToSave.email,
+          referredUserRank: userToSave.currentRankSlug || 'unranked',
           referralCodeUsed: assignedReferrerCode,
-          status: 'active' as const,
+          status: 'active',
           isQualifying: true,
-          createdAt: new Date().toISOString(),
+          createdAt: userToSave.createdAt || new Date().toISOString(),
         };
 
         // Save locally and to Cloud Firestore / RTDB
@@ -347,7 +422,7 @@ export const authService = {
             userId: validReferrer.id,
             type: 'referral_joined',
             title: '👥 New Community Member Joined!',
-            message: `${newUser.fullName} registered using your referral code (${validReferrer.referralCode}).`,
+            message: `${userToSave.fullName} registered using your referral code (${validReferrer.referralCode}).`,
             isRead: false,
             linkUrl: '/dashboard/referrals',
             createdAt: new Date().toISOString(),
@@ -363,7 +438,7 @@ export const authService = {
       const userNotifs = storage.get<any[]>('NOTIFICATIONS', []);
       userNotifs.unshift({
         id: `notif-welcome-${Date.now()}`,
-        userId: newUser.id,
+        userId: userToSave.id,
         type: 'welcome',
         title: '🌟 Welcome to Dream to Achievers!',
         message: isAdminEmail
@@ -381,20 +456,10 @@ export const authService = {
         sessionStorage.removeItem('dta_captured_ref');
       } catch {}
 
-      return { success: true, user: newUser };
+      return { success: true, user: userToSave };
     } catch (err: any) {
-      console.error('Firebase signup error:', err);
-
-      let errorMessage = 'Failed to create partner account. Please try again.';
-      if (err?.code === 'auth/email-already-in-use') {
-        errorMessage = 'An account with this email address already exists. Please sign in.';
-      } else if (err?.code === 'auth/weak-password') {
-        errorMessage = 'Password should be at least 6 characters long.';
-      } else if (err?.code === 'auth/invalid-email') {
-        errorMessage = 'Please enter a valid email address.';
-      }
-
-      return { success: false, error: errorMessage };
+      console.error('Firebase profile setup error:', err);
+      return { success: false, error: 'Failed to configure partner profile. Please try again.' };
     }
   },
 
