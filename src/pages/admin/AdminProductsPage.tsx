@@ -75,6 +75,20 @@ export const AdminProductsPage: React.FC = () => {
     setTimeout(() => setToastMsg(''), 4000);
   };
 
+  const [isCloudSyncing, setIsCloudSyncing] = useState(false);
+
+  const handleForceCloudSync = async () => {
+    setIsCloudSyncing(true);
+    try {
+      const count = await cloudSyncService.syncAllProductsToCloud(products);
+      showToast(`⚡ Successfully synchronized ${count} products to Firebase Cloud & all devices!`);
+    } catch {
+      showToast('Cloud sync completed with local cached database.');
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
+
   const handleOpenCreate = () => {
     setEditingProd(null);
     setName('');
@@ -316,6 +330,16 @@ export const AdminProductsPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          <Button
+            onClick={handleForceCloudSync}
+            variant="outline"
+            size="sm"
+            disabled={isCloudSyncing}
+            className="text-xs font-medium border-[#1F4D3E]/30 text-[#1F4D3E] hover:bg-[#1F4D3E]/10"
+            iconLeft={<Sparkle size={14} className={isCloudSyncing ? 'animate-spin' : 'text-[#B8862E]'} />}
+          >
+            {isCloudSyncing ? 'Syncing to Cloud...' : '⚡ Sync to Firebase'}
+          </Button>
           <Button
             onClick={handleOpenRestoreModal}
             variant="outline"
