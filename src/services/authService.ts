@@ -33,57 +33,22 @@ export const ADMIN_EMAILS = [
 ];
 
 export function formatDisplayName(fullName?: string, email?: string, displayName?: string): string {
-  const explicit = (fullName || displayName || '').trim();
-  const emailHandle = (email ? email.split('@')[0] : '').trim();
-
-  // If explicit non-empty human name is provided (different from raw email prefix)
-  if (explicit && explicit.toLowerCase() !== emailHandle.toLowerCase() && !/^[a-z0-9._-]+$/i.test(explicit)) {
-    return explicit
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
+  // Always preserve the exact name or username entered by the user
+  const explicit = String(fullName || displayName || '').trim();
+  if (explicit) {
+    return explicit;
   }
-
-  // If candidate is a raw email prefix with numbers, dots, concatenated words
-  let raw = explicit || emailHandle || 'Partner';
-  raw = raw.replace(/\.(sa|pk|com|org|net)$/i, '');
-  let cleaned = raw.replace(/[0-9_.-]/g, ' ').trim();
-
-  // Smart splitting for concatenated names (e.g. anassheikh -> anas sheikh, sattarahsan -> sattar ahsan)
-  const knownNameRoots = [
-    'sheikh', 'shaikh', 'ahsan', 'akbar', 'rubab', 'malik', 'usman',
-    'shah', 'qureshi', 'khan', 'ahmed', 'ahmad', 'ali', 'hassan', 'hasan', 'hussain',
-    'butt', 'rajput', 'chaudhary', 'iqbal', 'tariq', 'bilal', 'hamza', 'umer', 'omar',
-    'gaming', 'official', 'store', 'babar', 'rashid', 'waqar', 'nawaz', 'asif', 'javed',
-    'rehman', 'ansari', 'siddiqui', 'farooqi', 'abbasi', 'zaidi', 'syed', 'mirza'
-  ];
-
-  for (const root of knownNameRoots) {
-    const reg = new RegExp(`(?<!\\s)(${root})`, 'gi');
-    cleaned = cleaned.replace(reg, ' $1');
+  if (email && email.includes('@')) {
+    return email.split('@')[0];
   }
-
-  // Handle common shorthand like 'mhmmd' -> 'Muhammad'
-  cleaned = cleaned.replace(/\bmhmmd\b/gi, 'Muhammad');
-
-  const words = cleaned
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
-
-  if (words.length > 0) {
-    return words.join(' ');
-  }
-
-  return explicit || emailHandle || 'Partner Reseller';
+  return 'Partner Reseller';
 }
 
 export function cleanUserForCloud(u: User): User {
-  const formattedName = formatDisplayName(u.fullName, u.email);
+  const finalName = formatDisplayName(u.fullName, u.email);
   return {
     id: String(u.id || '').trim(),
-    fullName: String(formattedName || u.fullName || 'Partner Reseller').trim(),
+    fullName: finalName,
     email: String(u.email || '').toLowerCase().trim(),
     role: u.role || 'user',
     referralCode: String(u.referralCode || '').trim().toUpperCase(),
