@@ -7,7 +7,7 @@ import { Product } from '@/types';
 import { SEED_PRODUCTS } from '@/config/products';
 import { Button } from '@/components/ui/Button';
 import { cloudSyncService, OFFICIAL_ADMIN_USER } from '@/services/cloudSyncService';
-import { uploadProductImage } from '@/services/imageService';
+import { uploadProductImage, isValidImageUrl } from '@/services/imageService';
 import {
   Plus,
   Trash,
@@ -20,6 +20,11 @@ import {
   CheckSquare,
   Square,
   Sparkle,
+  Link as LinkIcon,
+  UploadSimple,
+  Image as ImageIcon,
+  CloudCheck,
+  ArrowClockwise,
 } from '@phosphor-icons/react';
 
 export const AdminProductsPage: React.FC = () => {
@@ -64,6 +69,7 @@ export const AdminProductsPage: React.FC = () => {
   const [imageUrl, setImageUrl] = useState(
     'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80'
   );
+  const [imageInputMode, setImageInputMode] = useState<'url' | 'upload'>('url');
   const [shortDescription, setShortDescription] = useState('');
   const [description, setDescription] = useState('');
   const [inStock, setInStock] = useState(true);
@@ -99,6 +105,7 @@ export const AdminProductsPage: React.FC = () => {
     setRetailPrice(2500);
     setPartnerPrice(2000);
     setImageUrl('https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80');
+    setImageInputMode('url');
     setShortDescription('');
     setDescription('');
     setInStock(true);
@@ -114,6 +121,7 @@ export const AdminProductsPage: React.FC = () => {
     setRetailPrice(p.retailPrice);
     setPartnerPrice(p.partnerPrice);
     setImageUrl(p.imageUrl);
+    setImageInputMode(p.imageUrl?.startsWith('data:') ? 'upload' : 'url');
     setShortDescription(p.shortDescription);
     setDescription(p.description);
     setInStock(p.inStock);
@@ -552,73 +560,163 @@ export const AdminProductsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[#5B5C50] mb-1 font-medium">Category Assignment</label>
-                  <select
-                    value={categoryId}
-                    onChange={(e) => setCategoryId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E] cursor-pointer"
-                  >
-                    {allCategories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+              <div>
+                <label className="block text-[#5B5C50] mb-1 font-medium">Category Assignment</label>
+                <select
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E] cursor-pointer"
+                >
+                  {allCategories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Product Image Dual-Option Selector */}
+              <div className="p-3.5 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-[#1E241F] flex items-center gap-1.5">
+                    <ImageIcon size={16} className="text-[#1F4D3E]" />
+                    Product Image Selection (Syncs to All Devices)
+                  </span>
+                  
+                  {/* Mode Tabs */}
+                  <div className="flex items-center bg-white p-0.5 rounded-lg border border-[#E3DCC8] text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setImageInputMode('url')}
+                      className={`px-2.5 py-1 rounded-md transition-colors flex items-center gap-1 font-medium ${
+                        imageInputMode === 'url'
+                          ? 'bg-[#1F4D3E] text-white shadow-xs'
+                          : 'text-[#5B5C50] hover:text-[#1E241F]'
+                      }`}
+                    >
+                      <LinkIcon size={13} />
+                      <span>Option 1: Image URL</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageInputMode('upload')}
+                      className={`px-2.5 py-1 rounded-md transition-colors flex items-center gap-1 font-medium ${
+                        imageInputMode === 'upload'
+                          ? 'bg-[#1F4D3E] text-white shadow-xs'
+                          : 'text-[#5B5C50] hover:text-[#1E241F]'
+                      }`}
+                    >
+                      <UploadSimple size={13} />
+                      <span>Option 2: Upload File</span>
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-[#5B5C50] mb-1 font-medium">Product Image (URL or Browse File)</label>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-9 h-9 rounded-lg overflow-hidden border border-[#E3DCC8] bg-[#FAF7EF] shrink-0">
+
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                  {/* Left: Input controls */}
+                  <div className="md:col-span-8 space-y-2">
+                    {imageInputMode === 'url' ? (
+                      <div className="space-y-1.5">
+                        <label className="block text-[11px] text-[#5B5C50] font-mono">
+                          Direct Image Web Link (HTTPS from Unsplash, Imgur, Cloudinary, etc.):
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="url"
+                            value={imageUrl}
+                            onChange={(e) => setImageUrl(e.target.value)}
+                            placeholder="https://images.unsplash.com/photo-..."
+                            className="flex-1 px-3 py-2 rounded-lg bg-white border border-[#E3DCC8] text-[#1E241F] text-xs focus:outline-none focus:border-[#1F4D3E]"
+                          />
+                          {imageUrl && (
+                            <button
+                              type="button"
+                              onClick={() => setImageUrl('')}
+                              className="p-2 rounded-lg bg-white border border-[#E3DCC8] text-[#5B5C50] hover:text-rose-600 hover:bg-rose-50"
+                              title="Clear URL"
+                            >
+                              <X size={14} />
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-[#7C7D70]">
+                          Paste any publicly accessible image link. It will render on all partner and public devices.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <label className="block text-[11px] text-[#5B5C50] font-mono">
+                          Select Image File from your Phone or Computer (Auto-Compressed):
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <label
+                            className={`flex-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 border-dashed border-[#1F4D3E]/30 bg-white hover:bg-[#F1ECDD]/40 text-[#1E241F] text-xs cursor-pointer transition-all ${
+                              isUploadingImage ? 'opacity-60 pointer-events-none' : ''
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <UploadSimple size={18} className="text-[#1F4D3E]" />
+                              <span className="font-medium">
+                                {isUploadingImage ? 'Optimizing & Uploading...' : 'Click to Browse Image File (JPG, PNG, WebP)'}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-[#7C7D70] mt-0.5">
+                              Automatic smart compression creates a high-res, lightweight asset synced to all databases.
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              disabled={isUploadingImage}
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  setIsUploadingImage(true);
+                                  try {
+                                    const optimizedUrl = await uploadProductImage(
+                                      file,
+                                      editingProd?.id || `prod-${Date.now()}`
+                                    );
+                                    setImageUrl(optimizedUrl);
+                                    showToast('⚡ Picture compressed and ready to sync across all devices!');
+                                  } catch (err) {
+                                    console.error('Image upload failed:', err);
+                                    showToast('Image processing failed. Please try a different image.');
+                                  } finally {
+                                    setIsUploadingImage(false);
+                                  }
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right: Live Preview Box */}
+                  <div className="md:col-span-4 flex items-center justify-center p-2 rounded-xl bg-white border border-[#E3DCC8]">
+                    <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-[#E3DCC8] bg-[#FAF7EF] shrink-0 group">
                       <img
                         src={imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
-                        alt="Preview"
+                        alt="Product Preview"
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
                         }}
                       />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[10px] text-white font-mono">
+                        Live Preview
+                      </div>
                     </div>
-                    <input
-                      type="url"
-                      value={imageUrl}
-                      onChange={(e) => setImageUrl(e.target.value)}
-                      placeholder="https://images.unsplash.com/..."
-                      className="flex-1 px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] text-xs focus:outline-none focus:border-[#1F4D3E]"
-                    />
-                    <label
-                      className={`px-2.5 py-2 rounded-lg bg-white border border-[#E3DCC8] hover:bg-[#FAF7EF] text-[#1E241F] text-xs font-medium cursor-pointer shrink-0 flex items-center gap-1 ${
-                        isUploadingImage ? 'opacity-50 pointer-events-none' : ''
-                      }`}
-                    >
-                      <span>{isUploadingImage ? 'Uploading...' : 'Upload'}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        disabled={isUploadingImage}
-                        className="hidden"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setIsUploadingImage(true);
-                            try {
-                              const optimizedUrl = await uploadProductImage(
-                                file,
-                                editingProd?.id || `prod-${Date.now()}`
-                              );
-                              setImageUrl(optimizedUrl);
-                              showToast('Image uploaded and synced successfully.');
-                            } catch (err) {
-                              console.error('Image upload failed:', err);
-                              showToast('Image upload failed. Please try a different image or paste a URL.');
-                            } finally {
-                              setIsUploadingImage(false);
-                            }
-                          }
-                        }}
-                      />
-                    </label>
+                    <div className="ml-3 text-left">
+                      <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-[#1F4D3E]/10 text-[#1F4D3E] border border-[#1F4D3E]/20 inline-block mb-1">
+                        {imageUrl?.startsWith('data:') ? 'Compressed Asset' : 'Web URL Asset'}
+                      </span>
+                      <p className="text-[10px] text-[#5B5C50] line-clamp-2">
+                        {imageUrl ? 'Ready for Realtime Cloud Sync' : 'No image loaded'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>

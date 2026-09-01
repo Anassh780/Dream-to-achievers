@@ -127,8 +127,8 @@ class CloudSyncService {
     // 1. Delete legacy mock items from Cloud
     for (const legacyId of LEGACY_PRODUCT_IDS) {
       try {
-        await deleteDoc(doc(db, 'products', legacyId));
-        await set(ref(rtdb, `products/${legacyId}`), null);
+        await deleteDoc(doc(db, 'products', legacyId)).catch(() => {});
+        await set(ref(rtdb, `products/${legacyId}`), null).catch(() => {});
       } catch {}
     }
 
@@ -137,39 +137,50 @@ class CloudSyncService {
         (p) => p && !LEGACY_PRODUCT_IDS.includes(p.id)
       );
 
-      // 2. Fetch all products from Firestore
       let validCloudProducts: Product[] = [];
+
+      // 2. Fetch from Realtime Database (fastest, guaranteed open access)
+      try {
+        const rtdbSnap = await get(ref(rtdb, 'products'));
+        if (rtdbSnap.exists()) {
+          const val = rtdbSnap.val();
+          if (val && typeof val === 'object') {
+            Object.values(val).forEach((cp: any) => {
+              if (cp && cp.id && !LEGACY_PRODUCT_IDS.includes(cp.id)) {
+                validCloudProducts.push(cp);
+              }
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('[CloudSync] RTDB initial read notice:', err);
+      }
+
+      // 3. Supplement/Merge from Firestore if available
       try {
         const cloudProductsSnap: any = await getDocs(collection(db, 'products'));
         if (!cloudProductsSnap.empty) {
+          const fsProducts: Product[] = [];
           cloudProductsSnap.forEach((d: any) => {
             const cp = d.data() as Product;
             if (cp && cp.id && !LEGACY_PRODUCT_IDS.includes(cp.id)) {
-              validCloudProducts.push(cp);
+              fsProducts.push(cp);
             }
           });
+          if (validCloudProducts.length === 0) {
+            validCloudProducts = fsProducts;
+          } else {
+            // Merge Firestore records into validCloudProducts without duplicates
+            const existingIds = new Set(validCloudProducts.map((p) => p.id));
+            fsProducts.forEach((fp) => {
+              if (!existingIds.has(fp.id)) {
+                validCloudProducts.push(fp);
+              }
+            });
+          }
         }
       } catch (err) {
-        console.warn('[CloudSync] Firestore read warning, checking RTDB:', err);
-      }
-
-      // 3. Fallback to RTDB if Firestore yielded no products
-      if (validCloudProducts.length === 0) {
-        try {
-          const rtdbSnap = await get(ref(rtdb, 'products'));
-          if (rtdbSnap.exists()) {
-            const val = rtdbSnap.val();
-            if (val && typeof val === 'object') {
-              Object.values(val).forEach((cp: any) => {
-                if (cp && cp.id && !LEGACY_PRODUCT_IDS.includes(cp.id)) {
-                  validCloudProducts.push(cp);
-                }
-              });
-            }
-          }
-        } catch (err) {
-          console.warn('[CloudSync] RTDB read warning:', err);
-        }
+        console.warn('[CloudSync] Firestore read notice:', err);
       }
 
       // 4. Resolve final product catalog
@@ -178,10 +189,10 @@ class CloudSyncService {
         finalProducts = validCloudProducts;
       } else if (currentLocal.length > 0) {
         finalProducts = currentLocal;
-        this.syncAllProductsToCloud(finalProducts);
+        await this.syncAllProductsToCloud(finalProducts);
       } else {
         finalProducts = SEED_PRODUCTS;
-        this.syncAllProductsToCloud(finalProducts);
+        await this.syncAllProductsToCloud(finalProducts);
       }
 
       storage.set('PRODUCTS', finalProducts);
@@ -191,15 +202,28 @@ class CloudSyncService {
     }
 
     try {
-      // 5. Sync Categories
-      const cloudCatSnap: any = await getDocs(collection(db, 'categories'));
+      // 5. Sync Categories from RTDB & Firestore
       let categories: Category[] = [];
+      try {
+        const rtdbCatSnap = await get(ref(rtdb, 'categories'));
+        if (rtdbCatSnap.exists()) {
+          const val = rtdbCatSnap.val();
+          if (val && typeof val === 'object') {
+            categories = Object.values(val);
+          }
+        }
+      } catch {}
 
-      if (!cloudCatSnap.empty) {
-        cloudCatSnap.forEach((d: any) => {
-          const cc = d.data() as Category;
-          if (cc && cc.id) categories.push(cc);
-        });
+      if (categories.length === 0) {
+        try {
+          const cloudCatSnap: any = await getDocs(collection(db, 'categories'));
+          if (!cloudCatSnap.empty) {
+            cloudCatSnap.forEach((d: any) => {
+              const cc = d.data() as Category;
+              if (cc && cc.id) categories.push(cc);
+            });
+          }
+        } catch {}
       }
 
       if (categories.length === 0) {
@@ -319,7 +343,7 @@ class CloudSyncService {
   }
 
   /**
-   * Real-time Firestore Listeners: Single Source of Truth
+   * Real-time Firestore Listeners
    */
   private startFirestoreListeners() {
     // 1. Products Stream
@@ -334,13 +358,16 @@ class CloudSyncService {
           }
         });
         if (cloudList.length > 0) {
-          storage.set('PRODUCTS', cloudList);
-          window.dispatchEvent(new CustomEvent('dta_products_update', { detail: cloudList }));
+          const current = storage.get<Product[]>('PRODUCTS', []);
+          if (JSON.stringify(current) !== JSON.stringify(cloudList)) {
+            storage.set('PRODUCTS', cloudList);
+            window.dispatchEvent(new CustomEvent('dta_products_update', { detail: cloudList }));
+          }
         }
       });
       this.unsubscribers.push(unsubProducts);
     } catch (err) {
-      console.warn('[CloudSync] Products stream setup error:', err);
+      console.warn('[CloudSync] Products Firestore stream setup notice:', err);
     }
 
     // 2. Categories Stream
@@ -353,13 +380,16 @@ class CloudSyncService {
           if (item && item.id) categories.push(item);
         });
         if (categories.length > 0) {
-          storage.set('CATEGORIES', categories);
-          window.dispatchEvent(new CustomEvent('dta_categories_update', { detail: categories }));
+          const current = storage.get<Category[]>('CATEGORIES', []);
+          if (JSON.stringify(current) !== JSON.stringify(categories)) {
+            storage.set('CATEGORIES', categories);
+            window.dispatchEvent(new CustomEvent('dta_categories_update', { detail: categories }));
+          }
         }
       });
       this.unsubscribers.push(unsubCategories);
     } catch (err) {
-      console.warn('[CloudSync] Categories stream setup error:', err);
+      console.warn('[CloudSync] Categories Firestore stream setup notice:', err);
     }
 
     // 3. Sales Stream
@@ -371,12 +401,15 @@ class CloudSyncService {
           const s = d.data() as Sale;
           if (s && s.id) sales.push(s);
         });
-        storage.set('SALES', sales);
-        window.dispatchEvent(new CustomEvent('dta_sales_update', { detail: sales }));
+        const current = storage.get<Sale[]>('SALES', []);
+        if (JSON.stringify(current) !== JSON.stringify(sales)) {
+          storage.set('SALES', sales);
+          window.dispatchEvent(new CustomEvent('dta_sales_update', { detail: sales }));
+        }
       });
       this.unsubscribers.push(unsubSales);
     } catch (err) {
-      console.warn('[CloudSync] Sales stream setup error:', err);
+      console.warn('[CloudSync] Sales Firestore stream setup notice:', err);
     }
 
     // 4. Users Stream
@@ -398,12 +431,15 @@ class CloudSyncService {
         });
 
         const merged = Array.from(userMap.values());
-        storage.set('USERS', merged);
-        window.dispatchEvent(new CustomEvent('dta_users_update', { detail: merged }));
+        const current = storage.get<User[]>('USERS', []);
+        if (JSON.stringify(current) !== JSON.stringify(merged)) {
+          storage.set('USERS', merged);
+          window.dispatchEvent(new CustomEvent('dta_users_update', { detail: merged }));
+        }
       });
       this.unsubscribers.push(unsubUsers);
     } catch (err) {
-      console.warn('[CloudSync] Users stream setup error:', err);
+      console.warn('[CloudSync] Users Firestore stream setup notice:', err);
     }
 
     // 5. Withdrawals Stream
@@ -415,12 +451,15 @@ class CloudSyncService {
           const w = d.data() as WithdrawalRequest;
           if (w && w.id) wds.push(w);
         });
-        storage.set('WITHDRAWALS', wds);
-        window.dispatchEvent(new CustomEvent('dta_withdrawals_update', { detail: wds }));
+        const current = storage.get<WithdrawalRequest[]>('WITHDRAWALS', []);
+        if (JSON.stringify(current) !== JSON.stringify(wds)) {
+          storage.set('WITHDRAWALS', wds);
+          window.dispatchEvent(new CustomEvent('dta_withdrawals_update', { detail: wds }));
+        }
       });
       this.unsubscribers.push(unsubWd);
     } catch (err) {
-      console.warn('[CloudSync] Withdrawals stream setup error:', err);
+      console.warn('[CloudSync] Withdrawals Firestore stream setup notice:', err);
     }
 
     // 6. Rewards Stream
@@ -432,70 +471,178 @@ class CloudSyncService {
           const r = d.data() as Reward;
           if (r && r.id) rewards.push(r);
         });
-        storage.set('REWARDS', rewards);
-        window.dispatchEvent(new CustomEvent('dta_rewards_update', { detail: rewards }));
+        const current = storage.get<Reward[]>('REWARDS', []);
+        if (JSON.stringify(current) !== JSON.stringify(rewards)) {
+          storage.set('REWARDS', rewards);
+          window.dispatchEvent(new CustomEvent('dta_rewards_update', { detail: rewards }));
+        }
       });
       this.unsubscribers.push(unsubRewards);
     } catch (err) {
-      console.warn('[CloudSync] Rewards stream setup error:', err);
+      console.warn('[CloudSync] Rewards Firestore stream setup notice:', err);
     }
   }
 
   /**
-   * Real-time Realtime Database Listeners (Backup synchronization)
+   * Real-time Realtime Database Listeners (Primary high-performance synchronization)
    */
   private startRTDBListeners() {
+    // 1. RTDB Products Stream
     try {
-      const productsRef = ref(rtdb, 'products');
-      onValue(productsRef, (snap: any) => {
+      const unsub = onValue(ref(rtdb, 'products'), (snap: any) => {
         const val = snap.val();
         if (val && typeof val === 'object') {
           const rtdbProducts = (Object.values(val) as Product[]).filter(
             (p) => p && p.id && !LEGACY_PRODUCT_IDS.includes(p.id)
           );
           if (rtdbProducts.length > 0) {
-            storage.set('PRODUCTS', rtdbProducts);
-            window.dispatchEvent(new CustomEvent('dta_products_update', { detail: rtdbProducts }));
+            const current = storage.get<Product[]>('PRODUCTS', []);
+            if (JSON.stringify(current) !== JSON.stringify(rtdbProducts)) {
+              storage.set('PRODUCTS', rtdbProducts);
+              window.dispatchEvent(new CustomEvent('dta_products_update', { detail: rtdbProducts }));
+            }
           }
         }
       });
+      this.unsubscribers.push(unsub);
     } catch (err) {
-      console.warn('[CloudSync] RTDB products listener warning:', err);
+      console.warn('[CloudSync] RTDB products listener notice:', err);
+    }
+
+    // 2. RTDB Categories Stream
+    try {
+      const unsub = onValue(ref(rtdb, 'categories'), (snap: any) => {
+        const val = snap.val();
+        if (val && typeof val === 'object') {
+          const rtdbCategories = (Object.values(val) as Category[]).filter((c) => c && c.id);
+          if (rtdbCategories.length > 0) {
+            const current = storage.get<Category[]>('CATEGORIES', []);
+            if (JSON.stringify(current) !== JSON.stringify(rtdbCategories)) {
+              storage.set('CATEGORIES', rtdbCategories);
+              window.dispatchEvent(new CustomEvent('dta_categories_update', { detail: rtdbCategories }));
+            }
+          }
+        }
+      });
+      this.unsubscribers.push(unsub);
+    } catch (err) {
+      console.warn('[CloudSync] RTDB categories listener notice:', err);
+    }
+
+    // 3. RTDB Sales Stream
+    try {
+      const unsub = onValue(ref(rtdb, 'sales'), (snap: any) => {
+        const val = snap.val();
+        if (val && typeof val === 'object') {
+          const rtdbSales = (Object.values(val) as Sale[]).filter((s) => s && s.id);
+          if (rtdbSales.length > 0) {
+            const current = storage.get<Sale[]>('SALES', []);
+            if (JSON.stringify(current) !== JSON.stringify(rtdbSales)) {
+              storage.set('SALES', rtdbSales);
+              window.dispatchEvent(new CustomEvent('dta_sales_update', { detail: rtdbSales }));
+            }
+          }
+        }
+      });
+      this.unsubscribers.push(unsub);
+    } catch (err) {
+      console.warn('[CloudSync] RTDB sales listener notice:', err);
+    }
+
+    // 4. RTDB Users Stream
+    try {
+      const unsub = onValue(ref(rtdb, 'users'), (snap: any) => {
+        const val = snap.val();
+        if (val && typeof val === 'object') {
+          const userMap = new Map<string, User>();
+          userMap.set(OFFICIAL_ADMIN_USER.id, OFFICIAL_ADMIN_USER);
+
+          Object.values(val).forEach((u: any) => {
+            if (u && u.id) {
+              if (u.email?.toLowerCase() === OFFICIAL_ADMIN_USER.email.toLowerCase()) {
+                u.role = 'admin';
+                u.currentRankSlug = 'diamond';
+              }
+              userMap.set(u.id, { ...userMap.get(u.id), ...u });
+            }
+          });
+
+          const merged = Array.from(userMap.values());
+          const current = storage.get<User[]>('USERS', []);
+          if (JSON.stringify(current) !== JSON.stringify(merged)) {
+            storage.set('USERS', merged);
+            window.dispatchEvent(new CustomEvent('dta_users_update', { detail: merged }));
+          }
+        }
+      });
+      this.unsubscribers.push(unsub);
+    } catch (err) {
+      console.warn('[CloudSync] RTDB users listener notice:', err);
     }
   }
 
   /**
-   * Sync a single product creation/update to Cloud
+   * Sync a single product creation/update to Cloud (RTDB + Firestore)
    */
   public async syncProductToCloud(product: Product) {
     try {
       const clean = this.cleanProductForCloud(product);
-      await setDoc(doc(db, 'products', clean.id), clean, { merge: true });
-      await set(ref(rtdb, `products/${clean.id}`), clean);
+      // 1. Direct Realtime Database sync (lightning fast, guaranteed)
+      try {
+        await set(ref(rtdb, `products/${clean.id}`), clean);
+      } catch (rtdbErr) {
+        console.warn('[CloudSync] RTDB product write notice:', rtdbErr);
+      }
+      // 2. Firestore sync
+      try {
+        await setDoc(doc(db, 'products', clean.id), clean, { merge: true });
+      } catch (fsErr) {
+        console.warn('[CloudSync] Firestore product write notice:', fsErr);
+      }
     } catch (err) {
       console.warn('[CloudSync] Failed to sync product to cloud:', err);
     }
   }
 
   /**
-   * Remove a product from Cloud
+   * Remove a product from Cloud (RTDB + Firestore)
    */
   public async deleteProductFromCloud(productId: string) {
     try {
-      await deleteDoc(doc(db, 'products', productId));
-      await set(ref(rtdb, `products/${productId}`), null);
+      // 1. RTDB removal
+      try {
+        await set(ref(rtdb, `products/${productId}`), null);
+      } catch (rtdbErr) {
+        console.warn('[CloudSync] RTDB product delete notice:', rtdbErr);
+      }
+      // 2. Firestore removal
+      try {
+        await deleteDoc(doc(db, 'products', productId));
+      } catch (fsErr) {
+        console.warn('[CloudSync] Firestore product delete notice:', fsErr);
+      }
     } catch (err) {
       console.warn('[CloudSync] Failed to delete product from cloud:', err);
     }
   }
 
   /**
-   * Sync a category creation/update to Cloud
+   * Sync a category creation/update to Cloud (RTDB + Firestore)
    */
   public async syncCategoryToCloud(category: Category) {
     try {
-      await setDoc(doc(db, 'categories', category.id), category, { merge: true });
-      await set(ref(rtdb, `categories/${category.id}`), category);
+      // 1. RTDB sync
+      try {
+        await set(ref(rtdb, `categories/${category.id}`), category);
+      } catch (rtdbErr) {
+        console.warn('[CloudSync] RTDB category write notice:', rtdbErr);
+      }
+      // 2. Firestore sync
+      try {
+        await setDoc(doc(db, 'categories', category.id), category, { merge: true });
+      } catch (fsErr) {
+        console.warn('[CloudSync] Firestore category write notice:', fsErr);
+      }
     } catch (err) {
       console.warn('[CloudSync] Failed to sync category to cloud:', err);
     }
