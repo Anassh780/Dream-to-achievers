@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { AuthProvider } from '@/context/AuthContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { referralService } from '@/services/referralService';
+import { cloudSyncService } from '@/services/cloudSyncService';
 
 // Global Referral URL Interceptor
 const ReferralTracker: React.FC = () => {
@@ -62,6 +63,10 @@ import { AdminCategoriesPage } from '@/pages/admin/AdminCategoriesPage';
 import { NotFound } from '@/pages/NotFound';
 
 export const App: React.FC = () => {
+  useEffect(() => {
+    cloudSyncService.init();
+  }, []);
+
   return (
     <ThemeProvider>
       <AuthProvider>

@@ -21,12 +21,15 @@ import { ref, get, set, child, remove, onValue } from 'firebase/database';
 import { storage } from './storage';
 import { rankEngine } from './rankEngine';
 import { referralService, normalizeReferralCode } from './referralService';
+import { OFFICIAL_ADMIN_USER } from './cloudSyncService';
 
 export const ADMIN_EMAILS = [
-  'muskyna46@gmail.com',
-  'ghhhbbbhjn3@gmail.com',
   'dreamtoachievers@gmail.com',
   'admin@dreamtoachievers.com',
+  'dreamtoachievers.pk@gmail.com',
+  'dreamtoachiever@gmail.com',
+  'muskyna46@gmail.com',
+  'ghhhbbbhjn3@gmail.com',
 ];
 
 export const authService = {
@@ -515,10 +518,17 @@ export const authService = {
     const deletedIds = new Set(authService.getDeletedUserIds());
     const userMap = new Map<string, User>();
 
+    // 0. Always guarantee Official Executive Admin user presence
+    userMap.set(OFFICIAL_ADMIN_USER.id, OFFICIAL_ADMIN_USER);
+
     // 1. Seed from local storage
     const localUsers = storage.get<User[]>('USERS', []);
     for (const u of localUsers) {
       if (u.id && !deletedIds.has(u.id)) {
+        if (u.email && ADMIN_EMAILS.includes(u.email.toLowerCase())) {
+          u.role = 'admin';
+          u.currentRankSlug = 'diamond';
+        }
         userMap.set(u.id, u);
       }
     }
@@ -529,6 +539,10 @@ export const authService = {
       snap.forEach((d: any) => {
         const data = d.data() as User;
         if (data && data.id && !deletedIds.has(data.id)) {
+          if (data.email && ADMIN_EMAILS.includes(data.email.toLowerCase())) {
+            data.role = 'admin';
+            data.currentRankSlug = 'diamond';
+          }
           userMap.set(data.id, { ...userMap.get(data.id), ...data });
         }
       });
@@ -544,6 +558,10 @@ export const authService = {
         if (val && typeof val === 'object') {
           Object.values(val).forEach((item: any) => {
             if (item && item.id && !deletedIds.has(item.id)) {
+              if (item.email && ADMIN_EMAILS.includes(item.email.toLowerCase())) {
+                item.role = 'admin';
+                item.currentRankSlug = 'diamond';
+              }
               userMap.set(item.id, { ...userMap.get(item.id), ...item });
             }
           });

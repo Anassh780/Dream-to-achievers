@@ -2,6 +2,7 @@ import { Category, CategoryTreeNode, Product } from '@/types';
 import { storage } from './storage';
 import { SEED_CATEGORIES } from '@/config/categories';
 import { auditService } from './auditService';
+import { cloudSyncService } from './cloudSyncService';
 
 export const categoryService = {
   /**
@@ -236,6 +237,9 @@ export const categoryService = {
     }
 
     storage.set('CATEGORIES', all);
+
+    // Sync to Cloud
+    cloudSyncService.syncCategoryToCloud(category);
 
     auditService.logAction({
       adminId: 'admin',

@@ -2,6 +2,7 @@ import { Product } from '@/types';
 import { storage } from './storage';
 import { SEED_PRODUCTS } from '@/config/products';
 import { categoryService } from './categoryService';
+import { cloudSyncService } from './cloudSyncService';
 
 export type ProductSortOption =
   | 'highest_margin'
@@ -117,13 +118,17 @@ export const productService = {
       products.unshift(product);
     }
     storage.set('PRODUCTS', products);
+
+    // Sync directly to Firebase Cloud (Firestore + RTDB)
+    cloudSyncService.syncProductToCloud(product);
   },
 
   deleteProduct(productId: string): void {
     const products = storage.get<Product[]>('PRODUCTS', SEED_PRODUCTS);
-    storage.set(
-      'PRODUCTS',
-      products.filter((p) => p.id !== productId)
-    );
+    const updated = products.filter((p) => p.id !== productId);
+    storage.set('PRODUCTS', updated);
+
+    // Remove from Firebase Cloud (Firestore + RTDB)
+    cloudSyncService.deleteProductFromCloud(productId);
   },
 };

@@ -23,11 +23,25 @@ import {
 
 export const DashboardProducts: React.FC = () => {
   const { user } = useAuth();
-  const allProducts = useMemo(() => productService.getAllProducts(), []);
-  const allCategories = useMemo(() => categoryService.getAllCategories(), []);
+  const [syncKey, setSyncKey] = useState(0);
+
+  React.useEffect(() => {
+    const handleSync = () => setSyncKey((prev) => prev + 1);
+    window.addEventListener('dta_products_update', handleSync);
+    window.addEventListener('dta_categories_update', handleSync);
+    window.addEventListener('dta_storage_change', handleSync);
+    return () => {
+      window.removeEventListener('dta_products_update', handleSync);
+      window.removeEventListener('dta_categories_update', handleSync);
+      window.removeEventListener('dta_storage_change', handleSync);
+    };
+  }, []);
+
+  const allProducts = useMemo(() => productService.getAllProducts(), [syncKey]);
+  const allCategories = useMemo(() => categoryService.getAllCategories(), [syncKey]);
   const categoryTree = useMemo(
     () => categoryService.buildCategoryTree(allCategories.filter((c) => c.status === 'active')),
-    [allCategories]
+    [allCategories, syncKey]
   );
 
   const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(null);

@@ -18,17 +18,30 @@ import {
 
 export const Products: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [syncKey, setSyncKey] = useState(0);
 
-  // Load all products and categories
-  const allProducts = useMemo(() => productService.getAllProducts(), []);
-  const allCategories = useMemo(() => categoryService.getAllCategories(), []);
+  useEffect(() => {
+    const handleSync = () => setSyncKey((prev) => prev + 1);
+    window.addEventListener('dta_products_update', handleSync);
+    window.addEventListener('dta_categories_update', handleSync);
+    window.addEventListener('dta_storage_change', handleSync);
+    return () => {
+      window.removeEventListener('dta_products_update', handleSync);
+      window.removeEventListener('dta_categories_update', handleSync);
+      window.removeEventListener('dta_storage_change', handleSync);
+    };
+  }, []);
+
+  // Load all products and categories reactively
+  const allProducts = useMemo(() => productService.getAllProducts(), [syncKey]);
+  const allCategories = useMemo(() => categoryService.getAllCategories(), [syncKey]);
   const aggregatedCategories = useMemo(
     () => categoryService.getAggregatedCategories(allProducts),
-    [allProducts]
+    [allProducts, syncKey]
   );
   const categoryTree = useMemo(
     () => categoryService.buildCategoryTree(aggregatedCategories.filter((c) => c.status === 'active')),
-    [aggregatedCategories]
+    [aggregatedCategories, syncKey]
   );
 
   // URL state sync

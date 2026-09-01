@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { storage } from '@/services/storage';
 import { auditService } from '@/services/auditService';
 import { categoryService } from '@/services/categoryService';
@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Product } from '@/types';
 import { SEED_PRODUCTS } from '@/config/products';
 import { Button } from '@/components/ui/Button';
+import { cloudSyncService } from '@/services/cloudSyncService';
 import {
   Plus,
   Trash,
@@ -26,6 +27,22 @@ export const AdminProductsPage: React.FC = () => {
     storage.get<Product[]>('PRODUCTS', SEED_PRODUCTS)
   );
   const allCategories = useMemo(() => categoryService.getAllCategories(), []);
+
+  useEffect(() => {
+    const handleProductsUpdate = (e: any) => {
+      if (e.detail && Array.isArray(e.detail)) {
+        setProducts(e.detail);
+      } else {
+        setProducts(storage.get<Product[]>('PRODUCTS', SEED_PRODUCTS));
+      }
+    };
+    window.addEventListener('dta_products_update', handleProductsUpdate);
+    window.addEventListener('dta_storage_change', handleProductsUpdate);
+    return () => {
+      window.removeEventListener('dta_products_update', handleProductsUpdate);
+      window.removeEventListener('dta_storage_change', handleProductsUpdate);
+    };
+  }, []);
 
   const [isCreating, setIsCreating] = useState(false);
   const [editingProd, setEditingProd] = useState<Product | null>(null);
@@ -102,30 +119,31 @@ export const AdminProductsPage: React.FC = () => {
     const grossMargin = Math.max(0, retailPrice - partnerPrice);
 
     if (editingProd) {
+      const updatedProdObj: Product = {
+        ...editingProd,
+        name: name.trim(),
+        slug,
+        category: categoryName,
+        categoryId,
+        retailPrice: Number(retailPrice),
+        partnerPrice: Number(partnerPrice),
+        suggestedSellingPrice: Number(retailPrice),
+        grossMargin,
+        sku: sku.trim(),
+        imageUrl: imageUrl.trim(),
+        shortDescription: shortDescription.trim(),
+        description: description.trim(),
+        inStock,
+        isFeatured,
+      };
+
       const updated: Product[] = products.map((p) =>
-        p.id === editingProd.id
-          ? {
-              ...p,
-              name: name.trim(),
-              slug,
-              category: categoryName,
-              categoryId,
-              retailPrice: Number(retailPrice),
-              partnerPrice: Number(partnerPrice),
-              suggestedSellingPrice: Number(retailPrice),
-              grossMargin,
-              sku: sku.trim(),
-              imageUrl: imageUrl.trim(),
-              shortDescription: shortDescription.trim(),
-              description: description.trim(),
-              inStock,
-              isFeatured,
-            }
-          : p
+        p.id === editingProd.id ? updatedProdObj : p
       );
 
       storage.set('PRODUCTS', updated);
       setProducts(updated);
+      cloudSyncService.syncProductToCloud(updatedProdObj);
 
       auditService.logAction({
         adminId: currentAdmin.id,
@@ -162,6 +180,7 @@ export const AdminProductsPage: React.FC = () => {
       const updated = [newProduct, ...products];
       storage.set('PRODUCTS', updated);
       setProducts(updated);
+      cloudSyncService.syncProductToCloud(newProduct);
 
       auditService.logAction({
         adminId: currentAdmin.id,
@@ -189,6 +208,8 @@ export const AdminProductsPage: React.FC = () => {
       if (!archived.some((item) => item.id === p.id)) {
         storage.set('DELETED_PRODUCTS', [p, ...archived]);
       }
+
+      cloudSyncService.deleteProductFromCloud(p.id);
 
       auditService.logAction({
         adminId: currentAdmin.id,
@@ -246,6 +267,11 @@ export const AdminProductsPage: React.FC = () => {
     storage.set('PRODUCTS', updatedProducts);
     setProducts(updatedProducts);
 
+    // Sync each restored item to cloud
+    itemsToRestore.forEach((item) => {
+      cloudSyncService.syncProductToCloud(item);
+    });
+
     const remainingArchive = storage
       .get<Product[]>('DELETED_PRODUCTS', [])
       .filter((p) => !selectedRestoreIds.includes(p.id));
@@ -255,10 +281,9 @@ export const AdminProductsPage: React.FC = () => {
     showToast(`Restored ${itemsToRestore.length} products to active catalog.`);
   };
 
-  const handleRestoreAllOriginalSeed = () => {
-    storage.set('PRODUCTS', SEED_PRODUCTS);
+  const handleRestoreAllOriginalSeed = async () => {
+    await cloudSyncService.seedCloudProducts();
     storage.set('DELETED_PRODUCTS', []);
-    setProducts(SEED_PRODUCTS);
     setIsRestoreModalOpen(false);
     showToast('Restored all original catalog products successfully!');
   };
