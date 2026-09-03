@@ -95,13 +95,40 @@ body {
    UNIVERSAL DARK MODE AUTO-MAPPINGS FOR ALL PAGES & COMPONENTS
    ========================================================= */
 
+/* 1. Gradients & Surfaces in Dark Mode */
+html.dark [class*="bg-linear-to"],
+.dark [class*="bg-linear-to"],
+html.dark [class*="bg-gradient-to"],
+.dark [class*="bg-gradient-to"] {
+  background-image: none !important;
+  background-color: var(--surface) !important;
+}
+
+html.dark [class*="from-[#FAF7EF]"],
+.dark [class*="from-[#FAF7EF]"],
+html.dark [class*="via-[#F5EEDC]"],
+.dark [class*="via-[#F5EEDC]"],
+html.dark [class*="to-[#FAF7EF]"],
+.dark [class*="to-[#FAF7EF]"],
+html.dark [class*="bg-[#F5EEDC]"],
+.dark [class*="bg-[#F5EEDC]"],
+html.dark [class*="from-white"],
+.dark [class*="from-white"],
+html.dark [class*="to-[#F1ECDD]"],
+.dark [class*="to-[#F1ECDD]"] {
+  background-image: none !important;
+  background-color: var(--surface) !important;
+}
+
 html.dark [class*="bg-[#FAF7EF]"],
 .dark [class*="bg-[#FAF7EF]"] {
   background-color: var(--bg) !important;
 }
 
 html.dark [class*="bg-[#F1ECDD]"],
-.dark [class*="bg-[#F1ECDD]"] {
+.dark [class*="bg-[#F1ECDD]"],
+html.dark [class*="bg-[#EFE2C4]"],
+.dark [class*="bg-[#EFE2C4]"] {
   background-color: var(--surface-alt) !important;
 }
 
@@ -110,6 +137,7 @@ html.dark [class*="bg-white"],
   background-color: var(--surface) !important;
 }
 
+/* 2. Text Color Contrast in Dark Mode */
 html.dark [class*="text-[#1E241F]"],
 .dark [class*="text-[#1E241F]"] {
   color: var(--ink) !important;
@@ -122,9 +150,98 @@ html.dark [class*="text-[#7C7D70]"],
   color: var(--ink-soft) !important;
 }
 
+/* Emerald / Green text */
+html.dark [class*="text-[#1F4D3E]"],
+.dark [class*="text-[#1F4D3E]"],
+html.dark [class*="text-emerald-900"],
+.dark [class*="text-emerald-900"],
+html.dark [class*="text-emerald-800"],
+.dark [class*="text-emerald-800"],
+html.dark [class*="text-emerald-700"],
+.dark [class*="text-emerald-700"],
+html.dark [class*="text-green-900"],
+.dark [class*="text-green-900"],
+html.dark [class*="text-green-800"],
+.dark [class*="text-green-800"] {
+  color: #4ADE80 !important;
+}
+
+/* Gold / Amber / Accent text */
+html.dark [class*="text-[#B8862E]"],
+.dark [class*="text-[#B8862E]"],
+html.dark [class*="text-amber-900"],
+.dark [class*="text-amber-900"],
+html.dark [class*="text-amber-800"],
+.dark [class*="text-amber-800"],
+html.dark [class*="text-amber-700"],
+.dark [class*="text-amber-700"] {
+  color: #FBBF24 !important;
+}
+
+/* Blue text */
+html.dark [class*="text-blue-900"],
+.dark [class*="text-blue-900"],
+html.dark [class*="text-blue-800"],
+.dark [class*="text-blue-800"],
+html.dark [class*="text-blue-700"],
+.dark [class*="text-blue-700"] {
+  color: #60A5FA !important;
+}
+
+/* Rose / Red text */
+html.dark [class*="text-rose-900"],
+.dark [class*="text-rose-900"],
+html.dark [class*="text-rose-800"],
+.dark [class*="text-rose-800"],
+html.dark [class*="text-rose-700"],
+.dark [class*="text-rose-700"],
+html.dark [class*="text-red-700"],
+.dark [class*="text-red-700"] {
+  color: #F87171 !important;
+}
+
+/* 3. Small Tag / Badge Backgrounds in Dark Mode */
+html.dark [class*="bg-emerald-50"],
+.dark [class*="bg-emerald-50"] {
+  background-color: rgba(34, 197, 94, 0.15) !important;
+  color: #4ADE80 !important;
+}
+
+html.dark [class*="bg-blue-50"],
+.dark [class*="bg-blue-50"] {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: #60A5FA !important;
+}
+
+html.dark [class*="bg-amber-50"],
+.dark [class*="bg-amber-50"] {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  color: #FBBF24 !important;
+}
+
+html.dark [class*="bg-rose-50"],
+.dark [class*="bg-rose-50"] {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  color: #F87171 !important;
+}
+
+/* 4. Borders & Lines in Dark Mode */
 html.dark [class*="border-[#E3DCC8]"],
-.dark [class*="border-[#E3DCC8]"] {
+.dark [class*="border-[#E3DCC8]"],
+html.dark [class*="border-emerald-200"],
+.dark [class*="border-emerald-200"],
+html.dark [class*="border-blue-200"],
+.dark [class*="border-blue-200"],
+html.dark [class*="border-amber-200"],
+.dark [class*="border-amber-200"],
+html.dark [class*="border-rose-200"],
+.dark [class*="border-rose-200"] {
   border-color: var(--line) !important;
+}
+
+html.dark [class*="bg-[#E3DCC8]"],
+.dark [class*="bg-[#E3DCC8]"] {
+  background-color: #24352B !important;
 }
 
 html.dark [class*="bg-[#1F4D3E]/8"],
@@ -139,16 +256,7 @@ html.dark [class*="border-[#1F4D3E]/20"],
   border-color: rgba(52, 142, 114, 0.3) !important;
 }
 
-html.dark [class*="text-[#1F4D3E]"],
-.dark [class*="text-[#1F4D3E]"] {
-  color: #48C79B !important;
-}
-
-html.dark [class*="text-[#B8862E]"],
-.dark [class*="text-[#B8862E]"] {
-  color: #E2B258 !important;
-}
-
+/* 5. Inputs, Selects, Textareas in Dark Mode */
 html.dark input,
 html.dark textarea,
 html.dark select,
@@ -167,11 +275,46 @@ html.dark textarea::placeholder,
   color: #6E7E75 !important;
 }
 
-/* Nav backdrop in dark */
+/* 6. Navigation and Headers */
 html.dark nav,
 .dark nav {
   background-color: rgba(11, 16, 13, 0.95) !important;
   border-color: var(--line) !important;
+}
+
+html.dark header,
+.dark header {
+  background-color: rgba(20, 28, 24, 0.95) !important;
+  border-color: var(--line) !important;
+}
+
+html.dark aside,
+.dark aside {
+  background-color: var(--surface) !important;
+  border-color: var(--line) !important;
+}
+
+/* 7. Hover and Table States in Dark Mode */
+html.dark [class*="hover:bg-[#FAF7EF]"]:hover,
+.dark [class*="hover:bg-[#FAF7EF]"]:hover,
+html.dark [class*="hover:bg-[#F1ECDD]"]:hover,
+.dark [class*="hover:bg-[#F1ECDD]"]:hover {
+  background-color: var(--surface-alt) !important;
+}
+
+html.dark table,
+.dark table,
+html.dark th,
+.dark th,
+html.dark td,
+.dark td {
+  border-color: var(--line) !important;
+}
+
+html.dark th,
+.dark th {
+  background-color: var(--surface-alt) !important;
+  color: var(--ink) !important;
 }
 
 /* Typography Rules */

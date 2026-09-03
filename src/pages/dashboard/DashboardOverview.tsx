@@ -185,16 +185,16 @@ export const DashboardOverview: React.FC = () => {
       </div>
 
       {/* 3. 1-Click Referral Invitation & WhatsApp Sharing Hub */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-linear-to-r from-[#FAF7EF] via-[#F5EEDC] to-[#FAF7EF] border border-[#E3DCC8] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-5 shadow-xs">
+      <div className="p-5 sm:p-6 rounded-3xl bg-[#FAF7EF] dark:bg-[#141C18] border border-[#E3DCC8] dark:border-[#24352B] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-5 shadow-xs">
         <div className="flex items-center space-x-4 min-w-0">
           <div className="w-12 h-12 rounded-2xl bg-[#1F4D3E] text-white flex items-center justify-center shrink-0 shadow-xs">
             <ShareNetwork size={24} weight="bold" />
           </div>
           <div className="min-w-0">
-            <p className="font-bold text-sm sm:text-base text-[#1E241F] truncate">
+            <p className="font-bold text-sm sm:text-base text-[#1E241F] dark:text-[#F4F3EE] truncate">
               Grow Your Partner Network &amp; Earn Milestone Cash
             </p>
-            <p className="text-xs text-[#5B5C50] mt-0.5 truncate">
+            <p className="text-xs text-[#5B5C50] dark:text-[#A2B1A8] mt-0.5 truncate">
               Share your link with prospective resellers to unlock rank upgrades and level bonuses.
             </p>
           </div>
@@ -211,10 +211,10 @@ export const DashboardOverview: React.FC = () => {
           </button>
           <button
             onClick={handleCopy}
-            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white hover:bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] font-semibold text-xs transition-colors cursor-pointer"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-[#1B2620] hover:bg-[#FAF7EF] dark:hover:bg-[#141C18] border border-[#E3DCC8] dark:border-[#24352B] text-[#1E241F] dark:text-[#F4F3EE] font-semibold text-xs transition-colors cursor-pointer"
             title="Copy referral link"
           >
-            {copied ? <Check size={16} className="text-[#1F4D3E]" /> : <Copy size={16} />}
+            {copied ? <Check size={16} className="text-[#1F4D3E] dark:text-[#4ADE80]" /> : <Copy size={16} />}
             <span>{copied ? 'Link Copied!' : 'Copy Link'}</span>
           </button>
         </div>

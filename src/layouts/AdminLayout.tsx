@@ -7,6 +7,7 @@ import { payoutService } from '@/services/payoutService';
 import { badgeTrackerService } from '@/services/badgeTrackerService';
 import { Button } from '@/components/ui/Button';
 import { DreamLogo } from '@/components/ui/DreamLogo';
+import { SwitchButton } from '@/components/ui/SwitchButton';
 import {
   ShieldCheck,
   House,
@@ -307,6 +308,11 @@ export const AdminLayout: React.FC = () => {
                 >
                   Live Store ↗
                 </Link>
+              </div>
+
+              {/* Theme Toggle Button */}
+              <div className="pt-0.5">
+                <SwitchButton size="sm" showLabel={true} className="w-full justify-start text-xs" />
               </div>
 
               {/* Admin User Profile */}
