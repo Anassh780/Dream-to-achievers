@@ -47,6 +47,8 @@ export const AdminSalesPage: React.FC = () => {
   const [trackingNo, setTrackingNo] = useState('');
   const [shippingNotes, setShippingNotes] = useState('');
   const [adminNote, setAdminNote] = useState('');
+  const [adminProofSlip, setAdminProofSlip] = useState<string>('');
+  const [adminProofNotes, setAdminProofNotes] = useState<string>('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -77,6 +79,26 @@ export const AdminSalesPage: React.FC = () => {
     setTrackingNo(sale.trackingNumber || '');
     setShippingNotes(sale.shippingNotes || '');
     setAdminNote(sale.adminReviewNote || '');
+    setAdminProofSlip(sale.adminPaymentProofUrl || '');
+    setAdminProofNotes(sale.adminProofNotes || '');
+  };
+
+  const handleAdminProofFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 4 * 1024 * 1024) {
+      alert('Proof slip image must be smaller than 4MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setAdminProofSlip(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSaveFulfillment = async (statusOverride?: SaleStatus) => {
@@ -91,6 +113,8 @@ export const AdminSalesPage: React.FC = () => {
       trackingNumber: trackingNo,
       shippingNotes,
       adminReviewNote: adminNote,
+      adminPaymentProofUrl: adminProofSlip,
+      adminProofNotes: adminProofNotes,
     });
 
     if (targetStatus === 'delivered' || targetStatus === 'confirmed') {
@@ -544,6 +568,65 @@ export const AdminSalesPage: React.FC = () => {
                     className="w-full px-3 py-2 rounded-xl bg-white border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E] text-xs"
                   />
                 </div>
+              </div>
+
+              {/* Admin Payment / Dispatch / Courier Proof Slip Uploader */}
+              <div className="p-3.5 rounded-xl bg-white border border-[#E3DCC8] space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[#1E241F] font-semibold text-[11px]">
+                    Admin Proof Slip (Bank Transfer / Courier Receipt)
+                  </label>
+                  {adminProofSlip && (
+                    <button
+                      type="button"
+                      onClick={() => setAdminProofSlip('')}
+                      className="text-[10px] text-rose-600 hover:underline font-mono"
+                    >
+                      Remove Slip
+                    </button>
+                  )}
+                </div>
+
+                {adminProofSlip ? (
+                  <div className="flex items-center gap-3 p-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8]">
+                    <img
+                      src={adminProofSlip}
+                      alt="Admin Proof"
+                      onClick={() => {
+                        setPreviewSlipUrl(adminProofSlip);
+                        setPreviewZoom(1);
+                        setPreviewRotation(0);
+                      }}
+                      className="w-16 h-16 rounded-md object-cover border border-[#E3DCC8] cursor-zoom-in"
+                    />
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-mono text-emerald-800 font-bold block">✓ Admin Proof Attached</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPreviewSlipUrl(adminProofSlip);
+                          setPreviewZoom(1);
+                          setPreviewRotation(0);
+                        }}
+                        className="text-[10px] text-[#1F4D3E] font-mono font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <Eye size={12} /> Inspect Full Screen
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative border-2 border-dashed border-[#E3DCC8] rounded-xl p-3 text-center hover:bg-[#FAF7EF] transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAdminProofFileChange}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <p className="text-[11px] font-mono text-[#5B5C50]">
+                      Click to upload Admin Payment / Courier Dispatch Slip (JPG, PNG)
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#E3DCC8]">

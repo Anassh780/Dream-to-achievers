@@ -22,6 +22,7 @@ export const AdminRewardsPage: React.FC = () => {
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRequest | null>(null);
   const [withdrawalRefText, setWithdrawalRefText] = useState('');
   const [withdrawalAdminNote, setWithdrawalAdminNote] = useState('');
+  const [withdrawalProofSlip, setWithdrawalProofSlip] = useState<string>('');
   const [actionSuccessMsg, setActionSuccessMsg] = useState('');
 
   const refreshData = () => {
@@ -39,6 +40,22 @@ export const AdminRewardsPage: React.FC = () => {
 
   const getUser = (userId: string) => {
     return users.find((item) => item.id === userId);
+  };
+
+  const handleWithdrawalProofFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      alert('Proof slip must be smaller than 4MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setWithdrawalProofSlip(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   // Milestone Reward Actions
@@ -96,13 +113,15 @@ export const AdminRewardsPage: React.FC = () => {
       status: 'paid',
       transactionReference: withdrawalRefText,
       adminNote: withdrawalAdminNote || 'Manual transfer completed',
+      payoutProofUrl: withdrawalProofSlip || undefined,
     });
 
     setSelectedWithdrawal(null);
     setWithdrawalRefText('');
     setWithdrawalAdminNote('');
+    setWithdrawalProofSlip('');
     refreshData();
-    setActionSuccessMsg('Payout marked as Paid & user notified.');
+    setActionSuccessMsg('Payout marked as Paid with attached proof & user notified.');
     setTimeout(() => setActionSuccessMsg(''), 3000);
   };
 
@@ -532,6 +551,49 @@ export const AdminRewardsPage: React.FC = () => {
                   placeholder="e.g. Transferred from Meezan Bank business account"
                   className="w-full px-3 py-2 rounded-lg bg-white border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E]"
                 />
+              </div>
+
+              {/* Admin Payment Slip Attachment */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[#1E241F] font-medium text-[11px]">
+                    Attach Bank / Wallet Payment Slip (Optional)
+                  </label>
+                  {withdrawalProofSlip && (
+                    <button
+                      type="button"
+                      onClick={() => setWithdrawalProofSlip('')}
+                      className="text-[10px] text-rose-600 hover:underline font-mono"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+
+                {withdrawalProofSlip ? (
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8]">
+                    <img
+                      src={withdrawalProofSlip}
+                      alt="Payment Slip"
+                      className="w-12 h-12 rounded object-cover border border-[#E3DCC8]"
+                    />
+                    <span className="text-[11px] font-mono text-emerald-800 font-semibold">
+                      ✓ Payment Receipt Attached
+                    </span>
+                  </div>
+                ) : (
+                  <div className="relative border border-dashed border-[#E3DCC8] rounded-lg p-2.5 text-center hover:bg-[#FAF7EF] transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleWithdrawalProofFileChange}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <p className="text-[11px] font-mono text-[#5B5C50]">
+                      Click to upload payment receipt screenshot (JPG, PNG)
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end space-x-2 pt-2 border-t border-[#E3DCC8]">

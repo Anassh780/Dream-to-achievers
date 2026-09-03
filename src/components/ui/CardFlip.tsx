@@ -78,7 +78,7 @@ export const CardFlip: React.FC<CardFlipProps> = ({
                     if (target.src.endsWith('.webp')) {
                       target.src = target.src.replace('.webp', '.png');
                     } else {
-                      target.src = '/images/logo.png';
+                      target.src = '/images/brand-logo.png';
                     }
                   }}
                 />

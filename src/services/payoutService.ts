@@ -184,18 +184,20 @@ export const payoutService = {
   },
 
   /**
-   * Admin updates withdrawal status (approve, mark paid, or reject).
+   * Admin updates withdrawal status (approve, mark paid, or reject) and attaches payment proof slip.
    */
   async updateWithdrawalStatus({
     requestId,
     status,
     transactionReference,
     adminNote,
+    payoutProofUrl,
   }: {
     requestId: string;
     status: WithdrawalStatus;
     transactionReference?: string;
     adminNote?: string;
+    payoutProofUrl?: string;
   }): Promise<void> {
     const withdrawals = storage.get<WithdrawalRequest[]>('WITHDRAWALS', []);
     const idx = withdrawals.findIndex((w) => w.id === requestId);
@@ -203,8 +205,9 @@ export const payoutService = {
 
     withdrawals[idx].status = status;
     withdrawals[idx].processedAt = new Date().toISOString();
-    if (transactionReference) withdrawals[idx].transactionReference = transactionReference;
-    if (adminNote) withdrawals[idx].adminNote = adminNote;
+    if (transactionReference !== undefined) withdrawals[idx].transactionReference = transactionReference;
+    if (adminNote !== undefined) withdrawals[idx].adminNote = adminNote;
+    if (payoutProofUrl !== undefined) withdrawals[idx].payoutProofUrl = payoutProofUrl;
 
     storage.set('WITHDRAWALS', withdrawals);
 

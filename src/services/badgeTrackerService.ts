@@ -59,6 +59,60 @@ class BadgeTrackerService {
     localStorage.setItem(this.getStorageKey('rewards', userId), String(currentTotal));
     window.dispatchEvent(new Event('dta_badge_update'));
   }
+
+  // --- ADMIN ORDERS BADGE ---
+  public getUnseenAdminOrdersCount(currentPending: number): number {
+    if (typeof window === 'undefined') return 0;
+    if (currentPending <= 0) return 0;
+    const stored = localStorage.getItem('dta_badge_admin_orders_seen');
+    if (stored === null) {
+      return currentPending;
+    }
+    const lastViewed = parseInt(stored, 10) || 0;
+    return Math.max(0, currentPending - lastViewed);
+  }
+
+  public markAdminOrdersSeen(currentPending: number): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('dta_badge_admin_orders_seen', String(currentPending));
+    window.dispatchEvent(new Event('dta_badge_update'));
+  }
+
+  // --- ADMIN PAYOUTS BADGE ---
+  public getUnseenAdminPayoutsCount(currentPending: number): number {
+    if (typeof window === 'undefined') return 0;
+    if (currentPending <= 0) return 0;
+    const stored = localStorage.getItem('dta_badge_admin_payouts_seen');
+    if (stored === null) {
+      return currentPending;
+    }
+    const lastViewed = parseInt(stored, 10) || 0;
+    return Math.max(0, currentPending - lastViewed);
+  }
+
+  public markAdminPayoutsSeen(currentPending: number): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('dta_badge_admin_payouts_seen', String(currentPending));
+    window.dispatchEvent(new Event('dta_badge_update'));
+  }
+
+  // --- ADMIN USERS BADGE ---
+  public getUnseenAdminUsersCount(currentTotal: number): number {
+    if (typeof window === 'undefined') return 0;
+    const stored = localStorage.getItem('dta_badge_admin_users_seen');
+    if (stored === null) {
+      localStorage.setItem('dta_badge_admin_users_seen', String(currentTotal));
+      return 0;
+    }
+    const lastViewed = parseInt(stored, 10) || 0;
+    return Math.max(0, currentTotal - lastViewed);
+  }
+
+  public markAdminUsersSeen(currentTotal: number): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('dta_badge_admin_users_seen', String(currentTotal));
+    window.dispatchEvent(new Event('dta_badge_update'));
+  }
 }
 
 export const badgeTrackerService = new BadgeTrackerService();

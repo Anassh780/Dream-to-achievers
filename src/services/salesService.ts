@@ -172,7 +172,7 @@ export const salesService = {
   },
 
   /**
-   * Administrator updates order fulfillment and shipping progress.
+   * Administrator updates order fulfillment, payment verification, proof slips, and shipping progress.
    */
   async updateSaleFulfillment({
     saleId,
@@ -181,6 +181,8 @@ export const salesService = {
     trackingNumber,
     shippingNotes,
     adminReviewNote,
+    adminPaymentProofUrl,
+    adminProofNotes,
   }: {
     saleId: string;
     status: SaleStatus;
@@ -188,6 +190,8 @@ export const salesService = {
     trackingNumber?: string;
     shippingNotes?: string;
     adminReviewNote?: string;
+    adminPaymentProofUrl?: string;
+    adminProofNotes?: string;
   }): Promise<{ success: boolean }> {
     const sales = storage.get<Sale[]>('SALES', []);
     const idx = sales.findIndex((s) => s.id === saleId);
@@ -196,10 +200,12 @@ export const salesService = {
     const previousStatus = sales[idx].status;
     sales[idx].status = status;
 
-    if (shippingCourier) sales[idx].shippingCourier = shippingCourier;
-    if (trackingNumber) sales[idx].trackingNumber = trackingNumber;
-    if (shippingNotes) sales[idx].shippingNotes = shippingNotes;
-    if (adminReviewNote) sales[idx].adminReviewNote = adminReviewNote;
+    if (shippingCourier !== undefined) sales[idx].shippingCourier = shippingCourier;
+    if (trackingNumber !== undefined) sales[idx].trackingNumber = trackingNumber;
+    if (shippingNotes !== undefined) sales[idx].shippingNotes = shippingNotes;
+    if (adminReviewNote !== undefined) sales[idx].adminReviewNote = adminReviewNote;
+    if (adminPaymentProofUrl !== undefined) sales[idx].adminPaymentProofUrl = adminPaymentProofUrl;
+    if (adminProofNotes !== undefined) sales[idx].adminProofNotes = adminProofNotes;
 
     const isDeliveredOrConfirmed = status === 'delivered' || status === 'confirmed' || status === 'fulfilled';
     if (isDeliveredOrConfirmed) {

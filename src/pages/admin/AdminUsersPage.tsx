@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { storage } from '@/services/storage';
 import { authService } from '@/services/authService';
-import { referralService } from '@/services/referralService';
+import { referralService, normalizeReferralCode } from '@/services/referralService';
 import { salesService } from '@/services/salesService';
 import { auditService } from '@/services/auditService';
 import { useAuth } from '@/context/AuthContext';
@@ -176,8 +176,12 @@ export const AdminUsersPage: React.FC = () => {
   const getSponsorInfo = (referredByCode?: string) => {
     if (!referredByCode) return null;
     const clean = referredByCode.trim().toUpperCase();
+    const norm = normalizeReferralCode(clean);
     const sponsor = users.find(
-      (u) => u.referralCode?.toUpperCase() === clean || u.id === referredByCode
+      (u) =>
+        (norm && normalizeReferralCode(u.referralCode) === norm) ||
+        u.referralCode?.toUpperCase() === clean ||
+        u.id === referredByCode
     );
     return sponsor ? { name: sponsor.fullName, code: sponsor.referralCode } : { name: clean, code: clean };
   };

@@ -473,7 +473,21 @@ export const DashboardSales: React.FC = () => {
                         </span>
                       </td>
                       <td className="p-3.5 font-mono text-[11px] text-[#5B5C50]">
-                        {w.transactionReference || w.adminNote || 'Pending manual transfer'}
+                        <p>{w.transactionReference || w.adminNote || 'Pending manual transfer'}</p>
+                        {w.payoutProofUrl && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPreviewSlipUrl(w.payoutProofUrl!);
+                              setPreviewZoom(1);
+                              setPreviewRotation(0);
+                            }}
+                            className="mt-1 text-[10px] text-[#1F4D3E] font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                          >
+                            <MagnifyingGlassPlus size={11} />
+                            <span>View Payment Slip Receipt</span>
+                          </button>
+                        )}
                       </td>
                       <td className="p-3.5 text-right text-[#7C7D70] font-mono">
                         {new Date(w.requestedAt).toLocaleDateString()}
@@ -739,48 +753,94 @@ export const DashboardSales: React.FC = () => {
               </div>
             </div>
 
-            {/* Payment Proof Screenshot */}
-            {selectedSale.paymentScreenshotUrl && (
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-xs text-[#1E241F]">
-                    Attached Payment Proof Screenshot
-                  </h4>
-                  <button
-                    type="button"
+            {/* Payment Proof Screenshots - Both Seller Slip & Admin Slip */}
+            <div className="space-y-3 pt-1">
+              {/* 1. Seller's Customer Payment Slip */}
+              {selectedSale.paymentScreenshotUrl && (
+                <div className="space-y-1.5 p-3 rounded-xl bg-white border border-[#E3DCC8]">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-xs text-[#1E241F] flex items-center gap-1">
+                      📸 Your Attached Customer Payment Slip
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPreviewSlipUrl(selectedSale.paymentScreenshotUrl!);
+                        setPreviewZoom(1);
+                        setPreviewRotation(0);
+                      }}
+                      className="text-[10px] font-mono text-[#1F4D3E] font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <MagnifyingGlassPlus size={12} />
+                      <span>Zoom Slip</span>
+                    </button>
+                  </div>
+                  <div
                     onClick={() => {
                       setPreviewSlipUrl(selectedSale.paymentScreenshotUrl!);
                       setPreviewZoom(1);
                       setPreviewRotation(0);
                     }}
-                    className="text-[10px] font-mono text-[#1F4D3E] font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                    className="p-2 rounded-xl border border-[#E3DCC8] bg-[#FAF7EF] text-center cursor-zoom-in group relative"
+                    title="Click to view full receipt"
                   >
-                    <MagnifyingGlassPlus size={12} />
-                    <span>Zoom Slip</span>
-                  </button>
+                    <img
+                      src={selectedSale.paymentScreenshotUrl}
+                      alt="Seller Payment Slip"
+                      className="max-h-48 max-w-full rounded-lg object-contain mx-auto border border-[#E3DCC8] bg-white shadow-2xs group-hover:opacity-90 transition-opacity"
+                    />
+                    {selectedSale.paymentProofNotes && (
+                      <p className="text-[10px] text-[#5B5C50] font-mono mt-1.5">
+                        Your Note: {selectedSale.paymentProofNotes}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div
-                  onClick={() => {
-                    setPreviewSlipUrl(selectedSale.paymentScreenshotUrl!);
-                    setPreviewZoom(1);
-                    setPreviewRotation(0);
-                  }}
-                  className="p-2 rounded-2xl border border-[#E3DCC8] bg-[#FAF7EF] text-center cursor-zoom-in group relative"
-                  title="Click to view full receipt"
-                >
-                  <img
-                    src={selectedSale.paymentScreenshotUrl}
-                    alt="Payment Slip"
-                    className="max-h-56 max-w-full rounded-xl object-contain mx-auto border border-[#E3DCC8] bg-white shadow-2xs group-hover:opacity-90 transition-opacity"
-                  />
-                  {selectedSale.paymentProofNotes && (
-                    <p className="text-[10px] text-[#5B5C50] font-mono mt-1.5">
-                      Note: {selectedSale.paymentProofNotes}
-                    </p>
-                  )}
+              )}
+
+              {/* 2. Admin's Official Verification & Courier Slip */}
+              {selectedSale.adminPaymentProofUrl && (
+                <div className="space-y-1.5 p-3 rounded-xl bg-[#FAF7EF] border border-[#1F4D3E]/30">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-[#1F4D3E] flex items-center gap-1">
+                      <ShieldCheck size={14} weight="fill" /> Official Admin Verification / Courier Slip
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPreviewSlipUrl(selectedSale.adminPaymentProofUrl!);
+                        setPreviewZoom(1);
+                        setPreviewRotation(0);
+                      }}
+                      className="text-[10px] font-mono text-[#1F4D3E] font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <MagnifyingGlassPlus size={12} />
+                      <span>Inspect Full</span>
+                    </button>
+                  </div>
+                  <div
+                    onClick={() => {
+                      setPreviewSlipUrl(selectedSale.adminPaymentProofUrl!);
+                      setPreviewZoom(1);
+                      setPreviewRotation(0);
+                    }}
+                    className="p-2 rounded-xl border border-[#E3DCC8] bg-white text-center cursor-zoom-in group relative"
+                    title="Click to inspect admin proof slip"
+                  >
+                    <img
+                      src={selectedSale.adminPaymentProofUrl}
+                      alt="Admin Proof Slip"
+                      className="max-h-48 max-w-full rounded-lg object-contain mx-auto border border-[#E3DCC8] bg-white shadow-2xs group-hover:opacity-90 transition-opacity"
+                    />
+                    {selectedSale.adminProofNotes && (
+                      <p className="text-[10px] text-[#1F4D3E] font-mono mt-1.5 font-semibold">
+                        Admin Note: {selectedSale.adminProofNotes}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             <div className="pt-2 flex justify-end">
               <Button variant="outline" size="sm" onClick={() => setSelectedSale(null)}>

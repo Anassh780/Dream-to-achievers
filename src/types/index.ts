@@ -125,8 +125,10 @@ export interface Sale {
   customerEmail?: string;
   customerAddress?: string; // Full delivery address
   customerCity?: string;
-  paymentScreenshotUrl?: string; // Base64 or Image URL
+  paymentScreenshotUrl?: string; // Seller / Customer Payment Proof Slip (Base64 or Image URL)
   paymentProofNotes?: string;
+  adminPaymentProofUrl?: string; // Admin Payment / Courier Slip Proof (Base64 or Image URL)
+  adminProofNotes?: string;
   quantity: number;
   retailPrice: number;
   partnerPrice: number;
@@ -173,6 +175,7 @@ export interface WithdrawalRequest {
   requestedAt: string;
   processedAt?: string;
   transactionReference?: string;
+  payoutProofUrl?: string; // Admin Bank / Wallet Transfer Receipt Slip (Base64 or Image URL)
   adminNote?: string;
 }
 
@@ -205,6 +208,7 @@ export interface Reward {
   approvedAt?: string;
   paidAt?: string;
   transactionReference?: string;
+  rewardProofUrl?: string; // Admin Milestone Reward Payment Slip (Base64 or Image URL)
   adminNote?: string;
 }
 

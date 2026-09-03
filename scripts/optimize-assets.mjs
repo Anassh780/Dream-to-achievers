@@ -85,19 +85,18 @@ async function generateFavicons() {
 
   // 7. site.webmanifest
   const manifest = {
-    name: 'Faria Imran — Growth Marketing & Automation Lead',
-    short_name: 'Faria Imran',
-    description: 'Official portfolio of Faria Imran — Growth Marketing, TikTok Automation, and High-ROAS Paid Ads.',
+    name: 'Dream to Achievers — B2B Wholesale Commerce & Reseller Network',
+    short_name: 'DreamToAchievers',
+    description: 'Official platform of Dream to Achievers. Source verified wholesale inventory, distribute nationwide with COD, and earn structured milestone rewards.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#080b11',
-    theme_color: '#00f0ff',
+    background_color: '#FAF7EF',
+    theme_color: '#0B1320',
     icons: [
       {
         src: '/favicon-48x48.png',
         sizes: '48x48',
-        type: 'image/png',
-        purpose: 'any maskable'
+        type: 'image/png'
       },
       {
         src: '/favicon-96x96.png',
@@ -105,14 +104,21 @@ async function generateFavicons() {
         type: 'image/png'
       },
       {
+        src: '/apple-touch-icon.png',
+        sizes: '180x180',
+        type: 'image/png'
+      },
+      {
         src: '/android-chrome-192x192.png',
         sizes: '192x192',
-        type: 'image/png'
+        type: 'image/png',
+        purpose: 'any maskable'
       },
       {
         src: '/android-chrome-512x512.png',
         sizes: '512x512',
-        type: 'image/png'
+        type: 'image/png',
+        purpose: 'any maskable'
       }
     ]
   };
@@ -122,8 +128,7 @@ async function generateFavicons() {
 
 async function run() {
   await optimizeImages();
-  await generateFavicons();
-  console.log('\nAll asset optimization and Google Favicon suites completed successfully!');
+  console.log('\nAll asset optimization completed successfully!');
 }
 
 run().catch(console.error);

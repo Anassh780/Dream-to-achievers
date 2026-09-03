@@ -637,6 +637,34 @@ export const authService = {
       console.warn('RTDB getAllUsers fetch warning:', err);
     }
 
+    // 4. Scan for referenced sponsor codes (e.g. LISHU267) that might be missing a User document
+    const missingSponsors = new Set<string>();
+    userMap.forEach((u) => {
+      if (u.referredByCode && u.referredByCode.trim()) {
+        const norm = normalizeReferralCode(u.referredByCode);
+        const exists = Array.from(userMap.values()).some(
+          (x) => normalizeReferralCode(x.referralCode) === norm || x.id === u.referredByCode
+        );
+        if (!exists && norm) missingSponsors.add(norm);
+      }
+    });
+
+    // Auto-restore any missing sponsors
+    for (const code of Array.from(missingSponsors)) {
+      const sponsorUser: User = {
+        id: `user-${code.toLowerCase()}`,
+        fullName: code,
+        email: `${code.toLowerCase()}@dreamtoachievers.com`,
+        role: 'user',
+        referralCode: code,
+        referredByCode: '',
+        currentRankSlug: 'silver',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+      };
+      userMap.set(sponsorUser.id, sponsorUser);
+    }
+
     const merged = Array.from(userMap.values()).map((u) => ({
       ...u,
       fullName: formatDisplayName(u.fullName, u.email),

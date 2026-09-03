@@ -60,7 +60,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!assets|images|favicon.*|apple-touch-icon.*|android-chrome.*|site\\.webmanifest|sitemap\\.xml|robots\\.txt|google.*\\.html).*)",
+      "source": "/((?!assets|images|logo.*|og-banner.*|favicon.*|apple-touch-icon.*|android-chrome.*|site\\.webmanifest|sitemap\\.xml|robots\\.txt|google.*\\.html).*)",
       "destination": "/index.html"
     }
   ]

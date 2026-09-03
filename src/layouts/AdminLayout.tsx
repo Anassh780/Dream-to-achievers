@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { storage } from '@/services/storage';
 import { salesService } from '@/services/salesService';
 import { payoutService } from '@/services/payoutService';
+import { badgeTrackerService } from '@/services/badgeTrackerService';
 import { Button } from '@/components/ui/Button';
 import { DreamLogo } from '@/components/ui/DreamLogo';
 import {
@@ -62,9 +63,10 @@ export const AdminLayout: React.FC = () => {
     });
   };
 
-  // Dynamic real-time pending update counters
+  // Dynamic real-time pending update counters with badge tracker integration
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [pendingPayoutsCount, setPendingPayoutsCount] = useState(0);
+  const [, setBadgeTrigger] = useState(0);
 
   const calculatePendingUpdates = () => {
     try {
@@ -86,12 +88,31 @@ export const AdminLayout: React.FC = () => {
     }
   };
 
+  // Track and auto-clear badges when Admin visits sections
   useEffect(() => {
     calculatePendingUpdates();
-    const handleStorageChange = () => calculatePendingUpdates();
+
+    if (location.pathname.startsWith('/admin/sales')) {
+      badgeTrackerService.markAdminOrdersSeen(pendingOrdersCount);
+      setBadgeTrigger((prev) => prev + 1);
+    } else if (location.pathname.startsWith('/admin/rewards')) {
+      badgeTrackerService.markAdminPayoutsSeen(pendingPayoutsCount);
+      setBadgeTrigger((prev) => prev + 1);
+    }
+
+    const handleStorageChange = () => {
+      calculatePendingUpdates();
+      setBadgeTrigger((prev) => prev + 1);
+    };
+    const handleBadgeUpdate = () => setBadgeTrigger((prev) => prev + 1);
+
     window.addEventListener('dta_storage_change', handleStorageChange);
-    return () => window.removeEventListener('dta_storage_change', handleStorageChange);
-  }, []);
+    window.addEventListener('dta_badge_update', handleBadgeUpdate);
+    return () => {
+      window.removeEventListener('dta_storage_change', handleStorageChange);
+      window.removeEventListener('dta_badge_update', handleBadgeUpdate);
+    };
+  }, [location.pathname, pendingOrdersCount, pendingPayoutsCount]);
 
   if (!isAuthenticated || !isAdmin) {
     return (
@@ -119,7 +140,10 @@ export const AdminLayout: React.FC = () => {
     );
   }
 
-  const totalAdminAlerts = pendingOrdersCount + pendingPayoutsCount;
+  // Calculate unseen counts that decrement once admin visits the section
+  const unseenAdminOrders = badgeTrackerService.getUnseenAdminOrdersCount(pendingOrdersCount);
+  const unseenAdminPayouts = badgeTrackerService.getUnseenAdminPayoutsCount(pendingPayoutsCount);
+  const totalAdminAlerts = unseenAdminOrders + unseenAdminPayouts;
 
   const navGroups: NavGroup[] = [
     {
@@ -130,7 +154,7 @@ export const AdminLayout: React.FC = () => {
           label: 'Orders & Shipping',
           href: '/admin/sales',
           icon: ShoppingCart,
-          badgeCount: pendingOrdersCount,
+          badgeCount: unseenAdminOrders > 0 ? unseenAdminOrders : undefined,
         },
         { label: 'Product Categories', href: '/admin/categories', icon: FolderSimple },
         { label: 'Products & Wholesale', href: '/admin/products', icon: Package },
@@ -146,7 +170,7 @@ export const AdminLayout: React.FC = () => {
           label: 'Payouts & Bonuses',
           href: '/admin/rewards',
           icon: HandCoins,
-          badgeCount: pendingPayoutsCount,
+          badgeCount: unseenAdminPayouts > 0 ? unseenAdminPayouts : undefined,
         },
       ],
     },
@@ -256,10 +280,6 @@ export const AdminLayout: React.FC = () => {
                           <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-red-600 text-white font-mono font-bold text-[9.5px] shadow-xs animate-pulse">
                             {item.badgeCount}
                           </span>
-                        )}
-
-                        {!isCollapsed && isActive && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] ml-1"></span>
                         )}
                       </NavLink>
                     );

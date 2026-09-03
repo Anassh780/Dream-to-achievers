@@ -19,7 +19,7 @@ export const DreamLogo: React.FC<DreamLogoProps> = ({
         style={{ width: size, height: size }}
       >
         <img
-          src="/images/logo.png"
+          src="/images/brand-logo.png"
           alt="Dream to Achievers"
           className="w-full h-full object-contain"
         />

@@ -1,6 +1,14 @@
-# Robots.txt for Faria Imran Official Portfolio
+# Official robots.txt for Dream to Achievers (dreamtoachievers.com)
 User-agent: *
 Allow: /
 
+# Disallow private user dashboards and administrative portals
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+
 # Sitemap
-Sitemap: https://faria-imran-official.vercel.app/sitemap.xml
+Sitemap: https://dreamtoachievers.com/sitemap.xml
+
