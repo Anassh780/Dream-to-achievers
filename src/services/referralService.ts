@@ -1,8 +1,8 @@
 import { ReferralRecord, User } from '@/types';
 import { storage } from './storage';
 import { db, rtdb } from '@/lib/firebase';
-import { collection, query, where, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
-import { ref, get, set, child } from 'firebase/database';
+import { collection, query, where, getDocs, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
+import { ref, get, set, child, remove } from 'firebase/database';
 
 /**
  * Normalizes a referral code by stripping whitespace, dashes, underscores, and converting to uppercase.
@@ -713,60 +713,34 @@ export const referralService = {
         }
       });
 
-      // Add codes from referral_index
-      referralIndexMap.forEach((item, normCode) => {
-        referencedSponsorCodes.add(item.referralCode || normCode);
+      // Purge any fake synthetic users from map
+      const realUsers: User[] = [];
+      allUsersMap.forEach((u) => {
+        const isFakeSynthetic =
+          (u.email?.endsWith('@dreamtoachievers.com') && u.id?.startsWith('user-')) ||
+          (u.id && u.id.length > 25 && /^[A-Z0-9]+$/.test(u.id) && u.email?.endsWith('@dreamtoachievers.com'));
+
+        if (isFakeSynthetic) {
+          try {
+            deleteDoc(doc(db, 'users', u.id));
+            remove(ref(rtdb, `users/${u.id}`));
+          } catch {}
+        } else {
+          realUsers.push(u);
+        }
       });
 
-      // 6. Ensure every single referenced sponsor (e.g. LISHU267) has an active User account in allUsersMap
-      for (const sponsorCode of Array.from(referencedSponsorCodes)) {
-        const normCode = normalizeReferralCode(sponsorCode);
-        if (!normCode) continue;
+      storage.set('USERS', realUsers);
 
-        const hasUser = Array.from(allUsersMap.values()).some(
-          (u) =>
-            u.id === sponsorCode ||
-            u.id === `user-${normCode.toLowerCase()}` ||
-            normalizeReferralCode(u.referralCode) === normCode ||
-            u.referralCode?.toUpperCase() === sponsorCode
-        );
-
-        if (!hasUser) {
-          const idxData = referralIndexMap.get(normCode);
-          const sponsorUser: User = {
-            id: idxData?.userId || `user-${normCode.toLowerCase()}`,
-            fullName: idxData?.fullName || sponsorCode,
-            email: idxData?.email || `${normCode.toLowerCase()}@dreamtoachievers.com`,
-            role: 'user',
-            referralCode: idxData?.referralCode || sponsorCode,
-            referredByCode: '',
-            currentRankSlug: idxData?.currentRankSlug || 'silver',
-            isActive: true,
-            createdAt: idxData?.updatedAt || new Date().toISOString(),
-          };
-
-          allUsersMap.set(sponsorUser.id, sponsorUser);
-
-          // Save to Firestore and RTDB so it persists permanently
-          try {
-            await setDoc(doc(db, 'users', sponsorUser.id), sponsorUser, { merge: true });
-            await set(ref(rtdb, `users/${sponsorUser.id}`), sponsorUser);
-          } catch {}
-        }
-      }
-
-      const allUsers = Array.from(allUsersMap.values());
-      storage.set('USERS', allUsers);
-
-      // Index every user's referral code in Firestore and RTDB
-      for (const u of allUsers) {
+      // Index every real user's referral code in Firestore and RTDB
+      for (const u of realUsers) {
         if (u.referralCode) {
           await this.indexReferralCode(u).catch(() => {});
         }
       }
 
-      // Reconcile referrals for every user
-      for (const u of allUsers) {
+      // Reconcile referrals for every real user
+      for (const u of realUsers) {
         if (u.id) {
           const synced = await this.syncUserReferrals(u.id);
           totalHealed += synced.length;
@@ -775,8 +749,8 @@ export const referralService = {
 
       // Dispatch real-time user update event so Admin Portal immediately updates
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('dta_users_update', { detail: allUsers }));
-        window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key: 'USERS', value: allUsers } }));
+        window.dispatchEvent(new CustomEvent('dta_users_update', { detail: realUsers }));
+        window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key: 'USERS', value: realUsers } }));
       }
 
       return { totalHealed, totalReferrals: storage.get<ReferralRecord[]>('REFERRALS', []).length };

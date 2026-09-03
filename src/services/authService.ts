@@ -336,6 +336,11 @@ export const authService = {
         const found = await referralService.findReferrerByCode(cleanRef);
         if (found) {
           validReferrer = found;
+        } else {
+          return {
+            success: false,
+            error: `Invalid referral code "${cleanRef}". No registered sponsor exists with this code. Please check the code or register directly.`,
+          };
         }
       } catch (e) {
         console.warn('Pre-auth referrer check error:', e);
@@ -389,24 +394,12 @@ export const authService = {
         console.warn('updateProfile failed:', pErr);
       }
 
-      // 2. Retry referrer lookup if not found earlier
-      if (cleanRef && !validReferrer) {
-        try {
-          const retryFound = await referralService.findReferrerByCode(cleanRef);
-          if (retryFound) {
-            validReferrer = retryFound;
-          }
-        } catch (retryErr) {
-          console.warn('Post-auth referrer lookup retry:', retryErr);
-        }
-      }
-
       // Check if user profile already exists
       let existingProfile = await authService.getUserProfile(fbUser.uid, cleanEmail);
 
       const assignedReferrerCode = validReferrer
         ? validReferrer.referralCode
-        : (cleanRef || existingProfile?.referredByCode || '');
+        : '';
 
       const userToSave: User = {
         id: fbUser.uid,
@@ -424,10 +417,10 @@ export const authService = {
       await authService.saveUserProfile(userToSave);
 
       // Record referral relationship if referred by code or user
-      if (assignedReferrerCode) {
+      if (validReferrer && assignedReferrerCode) {
         const referralRecord: ReferralRecord = {
           id: `ref-${userToSave.id}`,
-          referrerId: validReferrer ? validReferrer.id : assignedReferrerCode,
+          referrerId: validReferrer.id,
           referredUserId: userToSave.id,
           referredUserName: userToSave.fullName,
           referredUserEmail: userToSave.email,
@@ -440,25 +433,6 @@ export const authService = {
 
         // Save locally and to Cloud Firestore / RTDB
         await referralService.saveReferralRecord(referralRecord);
-
-        // Notify inviter if user object is known
-        if (validReferrer) {
-          const notifs = storage.get<any[]>('NOTIFICATIONS', []);
-          notifs.unshift({
-            id: `notif-${Date.now()}`,
-            userId: validReferrer.id,
-            type: 'referral_joined',
-            title: '👥 New Community Member Joined!',
-            message: `${userToSave.fullName} registered using your referral code (${validReferrer.referralCode}).`,
-            isRead: false,
-            linkUrl: '/dashboard/referrals',
-            createdAt: new Date().toISOString(),
-          });
-          storage.set('NOTIFICATIONS', notifs);
-
-          // Trigger rank re-evaluation for inviter
-          rankEngine.checkAndPromoteUser(validReferrer.id);
-        }
       }
 
       // Welcome notification
@@ -637,40 +611,29 @@ export const authService = {
       console.warn('RTDB getAllUsers fetch warning:', err);
     }
 
-    // 4. Scan for referenced sponsor codes (e.g. LISHU267) that might be missing a User document
-    const missingSponsors = new Set<string>();
+    // 4. Purge any fake synthetic accounts and keep only 100% REAL users
+    const realUsers: User[] = [];
     userMap.forEach((u) => {
-      if (u.referredByCode && u.referredByCode.trim()) {
-        const norm = normalizeReferralCode(u.referredByCode);
-        const exists = Array.from(userMap.values()).some(
-          (x) => normalizeReferralCode(x.referralCode) === norm || x.id === u.referredByCode
-        );
-        if (!exists && norm) missingSponsors.add(norm);
+      const isFakeSynthetic =
+        (u.email?.endsWith('@dreamtoachievers.com') && u.id?.startsWith('user-')) ||
+        (u.id && u.id.length > 25 && /^[A-Z0-9]+$/.test(u.id) && u.email?.endsWith('@dreamtoachievers.com'));
+
+      if (isFakeSynthetic) {
+        // Clean up from database
+        try {
+          deleteDoc(doc(db, 'users', u.id));
+          remove(ref(rtdb, `users/${u.id}`));
+        } catch {}
+      } else {
+        realUsers.push({
+          ...u,
+          fullName: formatDisplayName(u.fullName, u.email),
+        });
       }
     });
 
-    // Auto-restore any missing sponsors
-    for (const code of Array.from(missingSponsors)) {
-      const sponsorUser: User = {
-        id: `user-${code.toLowerCase()}`,
-        fullName: code,
-        email: `${code.toLowerCase()}@dreamtoachievers.com`,
-        role: 'user',
-        referralCode: code,
-        referredByCode: '',
-        currentRankSlug: 'silver',
-        isActive: true,
-        createdAt: new Date().toISOString(),
-      };
-      userMap.set(sponsorUser.id, sponsorUser);
-    }
-
-    const merged = Array.from(userMap.values()).map((u) => ({
-      ...u,
-      fullName: formatDisplayName(u.fullName, u.email),
-    }));
-    storage.set('USERS', merged);
-    return merged;
+    storage.set('USERS', realUsers);
+    return realUsers;
   },
 
   /**

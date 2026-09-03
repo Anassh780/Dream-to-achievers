@@ -33,6 +33,7 @@ export const Signup: React.FC = () => {
   );
   const [verifiedSponsor, setVerifiedSponsor] = useState<UserType | null>(null);
   const [validatingSponsor, setValidatingSponsor] = useState(false);
+  const [referralError, setReferralError] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -59,19 +60,24 @@ export const Signup: React.FC = () => {
   useEffect(() => {
     if (!referralCode.trim()) {
       setVerifiedSponsor(null);
+      setReferralError('');
       return;
     }
     const timer = setTimeout(async () => {
       setValidatingSponsor(true);
+      setReferralError('');
       try {
-        const res = await referralService.validateReferralCode(referralCode);
+        const res = await referralService.validateReferralCode(referralCode.trim());
         if (res.valid && res.referrer) {
           setVerifiedSponsor(res.referrer);
+          setReferralError('');
         } else {
           setVerifiedSponsor(null);
+          setReferralError(`Sponsor code "${referralCode.trim().toUpperCase()}" does not exist in our database.`);
         }
       } catch {
         setVerifiedSponsor(null);
+        setReferralError(`Could not verify sponsor code "${referralCode.trim().toUpperCase()}".`);
       } finally {
         setValidatingSponsor(false);
       }
@@ -100,6 +106,12 @@ export const Signup: React.FC = () => {
     }
     if (!agreeTerms) {
       setError('Please acknowledge the Partner Terms and Disclaimers to proceed.');
+      return;
+    }
+
+    // Strict validation: if referral code is provided, sponsor MUST exist
+    if (referralCode.trim() && !verifiedSponsor) {
+      setError(`The referral code "${referralCode.trim().toUpperCase()}" is invalid or does not exist. Please enter a valid sponsor code or clear the field.`);
       return;
     }
 
@@ -300,18 +312,19 @@ export const Signup: React.FC = () => {
                     <div className="flex items-center space-x-2 truncate">
                       <CheckCircle size={15} weight="fill" className="text-[#1F4D3E] shrink-0" />
                       <span className="truncate">
-                        Sponsor: <strong>{verifiedSponsor.fullName}</strong> ({verifiedSponsor.referralCode})
+                        Referred by: <strong>{verifiedSponsor.fullName}</strong> ({verifiedSponsor.referralCode})
                       </span>
                     </div>
-                    <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-white/70 text-[#1F4D3E] shrink-0">
-                      Verified
+                    <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-white text-[#1F4D3E] font-bold shrink-0 border border-[#E3DCC8]">
+                      Verified Sponsor
                     </span>
                   </div>
                 )}
-                {!verifiedSponsor && referralCode.trim().length >= 3 && !validatingSponsor && (
-                  <p className="text-[10px] text-[#7C7D70] font-mono">
-                    Code will be registered and verified upon account setup.
-                  </p>
+                {!verifiedSponsor && referralError && !validatingSponsor && (
+                  <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 flex items-center space-x-2 text-xs text-rose-700 animate-in fade-in">
+                    <WarningCircle size={16} weight="fill" className="text-rose-600 shrink-0" />
+                    <span>{referralError}</span>
+                  </div>
                 )}
               </div>
 
