@@ -10,5 +10,5 @@ Disallow: /signup
 Disallow: /forgot-password
 
 # Sitemap
-Sitemap: https://dreamtoachievers.com/sitemap.xml
+Sitemap: https://dream-to-achievers.vercel.app/sitemap.xml
 

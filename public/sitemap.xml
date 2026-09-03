@@ -2,43 +2,43 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Core Landing & Company Pages -->
   <url>
-    <loc>https://dreamtoachievers.com/</loc>
+    <loc>https://dream-to-achievers.vercel.app/</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://dreamtoachievers.com/about</loc>
+    <loc>https://dream-to-achievers.vercel.app/about</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://dreamtoachievers.com/how-it-works</loc>
+    <loc>https://dream-to-achievers.vercel.app/how-it-works</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://dreamtoachievers.com/products</loc>
+    <loc>https://dream-to-achievers.vercel.app/products</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://dreamtoachievers.com/ranks</loc>
+    <loc>https://dream-to-achievers.vercel.app/ranks</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://dreamtoachievers.com/services</loc>
+    <loc>https://dream-to-achievers.vercel.app/services</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://dreamtoachievers.com/contact</loc>
+    <loc>https://dream-to-achievers.vercel.app/contact</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -46,25 +46,25 @@
 
   <!-- Product Catalog Detail Pages -->
   <url>
-    <loc>https://dreamtoachievers.com/products/libas-e-yousaf</loc>
+    <loc>https://dream-to-achievers.vercel.app/products/libas-e-yousaf</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://dreamtoachievers.com/products/max-1150</loc>
+    <loc>https://dream-to-achievers.vercel.app/products/max-1150</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://dreamtoachievers.com/products/crown-c500</loc>
+    <loc>https://dream-to-achievers.vercel.app/products/crown-c500</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://dreamtoachievers.com/products/luxury-watch</loc>
+    <loc>https://dream-to-achievers.vercel.app/products/luxury-watch</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -72,19 +72,19 @@
 
   <!-- Legal & Compliance Pages -->
   <url>
-    <loc>https://dreamtoachievers.com/terms</loc>
+    <loc>https://dream-to-achievers.vercel.app/terms</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://dreamtoachievers.com/privacy</loc>
+    <loc>https://dream-to-achievers.vercel.app/privacy</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://dreamtoachievers.com/disclaimer</loc>
+    <loc>https://dream-to-achievers.vercel.app/disclaimer</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>

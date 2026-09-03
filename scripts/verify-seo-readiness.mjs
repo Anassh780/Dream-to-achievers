@@ -52,7 +52,7 @@ async function verifyAll() {
   const robots = fs.readFileSync('public/robots.txt', 'utf8');
   assert(robots.includes('User-agent: *'), 'robots.txt allows all user agents');
   assert(robots.includes('Allow: /'), 'robots.txt allows root path');
-  assert(robots.includes('Sitemap: https://dreamtoachievers.com/sitemap.xml'), 'robots.txt points to official sitemap.xml');
+  assert(robots.includes('Sitemap: https://dream-to-achievers.vercel.app/sitemap.xml'), 'robots.txt points to official sitemap.xml');
   assert(!robots.includes('faria-imran'), 'robots.txt contains zero legacy domains');
 
   // 3. Sitemap.xml
@@ -64,10 +64,10 @@ async function verifyAll() {
 
   const urls = [...sitemap.matchAll(/<loc>(https:\/\/[^<]+)<\/loc>/g)].map(m => m[1]);
   assert(urls.length >= 14, `sitemap.xml contains at least 14 indexable pages (found: ${urls.length})`);
-  assert(urls.includes('https://dreamtoachievers.com/'), 'sitemap.xml contains homepage');
-  assert(urls.includes('https://dreamtoachievers.com/about'), 'sitemap.xml contains /about');
-  assert(urls.includes('https://dreamtoachievers.com/products'), 'sitemap.xml contains /products');
-  assert(urls.includes('https://dreamtoachievers.com/products/libas-e-yousaf'), 'sitemap.xml contains /products/libas-e-yousaf');
+  assert(urls.includes('https://dream-to-achievers.vercel.app/'), 'sitemap.xml contains homepage');
+  assert(urls.includes('https://dream-to-achievers.vercel.app/about'), 'sitemap.xml contains /about');
+  assert(urls.includes('https://dream-to-achievers.vercel.app/products'), 'sitemap.xml contains /products');
+  assert(urls.includes('https://dream-to-achievers.vercel.app/products/libas-e-yousaf'), 'sitemap.xml contains /products/libas-e-yousaf');
 
   // 4. site.webmanifest
   console.log('\n--- 4. Testing site.webmanifest ---');
@@ -88,14 +88,14 @@ async function verifyAll() {
   // 5. index.html
   console.log('\n--- 5. Testing index.html Metadata & Schema.org ---');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert(html.includes('<link rel="canonical" href="https://dreamtoachievers.com/"'), 'Canonical link points to https://dreamtoachievers.com/');
+  assert(html.includes('<link rel="canonical" href="https://dream-to-achievers.vercel.app/"'), 'Canonical link points to https://dream-to-achievers.vercel.app/');
   assert(html.includes('href="/favicon-48x48.png"'), 'Google 48x48 favicon link is present in head');
   assert(html.includes('href="/apple-touch-icon.png"'), 'Apple touch icon link is present in head');
-  assert(html.includes('content="https://dreamtoachievers.com/images/brand-logo.png"'), 'og:image points to brand-logo.png');
+  assert(html.includes('content="https://dream-to-achievers.vercel.app/images/brand-logo.png"'), 'og:image points to brand-logo.png');
   assert(html.includes('name="twitter:card" content="summary_large_image"'), 'Twitter card configured as summary_large_image');
   assert(html.includes('"@type": "WebSite"'), 'Schema.org WebSite structured data present (site name rich snippet)');
   assert(html.includes('"@type": "Organization"'), 'Schema.org Organization structured data present (brand logo snippet)');
-  assert(html.includes('"url": "https://dreamtoachievers.com/images/brand-logo.png"'), 'Schema.org organization logo correctly links to brand-logo.png');
+  assert(html.includes('"url": "https://dream-to-achievers.vercel.app/images/brand-logo.png"'), 'Schema.org organization logo correctly links to brand-logo.png');
 
   console.log('\n======================================================');
   if (failures === 0) {
