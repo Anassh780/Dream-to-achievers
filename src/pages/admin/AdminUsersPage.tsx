@@ -352,11 +352,18 @@ export const AdminUsersPage: React.FC = () => {
     setIsDeleting(true);
 
     try {
-      // 1. Unified persistent delete across Firestore, RTDB, blacklist, and Local Storage
-      await authService.deleteUser(deletingUser.id, deletingUser.referralCode);
+      // 1. Unified permanent single-click delete across Firestore, RTDB, tombstone blacklist, and Local Storage
+      await authService.deleteUser(deletingUser.id, deletingUser.referralCode, deletingUser.email);
 
       // 2. Instant UI optimistic update
-      setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
+      setUsers((prev) =>
+        prev.filter(
+          (u) =>
+            u.id !== deletingUser.id &&
+            u.email?.toLowerCase() !== deletingUser.email?.toLowerCase() &&
+            (!deletingUser.referralCode || u.referralCode?.toUpperCase() !== deletingUser.referralCode.toUpperCase())
+        )
+      );
 
       // 3. Record in audit log
       if (currentAdmin) {
@@ -372,7 +379,13 @@ export const AdminUsersPage: React.FC = () => {
 
       showToast(`User ${deletingUser.fullName} (${deletingUser.email}) permanently deleted.`);
     } catch (e: any) {
-      setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
+      setUsers((prev) =>
+        prev.filter(
+          (u) =>
+            u.id !== deletingUser.id &&
+            u.email?.toLowerCase() !== deletingUser.email?.toLowerCase()
+        )
+      );
       showToast(`User removed from database.`);
     } finally {
       setIsDeleting(false);

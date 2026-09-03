@@ -16,6 +16,8 @@ import {
   collection,
   getDocs,
   onSnapshot,
+  query,
+  where,
 } from 'firebase/firestore';
 import { ref, get, set, child, remove, onValue } from 'firebase/database';
 import { storage } from './storage';
@@ -491,58 +493,140 @@ export const authService = {
   },
 
   /**
-   * Helper to retrieve locally recorded deleted user IDs to prevent ghost restoration.
+   * Helper to retrieve locally recorded deleted user IDs/emails/codes to prevent ghost restoration.
    */
+  getDeletedBlacklist(): Set<string> {
+    const set = new Set<string>();
+    const localList = storage.get<string[]>('DELETED_USERS_SET', []);
+    localList.forEach((item) => {
+      if (item) set.add(item.toLowerCase().trim());
+    });
+    return set;
+  },
+
+  addToDeletedBlacklist(tokens: (string | undefined | null)[]) {
+    const list = storage.get<string[]>('DELETED_USERS_SET', []);
+    tokens.forEach((t) => {
+      if (t && t.trim()) {
+        const clean = t.toLowerCase().trim();
+        if (!list.includes(clean)) list.push(clean);
+      }
+    });
+    storage.set('DELETED_USERS_SET', list);
+  },
+
+  removeFromDeletedBlacklist(tokens: (string | undefined | null)[]) {
+    let list = storage.get<string[]>('DELETED_USERS_SET', []);
+    tokens.forEach((t) => {
+      if (t && t.trim()) {
+        const clean = t.toLowerCase().trim();
+        list = list.filter((x) => x !== clean);
+      }
+    });
+    storage.set('DELETED_USERS_SET', list);
+  },
+
   /**
-   * Permanently delete a user account from local cache, Firestore, and Realtime Database.
+   * Permanently delete a user account from local cache, Firestore, and Realtime Database in one click.
    */
-  async deleteUser(userId: string, referralCode?: string): Promise<{ success: boolean; error?: string }> {
+  async deleteUser(userId: string, referralCode?: string, email?: string): Promise<{ success: boolean; error?: string }> {
     if (!userId) return { success: false, error: 'User ID is required.' };
 
-    // 1. Remove immediately from local USERS
+    const cleanEmail = email?.toLowerCase().trim();
+    const cleanCode = referralCode?.trim().toUpperCase();
+    const normCode = normalizeReferralCode(cleanCode);
+
+    // 1. Add to permanent blacklist
+    authService.addToDeletedBlacklist([userId, cleanEmail, cleanCode, normCode]);
+
+    // 2. Remove immediately from local USERS
     const localUsers = storage.get<User[]>('USERS', []);
-    const updatedUsers = localUsers.filter((u) => u.id !== userId);
+    const updatedUsers = localUsers.filter(
+      (u) =>
+        u.id !== userId &&
+        (!cleanEmail || u.email?.toLowerCase() !== cleanEmail) &&
+        (!cleanCode || u.referralCode?.toUpperCase() !== cleanCode)
+    );
     storage.set('USERS', updatedUsers);
 
-    // 2. Clean local referrals relating to this user
+    // 3. Clean local referrals relating to this user
     const localReferrals = storage.get<any[]>('REFERRALS', []);
     const updatedReferrals = localReferrals.filter(
-      (r) => r.referredUserId !== userId && r.referrerId !== userId
+      (r) =>
+        r.referredUserId !== userId &&
+        r.referrerId !== userId &&
+        (!cleanEmail || r.referredUserEmail?.toLowerCase() !== cleanEmail) &&
+        (!cleanCode || r.referralCodeUsed?.toUpperCase() !== cleanCode)
     );
     storage.set('REFERRALS', updatedReferrals);
 
-    // 3. Delete from Firestore
+    // 4. Delete from Firestore users collection
     try {
       await deleteDoc(doc(db, 'users', userId));
-    } catch (err) {
-      console.warn('Firestore delete user error (non-fatal):', err);
-    }
+    } catch {}
 
-    if (referralCode) {
-      const norm = normalizeReferralCode(referralCode);
-      if (norm) {
-        try {
-          await deleteDoc(doc(db, 'referral_index', norm));
-        } catch (err) {
-          console.warn('Firestore delete referral_index error (non-fatal):', err);
+    if (cleanEmail) {
+      try {
+        const emailSnap = await getDocs(query(collection(db, 'users'), where('email', '==', cleanEmail)));
+        for (const d of emailSnap.docs) {
+          await deleteDoc(doc(db, 'users', d.id)).catch(() => {});
         }
-      }
+      } catch {}
     }
 
-    // 4. Delete from Realtime Database
+    if (cleanCode) {
+      try {
+        const codeSnap = await getDocs(query(collection(db, 'users'), where('referralCode', '==', cleanCode)));
+        for (const d of codeSnap.docs) {
+          await deleteDoc(doc(db, 'users', d.id)).catch(() => {});
+        }
+      } catch {}
+    }
+
+    // 5. Delete from Firestore referral_index
+    if (normCode) {
+      try {
+        await deleteDoc(doc(db, 'referral_index', normCode));
+      } catch {}
+    }
+    try {
+      await deleteDoc(doc(db, 'referral_index', userId));
+    } catch {}
+
+    // 6. Delete matching referral records from Firestore
+    try {
+      const refSnap1 = await getDocs(query(collection(db, 'referrals'), where('referredUserId', '==', userId)));
+      for (const d of refSnap1.docs) {
+        await deleteDoc(doc(db, 'referrals', d.id)).catch(() => {});
+      }
+      const refSnap2 = await getDocs(query(collection(db, 'referrals'), where('referrerId', '==', userId)));
+      for (const d of refSnap2.docs) {
+        await deleteDoc(doc(db, 'referrals', d.id)).catch(() => {});
+      }
+    } catch {}
+
+    // 7. Delete from Realtime Database
     try {
       await remove(ref(rtdb, `users/${userId}`));
-    } catch (err) {
-      console.warn('RTDB delete user error (non-fatal):', err);
-    }
-
-    try {
       await remove(ref(rtdb, `user_referrals/${userId}`));
-    } catch (err) {
-      console.warn('RTDB delete user_referrals error (non-fatal):', err);
-    }
+      if (normCode) {
+        await remove(ref(rtdb, `referral_index/${normCode}`));
+      }
+    } catch {}
 
-    // Dispatch sync events so all views refresh immediately
+    // 8. Record permanent tombstone in Firestore and RTDB deleted_users collection
+    try {
+      const tombstone = {
+        id: userId,
+        email: cleanEmail || '',
+        referralCode: cleanCode || '',
+        deletedAt: new Date().toISOString(),
+      };
+      await setDoc(doc(db, 'deleted_users', userId), tombstone, { merge: true });
+      await set(ref(rtdb, `deleted_users/${userId}`), tombstone);
+    } catch {}
+
+    // 9. Dispatch sync events so all views and open tabs refresh immediately
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key: 'USERS', value: updatedUsers } }));
       window.dispatchEvent(new CustomEvent('dta_users_update', { detail: updatedUsers }));
@@ -553,23 +637,56 @@ export const authService = {
 
   /**
    * Fetch all registered users from Firestore, RTDB, and Local Storage, merging and deduplicating.
-   * All users are 100% visible with zero hidden filters.
+   * All active users are 100% visible, with deleted users permanently filtered and purged.
    */
   async getAllUsers(): Promise<User[]> {
     const userMap = new Map<string, User>();
+    const blacklist = authService.getDeletedBlacklist();
+
+    // Fetch deleted_users tombstones from Firestore and RTDB
+    try {
+      const delSnap = await getDocs(collection(db, 'deleted_users'));
+      delSnap.forEach((d: any) => {
+        const data = d.data();
+        if (data?.id) blacklist.add(data.id.toLowerCase().trim());
+        if (data?.email) blacklist.add(data.email.toLowerCase().trim());
+        if (data?.referralCode) blacklist.add(data.referralCode.toLowerCase().trim());
+      });
+    } catch {}
+
+    try {
+      const rtdbDelSnap = await get(ref(rtdb, 'deleted_users'));
+      if (rtdbDelSnap.exists()) {
+        const val = rtdbDelSnap.val();
+        if (val && typeof val === 'object') {
+          Object.values(val).forEach((item: any) => {
+            if (item?.id) blacklist.add(item.id.toLowerCase().trim());
+            if (item?.email) blacklist.add(item.email.toLowerCase().trim());
+            if (item?.referralCode) blacklist.add(item.referralCode.toLowerCase().trim());
+          });
+        }
+      }
+    } catch {}
 
     // 0. Always guarantee Official Executive Admin user presence
     userMap.set(OFFICIAL_ADMIN_USER.id, OFFICIAL_ADMIN_USER);
 
-    // 1. Seed from local storage
+    // 1. Seed from local storage (excluding any blacklisted/deleted)
     const localUsers = storage.get<User[]>('USERS', []);
     for (const u of localUsers) {
       if (u.id) {
-        if (u.email && ADMIN_EMAILS.includes(u.email.toLowerCase())) {
-          u.role = 'admin';
-          u.currentRankSlug = 'diamond';
+        const isDeleted =
+          blacklist.has(u.id.toLowerCase()) ||
+          (u.email && blacklist.has(u.email.toLowerCase())) ||
+          (u.referralCode && blacklist.has(u.referralCode.toLowerCase()));
+
+        if (!isDeleted) {
+          if (u.email && ADMIN_EMAILS.includes(u.email.toLowerCase())) {
+            u.role = 'admin';
+            u.currentRankSlug = 'diamond';
+          }
+          userMap.set(u.id, u);
         }
-        userMap.set(u.id, u);
       }
     }
 
@@ -579,11 +696,21 @@ export const authService = {
       snap.forEach((d: any) => {
         const data = d.data() as User;
         if (data && data.id) {
-          if (data.email && ADMIN_EMAILS.includes(data.email.toLowerCase())) {
-            data.role = 'admin';
-            data.currentRankSlug = 'diamond';
+          const isDeleted =
+            blacklist.has(data.id.toLowerCase()) ||
+            (data.email && blacklist.has(data.email.toLowerCase())) ||
+            (data.referralCode && blacklist.has(data.referralCode.toLowerCase()));
+
+          if (isDeleted) {
+            // Clean up resurrecting doc from Firestore immediately
+            deleteDoc(doc(db, 'users', data.id)).catch(() => {});
+          } else {
+            if (data.email && ADMIN_EMAILS.includes(data.email.toLowerCase())) {
+              data.role = 'admin';
+              data.currentRankSlug = 'diamond';
+            }
+            userMap.set(data.id, { ...userMap.get(data.id), ...data });
           }
-          userMap.set(data.id, { ...userMap.get(data.id), ...data });
         }
       });
     } catch (err) {
@@ -598,11 +725,20 @@ export const authService = {
         if (val && typeof val === 'object') {
           Object.values(val).forEach((item: any) => {
             if (item && item.id) {
-              if (item.email && ADMIN_EMAILS.includes(item.email.toLowerCase())) {
-                item.role = 'admin';
-                item.currentRankSlug = 'diamond';
+              const isDeleted =
+                blacklist.has(item.id.toLowerCase()) ||
+                (item.email && blacklist.has(item.email.toLowerCase())) ||
+                (item.referralCode && blacklist.has(item.referralCode.toLowerCase()));
+
+              if (isDeleted) {
+                remove(ref(rtdb, `users/${item.id}`)).catch(() => {});
+              } else {
+                if (item.email && ADMIN_EMAILS.includes(item.email.toLowerCase())) {
+                  item.role = 'admin';
+                  item.currentRankSlug = 'diamond';
+                }
+                userMap.set(item.id, { ...userMap.get(item.id), ...item });
               }
-              userMap.set(item.id, { ...userMap.get(item.id), ...item });
             }
           });
         }
@@ -618,8 +754,12 @@ export const authService = {
         (u.email?.endsWith('@dreamtoachievers.com') && u.id?.startsWith('user-')) ||
         (u.id && u.id.length > 25 && /^[A-Z0-9]+$/.test(u.id) && u.email?.endsWith('@dreamtoachievers.com'));
 
-      if (isFakeSynthetic) {
-        // Clean up from database
+      const isDeleted =
+        blacklist.has(u.id.toLowerCase()) ||
+        (u.email && blacklist.has(u.email.toLowerCase())) ||
+        (u.referralCode && blacklist.has(u.referralCode.toLowerCase()));
+
+      if (isFakeSynthetic || isDeleted) {
         try {
           deleteDoc(doc(db, 'users', u.id));
           remove(ref(rtdb, `users/${u.id}`));
@@ -649,24 +789,32 @@ export const authService = {
       unsubscribeFirestore = onSnapshot(
         collection(db, 'users'),
         (snapshot: any) => {
+          const blacklist = authService.getDeletedBlacklist();
           const cloudUsers: User[] = [];
           snapshot.forEach((d: any) => {
             const data = d.data() as User;
             if (data && data.id) {
-              cloudUsers.push(data);
+              const isDeleted =
+                blacklist.has(data.id.toLowerCase()) ||
+                (data.email && blacklist.has(data.email.toLowerCase())) ||
+                (data.referralCode && blacklist.has(data.referralCode.toLowerCase()));
+
+              if (!isDeleted) {
+                cloudUsers.push({
+                  ...data,
+                  fullName: formatDisplayName(data.fullName, data.email),
+                });
+              }
             }
           });
 
-          const current = storage.get<User[]>('USERS', []);
-          const userMap = new Map<string, User>();
-          current.forEach((u) => userMap.set(u.id, u));
-          cloudUsers.forEach((u) => userMap.set(u.id, { ...userMap.get(u.id), ...u }));
-          const merged = Array.from(userMap.values()).map((u) => ({
-            ...u,
-            fullName: formatDisplayName(u.fullName, u.email),
-          }));
-          storage.set('USERS', merged);
-          callback(merged);
+          // Always ensure admin presence
+          if (!cloudUsers.some((u) => u.id === OFFICIAL_ADMIN_USER.id)) {
+            cloudUsers.unshift(OFFICIAL_ADMIN_USER);
+          }
+
+          storage.set('USERS', cloudUsers);
+          callback(cloudUsers);
         },
         (err: any) => {
           console.warn('Firestore user stream warning:', err);

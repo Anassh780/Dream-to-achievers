@@ -33,6 +33,7 @@ const STORAGE_KEYS = {
   SETTINGS: 'dta_settings',
   CAPTURED_REF: 'dta_captured_ref',
   DELETED_PRODUCTS: 'dta_deleted_products',
+  DELETED_USERS_SET: 'dta_deleted_users_set',
 };
 
 const LEGACY_PRODUCT_IDS = ['prod-001', 'prod-002', 'prod-003', 'prod-004', 'prod-005', 'prod-006'];
