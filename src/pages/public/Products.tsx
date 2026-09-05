@@ -5,6 +5,7 @@ import { categoryService } from '@/services/categoryService';
 import { CategoryPillCarousel } from '@/components/categories/CategoryPillCarousel';
 import { CategorySidebarTree } from '@/components/categories/CategorySidebarTree';
 import { Button } from '@/components/ui/Button';
+import { SEOHead } from '@/components/common/SEOHead';
 import {
   MagnifyingGlass,
   ArrowRight,
@@ -112,6 +113,12 @@ export const Products: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] pb-24 font-sans selection:bg-[#B8862E]/25">
+      <SEOHead
+        title={activeCategory ? `${activeCategory.name} — Wholesale Products | Dream to Achievers` : 'Wholesale Products Catalog | Dream to Achievers'}
+        description={activeCategory?.description || 'Browse verified wholesale products at direct trade rates with transparent unit margins (+PKR 500–1,300) and nationwide COD fulfillment on Dream to Achievers.'}
+        canonicalPath={selectedCategorySlug ? `/products?category=${selectedCategorySlug}` : '/products'}
+        ogType="website"
+      />
       
       {/* 1. Storefront Header Banner */}
       <header className="px-6 sm:px-8 pt-10 sm:pt-14 pb-8 border-b border-[#E3DCC8] bg-[#F1ECDD]">

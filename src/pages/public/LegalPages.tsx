@@ -1,10 +1,18 @@
 import React from 'react';
 import { SITE_CONFIG } from '@/config/site';
-import { ShieldCheck, FileText, Scales, LockKey } from '@phosphor-icons/react';
+import { SEOHead } from '@/components/common/SEOHead';
+import { FileText, Scales, LockKey } from '@phosphor-icons/react';
 
 export const TermsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] pb-24 font-sans selection:bg-[#B8862E]/25">
+      <SEOHead
+        title="Terms & Conditions of Partner Association | Dream to Achievers"
+        description="Official terms of association and distribution policies for partners of Dream to Achievers B2B wholesale platform."
+        canonicalPath="/terms"
+        ogType="website"
+      />
+
       <div className="max-w-4xl mx-auto px-6 py-16 space-y-8">
         <div className="space-y-3">
           <div className="eyebrow">
@@ -54,6 +62,13 @@ export const TermsPage: React.FC = () => {
 export const PrivacyPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] pb-24 font-sans selection:bg-[#B8862E]/25">
+      <SEOHead
+        title="Privacy Policy & Data Security | Dream to Achievers"
+        description="Read the official Privacy Policy of Dream to Achievers. Understand how partner information, orders, and transaction ledgers are protected."
+        canonicalPath="/privacy"
+        ogType="website"
+      />
+
       <div className="max-w-4xl mx-auto px-6 py-16 space-y-8">
         <div className="space-y-3">
           <div className="eyebrow">
@@ -96,6 +111,13 @@ export const PrivacyPage: React.FC = () => {
 export const DisclaimerPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] pb-24 font-sans selection:bg-[#B8862E]/25">
+      <SEOHead
+        title="Statutory Earnings Disclaimer | Dream to Achievers"
+        description="Official earnings and performance disclaimer for Dream to Achievers. Individual results vary based on customer sales volume and marketing diligence."
+        canonicalPath="/disclaimer"
+        ogType="website"
+      />
+
       <div className="max-w-4xl mx-auto px-6 py-16 space-y-8">
         <div className="space-y-3">
           <div className="eyebrow">

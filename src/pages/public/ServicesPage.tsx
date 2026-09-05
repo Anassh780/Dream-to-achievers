@@ -3,7 +3,8 @@ import { BentoWork } from '@/components/sections/BentoWork';
 import { Button } from '@/components/ui/Button';
 import { CardFlip } from '@/components/ui/CardFlip';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, CheckCircle, WhatsappLogo } from '@phosphor-icons/react';
+import { SEOHead } from '@/components/common/SEOHead';
+import { ArrowRight, ShieldCheck } from '@phosphor-icons/react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 export const ServicesPage: React.FC = () => {
@@ -96,6 +97,13 @@ export const ServicesPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] pb-24 font-sans selection:bg-[#B8862E]/25">
+      <SEOHead
+        title="B2B Distribution & Growth Services | Dream to Achievers"
+        description="Explore B2B distribution, wholesale logistics, and partner growth enablement services from Dream to Achievers. Helping resellers scale across Pakistan."
+        canonicalPath="/services"
+        ogType="website"
+      />
+
       {/* 1. Page Header */}
       <section className="px-6 sm:px-8 pt-16 pb-12 border-b border-[#E3DCC8]">
         <div className="max-w-[1180px] mx-auto text-center max-w-2xl space-y-4">
@@ -166,3 +174,5 @@ export const ServicesPage: React.FC = () => {
     </div>
   );
 };
+
+export default ServicesPage;

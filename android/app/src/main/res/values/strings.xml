@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Dream to Achievers</string>
+    <string name="app_tagline">Better Products. Bigger Opportunities.</string>
+    <string name="search_hint">Search products, brands &amp; categories</string>
+    <string name="currency_pkr">PKR</string>
+    <string name="company_legal_name">Dream to Achievers Global Network (Pvt) Ltd</string>
+    <string name="support_email">dreamtoachievers@gmail.com</string>
+    <string name="support_whatsapp">+92 305 4511395</string>
+</resources>

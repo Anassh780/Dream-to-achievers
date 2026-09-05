@@ -75,8 +75,8 @@ for (const f of publicFiles) {
 // 8. Sitemap completeness
 const sitemap = fs.readFileSync('public/sitemap.xml', 'utf8');
 const locs = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(m => m[1]);
-test('Sitemap contains at least 14 URLs', locs.length >= 14, `Found: ${locs.length}`);
-test('No legacy faria-imran domains in sitemap', !sitemap.includes('faria-imran'), 'Found faria-imran in sitemap');
+test('Sitemap contains at least 16 URLs', locs.length >= 16, `Found: ${locs.length}`);
+test('No legacy domains in sitemap', !sitemap.includes('faria-imran.vercel.app') && !sitemap.includes('dreamtoachievers.com'), 'Found legacy domain in sitemap');
 test('All sitemap URLs use HTTPS and dream-to-achievers.vercel.app', locs.every(u => u.startsWith('https://dream-to-achievers.vercel.app')), 'Non-conforming URLs');
 
 // 9. Robots.txt cleanliness
@@ -84,7 +84,7 @@ const robots = fs.readFileSync('public/robots.txt', 'utf8');
 test('Robots references official sitemap', robots.includes('Sitemap: https://dream-to-achievers.vercel.app/sitemap.xml'), 'Missing Sitemap in robots');
 test('Robots allows Googlebot', robots.includes('User-agent: *') && robots.includes('Allow: /'), 'Crawl blocked');
 test('Robots protects /admin/ and /dashboard/', robots.includes('Disallow: /admin/') && robots.includes('Disallow: /dashboard/'), 'Unprotected admin routes');
-test('No legacy domains in robots', !robots.includes('faria-imran'), 'Old domain found');
+test('No legacy domains in robots', !robots.includes('faria-imran.vercel.app') && !robots.includes('dreamtoachievers.com'), 'Old domain found');
 
 // 10. Vercel config verification
 const vercelRaw = fs.readFileSync('vercel.json', 'utf8');

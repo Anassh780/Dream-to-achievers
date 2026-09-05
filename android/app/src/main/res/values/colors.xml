@@ -1,0 +1,14 @@
+<resources>
+    <!-- Official Dream to Achievers Emerald Branding -->
+    <color name="dta_primary_emerald">#1F4D3E</color>
+    <color name="dta_primary_dark">#153A2E</color>
+    <color name="dta_primary_light">#348E72</color>
+    <color name="dta_accent_gold">#B8862E</color>
+    <color name="dta_accent_soft">#EFE2C4</color>
+    <color name="dta_bg_neutral">#FAF7EF</color>
+    <color name="dta_surface_white">#FFFFFF</color>
+    <color name="dta_surface_alt">#F1ECDD</color>
+    <color name="dta_ink_primary">#1E241F</color>
+    <color name="dta_ink_secondary">#5B5C50</color>
+    <color name="dta_line_subtle">#E3DCC8</color>
+</resources>

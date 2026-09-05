@@ -176,8 +176,8 @@ async function buildBrandAssets() {
 
       <g transform="translate(0, 340)">
         <rect width="280" height="48" rx="12" fill="#1E293B" stroke="#D4AF37" stroke-width="1.2"/>
-        <text x="24" y="30" fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="700" letter-spacing="1">
-          dreamtoachievers.com
+        <text x="24" y="30" fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" letter-spacing="0.5">
+          dream-to-achievers.vercel.app
         </text>
       </g>
     </g>

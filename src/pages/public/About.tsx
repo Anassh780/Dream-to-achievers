@@ -1,13 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
+import { SEOHead } from '@/components/common/SEOHead';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import {
   ShieldCheck,
   CheckCircle,
-  ArrowRight,
-  EnvelopeSimple,
   ChatsCircle,
+  EnvelopeSimple,
 } from '@phosphor-icons/react';
 
 export const About: React.FC = () => {
@@ -15,8 +15,49 @@ export const About: React.FC = () => {
   const whatsappChannelUrl = siteConfig.whatsappChannelUrl || 'https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N';
   const supportEmail = siteConfig.supportEmail || 'dreamtoachievers@gmail.com';
 
+  const aboutPersonSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    '@id': 'https://dream-to-achievers.vercel.app/about#webpage',
+    url: 'https://dream-to-achievers.vercel.app/about',
+    name: 'About the Founder — Faria Imran | Dream to Achievers',
+    mainEntity: {
+      '@type': 'Person',
+      '@id': 'https://dream-to-achievers.vercel.app/founder/faria-imran#person',
+      name: 'Faria Imran',
+      alternateName: 'Faria Imran Dream to Achievers',
+      jobTitle: 'Founder & Executive Director',
+      worksFor: {
+        '@type': 'Organization',
+        name: 'Dream to Achievers',
+        url: 'https://dream-to-achievers.vercel.app/',
+      },
+      image: 'https://dream-to-achievers.vercel.app/images/faria-imran.webp',
+      description:
+        'Faria Imran is the founder and executive director of Dream to Achievers, a verified B2B wholesale product distribution network in Pakistan.',
+      sameAs: [
+        'https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N',
+        'https://www.tiktok.com/@dream.to.achievers',
+        'https://linkedin.com/company/dream-to-achievers',
+        'https://youtube.com/@dreamtoachievers',
+        'https://x.com/dreamtoachiever',
+        'https://instagram.com/dreamtoachievers',
+        'https://facebook.com/dreamtoachievers',
+      ],
+    },
+  };
+
   return (
     <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] pb-24 font-sans selection:bg-[#B8862E]/25">
+      <SEOHead
+        title="About the Founder — Faria Imran | Dream to Achievers"
+        description="Meet Faria Imran, the entrepreneur and executive director behind Dream to Achievers, empowering thousands of independent resellers across Pakistan."
+        canonicalPath="/about"
+        ogType="profile"
+        ogImage="/images/faria-imran.webp"
+        ogImageAlt="Faria Imran — Founder & Executive Director of Dream to Achievers"
+        structuredData={aboutPersonSchema}
+      />
       
       {/* 1. Clean Page Header */}
       <section className="px-6 sm:px-8 pt-16 pb-12 border-b border-[#E3DCC8]">

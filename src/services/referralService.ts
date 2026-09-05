@@ -37,7 +37,7 @@ export const referralService = {
    * Generates the public referral URL for a given referral code.
    */
   getReferralUrl(referralCode: string): string {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://dreamtoachievers.com';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://dream-to-achievers.vercel.app';
     return `${origin}/signup?ref=${encodeURIComponent(referralCode || '')}`;
   },
 

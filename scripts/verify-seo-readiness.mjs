@@ -53,19 +53,21 @@ async function verifyAll() {
   assert(robots.includes('User-agent: *'), 'robots.txt allows all user agents');
   assert(robots.includes('Allow: /'), 'robots.txt allows root path');
   assert(robots.includes('Sitemap: https://dream-to-achievers.vercel.app/sitemap.xml'), 'robots.txt points to official sitemap.xml');
-  assert(!robots.includes('faria-imran'), 'robots.txt contains zero legacy domains');
+  assert(!robots.includes('faria-imran.vercel.app') && !robots.includes('dreamtoachievers.com'), 'robots.txt contains zero legacy domains');
 
   // 3. Sitemap.xml
   console.log('\n--- 3. Testing sitemap.xml ---');
   assert(fs.existsSync('public/sitemap.xml'), 'File exists: public/sitemap.xml');
   const sitemap = fs.readFileSync('public/sitemap.xml', 'utf8');
   assert(sitemap.startsWith('<?xml version="1.0" encoding="UTF-8"?>'), 'sitemap.xml has valid XML declaration');
-  assert(!sitemap.includes('faria-imran'), 'sitemap.xml contains zero legacy domains');
+  assert(!sitemap.includes('faria-imran.vercel.app') && !sitemap.includes('dreamtoachievers.com'), 'sitemap.xml contains zero legacy domains');
 
   const urls = [...sitemap.matchAll(/<loc>(https:\/\/[^<]+)<\/loc>/g)].map(m => m[1]);
-  assert(urls.length >= 14, `sitemap.xml contains at least 14 indexable pages (found: ${urls.length})`);
+  assert(urls.length >= 16, `sitemap.xml contains at least 16 indexable pages (found: ${urls.length})`);
   assert(urls.includes('https://dream-to-achievers.vercel.app/'), 'sitemap.xml contains homepage');
   assert(urls.includes('https://dream-to-achievers.vercel.app/about'), 'sitemap.xml contains /about');
+  assert(urls.includes('https://dream-to-achievers.vercel.app/founder/faria-imran'), 'sitemap.xml contains /founder/faria-imran');
+  assert(urls.includes('https://dream-to-achievers.vercel.app/faq'), 'sitemap.xml contains /faq');
   assert(urls.includes('https://dream-to-achievers.vercel.app/products'), 'sitemap.xml contains /products');
   assert(urls.includes('https://dream-to-achievers.vercel.app/products/libas-e-yousaf'), 'sitemap.xml contains /products/libas-e-yousaf');
 

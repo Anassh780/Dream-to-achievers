@@ -13,7 +13,7 @@ export default defineConfig({
   },
   server: {
     watch: {
-      ignored: ['**/*.md', '**/.git/**', '**/.agents/**', '**/.gemini/**', '**/.user_uploaded/**'],
+      ignored: ['**/*.md', '**/.git/**', '**/.agents/**', '**/.gemini/**', '**/.user_uploaded/**', '**/android/**'],
     },
   },
   build: {

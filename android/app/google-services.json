@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "391296623869",
+    "firebase_url": "https://uc-store-b5265-default-rtdb.firebaseio.com",
+    "project_id": "uc-store-b5265",
+    "storage_bucket": "uc-store-b5265.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:391296623869:android:a1b2c3d4e5f67890",
+        "android_client_info": {
+          "package_name": "com.dreamtoachievers.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAre3vM0YJW9ak7h4zRifwfF1RZhhWAGf8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:391296623869:android:a1b2c3d4e5f67891",
+        "android_client_info": {
+          "package_name": "com.dreamtoachievers.app.debug"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAre3vM0YJW9ak7h4zRifwfF1RZhhWAGf8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

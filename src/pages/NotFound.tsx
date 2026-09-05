@@ -2,11 +2,18 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { DreamLogo } from '@/components/ui/DreamLogo';
 import { Button } from '@/components/ui/Button';
-import { House, ArrowRight, Package } from '@phosphor-icons/react';
+import { SEOHead } from '@/components/common/SEOHead';
+import { House, Package } from '@phosphor-icons/react';
 
 export const NotFound: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] flex flex-col items-center justify-center p-6 sm:p-8 font-sans selection:bg-[#B8862E]/25">
+      <SEOHead
+        title="Page Not Found"
+        description="The requested page could not be found on Dream to Achievers."
+        noindex={true}
+      />
+
       <div className="max-w-md w-full p-8 sm:p-10 rounded-2xl bg-white border border-[#E3DCC8] shadow-xs text-center space-y-6">
         <div className="flex justify-center">
           <Link to="/">

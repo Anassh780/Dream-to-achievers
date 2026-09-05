@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router-dom';
+import { SEOHead } from '@/components/common/SEOHead';
 import {
   Trophy,
   CheckCircle,
@@ -55,6 +56,12 @@ export const RanksPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FAF7EF] dark:bg-[#0B100D] text-[#1E241F] dark:text-[#F4F3EE] pb-24 font-sans selection:bg-[#B8862E]/25">
+      <SEOHead
+        title="Partner Milestone Rewards & Cash Bonus Tiers | Dream to Achievers"
+        description="Earn guaranteed cash bonuses from PKR 2,000 to PKR 10,000 on Dream to Achievers. Transparent milestone tracking for sales and reseller team expansion."
+        canonicalPath="/ranks"
+        ogType="website"
+      />
       
       {/* 1. Header Banner */}
       <section className="px-6 sm:px-8 pt-16 pb-12 border-b border-[#E3DCC8] dark:border-[#24352B] text-center">

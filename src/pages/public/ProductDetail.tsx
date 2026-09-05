@@ -4,6 +4,7 @@ import { productService } from '@/services/productService';
 import { salesService } from '@/services/salesService';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
+import { SEOHead } from '@/components/common/SEOHead';
 import {
   ArrowLeft,
   Check,
@@ -79,8 +80,46 @@ export const ProductDetail: React.FC = () => {
     setSaleRecorded(true);
   };
 
+  const productSchema = useMemo(() => {
+    if (!product) return undefined;
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      image: product.imageUrl,
+      description: product.description,
+      sku: product.sku,
+      brand: {
+        '@type': 'Brand',
+        name: 'Dream to Achievers',
+      },
+      offers: {
+        '@type': 'Offer',
+        url: `https://dream-to-achievers.vercel.app/products/${product.slug}`,
+        priceCurrency: 'PKR',
+        price: product.retailPrice,
+        priceValidUntil: '2027-12-31',
+        itemCondition: 'https://schema.org/NewCondition',
+        availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        seller: {
+          '@type': 'Organization',
+          name: 'Dream to Achievers',
+        },
+      },
+    };
+  }, [product]);
+
   return (
     <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] pb-24 font-sans selection:bg-[#B8862E]/25">
+      <SEOHead
+        title={`${product.name} | Wholesale Price & Margin | Dream to Achievers`}
+        description={`${product.shortDescription} Wholesale rate: PKR ${product.partnerPrice.toLocaleString()}, Retail: PKR ${product.retailPrice.toLocaleString()}, Unit Margin: +PKR ${product.grossMargin.toLocaleString()}. Nationwide COD dispatch.`}
+        canonicalPath={`/products/${product.slug}`}
+        ogType="product"
+        ogImage={product.imageUrl}
+        ogImageAlt={`${product.name} — Verified Wholesale Inventory`}
+        structuredData={productSchema}
+      />
       <div className="max-w-[1180px] mx-auto px-6 sm:px-8 pt-8 space-y-8">
         
         {/* Back Link */}

@@ -6,3 +6,13 @@ dist
 .DS_Store
 tsconfig.tsbuildinfo
 .agents
+.claude/
+skills-lock.json
+
+# Android build outputs & local properties
+android/.gradle/
+android/build/
+android/*/build/
+android/local.properties
+android/**/.cxx/
+android/.idea/

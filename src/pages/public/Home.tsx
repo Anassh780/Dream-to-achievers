@@ -1,6 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
+import { SEOHead } from '@/components/common/SEOHead';
+import { FAQSection } from '@/components/sections/FAQSection';
+import { Contact } from '@/components/sections/Contact';
 import {
   ArrowRight,
   ShieldCheck,
@@ -10,9 +13,79 @@ import {
 } from '@phosphor-icons/react';
 
 export const Home: React.FC = () => {
+  const homeStructuredData = [
+    {
+      '@type': 'WebSite',
+      '@id': 'https://dream-to-achievers.vercel.app/#website',
+      url: 'https://dream-to-achievers.vercel.app/',
+      name: 'Dream to Achievers',
+      alternateName: ['DreamToAchievers', 'Dream to Achievers Official', 'Dream to Achievers B2B'],
+      description: 'Verified B2B wholesale product distribution and reseller growth network in Pakistan.',
+      inLanguage: 'en-US',
+    },
+    {
+      '@type': 'Organization',
+      '@id': 'https://dream-to-achievers.vercel.app/#organization',
+      name: 'Dream to Achievers',
+      alternateName: 'DreamToAchievers',
+      url: 'https://dream-to-achievers.vercel.app/',
+      logo: {
+        '@type': 'ImageObject',
+        '@id': 'https://dream-to-achievers.vercel.app/#logo',
+        url: 'https://dream-to-achievers.vercel.app/images/brand-logo.png',
+        contentUrl: 'https://dream-to-achievers.vercel.app/images/brand-logo.png',
+        caption: 'Dream to Achievers Official Brand Logo',
+        width: '1024',
+        height: '1024',
+      },
+      image: 'https://dream-to-achievers.vercel.app/images/brand-logo.png',
+      description:
+        'Official verified B2B wholesale commerce, product distribution, and reseller network platform founded by Faria Imran.',
+      founder: {
+        '@type': 'Person',
+        name: 'Faria Imran',
+        jobTitle: 'Founder & Executive Director',
+        url: 'https://dream-to-achievers.vercel.app/founder/faria-imran',
+      },
+      contactPoint: {
+        '@type': 'ContactPoint',
+        contactType: 'Customer Support',
+        email: 'dreamtoachievers@gmail.com',
+        telephone: '+92 305 4511395',
+        availableLanguage: ['en', 'ur'],
+      },
+      sameAs: [
+        'https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N',
+        'https://www.tiktok.com/@dream.to.achievers',
+        'https://linkedin.com/company/dream-to-achievers',
+        'https://youtube.com/@dreamtoachievers',
+        'https://x.com/dreamtoachiever',
+        'https://instagram.com/dreamtoachievers',
+        'https://facebook.com/dreamtoachievers',
+      ],
+    },
+    {
+      '@type': 'Person',
+      '@id': 'https://dream-to-achievers.vercel.app/founder/faria-imran#person',
+      name: 'Faria Imran',
+      jobTitle: 'Founder & Executive Director',
+      worksFor: {
+        '@id': 'https://dream-to-achievers.vercel.app/#organization',
+      },
+      url: 'https://dream-to-achievers.vercel.app/founder/faria-imran',
+    },
+  ];
+
   return (
     <div className="w-full bg-[#FAF7EF] text-[#1E241F] font-sans selection:bg-[#B8862E]/25">
-      
+      <SEOHead
+        title="Dream to Achievers | B2B Wholesale Platform Founded by Faria Imran"
+        description="Official platform of Dream to Achievers, founded by Faria Imran. Source verified wholesale inventory in Pakistan, sell nationwide with COD, and earn structured cash milestone rewards."
+        canonicalPath="/"
+        ogType="website"
+        structuredData={homeStructuredData}
+      />
+
       {/* 1. CLEAN & PURPOSE-FOCUSED HERO */}
       <header className="px-6 sm:px-8 pt-16 sm:pt-24 pb-16 sm:pb-24 border-b border-[#E3DCC8] text-center">
         <div className="max-w-[860px] mx-auto space-y-7">
@@ -134,7 +207,17 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. FINAL CONVERSION CTA */}
+      {/* 3. FREQUENTLY ASKED QUESTIONS */}
+      <FAQSection />
+
+      {/* 4. CONTACT SECTION */}
+      <section className="px-6 sm:px-8 py-16 sm:py-20 border-b border-[#E3DCC8]">
+        <div className="max-w-[1180px] mx-auto">
+          <Contact />
+        </div>
+      </section>
+
+      {/* 5. FINAL CONVERSION CTA */}
       <section className="px-6 sm:px-8 py-16 sm:py-20">
         <div className="max-w-[1000px] mx-auto rounded-3xl bg-[#1F4D3E] text-white text-center p-10 sm:p-14 space-y-6 shadow-lg">
           <h2 className="font-serif text-3xl sm:text-4xl font-normal tracking-tight text-white leading-tight max-w-xl mx-auto">

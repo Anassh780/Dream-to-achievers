@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router-dom';
+import { SEOHead } from '@/components/common/SEOHead';
 import {
   UserPlus,
   Package,
@@ -43,8 +44,28 @@ export const HowItWorks: React.FC = () => {
     },
   ];
 
+  const howToSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: 'How to Sell Wholesale Products with Dream to Achievers',
+    description: 'A 4-step process for starting an online reselling business in Pakistan with zero upfront inventory investment.',
+    step: visualSteps.map((s, idx) => ({
+      '@type': 'HowToStep',
+      position: idx + 1,
+      name: s.title,
+      text: s.shortDesc,
+    })),
+  };
+
   return (
     <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] pb-24 font-sans selection:bg-[#B8862E]/25">
+      <SEOHead
+        title="How It Works — B2B Wholesale Reselling Process | Dream to Achievers"
+        description="Learn how to start an online reselling business with Dream to Achievers in 4 steps. Source verified products, sell nationwide via COD, and withdraw guaranteed profits."
+        canonicalPath="/how-it-works"
+        ogType="website"
+        structuredData={howToSchema}
+      />
       
       {/* 1. Header Banner */}
       <section className="px-6 sm:px-8 pt-16 pb-12 border-b border-[#E3DCC8]">
