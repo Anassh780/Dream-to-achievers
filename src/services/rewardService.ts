@@ -50,8 +50,6 @@ export const rewardService = {
         await setDoc(doc(db, `users/${rewards[index].userId}/rewards`, rewardId), rewards[index], { merge: true });
       } catch {}
       try {
-        await set(ref(rtdb, `rewards/${rewardId}`), rewards[index]);
-        await set(ref(rtdb, `user_rewards/${rewards[index].userId}/${rewardId}`), rewards[index]);
       } catch {}
 
       // Create notification for user

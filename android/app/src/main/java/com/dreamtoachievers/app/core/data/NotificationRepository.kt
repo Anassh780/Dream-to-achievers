@@ -3,7 +3,6 @@ package com.dreamtoachievers.app.core.data
 import com.dreamtoachievers.app.core.firebase.FirebaseConfig
 import com.dreamtoachievers.app.core.model.Notification
 import com.dreamtoachievers.app.core.model.UserRole
-import com.dreamtoachievers.app.core.navigation.DtaDestinations
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
@@ -62,7 +61,7 @@ class NotificationRepository(
                             deepLinkRoute = doc.getString("deepLinkRoute"),
                             createdAt = doc.getString("createdAt") ?: ""
                         )
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         null
                     }
                 }
@@ -91,143 +90,138 @@ class NotificationRepository(
         return when (role) {
             UserRole.RESELLER -> listOf(
                 Notification(
-                    id = "notif-res-1",
+                    id = "notif-reseller-1",
+                    userId = "reseller-1",
                     targetRole = UserRole.RESELLER,
+                    type = "success",
                     category = "PAYMENT_VERIFIED",
-                    title = "Payment Slip Verified",
-                    message = "Client payment of Rs 17,998 for Order #DS1007 verified by Admin.",
-                    deepLinkRoute = DtaDestinations.resellerOrderTracking("DS1007"),
-                    createdAt = "2026-09-03T09:15:00Z"
+                    title = "Payment Verified",
+                    message = "Payment proof verified for order #DS1007.",
+                    deepLinkRoute = com.dreamtoachievers.app.core.navigation.DtaDestinations.resellerOrderTracking("DS1007")
                 ),
                 Notification(
-                    id = "notif-res-2",
+                    id = "notif-reseller-2",
+                    userId = "reseller-1",
                     targetRole = UserRole.RESELLER,
+                    type = "info",
                     category = "ORDER_PROCESSING",
-                    title = "Order in Fulfillment",
-                    message = "Order #DS1007 is packed and awaiting courier pickup.",
-                    deepLinkRoute = DtaDestinations.resellerOrderTracking("DS1007"),
-                    createdAt = "2026-09-03T11:30:00Z"
+                    title = "Order Processing",
+                    message = "Order #DS1007 is now in processing.",
+                    deepLinkRoute = com.dreamtoachievers.app.core.navigation.DtaDestinations.RESELLER_ORDERS
                 ),
                 Notification(
-                    id = "notif-res-3",
+                    id = "notif-reseller-3",
+                    userId = "reseller-1",
                     targetRole = UserRole.RESELLER,
+                    type = "success",
                     category = "ORDER_DELIVERED",
-                    title = "Delivery Confirmed",
-                    message = "Order #DS1002 delivered to customer in Lahore.",
-                    deepLinkRoute = DtaDestinations.resellerOrderTracking("DS1002"),
-                    createdAt = "2026-09-02T16:45:00Z"
+                    title = "Order Delivered",
+                    message = "Order #DS1006 has been delivered.",
+                    deepLinkRoute = com.dreamtoachievers.app.core.navigation.DtaDestinations.RESELLER_ORDERS
                 ),
                 Notification(
-                    id = "notif-res-4",
+                    id = "notif-reseller-4",
+                    userId = "reseller-1",
                     targetRole = UserRole.RESELLER,
+                    type = "success",
                     category = "PROFIT_RELEASED",
-                    title = "Wholesale Profit Released",
-                    message = "+PKR 2,000 profit unlocked into your Available Wallet balance.",
-                    deepLinkRoute = DtaDestinations.RESELLER_WALLET,
-                    createdAt = "2026-09-02T16:46:00Z"
+                    title = "Profit Released",
+                    message = "Wholesale profit credited to your wallet.",
+                    deepLinkRoute = com.dreamtoachievers.app.core.navigation.DtaDestinations.RESELLER_WALLET
                 ),
                 Notification(
-                    id = "notif-res-5",
+                    id = "notif-reseller-5",
+                    userId = "reseller-1",
                     targetRole = UserRole.RESELLER,
+                    type = "success",
                     category = "WITHDRAWAL_APPROVED",
-                    title = "Withdrawal Disbursed",
-                    message = "PKR 2,000 sent to EasyPaisa (03001234567). TXN: EP-776611.",
-                    deepLinkRoute = DtaDestinations.RESELLER_WALLET,
-                    createdAt = "2026-09-02T12:00:00Z"
+                    title = "Withdrawal Approved",
+                    message = "Your withdrawal request was disbursed.",
+                    deepLinkRoute = com.dreamtoachievers.app.core.navigation.DtaDestinations.RESELLER_WALLET
                 ),
                 Notification(
-                    id = "notif-res-6",
+                    id = "notif-reseller-6",
+                    userId = "reseller-1",
                     targetRole = UserRole.RESELLER,
+                    type = "achievement",
                     category = "RANK_ACHIEVED",
-                    title = "Milestone Rank Unlocked!",
-                    message = "You achieved Silver Rank! (10 sales • 20 community members)",
-                    deepLinkRoute = DtaDestinations.RESELLER_GROWTH,
-                    createdAt = "2026-09-01T18:00:00Z"
-                ),
-                Notification(
-                    id = "notif-res-7",
-                    targetRole = UserRole.RESELLER,
-                    category = "REWARD_APPROVED",
-                    title = "Milestone Reward Approved",
-                    message = "Admin approved your PKR 2,000 Silver bonus reward.",
-                    deepLinkRoute = DtaDestinations.RESELLER_GROWTH,
-                    createdAt = "2026-09-01T18:30:00Z"
-                ),
-                Notification(
-                    id = "notif-res-8",
-                    targetRole = UserRole.RESELLER,
-                    category = "NEW_REFERRAL",
-                    title = "New Partner Joined Your Team",
-                    message = "Hamza joined your direct community tier using code DTA-ALEX91.",
-                    deepLinkRoute = DtaDestinations.RESELLER_TEAM,
-                    createdAt = "2026-08-31T14:10:00Z"
+                    title = "Rank Milestone Achieved",
+                    message = "Congratulations! You reached Silver Rank.",
+                    deepLinkRoute = com.dreamtoachievers.app.core.navigation.DtaDestinations.RESELLER_GROWTH
                 )
             )
             UserRole.ADMIN, UserRole.SUPERADMIN -> listOf(
                 Notification(
-                    id = "notif-adm-1",
-                    targetRole = role,
+                    id = "notif-admin-1",
+                    userId = "admin-1",
+                    targetRole = UserRole.ADMIN,
+                    type = "warning",
                     category = "PAYMENT_PROOF_SUBMITTED",
-                    title = "New Payment Proof Submitted",
-                    message = "Order #DS1008 uploaded EasyPaisa slip (Rs 12,500) awaiting verification.",
-                    deepLinkRoute = DtaDestinations.adminOrderReview("DS1008"),
-                    createdAt = "2026-09-03T15:40:00Z"
+                    title = "New Payment Receipt",
+                    message = "Order #DS1008 submitted payment proof.",
+                    deepLinkRoute = com.dreamtoachievers.app.core.navigation.DtaDestinations.adminOrderReview("DS1008")
                 ),
                 Notification(
-                    id = "notif-adm-2",
-                    targetRole = role,
+                    id = "notif-admin-2",
+                    userId = "admin-1",
+                    targetRole = UserRole.ADMIN,
+                    type = "info",
                     category = "PENDING_WITHDRAWAL",
-                    title = "Pending Partner Payout",
-                    message = "Ali Khan requested PKR 6,500 payout to JazzCash.",
-                    deepLinkRoute = DtaDestinations.ADMIN_WITHDRAWALS,
-                    createdAt = "2026-09-03T14:00:00Z"
+                    title = "Withdrawal Request Pending",
+                    message = "New payout request awaiting approval.",
+                    deepLinkRoute = com.dreamtoachievers.app.core.navigation.DtaDestinations.ADMIN_WITHDRAWALS
                 ),
                 Notification(
-                    id = "notif-adm-3",
-                    targetRole = role,
+                    id = "notif-admin-3",
+                    userId = "admin-1",
+                    targetRole = UserRole.ADMIN,
+                    type = "info",
                     category = "REWARD_REVIEW",
-                    title = "Pending Milestone Rank Reward",
-                    message = "Platinum rank bonus (PKR 4,000) for Ali Khan ready for verification.",
-                    deepLinkRoute = DtaDestinations.ADMIN_RANK_REWARDS,
-                    createdAt = "2026-09-03T10:00:00Z"
+                    title = "Rank Reward Audit",
+                    message = "Rank milestone reward pending review.",
+                    deepLinkRoute = com.dreamtoachievers.app.core.navigation.DtaDestinations.ADMIN_RANK_REWARDS
                 ),
                 Notification(
-                    id = "notif-adm-4",
-                    targetRole = role,
+                    id = "notif-admin-4",
+                    userId = "admin-1",
+                    targetRole = UserRole.ADMIN,
+                    type = "warning",
                     category = "LOW_STOCK",
-                    title = "Low Stock Consignment Alert",
-                    message = "Max 1150 Ultra AMOLED Smartwatch has only 6 units left in stock.",
-                    deepLinkRoute = DtaDestinations.ADMIN_PRODUCTS,
-                    createdAt = "2026-09-03T08:00:00Z"
+                    title = "Low Stock Alert",
+                    message = "Item inventory is running low.",
+                    deepLinkRoute = com.dreamtoachievers.app.core.navigation.DtaDestinations.ADMIN_PRODUCTS
                 ),
                 Notification(
-                    id = "notif-adm-5",
-                    targetRole = role,
+                    id = "notif-admin-5",
+                    userId = "admin-1",
+                    targetRole = UserRole.ADMIN,
+                    type = "alert",
                     category = "VERIFICATION_ISSUE",
-                    title = "Verification Flag",
-                    message = "Duplicate transaction ID reported for manual slip review on Order #DS1005.",
-                    deepLinkRoute = DtaDestinations.adminOrderReview("DS1005"),
-                    createdAt = "2026-09-02T13:30:00Z"
+                    title = "Verification Issue",
+                    message = "Payment receipt rejected for review.",
+                    deepLinkRoute = com.dreamtoachievers.app.core.navigation.DtaDestinations.ADMIN_ORDERS
                 )
             )
             UserRole.CUSTOMER -> listOf(
                 Notification(
-                    id = "notif-cus-1",
+                    id = "notif-cust-1",
+                    userId = "user-101",
                     targetRole = UserRole.CUSTOMER,
-                    category = "ORDER_STATUS",
-                    title = "Order #ORD-8822 Confirmed",
-                    message = "Your order for Executive Formal Shoes has been dispatched via TCS.",
-                    deepLinkRoute = DtaDestinations.orderTracking("ORD-8822"),
-                    createdAt = "2026-09-03T12:00:00Z"
+                    type = "info",
+                    category = "ORDER_CREATED",
+                    title = "Order Confirmed",
+                    message = "Your order has been received.",
+                    deepLinkRoute = com.dreamtoachievers.app.core.navigation.DtaDestinations.ORDER_TRACKING
                 ),
                 Notification(
-                    id = "notif-cus-2",
+                    id = "notif-cust-2",
+                    userId = "user-101",
                     targetRole = UserRole.CUSTOMER,
-                    category = "PROMO",
-                    title = "New Autumn Arrivals",
-                    message = "Discover the 2026 Luxury Egyptian Fabric collection.",
-                    deepLinkRoute = DtaDestinations.MARKET,
-                    createdAt = "2026-09-01T10:00:00Z"
+                    type = "promo",
+                    category = "SPECIAL_PROMO",
+                    title = "Promotional Discount",
+                    message = "Exclusive deals available.",
+                    deepLinkRoute = com.dreamtoachievers.app.core.navigation.DtaDestinations.MARKET
                 )
             )
         }

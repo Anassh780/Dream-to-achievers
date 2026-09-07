@@ -66,7 +66,6 @@ export const payoutService = {
       await setDoc(doc(db, `users/${userId}/payment_methods`, newMethod.id), newMethod, { merge: true });
     } catch {}
     try {
-      await set(ref(rtdb, `user_payment_methods/${userId}/${newMethod.id}`), newMethod);
     } catch {}
 
     return newMethod;
@@ -162,8 +161,6 @@ export const payoutService = {
       await setDoc(doc(db, `users/${user.id}/withdrawals`, newRequest.id), newRequest, { merge: true });
     } catch {}
     try {
-      await set(ref(rtdb, `withdrawals/${newRequest.id}`), newRequest);
-      await set(ref(rtdb, `user_withdrawals/${user.id}/${newRequest.id}`), newRequest);
     } catch {}
 
     // Create user confirmation notification
@@ -216,7 +213,6 @@ export const payoutService = {
       await setDoc(doc(db, 'withdrawals', requestId), withdrawals[idx], { merge: true });
     } catch {}
     try {
-      await set(ref(rtdb, `withdrawals/${requestId}`), withdrawals[idx]);
     } catch {}
 
     // Dispatch notification to user

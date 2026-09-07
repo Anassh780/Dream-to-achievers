@@ -114,4 +114,29 @@ class CustomerBusinessRulesTest {
         val reseller = User(id = "res-123", email = "reseller@example.com", role = UserRole.RESELLER)
         assertFalse(reseller.isCustomerOnly)
     }
+
+    @Test
+    fun testCustomerHomeScreenStrictRulesNoFinancialWidgetsOrPrices() {
+        // 1. Verify Customer model strictly shields wholesale data
+        val productFields = Product::class.java.declaredFields.map { it.name }
+        assertFalse(productFields.contains("wholesalePrice"))
+        assertFalse(productFields.contains("partnerPrice"))
+        assertFalse(productFields.contains("margin"))
+        assertFalse(productFields.contains("commission"))
+
+        // 2. Verify Customer Navigation 5 Destinations (HOME, MARKET, ORDERS, GROWTH, ACCOUNT)
+        val customerDestinations = com.dreamtoachievers.app.core.designsystem.components.DtaNavDestination.entries
+        assertEquals(5, customerDestinations.size)
+        assertEquals("Home", customerDestinations[0].title)
+        assertEquals("Market", customerDestinations[1].title)
+        assertEquals("Orders", customerDestinations[2].title)
+        assertEquals("Growth", customerDestinations[3].title)
+        assertEquals("Account", customerDestinations[4].title)
+
+        // 3. Verify Customer Palette Tokens
+        val primaryGreen = com.dreamtoachievers.app.core.designsystem.theme.DtaColors.CustomerPrimaryGreen
+        assertEquals(0xFF009B67.toInt(), (primaryGreen.value shr 32).toInt())
+        val promoDark = com.dreamtoachievers.app.core.designsystem.theme.DtaColors.CustomerPromoDarkGreen
+        assertEquals(0xFF034A36.toInt(), (promoDark.value shr 32).toInt())
+    }
 }

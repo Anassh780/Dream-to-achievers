@@ -130,7 +130,7 @@ private fun AdminOrderQueueCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
                         text = "#${order.id.uppercase()}",
                         style = DtaTheme.typography.TitleSmall.copy(fontWeight = FontWeight.Bold)
@@ -141,7 +141,7 @@ private fun AdminOrderQueueCard(
                     )
                 }
 
-                DtaStatusChip(status = order.status)
+                DtaStatusChip(status = order.status, modifier = Modifier.padding(start = 8.dp))
             }
 
             // Customer & Reseller line
@@ -151,7 +151,7 @@ private fun AdminOrderQueueCard(
                     style = DtaTheme.typography.BodyMedium.copy(fontWeight = FontWeight.SemiBold)
                 )
                 Text(
-                    text = "Reseller: ${order.resellerName} (${order.resellerReferralCode})",
+                    text = "Reseller: ${order.resellerName.ifBlank { order.userId.take(12) }}${order.resellerReferralCode.takeIf { it.isNotBlank() }?.let { " ($it)" } ?: ""}",
                     style = DtaTheme.typography.BodySmall.copy(color = DtaTheme.colors.inkSecondary)
                 )
                 Text(

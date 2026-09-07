@@ -9,6 +9,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,7 +57,6 @@ import com.dreamtoachievers.app.feature.reseller.sale.*
 import com.dreamtoachievers.app.feature.reseller.team.*
 import com.dreamtoachievers.app.feature.reseller.tracking.*
 import com.dreamtoachievers.app.feature.reseller.wallet.*
-import com.dreamtoachievers.app.feature.splash.SplashScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,10 +75,21 @@ fun DtaNavHost(
     modifier: Modifier = Modifier
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route ?: DtaDestinations.SPLASH
+    val currentRoute = navBackStackEntry?.destination?.route ?: DtaDestinations.HOME
 
     // Active Role State (Defaults to RESELLER or CUSTOMER, can be switched on the fly)
-    var activeRole by remember { mutableStateOf(UserRole.CUSTOMER) }
+    var activeRole by rememberSaveable { mutableStateOf(UserRole.CUSTOMER) }
+    val sessionUser by userRepository.currentUser.collectAsState(initial = null)
+    val canUsePartner = sessionUser?.isActive == true && sessionUser?.role != UserRole.CUSTOMER
+    val canUseAdmin = sessionUser?.isActive == true &&
+        (sessionUser?.role == UserRole.ADMIN || sessionUser?.role == UserRole.SUPERADMIN)
+    LaunchedEffect(canUsePartner, canUseAdmin) {
+        if ((activeRole == UserRole.RESELLER && !canUsePartner) ||
+            ((activeRole == UserRole.ADMIN || activeRole == UserRole.SUPERADMIN) && !canUseAdmin)) {
+            activeRole = UserRole.CUSTOMER
+            navController.navigate(DtaDestinations.HOME) { popUpTo(0) { inclusive = true } }
+        }
+    }
     var showRoleSwitcherSheet by remember { mutableStateOf(false) }
 
     val customerTopLevelRoutes = listOf(
@@ -104,28 +116,29 @@ fun DtaNavHost(
         DtaDestinations.ADMIN_ACCOUNT
     )
 
-    val isCustomerNav = activeRole == UserRole.CUSTOMER && currentRoute in customerTopLevelRoutes
-    val isResellerNav = activeRole == UserRole.RESELLER && currentRoute.substringBefore("?") in resellerTopLevelRoutes
-    val isAdminNav = (activeRole == UserRole.ADMIN || activeRole == UserRole.SUPERADMIN) && currentRoute.substringBefore("?") in adminTopLevelRoutes
+    val normalizedRoute = currentRoute.substringBefore("?")
+    val isCustomerNav = activeRole == UserRole.CUSTOMER && normalizedRoute in customerTopLevelRoutes
+    val isResellerNav = activeRole == UserRole.RESELLER && normalizedRoute in resellerTopLevelRoutes
+    val isAdminNav = (activeRole == UserRole.ADMIN || activeRole == UserRole.SUPERADMIN) && normalizedRoute in adminTopLevelRoutes
 
     // ViewModels
-    val homeViewModel = remember { HomeViewModel(productRepository, categoryRepository, cartRepository, userRepository, dataStoreManager) }
-    val marketViewModel = remember { MarketViewModel(productRepository, categoryRepository, cartRepository, dataStoreManager) }
-    val cartViewModel = remember { CartViewModel(cartRepository) }
-    val ordersViewModel = remember { OrdersViewModel(orderRepository, dataStoreManager) }
-    val customerRewardsViewModel = remember { CustomerRewardsViewModel(userRepository, referralRepository, dataStoreManager) }
-    val accountViewModel = remember { AccountViewModel(userRepository, orderRepository, notificationRepository, dataStoreManager) }
-    val authViewModel = remember { AuthViewModel(userRepository, dataStoreManager) }
+    val homeViewModel = viewModel { HomeViewModel(productRepository, categoryRepository, cartRepository, userRepository, notificationRepository, orderRepository, com.dreamtoachievers.app.DreamToAchieversApp.instance.storefrontRepository) }
+    val marketViewModel = viewModel { MarketViewModel(productRepository, categoryRepository, cartRepository, dataStoreManager) }
+    val cartViewModel = viewModel { CartViewModel(cartRepository) }
+    val ordersViewModel = viewModel { OrdersViewModel(orderRepository, dataStoreManager, productRepository) }
+    val customerRewardsViewModel = viewModel { CustomerRewardsViewModel(userRepository, referralRepository, dataStoreManager) }
+    val accountViewModel = viewModel { AccountViewModel(userRepository, orderRepository, notificationRepository, dataStoreManager) }
+    val authViewModel = viewModel { AuthViewModel(userRepository, dataStoreManager) }
 
-    val resellerDashboardViewModel = remember { ResellerDashboardViewModel(resellerRepository, dataStoreManager) }
-    val partnerCatalogViewModel = remember { PartnerCatalogViewModel(resellerRepository) }
-    val resellerWalletViewModel = remember { ResellerWalletViewModel(resellerRepository) }
-    val resellerGrowthViewModel = remember { ResellerGrowthViewModel(resellerRepository) }
+    val resellerDashboardViewModel = viewModel { ResellerDashboardViewModel(resellerRepository, dataStoreManager) }
+    val partnerCatalogViewModel = viewModel { PartnerCatalogViewModel(resellerRepository, productRepository, categoryRepository, userRepository) }
+    val resellerWalletViewModel = viewModel { ResellerWalletViewModel(resellerRepository) }
+    val resellerGrowthViewModel = viewModel { ResellerGrowthViewModel(resellerRepository) }
 
-    val adminHubViewModel = remember { AdminHubViewModel(adminRepository) }
-    val adminOrderViewModel = remember { AdminOrderVerificationViewModel(adminRepository) }
-    val adminWithdrawalViewModel = remember { AdminWithdrawalApprovalViewModel(adminRepository) }
-    val adminUserViewModel = remember { AdminUserManagementViewModel(adminRepository) }
+    val adminHubViewModel = viewModel { AdminHubViewModel(adminRepository) }
+    val adminOrderViewModel = viewModel { AdminOrderVerificationViewModel(adminRepository) }
+    val adminWithdrawalViewModel = viewModel { AdminWithdrawalApprovalViewModel(adminRepository) }
+    val adminUserViewModel = viewModel { AdminUserManagementViewModel(adminRepository) }
 
     // Role Switcher Modal Bottom Sheet
     if (showRoleSwitcherSheet) {
@@ -144,7 +157,7 @@ fun DtaNavHost(
                     style = DtaTheme.typography.TitleLarge.copy(fontWeight = FontWeight.Bold)
                 )
                 Text(
-                    text = "Switch between customer shopping, partner wholesale, and superadmin controls in real-time.",
+                    text = "Choose an experience available to your signed-in account.",
                     style = DtaTheme.typography.BodySmall.copy(color = DtaTheme.colors.inkSecondary)
                 )
 
@@ -164,6 +177,7 @@ fun DtaNavHost(
                 )
 
                 // 2. Reseller Option
+                if (canUsePartner) {
                 RoleOptionCard(
                     title = "Reseller / Partner Console",
                     subtitle = "Wholesale catalog, record client sales, wallet & ranks",
@@ -177,21 +191,24 @@ fun DtaNavHost(
                         }
                     }
                 )
+                }
 
                 // 3. Admin Option
+                if (canUseAdmin) {
                 RoleOptionCard(
                     title = "Admin / SuperAdmin Console",
                     subtitle = "Verify payment slips, dispatch couriers & disburse payouts",
                     icon = Icons.Default.AdminPanelSettings,
                     isSelected = activeRole == UserRole.SUPERADMIN || activeRole == UserRole.ADMIN,
                     onClick = {
-                        activeRole = UserRole.SUPERADMIN
+                        activeRole = sessionUser?.role ?: UserRole.CUSTOMER
                         showRoleSwitcherSheet = false
                         navController.navigate(DtaDestinations.ADMIN_HUB) {
                             popUpTo(0) { inclusive = true }
                         }
                     }
                 )
+                }
 
                 Spacer(modifier = Modifier.height(10.dp))
             }
@@ -201,10 +218,21 @@ fun DtaNavHost(
     Scaffold(
         bottomBar = {
             if (isCustomerNav) {
+                val currentCartCount by cartRepository.totalQuantity.collectAsState(initial = 0)
+                val homeState by homeViewModel.uiState.collectAsState()
                 DtaBottomNavigation(
                     currentRoute = currentRoute,
+                    cartItemCount = currentCartCount,
+                    ordersBadgeCount = homeState.openOrdersCount,
                     onNavigate = { destination ->
-                        navController.navigate(destination.route) {
+                        val targetRoute = when (destination) {
+                            DtaNavDestination.HOME -> DtaDestinations.HOME
+                            DtaNavDestination.MARKET -> DtaDestinations.MARKET
+                            DtaNavDestination.ORDERS -> DtaDestinations.ORDERS
+                            DtaNavDestination.GROWTH -> DtaDestinations.GROWTH
+                            DtaNavDestination.ACCOUNT -> DtaDestinations.ACCOUNT
+                        }
+                        navController.navigate(targetRoute) {
                             popUpTo(DtaDestinations.HOME) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
@@ -240,39 +268,28 @@ fun DtaNavHost(
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = DtaDestinations.SPLASH,
+            startDestination = DtaDestinations.HOME,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(bottom = if (isCustomerNav || isResellerNav || isAdminNav) paddingValues.calculateBottomPadding() else 0.dp)
         ) {
-            // -------------------------------------------------------------
-            // 1. Splash & Auth
-            // -------------------------------------------------------------
-            composable(DtaDestinations.SPLASH) {
-                SplashScreen(
-                    onSplashFinished = {
-                        val destination = when (activeRole) {
-                            UserRole.RESELLER -> DtaDestinations.RESELLER_DASHBOARD
-                            UserRole.ADMIN, UserRole.SUPERADMIN -> DtaDestinations.ADMIN_HUB
-                            else -> DtaDestinations.HOME
-                        }
-                        navController.navigate(destination) {
-                            popUpTo(DtaDestinations.SPLASH) { inclusive = true }
-                        }
-                    }
-                )
-            }
-
             composable(DtaDestinations.LOGIN) {
                 LoginScreen(
                     viewModel = authViewModel,
                     onLoginSuccess = {
-                        navController.navigate(DtaDestinations.HOME) {
-                            popUpTo(DtaDestinations.LOGIN) { inclusive = true }
+                        authViewModel.consumeSuccess()
+                        activeRole = UserRole.CUSTOMER
+                        if (navController.previousBackStackEntry?.destination?.route == DtaDestinations.CHECKOUT) {
+                            navController.popBackStack()
+                        } else {
+                            navController.navigate(DtaDestinations.HOME) {
+                                popUpTo(0) { inclusive = true }
+                            }
                         }
                     },
-                    onNavigateToRegister = { navController.navigate(DtaDestinations.REGISTER) },
+                    onNavigateToRegister = { authViewModel.clearError(); navController.navigate(DtaDestinations.REGISTER) },
                     onContinueAsGuest = {
+                        activeRole = UserRole.CUSTOMER
                         navController.navigate(DtaDestinations.HOME) {
                             popUpTo(DtaDestinations.LOGIN) { inclusive = true }
                         }
@@ -284,11 +301,13 @@ fun DtaNavHost(
                 RegisterScreen(
                     viewModel = authViewModel,
                     onRegisterSuccess = {
+                        authViewModel.consumeSuccess()
+                        activeRole = UserRole.CUSTOMER
                         navController.navigate(DtaDestinations.HOME) {
-                            popUpTo(DtaDestinations.REGISTER) { inclusive = true }
+                            popUpTo(0) { inclusive = true }
                         }
                     },
-                    onNavigateToLogin = { navController.popBackStack() }
+                    onNavigateToLogin = { authViewModel.clearError(); navController.popBackStack() }
                 )
             }
 
@@ -302,7 +321,12 @@ fun DtaNavHost(
                         navController.navigate(DtaDestinations.productDetail(productId))
                     },
                     onNavigateToMarket = { categorySlug ->
-                        if (categorySlug != null) marketViewModel.onCategorySelected(categorySlug)
+                        marketViewModel.onCategorySelected(categorySlug ?: "all")
+                        navController.navigate(DtaDestinations.MARKET)
+                    },
+                    onSearch = { query ->
+                        marketViewModel.onCategorySelected("all")
+                        marketViewModel.onSearchQueryChanged(query)
                         navController.navigate(DtaDestinations.MARKET)
                     },
                     onNavigateToCart = { navController.navigate(DtaDestinations.CART) },
@@ -317,7 +341,7 @@ fun DtaNavHost(
                     onNavigateToProductDetail = { productId ->
                         navController.navigate(DtaDestinations.productDetail(productId))
                     },
-                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateBack = null,
                     onNavigateToCart = { navController.navigate(DtaDestinations.CART) }
                 )
             }
@@ -326,6 +350,7 @@ fun DtaNavHost(
                 WishlistScreen(
                     viewModel = marketViewModel,
                     onNavigateBack = { navController.popBackStack() },
+                    onNavigateToMarket = { navController.navigate(DtaDestinations.MARKET) },
                     onNavigateToProductDetail = { productId ->
                         navController.navigate(DtaDestinations.productDetail(productId))
                     }
@@ -337,8 +362,8 @@ fun DtaNavHost(
                 arguments = listOf(navArgument("productId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val productId = backStackEntry.arguments?.getString("productId") ?: ""
-                val productDetailViewModel = remember(productId) {
-                    ProductDetailViewModel(productId, productRepository, cartRepository, dataStoreManager)
+                val productDetailViewModel = viewModel(key = productId) {
+                    ProductDetailViewModel(productId, productRepository, cartRepository, dataStoreManager, userRepository)
                 }
 
                 ProductDetailScreen(
@@ -359,12 +384,25 @@ fun DtaNavHost(
             }
 
             composable(DtaDestinations.CHECKOUT) {
-                val checkoutViewModel = remember {
+                if (sessionUser == null) {
+                    Scaffold(topBar = { DtaSecondaryTopBar("Checkout", { navController.popBackStack() }) }) { padding ->
+                        DtaEmptyState(
+                            title = "Sign in to checkout",
+                            description = "Your cart is saved while you sign in. Orders will be linked to your account for tracking.",
+                            icon = Icons.Default.Person,
+                            actionButtonText = "Sign In",
+                            onActionClick = { navController.navigate(DtaDestinations.LOGIN) },
+                            modifier = Modifier.padding(padding)
+                        )
+                    }
+                } else {
+                val checkoutViewModel = viewModel {
                     CheckoutViewModel(cartRepository, orderRepository, userRepository)
                 }
 
                 CheckoutScreen(
                     viewModel = checkoutViewModel,
+                    savedAddresses = accountViewModel.uiState.collectAsState().value.savedAddresses,
                     onNavigateBack = { navController.popBackStack() },
                     onOrderPlaced = { orderId ->
                         navController.navigate(DtaDestinations.orderConfirmation(orderId)) {
@@ -372,6 +410,8 @@ fun DtaNavHost(
                         }
                     }
                 )
+            }
+
             }
 
             composable(
@@ -409,7 +449,7 @@ fun DtaNavHost(
                 arguments = listOf(navArgument("orderId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
-                val trackingViewModel = remember(orderId) {
+                val trackingViewModel = viewModel(key = orderId) {
                     OrderTrackingViewModel(orderId, orderRepository)
                 }
 
@@ -420,7 +460,9 @@ fun DtaNavHost(
             }
 
             composable(DtaDestinations.GROWTH) {
-                CustomerRewardsScreen(viewModel = customerRewardsViewModel)
+                CustomerRewardsScreen(viewModel = customerRewardsViewModel,
+                    onNavigateToNotifications = { navController.navigate(DtaDestinations.NOTIFICATIONS) },
+                    onNavigateToLogin = { navController.navigate(DtaDestinations.LOGIN) })
             }
 
             composable(DtaDestinations.ACCOUNT) {
@@ -434,12 +476,27 @@ fun DtaNavHost(
                     onNavigateToHelp = { navController.navigate(DtaDestinations.HELP_SUPPORT) },
                     onNavigateToLegal = { type -> navController.navigate(DtaDestinations.legal(type)) },
                     onNavigateToLogin = { navController.navigate(DtaDestinations.LOGIN) },
+                    onNavigateToGrowth = { navController.navigate(DtaDestinations.GROWTH) },
+                    onEditProfile = { navController.navigate(DtaDestinations.PROFILE) },
                     onSwitchRole = { showRoleSwitcherSheet = true }
                 )
             }
 
             composable(DtaDestinations.NOTIFICATIONS) {
-                NotificationsScreen(viewModel = accountViewModel, onNavigateBack = { navController.popBackStack() })
+                NotificationsScreen(viewModel = accountViewModel, onNavigateBack = { navController.popBackStack() },
+                    onOpenNotification = { route ->
+                        val safeRoute = route.takeIf {
+                            it in customerTopLevelRoutes || it == DtaDestinations.WISHLIST ||
+                                it.startsWith("order_tracking/") || it.startsWith("product/")
+                        }
+                        if (safeRoute != null) navController.navigate(safeRoute) { launchSingleTop = true }
+                    })
+            }
+
+            composable(DtaDestinations.PROFILE) {
+                ProfileScreen(userRepository, { navController.popBackStack() }, {
+                    navController.navigate(DtaDestinations.LOGIN)
+                })
             }
 
             composable(DtaDestinations.ADDRESSES) {
@@ -468,6 +525,7 @@ fun DtaNavHost(
             composable(DtaDestinations.RESELLER_DASHBOARD) {
                 ResellerDashboardScreen(
                     viewModel = resellerDashboardViewModel,
+                    currentUser = sessionUser,
                     onNavigateToRecordSale = { productId ->
                         navController.navigate(DtaDestinations.recordSale(productId))
                     },
@@ -501,7 +559,7 @@ fun DtaNavHost(
                 })
             ) { backStackEntry ->
                 val productId = backStackEntry.arguments?.getString("productId")
-                val recordSaleViewModel = remember(productId) {
+                val recordSaleViewModel = viewModel(key = productId) {
                     RecordSaleViewModel(productId, resellerRepository)
                 }
 
@@ -525,13 +583,15 @@ fun DtaNavHost(
 
             composable(DtaDestinations.RESELLER_GROWTH) {
                 ResellerGrowthScreen(
-                    viewModel = resellerGrowthViewModel
+                    viewModel = resellerGrowthViewModel,
+                    currentUser = sessionUser
                 )
             }
 
             composable(DtaDestinations.RESELLER_REFERRALS) {
                 ReferralsScreen(
                     resellerRepository = resellerRepository,
+                    currentUser = sessionUser,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToTeam = { navController.navigate(DtaDestinations.RESELLER_TEAM) }
                 )
@@ -561,7 +621,7 @@ fun DtaNavHost(
                 route = DtaDestinations.RESELLER_ORDER_TRACKING,
                 arguments = listOf(navArgument("orderId") { type = NavType.StringType })
             ) { backStackEntry ->
-                val orderId = backStackEntry.arguments?.getString("orderId") ?: "DS1007"
+                val orderId = backStackEntry.arguments?.getString("orderId").orEmpty()
                 ResellerOrderTrackingScreen(
                     orderId = orderId,
                     resellerRepository = resellerRepository,
@@ -572,11 +632,16 @@ fun DtaNavHost(
             composable(DtaDestinations.RESELLER_ACCOUNT) {
                 ResellerAccountScreen(
                     resellerRepository = resellerRepository,
+                    currentUser = sessionUser,
+                    onNavigateToSupport = { navController.navigate(DtaDestinations.HELP_SUPPORT) },
                     onNavigateToWallet = { navController.navigate(DtaDestinations.RESELLER_WALLET) },
                     onNavigateToGrowth = { navController.navigate(DtaDestinations.RESELLER_GROWTH) },
                     onNavigateToReferrals = { navController.navigate(DtaDestinations.RESELLER_REFERRALS) },
                     onSwitchRole = { showRoleSwitcherSheet = true },
                     onSignOut = {
+                        accountViewModel.logout()
+                        authViewModel.consumeSuccess()
+                        activeRole = UserRole.CUSTOMER
                         navController.navigate(DtaDestinations.LOGIN) {
                             popUpTo(0) { inclusive = true }
                         }
@@ -598,8 +663,9 @@ fun DtaNavHost(
                         }
                     }
                 ) {
-                    AdminHubScreen(
-                        viewModel = adminHubViewModel,
+                AdminHubScreen(
+                    viewModel = adminHubViewModel,
+                    currentUser = sessionUser,
                         onNavigateToOrders = { navController.navigate(DtaDestinations.ADMIN_ORDERS) },
                         onNavigateToWithdrawals = { navController.navigate(DtaDestinations.ADMIN_WITHDRAWALS) },
                         onNavigateToRewards = { navController.navigate(DtaDestinations.ADMIN_RANK_REWARDS) },
@@ -637,7 +703,7 @@ fun DtaNavHost(
                 route = DtaDestinations.ADMIN_ORDER_REVIEW,
                 arguments = listOf(navArgument("orderId") { type = NavType.StringType })
             ) { backStackEntry ->
-                val orderId = backStackEntry.arguments?.getString("orderId") ?: "DS1008"
+                val orderId = backStackEntry.arguments?.getString("orderId").orEmpty()
                 AdminRouteGuard(
                     activeRole = activeRole,
                     adminRepository = adminRepository,
@@ -759,10 +825,14 @@ fun DtaNavHost(
                 ) {
                     AdminAccountScreen(
                         adminRepository = adminRepository,
+                        currentUser = sessionUser,
                         onNavigateToAuditLogs = { navController.navigate(DtaDestinations.ADMIN_AUDIT_LOGS) },
                         onNavigateToUsers = { navController.navigate(DtaDestinations.ADMIN_USERS) },
                         onSwitchRole = { showRoleSwitcherSheet = true },
                         onSignOut = {
+                            accountViewModel.logout()
+                            authViewModel.consumeSuccess()
+                            activeRole = UserRole.CUSTOMER
                             navController.navigate(DtaDestinations.LOGIN) {
                                 popUpTo(0) { inclusive = true }
                             }
@@ -958,4 +1028,3 @@ private fun AdminAccessDeniedScreen(
         }
     }
 }
-

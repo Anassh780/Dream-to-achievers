@@ -29,8 +29,8 @@ data class TeamMember(
 
 @Serializable
 data class NetworkAnalytics(
-    val totalPartners: Int = 126,
-    val activePartners: Int = 98,
-    val newThisMonth: Int = 24,
-    val monthlyGrowthTrend: List<Int> = listOf(14, 18, 22, 19, 24, 28) // Last 6 months new partners
+    val totalPartners: Int = 0,
+    val activePartners: Int = 0,
+    val newThisMonth: Int = 0,
+    val monthlyGrowthTrend: List<Int> = emptyList()
 )

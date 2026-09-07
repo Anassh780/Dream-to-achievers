@@ -1,6 +1,5 @@
 import { Category, CategoryTreeNode, Product } from '@/types';
 import { storage } from './storage';
-import { SEED_CATEGORIES } from '@/config/categories';
 import { auditService } from './auditService';
 import { cloudSyncService } from './cloudSyncService';
 
@@ -9,7 +8,7 @@ export const categoryService = {
    * Retrieves all categories from storage/cache
    */
   getAllCategories(): Category[] {
-    return storage.get<Category[]>('CATEGORIES', SEED_CATEGORIES);
+    return storage.get<Category[]>('CATEGORIES', []);
   },
 
   /**

@@ -166,6 +166,13 @@ fun AuditLogScreen(
 
 @Composable
 private fun AuditLogCard(log: AuditLog) {
+    val entityLabel = when {
+        log.entityType.isNotBlank() && log.entityId.isNotBlank() -> "${log.entityType}: ${log.entityId}"
+        log.entityType.isNotBlank() -> log.entityType
+        log.entityId.isNotBlank() -> log.entityId
+        else -> "System event"
+    }
+    val actorLabel = log.actorName.ifBlank { log.actorId.ifBlank { "System service" } }
     Card(
         shape = DtaTheme.shapes.Card,
         colors = CardDefaults.cardColors(containerColor = DtaTheme.colors.surface),
@@ -177,10 +184,9 @@ private fun AuditLogCard(log: AuditLog) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // Header Row: Action Badge + Timestamp
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Box(
                     modifier = Modifier
@@ -207,11 +213,10 @@ private fun AuditLogCard(log: AuditLog) {
                 )
             }
 
-            // Entity + Actor Row
-            Row(
+            // Entity + Actor details
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -222,13 +227,13 @@ private fun AuditLogCard(log: AuditLog) {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "${log.entityType}: ${log.entityId}",
+                        text = entityLabel,
                         style = DtaTheme.typography.TitleSmall.copy(fontWeight = FontWeight.SemiBold)
                     )
                 }
 
                 Text(
-                    text = "Actor: ${log.actorName}",
+                    text = "Actor: $actorLabel",
                     style = DtaTheme.typography.BodySmall.copy(
                         color = DtaTheme.colors.inkSecondary,
                         fontSize = 11.sp

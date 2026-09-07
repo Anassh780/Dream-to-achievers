@@ -9,7 +9,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.dreamtoachievers.app.core.data.*
@@ -31,31 +30,30 @@ class MainActivity : ComponentActivity() {
     private lateinit var adminRepository: AdminRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Install Android modern splash screen
-        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         // Initialize dependencies
-        dataStoreManager = (application as DreamToAchieversApp).dataStoreManager
-        productRepository = ProductRepository()
-        categoryRepository = CategoryRepository()
-        cartRepository = CartRepository.instance
-        orderRepository = OrderRepository()
-        userRepository = UserRepository(dataStoreManager = dataStoreManager)
-        referralRepository = ReferralRepository(dataStoreManager = dataStoreManager)
-        notificationRepository = NotificationRepository()
-        resellerRepository = ResellerRepository(dataStoreManager = dataStoreManager)
-        adminRepository = AdminRepository(resellerRepository = resellerRepository)
+        val app = application as DreamToAchieversApp
+        dataStoreManager = app.dataStoreManager
+        productRepository = app.productRepository
+        categoryRepository = app.categoryRepository
+        cartRepository = app.cartRepository
+        orderRepository = app.orderRepository
+        userRepository = app.userRepository
+        referralRepository = app.referralRepository
+        notificationRepository = app.notificationRepository
+        resellerRepository = app.resellerRepository
+        adminRepository = app.adminRepository
 
         // Handle referral deep link if app was opened via link
         handleIncomingIntent(intent)
 
         setContent {
-            DtaTheme {
+            DtaTheme(darkTheme = false) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = DtaTheme.colors.background
+                    color = DtaTheme.colors.background,
                 ) {
                     val navController = rememberNavController()
 
@@ -70,7 +68,7 @@ class MainActivity : ComponentActivity() {
                         notificationRepository = notificationRepository,
                         resellerRepository = resellerRepository,
                         adminRepository = adminRepository,
-                        dataStoreManager = dataStoreManager
+                        dataStoreManager = dataStoreManager,
                     )
                 }
             }

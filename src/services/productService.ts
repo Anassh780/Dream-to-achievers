@@ -1,6 +1,5 @@
 import { Product } from '@/types';
 import { storage } from './storage';
-import { SEED_PRODUCTS } from '@/config/products';
 import { categoryService } from './categoryService';
 import { cloudSyncService } from './cloudSyncService';
 
@@ -14,12 +13,12 @@ export type ProductSortOption =
 
 export const productService = {
   getAllProducts(): Product[] {
-    const products = storage.get<Product[]>('PRODUCTS', SEED_PRODUCTS);
+    const products = storage.get<Product[]>('PRODUCTS', []);
     return products.filter((p) => p.status === 'active');
   },
 
   getAllAdminProducts(): Product[] {
-    return storage.get<Product[]>('PRODUCTS', SEED_PRODUCTS);
+    return storage.get<Product[]>('PRODUCTS', []);
   },
 
   getProductBySlug(slug: string): Product | undefined {
@@ -110,7 +109,7 @@ export const productService = {
   },
 
   saveProduct(product: Product): void {
-    const products = storage.get<Product[]>('PRODUCTS', SEED_PRODUCTS);
+    const products = storage.get<Product[]>('PRODUCTS', []);
     const index = products.findIndex((p) => p.id === product.id);
     if (index >= 0) {
       products[index] = product;
@@ -124,7 +123,7 @@ export const productService = {
   },
 
   deleteProduct(productId: string): void {
-    const products = storage.get<Product[]>('PRODUCTS', SEED_PRODUCTS);
+    const products = storage.get<Product[]>('PRODUCTS', []);
     const updated = products.filter((p) => p.id !== productId);
     storage.set('PRODUCTS', updated);
 

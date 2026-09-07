@@ -1,6 +1,7 @@
 package com.dreamtoachievers.app.feature.account
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,6 +29,7 @@ import com.dreamtoachievers.app.core.designsystem.theme.DtaTheme
 fun NotificationsScreen(
     viewModel: AccountViewModel,
     onNavigateBack: () -> Unit,
+    onOpenNotification: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -71,6 +73,10 @@ fun NotificationsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .border(1.dp, DtaTheme.colors.line, DtaTheme.shapes.Card)
+                            .clickable {
+                                viewModel.markNotificationRead(notif.id)
+                                notif.deepLinkRoute?.let(onOpenNotification)
+                            }
                     ) {
                         Row(
                             modifier = Modifier

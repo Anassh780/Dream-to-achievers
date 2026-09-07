@@ -39,7 +39,7 @@ fun ResellerOrderTrackingScreen(
     val context = LocalContext.current
     val sales by resellerRepository.resellerSales.collectAsState()
     val order = sales.firstOrNull { it.id.equals(orderId, ignoreCase = true) }
-        ?: sales.firstOrNull { it.id == "DS1007" } // Fallback to Screen 07 sample
+        ?: sales.firstOrNull()
 
     Scaffold(
         topBar = {

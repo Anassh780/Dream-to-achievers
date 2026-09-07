@@ -60,6 +60,7 @@ class CheckoutViewModel(
 
     fun submitOrder() {
         val state = _uiState.value
+        if (state.isSubmitting || state.submittedOrderId != null) return
         if (state.fullName.isBlank() || state.phone.isBlank() || state.address.isBlank() || state.city.isBlank()) {
             _uiState.update { it.copy(error = "Please fill in all delivery details") }
             return
@@ -73,46 +74,53 @@ class CheckoutViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmitting = true, error = null) }
+            try {
+                val customer = userRepository.currentUser.first()
+                    ?: error("Please sign in before placing your order.")
 
-            val primaryProduct = cartItems.first().product
-            val totalQuantity = cartItems.sumOf { it.quantity }
-            val totalAmount = cartRepository.getTotal()
+                val primaryProduct = cartItems.first().product
+                val totalQuantity = cartItems.sumOf { it.quantity }
+                val totalAmount = cartRepository.getTotal()
 
-            // 1. Upload receipt screenshot if selected
-            var receiptUrl = ""
-            state.paymentReceiptUri?.let { uri ->
-                val tempOrderId = "sale-${System.currentTimeMillis()}"
-                receiptUrl = orderRepository.uploadReceipt(tempOrderId, uri)
+                val orderId = "sale-${System.currentTimeMillis()}-${(100..999).random()}"
+                val newOrder = Order(
+                    id = orderId,
+                    userId = customer.id,
+                    productId = primaryProduct.id,
+                    productName = if (cartItems.size == 1) primaryProduct.name else "${primaryProduct.name} + ${cartItems.size - 1} items",
+                    productImage = primaryProduct.imageUrl,
+                    customerName = state.fullName,
+                    customerPhone = state.phone,
+                    customerAddress = state.address,
+                    customerCity = state.city,
+                    paymentScreenshotUrl = null,
+                    paymentMethod = state.selectedPaymentMethod.rawValue,
+                    quantity = totalQuantity,
+                    retailPrice = totalAmount / totalQuantity,
+                    sellingPrice = totalAmount / totalQuantity,
+                    currency = primaryProduct.currency,
+                    status = OrderStatus.PENDING_VERIFICATION
+                )
+
+                val result = orderRepository.submitOrder(newOrder)
+                result.fold(
+                    onSuccess = { order ->
+                        state.paymentReceiptUri?.let { uri ->
+                            val receiptUrl = orderRepository.uploadReceipt(order.id, uri)
+                            orderRepository.attachReceipt(order.id, receiptUrl)
+                        }
+                        cartRepository.clearCart()
+                        _uiState.update { it.copy(isSubmitting = false, submittedOrderId = order.id) }
+                    },
+                    onFailure = { err ->
+                        _uiState.update { it.copy(isSubmitting = false, error = err.localizedMessage ?: "Failed to place order") }
+                    }
+                )
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isSubmitting = false, error = e.localizedMessage ?: "Unable to place order. Please try again.") }
             }
-
-            val newOrder = Order(
-                userId = "",
-                productId = primaryProduct.id,
-                productName = if (cartItems.size == 1) primaryProduct.name else "${primaryProduct.name} + ${cartItems.size - 1} items",
-                productImage = primaryProduct.imageUrl,
-                customerName = state.fullName,
-                customerPhone = state.phone,
-                customerAddress = state.address,
-                customerCity = state.city,
-                paymentScreenshotUrl = receiptUrl.ifEmpty { null },
-                paymentMethod = state.selectedPaymentMethod.rawValue,
-                quantity = totalQuantity,
-                retailPrice = totalAmount / totalQuantity,
-                sellingPrice = totalAmount / totalQuantity,
-                currency = primaryProduct.currency,
-                status = OrderStatus.PENDING_VERIFICATION
-            )
-
-            val result = orderRepository.submitOrder(newOrder)
-            result.fold(
-                onSuccess = { order ->
-                    cartRepository.clearCart()
-                    _uiState.update { it.copy(isSubmitting = false, submittedOrderId = order.id) }
-                },
-                onFailure = { err ->
-                    _uiState.update { it.copy(isSubmitting = false, error = err.localizedMessage ?: "Failed to place order") }
-                }
-            )
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.dreamtoachievers.app.feature.reseller.catalog
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,12 +36,22 @@ fun PartnerCatalogScreen(
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    var showProductForm by remember { mutableStateOf(false) }
 
-    Column(
+    LaunchedEffect(state.submissionMessage) {
+        if (state.submissionMessage != null) {
+            context.getSharedPreferences(PRODUCT_DRAFT_PREFS, Context.MODE_PRIVATE).edit().clear().apply()
+            showProductForm = false
+        }
+    }
+
+    Box(
         modifier = modifier
             .fillMaxSize()
             .background(DtaTheme.colors.background)
     ) {
+    Column(Modifier.fillMaxSize()) {
         // App Bar
         DtaTopAppBar(
             title = "Wholesale Catalog",
@@ -70,6 +83,13 @@ fun PartnerCatalogScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        state.submissionMessage?.let { message ->
+            Text(message, color = DtaTheme.colors.semanticSuccess, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+        }
+        state.submissionError?.let { message ->
+            Text(message, color = DtaTheme.colors.semanticError, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+        }
+
         // Product List
         if (state.filteredProducts.isEmpty()) {
             DtaEmptyState(
@@ -89,6 +109,24 @@ fun PartnerCatalogScreen(
                     )
                 }
             }
+        }
+    }
+        FloatingActionButton(
+            onClick = { viewModel.clearSubmissionStatus(); showProductForm = true },
+            containerColor = DtaTheme.colors.primary,
+            contentColor = Color.White,
+            modifier = Modifier.align(Alignment.BottomEnd).padding(18.dp),
+        ) {
+            Icon(Icons.Default.Add, "Add product")
+        }
+        if (showProductForm) {
+            ResellerProductWizard(
+                categories = state.catalogCategories,
+                submitting = state.isSubmitting,
+                submissionError = state.submissionError,
+                onDismiss = { if (!state.isSubmitting) showProductForm = false },
+                onSubmit = { product, images -> viewModel.submitProduct(product, images) },
+            )
         }
     }
 }
@@ -165,7 +203,7 @@ private fun WholesaleProductCard(
                 }
             }
 
-            Divider(color = DtaTheme.colors.line)
+            HorizontalDivider(color = DtaTheme.colors.line)
 
             // Pricing & Margin Breakdown
             Row(

@@ -3,6 +3,7 @@ package com.dreamtoachievers.app.feature.reseller.referrals
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import com.dreamtoachievers.app.core.designsystem.util.openExternalIntent
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
@@ -32,19 +33,21 @@ import com.dreamtoachievers.app.core.data.ResellerRepository
 import com.dreamtoachievers.app.core.designsystem.components.*
 import com.dreamtoachievers.app.core.designsystem.theme.DtaTheme
 import com.dreamtoachievers.app.core.model.NetworkAnalytics
+import com.dreamtoachievers.app.core.model.User
 
 @Composable
 fun ReferralsScreen(
     resellerRepository: ResellerRepository,
+    currentUser: User?,
     onNavigateBack: () -> Unit,
     onNavigateToTeam: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val analytics by resellerRepository.networkAnalytics.collectAsState()
-    val referralCode = resellerRepository.currentReferralCode
-    val referralLink = resellerRepository.currentReferralLink
-    val joinDate = resellerRepository.joiningDate
+    val referralCode = currentUser?.referralCode?.takeIf { it.isNotBlank() } ?: "Not assigned"
+    val referralLink = if (referralCode == "Not assigned") "" else "https://dreamtoachievers.com/?ref=$referralCode"
+    val joinDate = currentUser?.createdAt?.take(10)?.takeIf { it.isNotBlank() } ?: "Not available"
 
     Scaffold(
         topBar = {
@@ -81,7 +84,7 @@ fun ReferralsScreen(
                             putExtra(Intent.EXTRA_TEXT, "Join my merchant network on Dream to Achievers: $referralLink")
                             type = "text/plain"
                         }
-                        context.startActivity(Intent.createChooser(sendIntent, "Share Referral Link"))
+                        context.openExternalIntent(Intent.createChooser(sendIntent, "Share Referral Link"))
                     }
                 )
             }

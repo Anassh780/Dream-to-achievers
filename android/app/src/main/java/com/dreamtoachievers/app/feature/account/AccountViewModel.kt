@@ -10,11 +10,12 @@ import com.dreamtoachievers.app.core.model.Notification
 import com.dreamtoachievers.app.core.model.User
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.coroutineScope
 
 data class AccountUiState(
     val user: User? = null,
     val totalOrders: Int = 0,
-    val savedAddresses: List<String> = listOf("House 14-B, Street 5, Gulberg III, Lahore, Pakistan"),
+    val savedAddresses: List<String> = emptyList(),
     val notifications: List<Notification> = emptyList(),
     val isLoggedOut: Boolean = false
 )
@@ -35,14 +36,25 @@ class AccountViewModel(
 
     private fun loadProfile() {
         viewModelScope.launch {
-            userRepository.currentUser.collect { user ->
-                _uiState.update { it.copy(user = user) }
-                if (user != null) {
-                    orderRepository.getUserOrders(user.id).collect { orders ->
-                        _uiState.update { it.copy(totalOrders = orders.size) }
-                    }
-                    notificationRepository.observeNotifications(user.id).collect { notifs ->
-                        _uiState.update { it.copy(notifications = notifs) }
+            userRepository.currentUser.collectLatest { user ->
+                coroutineScope {
+                    _uiState.update { it.copy(user = user, totalOrders = 0, savedAddresses = emptyList(), notifications = emptyList(), isLoggedOut = false) }
+                    if (user != null) {
+                        launch {
+                            userRepository.observeAddresses(user.id).collect { addresses ->
+                                _uiState.update { it.copy(savedAddresses = addresses.sorted()) }
+                            }
+                        }
+                        launch {
+                            orderRepository.getUserOrders(user.id).collect { orders ->
+                                _uiState.update { it.copy(totalOrders = orders.size) }
+                            }
+                        }
+                        launch {
+                            notificationRepository.observeNotifications(user.id).collect { notifs ->
+                                _uiState.update { it.copy(notifications = notifs) }
+                            }
+                        }
                     }
                 }
             }
@@ -51,8 +63,16 @@ class AccountViewModel(
 
     fun addAddress(addr: String) {
         if (addr.isNotBlank()) {
-            _uiState.update { it.copy(savedAddresses = it.savedAddresses + addr.trim()) }
+            viewModelScope.launch { userRepository.addAddress(addr.trim()) }
         }
+    }
+
+    fun removeAddress(address: String) {
+        viewModelScope.launch { userRepository.removeAddress(address) }
+    }
+
+    fun markNotificationRead(id: String) {
+        viewModelScope.launch { notificationRepository.markAsRead(id) }
     }
 
     fun logout() {

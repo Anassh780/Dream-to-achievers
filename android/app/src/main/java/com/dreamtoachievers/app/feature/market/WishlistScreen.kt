@@ -21,10 +21,11 @@ fun WishlistScreen(
     viewModel: MarketViewModel,
     onNavigateBack: () -> Unit,
     onNavigateToProductDetail: (String) -> Unit,
+    onNavigateToMarket: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val favoriteProducts = uiState.products.filter { uiState.favoriteProductIds.contains(it.id) }
+    val favoriteProducts by viewModel.wishlistProducts.collectAsState()
 
     Scaffold(
         topBar = {
@@ -47,7 +48,7 @@ fun WishlistScreen(
                     description = "Save your favorite products to quickly purchase or monitor them later.",
                     icon = Icons.Outlined.FavoriteBorder,
                     actionButtonText = "Browse Market",
-                    onActionClick = onNavigateBack
+                    onActionClick = onNavigateToMarket
                 )
             } else {
                 LazyVerticalGrid(

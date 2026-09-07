@@ -41,12 +41,12 @@ class CartViewModel(
         }.launchIn(viewModelScope)
     }
 
-    fun updateQuantity(productId: String, quantity: Int) {
-        cartRepository.updateQuantity(productId, quantity)
+    fun updateQuantity(productId: String, quantity: Int, variant: String? = null) {
+        cartRepository.updateQuantity(productId, quantity, variant)
     }
 
-    fun removeItem(productId: String) {
-        cartRepository.removeFromCart(productId)
+    fun removeItem(productId: String, variant: String? = null) {
+        cartRepository.removeFromCart(productId, variant)
     }
 
     fun applyPromoCode(code: String) {

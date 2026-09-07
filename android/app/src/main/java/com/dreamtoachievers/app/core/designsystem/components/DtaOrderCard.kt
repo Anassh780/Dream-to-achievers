@@ -4,8 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -52,7 +55,7 @@ fun DtaOrderCard(
                         )
                     )
                     Text(
-                        text = order.createdAt.take(10),
+                        text = formatOrderDate(order.createdAt),
                         style = DtaTheme.typography.Metadata.copy(
                             color = DtaTheme.colors.inkSecondary,
                             fontSize = 12.sp
@@ -74,8 +77,15 @@ fun DtaOrderCard(
                     modifier = Modifier
                         .size(56.dp)
                         .clip(DtaTheme.shapes.Small)
-                        .background(DtaTheme.colors.surfaceAlt)
+                        .background(DtaTheme.colors.surfaceAlt),
+                    contentAlignment = Alignment.Center
                 ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ShoppingCart,
+                        contentDescription = null,
+                        tint = DtaTheme.colors.inkMuted,
+                        modifier = Modifier.size(24.dp)
+                    )
                     if (order.productImage.isNotBlank()) {
                         AsyncImage(
                             model = order.productImage,
@@ -133,5 +143,24 @@ fun DtaOrderCard(
                 )
             }
         }
+    }
+}
+
+private fun formatOrderDate(rawDate: String): String {
+    if (rawDate.isBlank()) return "Recently"
+    return try {
+        val iso = rawDate.take(10)
+        val parts = iso.split("-")
+        if (parts.size == 3) {
+            val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+            val monthIdx = parts[1].toIntOrNull()?.minus(1) ?: return iso
+            val day = parts[2].toIntOrNull() ?: return iso
+            val year = parts[0]
+            "${months.getOrElse(monthIdx) { "Month" }} $day, $year"
+        } else {
+            rawDate.take(10)
+        }
+    } catch (_: Exception) {
+        rawDate.take(10)
     }
 }

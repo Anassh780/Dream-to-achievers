@@ -35,10 +35,10 @@ fun DtaQuantitySelector(
             .padding(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Decrease Button (min 44x44 touch target)
+        // Decrease button with a 48dp Android touch target
         Box(
             modifier = Modifier
-                .size(36.dp)
+                .size(48.dp)
                 .clip(CircleShape)
                 .background(
                     if (quantity > minQuantity) DtaTheme.colors.surface else DtaTheme.colors.surfaceAlt
@@ -75,7 +75,7 @@ fun DtaQuantitySelector(
         // Increase Button
         Box(
             modifier = Modifier
-                .size(36.dp)
+                .size(48.dp)
                 .clip(CircleShape)
                 .background(
                     if (quantity < maxQuantity) DtaTheme.colors.surface else DtaTheme.colors.surfaceAlt

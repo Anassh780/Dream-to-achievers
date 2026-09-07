@@ -125,7 +125,7 @@ class RecordSaleViewModel(
         _uiState.value = _uiState.value.copy(isSubmitting = true, errorMessage = null)
 
         val result = resellerRepository.recordSale(
-            userId = "reseller-1",
+            userId = "",
             product = product,
             customerName = state.customerName,
             customerPhone = state.customerPhone,
@@ -134,7 +134,7 @@ class RecordSaleViewModel(
             customerCity = state.customerCity,
             quantity = state.quantity,
             sellingPrice = state.sellingPrice,
-            paymentScreenshotUrl = state.paymentSlipUri?.toString() ?: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&auto=format&fit=crop&q=80",
+            paymentScreenshotUrl = state.paymentSlipUri?.toString(),
             paymentProofNotes = state.paymentNotes
         )
 

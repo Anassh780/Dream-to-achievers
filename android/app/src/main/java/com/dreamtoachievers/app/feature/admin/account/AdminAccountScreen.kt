@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.dreamtoachievers.app.core.data.AdminRepository
 import com.dreamtoachievers.app.core.designsystem.components.*
 import com.dreamtoachievers.app.core.designsystem.theme.DtaTheme
+import com.dreamtoachievers.app.core.model.User
 
 /**
  * Point 85: Role-Specific Admin Account Screen
@@ -32,6 +33,7 @@ import com.dreamtoachievers.app.core.designsystem.theme.DtaTheme
 @Composable
 fun AdminAccountScreen(
     adminRepository: AdminRepository,
+    currentUser: User?,
     onNavigateToAuditLogs: () -> Unit,
     onNavigateToUsers: () -> Unit,
     onSwitchRole: () -> Unit,
@@ -40,7 +42,12 @@ fun AdminAccountScreen(
 ) {
     val context = LocalContext.current
     var showSignOutDialog by remember { mutableStateOf(false) }
-    var highValueAuthEnabled by remember { mutableStateOf(true) }
+    var infoMessage by remember { mutableStateOf<String?>(null) }
+    infoMessage?.let { message ->
+        AlertDialog(onDismissRequest = { infoMessage = null },
+            title = { Text("System Information") }, text = { Text(message) },
+            confirmButton = { TextButton(onClick = { infoMessage = null }) { Text("Close") } })
+    }
 
     if (showSignOutDialog) {
         AlertDialog(
@@ -77,7 +84,7 @@ fun AdminAccountScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Admin Account",
                             style = DtaTheme.typography.TitleLarge.copy(fontWeight = FontWeight.Bold)
@@ -102,7 +109,7 @@ fun AdminAccountScreen(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Switch",
+                            text = "Role",
                             style = DtaTheme.typography.Label.copy(
                                 color = DtaTheme.colors.primary,
                                 fontWeight = FontWeight.Bold
@@ -156,7 +163,7 @@ fun AdminAccountScreen(
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 Text(
-                                    text = "Super Administrator",
+                                    text = currentUser?.fullName?.takeIf { it.isNotBlank() } ?: "Administrator",
                                     style = DtaTheme.typography.TitleMedium.copy(fontWeight = FontWeight.Bold)
                                 )
                                 Box(
@@ -166,7 +173,7 @@ fun AdminAccountScreen(
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text(
-                                        text = "ROOT ACCESS",
+                                        text = if (currentUser?.role?.rawValue == "superadmin") "SUPER ADMIN" else "ADMIN",
                                         style = DtaTheme.typography.Label.copy(
                                             color = DtaTheme.colors.error,
                                             fontSize = 9.sp,
@@ -176,11 +183,11 @@ fun AdminAccountScreen(
                                 }
                             }
                             Text(
-                                text = "admin@dreamtoachievers.com",
+                                text = currentUser?.email.orEmpty(),
                                 style = DtaTheme.typography.BodySmall.copy(color = DtaTheme.colors.inkSecondary)
                             )
                             Text(
-                                text = "UID: dta-sec-admin-root-01",
+                                text = "UID: ${currentUser?.id?.take(16) ?: "Unavailable"}",
                                 style = DtaTheme.typography.Label.copy(
                                     color = DtaTheme.colors.inkSecondary,
                                     fontSize = 10.sp
@@ -204,7 +211,7 @@ fun AdminAccountScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
-                            text = "Security Policies (Point 81)",
+                            text = "Security Policies",
                             style = DtaTheme.typography.TitleSmall.copy(fontWeight = FontWeight.Bold)
                         )
 
@@ -219,13 +226,14 @@ fun AdminAccountScreen(
                                     style = DtaTheme.typography.BodyMedium.copy(fontWeight = FontWeight.SemiBold)
                                 )
                                 Text(
-                                    text = "Require secondary confirmation for disbursements ≥ PKR 10,000",
+                                    text = "Additional authentication is not configured in this app",
                                     style = DtaTheme.typography.BodySmall.copy(color = DtaTheme.colors.inkSecondary, fontSize = 11.sp)
                                 )
                             }
-                            Switch(
-                                checked = highValueAuthEnabled,
-                                onCheckedChange = { highValueAuthEnabled = it }
+                            Text(
+                                text = "Not configured",
+                                maxLines = 1,
+                                style = DtaTheme.typography.Label.copy(color = DtaTheme.colors.inkSecondary)
                             )
                         }
                     }
@@ -243,7 +251,7 @@ fun AdminAccountScreen(
                     Column {
                         AdminActionRow(
                             icon = Icons.Default.HistoryEdu,
-                            title = "System Audit Logs (Point 61)",
+                            title = "System Audit Logs",
                             subtitle = "Review immutable record of all order & payout actions",
                             onClick = onNavigateToAuditLogs
                         )
@@ -262,7 +270,7 @@ fun AdminAccountScreen(
                             title = "Default Courier Integrations",
                             subtitle = "TCS Express, Trax Logistics, Leopard & PostEx",
                             onClick = {
-                                Toast.makeText(context, "Courier APIs configured & operational", Toast.LENGTH_SHORT).show()
+                                infoMessage = "Assign a courier and tracking number from an order's dispatch screen. This app does not verify external courier API availability."
                             }
                         )
                         HorizontalDivider(color = DtaTheme.colors.line)
@@ -270,9 +278,9 @@ fun AdminAccountScreen(
                         AdminActionRow(
                             icon = Icons.Default.CloudSync,
                             title = "Firebase Synchronization",
-                            subtitle = "Active connection to uc-store-b5265 backend",
+                            subtitle = "About cloud data synchronization",
                             onClick = {
-                                Toast.makeText(context, "Firebase Firestore listeners synchronized", Toast.LENGTH_SHORT).show()
+                                infoMessage = "Order and catalog updates use Firebase listeners. Connectivity depends on your network and account permissions; this screen does not run a connection health check."
                             }
                         )
                     }

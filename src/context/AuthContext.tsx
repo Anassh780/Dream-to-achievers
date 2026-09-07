@@ -117,10 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         isAuthenticated: !!user,
-        isAdmin:
-          user?.role === 'admin' ||
-          user?.role === 'superadmin' ||
-          (user?.email ? authService.isConfiguredAdmin(user.email) : false),
+        isAdmin: user?.role === 'admin' || user?.role === 'superadmin',
         rankProgress,
         unreadNotifsCount,
         login,

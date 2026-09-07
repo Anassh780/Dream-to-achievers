@@ -1,7 +1,6 @@
 package com.dreamtoachievers.app.core.firebase
 
 import com.dreamtoachievers.app.core.model.Category
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -9,7 +8,6 @@ import kotlinx.coroutines.flow.callbackFlow
 
 class FirebaseCategoryDataSource(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
-    private val rtdb: FirebaseDatabase = FirebaseDatabase.getInstance()
 ) {
 
     val defaultCategories = listOf(
@@ -71,10 +69,9 @@ class FirebaseCategoryDataSource(
 
     fun observeCategories(): Flow<List<Category>> = callbackFlow {
         val listener = firestore.collection(FirebaseConfig.COLLECTION_CATEGORIES)
-            .whereEqualTo("status", "active")
             .addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null) {
-                    trySend(emptyList())
+                if ((error != null) || (snapshot == null)) {
+                    trySend(defaultCategories)
                     return@addSnapshotListener
                 }
 
@@ -94,10 +91,11 @@ class FirebaseCategoryDataSource(
                             parentId = doc.getString("parentId"),
                             depth = (doc.getLong("depth") ?: 0).toInt()
                         )
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         null
                     }
-                }
+                }.filter { it.status == "active" }
+                 .sortedBy { it.sortOrder }
 
                 val allCategory = Category(
                     id = "cat-all",
@@ -115,7 +113,7 @@ class FirebaseCategoryDataSource(
                 } else if (categories.isNotEmpty()) {
                     (listOf(allCategory) + categories).sortedBy { it.sortOrder }
                 } else {
-                    emptyList()
+                    defaultCategories
                 }
 
                 trySend(fullList)

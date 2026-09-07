@@ -5,7 +5,7 @@ import com.dreamtoachievers.app.core.model.Referral
 
 class ReferralRepository(
     private val dataSource: FirebaseReferralDataSource = FirebaseReferralDataSource(),
-    private val dataStoreManager: DataStoreManager
+    private val dataStoreManager: DataStoreManager,
 ) {
 
     fun normalizeCode(raw: String): String = dataSource.normalizeReferralCode(raw)

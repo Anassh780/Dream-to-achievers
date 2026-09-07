@@ -1,0 +1,142 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function own(uid) { return signedIn() && request.auth.uid == uid; }
+    function role() {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+        : null;
+    }
+    function admin() { return role() == 'admin' || role() == 'superadmin'; }
+    function superadmin() { return role() == 'superadmin'; }
+
+    match /products/{id} {
+      allow read: if true;
+      allow create: if admin() || (signedIn()
+        && (role() == 'reseller' || role() == 'partner')
+        && request.resource.data.sellerId == request.auth.uid
+        && request.resource.data.status == 'pending_review');
+      allow update: if admin() || (signedIn()
+        && resource.data.sellerId == request.auth.uid
+        && resource.data.status == 'pending_review'
+        && request.resource.data.sellerId == resource.data.sellerId
+        && request.resource.data.status == 'pending_review');
+      allow delete: if admin();
+
+      match /reviews/{uid} {
+        allow read: if true;
+        allow create: if own(uid)
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.productId == id
+          && request.resource.data.rating >= 1
+          && request.resource.data.rating <= 5
+          && request.resource.data.verifiedPurchase == false;
+        allow update: if own(uid)
+          && request.resource.data.userId == resource.data.userId
+          && request.resource.data.productId == resource.data.productId
+          && request.resource.data.rating >= 1
+          && request.resource.data.rating <= 5
+          && request.resource.data.verifiedPurchase == resource.data.verifiedPurchase;
+        allow delete: if own(uid) || admin();
+      }
+    }
+    match /categories/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+    match /banners/{id} {
+      allow read: if resource.data.active == true || admin();
+      allow write: if admin();
+    }
+    match /carts/{uid} {
+      allow read, create, update, delete: if own(uid);
+    }
+    match /wishlists/{uid} {
+      allow read, create, update, delete: if own(uid);
+    }
+    match /recent_searches/{uid} {
+      allow read, create, update, delete: if own(uid);
+    }
+
+    match /users/{uid} {
+      allow create: if own(uid)
+        && request.resource.data.id == uid
+        && request.resource.data.role == 'user'
+        && request.resource.data.isActive == true;
+      allow read: if own(uid) || admin();
+      allow update: if admin() || (own(uid)
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.isActive == resource.data.isActive);
+      allow delete: if superadmin();
+
+      match /sales/{id} {
+        allow read: if own(uid) || admin();
+        allow create: if own(uid) && request.resource.data.userId == uid;
+        allow update, delete: if admin();
+      }
+      match /withdrawals/{id} {
+        allow read: if own(uid) || admin();
+        allow create: if own(uid) && request.resource.data.userId == uid
+          && request.resource.data.status == 'pending';
+        allow update, delete: if admin();
+      }
+      match /referrals/{id} {
+        allow read: if own(uid) || admin();
+        allow create: if signedIn() && request.resource.data.referrerId == uid;
+        allow update, delete: if admin();
+      }
+      match /rewards/{id} {
+        allow read: if own(uid) || admin();
+        allow write: if admin();
+      }
+      match /payment_methods/{id} {
+        allow read, write: if own(uid) || admin();
+      }
+    }
+
+    match /sales/{id} {
+      allow read: if admin() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending_verification';
+      allow update, delete: if admin();
+    }
+    match /withdrawals/{id} {
+      allow read: if admin() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending';
+      allow update, delete: if admin();
+    }
+    match /referrals/{id} {
+      allow read: if admin() || (signedIn() &&
+        (resource.data.referrerId == request.auth.uid || resource.data.referredUserId == request.auth.uid));
+      allow create: if signedIn() && request.resource.data.referredUserId == request.auth.uid;
+      allow update, delete: if admin();
+    }
+    match /notifications/{id} {
+      allow read: if admin() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow create: if admin() || (signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.isRead == false);
+      allow delete: if admin();
+      allow update: if admin() || (signedIn() && resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']));
+    }
+    match /rewards/{id} {
+      allow read: if admin() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow write: if admin();
+    }
+    match /referral_index/{code} {
+      allow read: if true;
+      allow create, update: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow delete: if admin();
+    }
+    match /audit_logs/{id} { allow read, write: if admin(); }
+    match /deleted_products/{id} { allow read, write: if admin(); }
+    match /deleted_users/{id} { allow read, write: if superadmin(); }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

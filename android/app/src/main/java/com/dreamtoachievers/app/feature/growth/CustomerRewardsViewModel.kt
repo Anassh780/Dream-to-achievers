@@ -12,11 +12,11 @@ import kotlinx.coroutines.launch
 
 data class CustomerGrowthUiState(
     val user: User? = null,
-    val rewardPoints: Int = 120,
-    val totalCreditsPKR: Double = 1200.0,
-    val referralCode: String = "DTA-CUSTOMER",
+    val rewardPoints: Int = 0,
+    val totalCreditsPKR: Double = 0.0,
+    val referralCode: String = "",
     val referrals: List<Referral> = emptyList(),
-    val invitedCount: Int = 3,
+    val invitedCount: Int = 0,
     val isCopied: Boolean = false
 )
 
@@ -35,17 +35,18 @@ class CustomerRewardsViewModel(
 
     private fun loadData() {
         viewModelScope.launch {
-            userRepository.currentUser.collect { user ->
+            userRepository.currentUser.collectLatest { user ->
+                _uiState.value = CustomerGrowthUiState(user = user)
                 if (user != null) {
                     val referrals = referralRepository.getCustomerReferrals(user.id)
                     _uiState.update {
                         it.copy(
                             user = user,
-                            rewardPoints = user.rewardPoints.coerceAtLeast(100),
+                            rewardPoints = user.rewardPoints,
                             referralCode = user.referralCode.ifEmpty { "DTA-${user.id.take(6).uppercase()}" },
                             referrals = referrals,
-                            invitedCount = referrals.size.coerceAtLeast(1),
-                            totalCreditsPKR = (referrals.size * 500.0).coerceAtLeast(500.0)
+                            invitedCount = referrals.size,
+                            totalCreditsPKR = referrals.sumOf { it.rewardEarned }
                         )
                     }
                 }

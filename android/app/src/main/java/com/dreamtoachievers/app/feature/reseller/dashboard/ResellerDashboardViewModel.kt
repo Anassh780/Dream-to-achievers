@@ -7,28 +7,16 @@ import com.dreamtoachievers.app.core.data.ResellerRepository
 import com.dreamtoachievers.app.core.model.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.time.Instant
 
 data class ResellerDashboardUiState(
     val isLoading: Boolean = false,
     val period: String = "30D", // "Today", "7D", "30D", "All"
-    val grossSales: Double = 245800.0,
-    val ordersCount: Int = 24,
-    val networkCount: Int = 48,
-    val walletLedger: WalletLedger = WalletLedger(
-        realizedProfit = 22500.0,
-        pendingProfit = 6800.0,
-        withdrawnProfit = 4000.0,
-        availableBalance = 18500.0
-    ),
-    val rankProgress: RankProgress = RankProgress(
-        currentRank = RankDefinition(name = "Silver Rank", slug = "silver", order = 1, rewardAmount = 2000.0),
-        nextRank = RankDefinition(name = "Platinum Rank", slug = "platinum", order = 2, requiredSales = 25, requiredCommunity = 45, rewardAmount = 4000.0),
-        qualifyingSales = 18,
-        qualifyingCommunity = 32,
-        salesProgressPercent = 72,
-        communityProgressPercent = 71,
-        overallProgressPercent = 71
-    ),
+    val grossSales: Double = 0.0,
+    val ordersCount: Int = 0,
+    val networkCount: Int = 0,
+    val walletLedger: WalletLedger = WalletLedger(),
+    val rankProgress: RankProgress = RankProgress(currentRank = RankDefinition(name = "Starter", slug = "starter")),
     val recentSales: List<ResellerSale> = emptyList(),
     val partnerProducts: List<PartnerProduct> = emptyList()
 )
@@ -39,6 +27,7 @@ class ResellerDashboardViewModel(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ResellerDashboardUiState())
+    private var allSales: List<ResellerSale> = emptyList()
     val uiState: StateFlow<ResellerDashboardUiState> = _uiState.asStateFlow()
 
     init {
@@ -52,11 +41,14 @@ class ResellerDashboardViewModel(
                 resellerRepository.partnerProducts,
                 resellerRepository.communityMembers
             ) { sales, products, members ->
-                val ledger = resellerRepository.getWalletLedger()
-                val progress = resellerRepository.getRankProgress()
+                val userId = dataStoreManager?.userId?.first().orEmpty()
+                val ledger = resellerRepository.getWalletLedger(userId)
+                val progress = resellerRepository.getRankProgress(userId)
 
+                allSales = sales
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
+                    grossSales = totalForPeriod(sales, _uiState.value.period),
                     ordersCount = sales.size,
                     networkCount = members.size,
                     walletLedger = ledger,
@@ -69,12 +61,18 @@ class ResellerDashboardViewModel(
     }
 
     fun selectPeriod(period: String) {
-        val gross = when (period) {
-            "Today" -> 18500.0
-            "7D" -> 64200.0
-            "30D" -> 245800.0
-            else -> 480000.0
+        _uiState.value = _uiState.value.copy(period = period, grossSales = totalForPeriod(allSales, period))
+    }
+
+    private fun totalForPeriod(sales: List<ResellerSale>, period: String): Double {
+        val cutoff = when (period) {
+            "Today" -> System.currentTimeMillis() - 24L * 60 * 60 * 1000
+            "7D" -> System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000
+            "30D" -> System.currentTimeMillis() - 30L * 24 * 60 * 60 * 1000
+            else -> Long.MIN_VALUE
         }
-        _uiState.value = _uiState.value.copy(period = period, grossSales = gross)
+        return sales.filter { sale ->
+            period == "All" || runCatching { Instant.parse(sale.createdAt).toEpochMilli() >= cutoff }.getOrDefault(false)
+        }.sumOf { it.totalCustomerBill }
     }
 }

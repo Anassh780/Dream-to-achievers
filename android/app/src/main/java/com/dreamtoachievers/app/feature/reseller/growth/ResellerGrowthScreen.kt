@@ -3,6 +3,7 @@ package com.dreamtoachievers.app.feature.reseller.growth
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import com.dreamtoachievers.app.core.designsystem.util.openExternalIntent
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -30,14 +31,18 @@ import com.dreamtoachievers.app.core.designsystem.theme.DtaTheme
 import com.dreamtoachievers.app.core.model.MilestoneReward
 import com.dreamtoachievers.app.core.model.RankDefinition
 import com.dreamtoachievers.app.core.model.RankProgress
+import com.dreamtoachievers.app.core.model.User
 
 @Composable
 fun ResellerGrowthScreen(
     viewModel: ResellerGrowthViewModel,
+    currentUser: User?,
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val referralCode = currentUser?.referralCode?.takeIf { it.isNotBlank() } ?: "Not assigned"
+    val referralLink = if (referralCode == "Not assigned") "" else "https://dreamtoachievers.com/?ref=$referralCode"
 
     Scaffold(
         topBar = {
@@ -69,19 +74,19 @@ fun ResellerGrowthScreen(
             // 3. Referral Sharing Action Card
             item {
                 ReferralInviteCard(
-                    code = state.referralCode,
-                    link = state.referralLink,
+                    code = referralCode,
+                    link = referralLink,
                     onCopy = {
                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        clipboard.setPrimaryClip(ClipData.newPlainText("Referral Code", state.referralCode))
+                        clipboard.setPrimaryClip(ClipData.newPlainText("Referral Code", referralCode))
                         Toast.makeText(context, "Referral code copied!", Toast.LENGTH_SHORT).show()
                     },
                     onShare = {
                         val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                            putExtra(Intent.EXTRA_TEXT, "Join Dream to Achievers as a partner merchant with my link: ${state.referralLink}")
+                            putExtra(Intent.EXTRA_TEXT, "Join Dream to Achievers as a partner merchant with my link: $referralLink")
                             type = "text/plain"
                         }
-                        context.startActivity(Intent.createChooser(sendIntent, "Share Referral Link"))
+                        context.openExternalIntent(Intent.createChooser(sendIntent, "Share Referral Link"))
                     }
                 )
             }
@@ -233,14 +238,17 @@ private fun DualRequirementCard(progress: RankProgress) {
             ) {
                 Text(
                     text = "Unlock Requirements for ${next.name}",
-                    style = DtaTheme.typography.TitleMedium.copy(fontWeight = FontWeight.Bold)
+                    style = DtaTheme.typography.TitleMedium.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier.weight(1f).padding(end = 8.dp)
                 )
                 Text(
                     text = "${progress.overallProgressPercent}% Completed",
                     style = DtaTheme.typography.Label.copy(
                         color = DtaTheme.colors.primary,
                         fontWeight = FontWeight.Bold
-                    )
+                    ),
+                    maxLines = 1,
+                    softWrap = false
                 )
             }
 

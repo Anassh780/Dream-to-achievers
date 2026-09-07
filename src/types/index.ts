@@ -212,7 +212,7 @@ export interface Reward {
   adminNote?: string;
 }
 
-export type UserRole = 'user' | 'admin' | 'superadmin';
+export type UserRole = 'user' | 'reseller' | 'admin' | 'superadmin';
 
 export interface User {
   id: string;

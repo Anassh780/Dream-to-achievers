@@ -79,8 +79,8 @@ export const Home: React.FC = () => {
   return (
     <div className="w-full bg-[#FAF7EF] text-[#1E241F] font-sans selection:bg-[#B8862E]/25">
       <SEOHead
-        title="Dream to Achievers | B2B Wholesale Platform Founded by Faria Imran"
-        description="Official platform of Dream to Achievers, founded by Faria Imran. Source verified wholesale inventory in Pakistan, sell nationwide with COD, and earn structured cash milestone rewards."
+        title="Dream to Achievers Pakistan | B2B Wholesale & Reseller Platform"
+        description="Dream to Achievers is a B2B wholesale and online reselling platform in Pakistan. Source verified wholesale products and sell nationwide with COD fulfillment."
         canonicalPath="/"
         ogType="website"
         structuredData={homeStructuredData}
@@ -92,16 +92,16 @@ export const Home: React.FC = () => {
           
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#1F4D3E]/8 border border-[#1F4D3E]/15 text-[#1F4D3E] text-xs font-medium">
             <ShieldCheck size={14} weight="bold" />
-            <span>Pakistan's Wholesale Reseller &amp; Partner Platform</span>
+            <span>Dream to Achievers Pakistan · B2B Wholesale &amp; Reseller Platform</span>
           </div>
 
           <h1 className="font-serif font-normal text-3xl sm:text-5xl lg:text-[54px] tracking-tight leading-[1.12] text-[#1E241F]">
-            Sell verified products.<br />
-            Earn <em className="italic text-[#1F4D3E] font-medium">guaranteed profit</em> on your dashboard.
+            Start an online reselling business in Pakistan.<br />
+            Source <em className="italic text-[#1F4D3E] font-medium">verified wholesale products</em> with confidence.
           </h1>
 
           <p className="text-sm sm:text-base text-[#5B5C50] max-w-[580px] mx-auto leading-relaxed">
-            Create an account, choose high-demand wholesale products, sell to your customers, and withdraw your profit margins and cash bonuses directly from your dashboard.
+            Dream to Achievers connects online sellers with verified wholesale products, transparent reseller margins, and nationwide cash on delivery fulfillment—without requiring a shop or advance inventory.
           </p>
 
           {/* 3 Core Value Cards */}

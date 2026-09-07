@@ -18,7 +18,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -34,7 +33,7 @@ fun CartScreen(
     onNavigateBack: () -> Unit,
     onNavigateToCheckout: () -> Unit,
     onNavigateToMarket: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var promoInput by remember { mutableStateOf("") }
@@ -46,7 +45,7 @@ fun CartScreen(
         topBar = {
             DtaSecondaryTopBar(
                 title = screenTitle,
-                onBackClick = onNavigateBack
+                onBackClick = onNavigateBack,
             )
         },
         bottomBar = {
@@ -119,11 +118,11 @@ fun CartScreen(
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 // Cart items
-                items(uiState.items, key = { it.product.id }) { item ->
+                items(uiState.items, key = { "${it.product.id.length}:${it.product.id}:${it.selectedVariant}" }) { item ->
                     CartItemRow(
                         item = item,
-                        onQuantityChange = { viewModel.updateQuantity(item.product.id, it) },
-                        onRemove = { viewModel.removeItem(item.product.id) }
+                        onQuantityChange = { viewModel.updateQuantity(item.product.id, it, item.selectedVariant) },
+                        onRemove = { viewModel.removeItem(item.product.id, item.selectedVariant) }
                     )
                 }
 
@@ -238,7 +237,7 @@ fun CartScreen(
                                 )
                             )
 
-                            Divider(color = DtaTheme.colors.line)
+                            HorizontalDivider(color = DtaTheme.colors.line)
 
                             SummaryRow("Subtotal", "Rs ${uiState.subtotal.toInt().toString().reversed().chunked(3).joinToString(",").reversed()}")
 
@@ -251,7 +250,7 @@ fun CartScreen(
                                 if (uiState.deliveryFee == 0.0) "FREE" else "Rs ${uiState.deliveryFee.toInt()}"
                             )
 
-                            Divider(color = DtaTheme.colors.line)
+                            HorizontalDivider(color = DtaTheme.colors.line)
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -449,7 +448,7 @@ private fun CartItemRow(
 
                     IconButton(
                         onClick = onRemove,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.DeleteOutline,
@@ -462,9 +461,15 @@ private fun CartItemRow(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                DtaPriceText(price = item.product.retailPrice, fontSize = 14.sp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Unit: ",
+                        style = DtaTheme.typography.Metadata.copy(color = DtaTheme.colors.inkMuted, fontSize = 11.sp)
+                    )
+                    DtaPriceText(price = item.product.retailPrice, fontSize = 13.sp)
+                }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -476,14 +481,20 @@ private fun CartItemRow(
                         onQuantityChange = onQuantityChange
                     )
 
-                    Text(
-                        text = item.formattedTotalPrice,
-                        style = DtaTheme.typography.CardTitle.copy(
-                            color = DtaTheme.colors.primary,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = "Item Total",
+                            style = DtaTheme.typography.Metadata.copy(color = DtaTheme.colors.inkMuted, fontSize = 10.sp)
                         )
-                    )
+                        Text(
+                            text = item.formattedTotalPrice,
+                            style = DtaTheme.typography.CardTitle.copy(
+                                color = DtaTheme.colors.primary,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp
+                            )
+                        )
+                    }
                 }
             }
         }

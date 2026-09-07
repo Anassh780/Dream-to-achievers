@@ -150,8 +150,6 @@ export const salesService = {
       await setDoc(doc(db, `users/${userId}/sales`, newSale.id), newSale, { merge: true });
     } catch {}
     try {
-      await set(ref(rtdb, `sales/${newSale.id}`), newSale);
-      await set(ref(rtdb, `user_sales/${userId}/${newSale.id}`), newSale);
     } catch {}
 
     // Create confirmation notification for seller
@@ -222,8 +220,6 @@ export const salesService = {
       await setDoc(doc(db, `users/${sales[idx].userId}/sales`, saleId), sales[idx], { merge: true });
     } catch {}
     try {
-      await set(ref(rtdb, `sales/${saleId}`), sales[idx]);
-      await set(ref(rtdb, `user_sales/${sales[idx].userId}/${saleId}`), sales[idx]);
     } catch {}
 
     // Check rank promotion if delivered
@@ -264,4 +260,3 @@ export const salesService = {
     return { success: true };
   },
 };
-

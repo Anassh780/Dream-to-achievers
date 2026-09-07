@@ -1,5 +1,6 @@
 package com.dreamtoachievers.app.feature.account
 
+import com.dreamtoachievers.app.core.designsystem.util.openExternalIntent
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.border
@@ -81,7 +82,7 @@ fun HelpSupportScreen(
                             subtitle = "+92 305 4511395 (Instant Reply)",
                             onClick = {
                                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/923054511395"))
-                                context.startActivity(intent)
+                                context.openExternalIntent(intent)
                             }
                         )
 
@@ -91,7 +92,7 @@ fun HelpSupportScreen(
                             subtitle = "Join our community announcements",
                             onClick = {
                                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N"))
-                                context.startActivity(intent)
+                                context.openExternalIntent(intent)
                             }
                         )
 
@@ -101,7 +102,7 @@ fun HelpSupportScreen(
                             subtitle = "dreamtoachievers@gmail.com",
                             onClick = {
                                 val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:dreamtoachievers@gmail.com"))
-                                context.startActivity(intent)
+                                context.openExternalIntent(intent)
                             }
                         )
 
@@ -111,7 +112,7 @@ fun HelpSupportScreen(
                             subtitle = "+92 305 4511395",
                             onClick = {
                                 val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:+923054511395"))
-                                context.startActivity(intent)
+                                context.openExternalIntent(intent)
                             }
                         )
                     }

@@ -3,7 +3,6 @@ package com.dreamtoachievers.app.core.firebase
 import android.net.Uri
 import com.dreamtoachievers.app.core.model.Order
 import com.dreamtoachievers.app.core.model.OrderStatus
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
@@ -16,8 +15,7 @@ import java.util.*
 
 class FirebaseOrderDataSource(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
-    private val rtdb: FirebaseDatabase = FirebaseDatabase.getInstance(),
-    private val storage: FirebaseStorage = FirebaseStorage.getInstance()
+    private val storage: FirebaseStorage = FirebaseStorage.getInstance(),
 ) {
 
     suspend fun uploadPaymentReceipt(orderId: String, imageUri: Uri): String {
@@ -26,14 +24,13 @@ class FirebaseOrderDataSource(
             ref.putFile(imageUri).await()
             ref.downloadUrl.await().toString()
         } catch (e: Exception) {
-            // Fallback to local representation if storage upload encounters offline mode
-            imageUri.toString()
+            throw e
         }
     }
 
     suspend fun submitOrder(order: Order): Result<Order> {
         return try {
-            val orderId = if (order.id.isNotBlank()) order.id else "sale-${System.currentTimeMillis()}-${(100..999).random()}"
+            val orderId = order.id.ifBlank { "sale-${System.currentTimeMillis()}-${(100..999).random()}" }
             val isoDate = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
                 timeZone = TimeZone.getTimeZone("UTC")
             }.format(Date())
@@ -71,19 +68,24 @@ class FirebaseOrderDataSource(
             // 1. Write to Firestore 'sales' collection
             firestore.collection(FirebaseConfig.COLLECTION_SALES).document(orderId).set(orderData).await()
 
-            // 2. Write to user's sales subcollection if userId present
-            if (finalOrder.userId.isNotBlank()) {
-                firestore.collection("users/${finalOrder.userId}/sales").document(orderId).set(orderData).await()
-            }
-
-            // 3. Sync to Realtime Database
-            try {
-                rtdb.reference.child("${FirebaseConfig.RTDB_PATH_SALES}/$orderId").setValue(orderData).await()
-                if (finalOrder.userId.isNotBlank()) {
-                    rtdb.reference.child("${FirebaseConfig.RTDB_PATH_USER_SALES}/${finalOrder.userId}/$orderId").setValue(orderData).await()
-                }
-            } catch (e: Exception) {
-                // RTDB best-effort sync
+            // Create an in-app confirmation for the customer. Status notifications
+            // for later fulfillment stages are created by the admin workflow.
+            runCatching {
+                val notificationId = "order-created-$orderId"
+                firestore.collection(FirebaseConfig.COLLECTION_NOTIFICATIONS).document(notificationId).set(
+                    mapOf(
+                        "id" to notificationId,
+                        "userId" to finalOrder.userId,
+                        "targetRole" to "customer",
+                        "type" to "success",
+                        "category" to "order_status",
+                        "title" to "Order received",
+                        "message" to "Order #$orderId was received and is awaiting payment verification.",
+                        "isRead" to false,
+                        "deepLinkRoute" to "order_tracking/$orderId",
+                        "createdAt" to isoDate
+                    )
+                ).await()
             }
 
             Result.success(finalOrder)
@@ -92,7 +94,19 @@ class FirebaseOrderDataSource(
         }
     }
 
+    suspend fun attachPaymentReceipt(orderId: String, receiptUrl: String) {
+        firestore.collection(FirebaseConfig.COLLECTION_SALES)
+            .document(orderId)
+            .update("paymentScreenshotUrl", receiptUrl)
+            .await()
+    }
+
     fun observeUserOrders(userId: String): Flow<List<Order>> = callbackFlow {
+        if (userId.isBlank()) {
+            trySend(emptyList())
+            close()
+            return@callbackFlow
+        }
         val query = if (userId.isNotBlank()) {
             firestore.collection(FirebaseConfig.COLLECTION_SALES)
                 .whereEqualTo("userId", userId)
@@ -104,7 +118,7 @@ class FirebaseOrderDataSource(
         }
 
         val listener = query.addSnapshotListener { snapshot, error ->
-            if (error != null || snapshot == null) {
+            if ((error != null) || (snapshot == null)) {
                 trySend(emptyList())
                 return@addSnapshotListener
             }
@@ -116,7 +130,7 @@ class FirebaseOrderDataSource(
                         userId = doc.getString("userId") ?: "",
                         productId = doc.getString("productId") ?: "",
                         productName = doc.getString("productName") ?: "",
-                        productImage = doc.getString("productImage") ?: "",
+                        productImage = doc.getString("productImage") ?: doc.getString("imageUrl") ?: doc.getString("productImageUrl") ?: "",
                         customerName = doc.getString("customerName") ?: "",
                         customerPhone = doc.getString("customerPhone") ?: "",
                         customerEmail = doc.getString("customerEmail") ?: "",
@@ -137,7 +151,7 @@ class FirebaseOrderDataSource(
                         confirmedAt = doc.getString("confirmedAt"),
                         deliveredAt = doc.getString("deliveredAt")
                     )
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     null
                 }
             }
@@ -157,7 +171,7 @@ class FirebaseOrderDataSource(
                     userId = doc.getString("userId") ?: "",
                     productId = doc.getString("productId") ?: "",
                     productName = doc.getString("productName") ?: "",
-                    productImage = doc.getString("productImage") ?: "",
+                    productImage = doc.getString("productImage") ?: doc.getString("imageUrl") ?: doc.getString("productImageUrl") ?: "",
                     customerName = doc.getString("customerName") ?: "",
                     customerPhone = doc.getString("customerPhone") ?: "",
                     customerEmail = doc.getString("customerEmail") ?: "",

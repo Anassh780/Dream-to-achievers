@@ -1,5 +1,7 @@
 import { AdminAuditLog } from '@/types';
 import { storage } from './storage';
+import { db } from '@/lib/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 export const auditService = {
   getLogs(): AdminAuditLog[] {
@@ -35,5 +37,8 @@ export const auditService = {
     };
     logs.unshift(newLog);
     storage.set('AUDIT_LOGS', logs);
+    setDoc(doc(db, 'audit_logs', newLog.id), newLog).catch((error: unknown) => {
+      console.error('Failed to save audit log to Firebase:', error);
+    });
   },
 };

@@ -157,7 +157,7 @@ fun DtaHomeTopBar(
                 IconButton(
                     onClick = onNotificationClick,
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(48.dp)
                         .background(DtaTheme.colors.surface, CircleShape)
                         .border(1.dp, DtaTheme.colors.line, CircleShape)
                 ) {
@@ -189,7 +189,7 @@ fun DtaHomeTopBar(
                 IconButton(
                     onClick = onCartClick,
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(48.dp)
                         .background(DtaTheme.colors.surface, CircleShape)
                         .border(1.dp, DtaTheme.colors.line, CircleShape)
                 ) {
@@ -230,7 +230,7 @@ fun DtaSecondaryTopBar(
                 onClick = onBackClick,
                 modifier = Modifier
                     .padding(start = 8.dp)
-                    .size(40.dp)
+                    .size(48.dp)
                     .background(DtaTheme.colors.surface, CircleShape)
                     .border(1.dp, DtaTheme.colors.line, CircleShape)
             ) {
@@ -247,7 +247,7 @@ fun DtaSecondaryTopBar(
                     onClick = onActionClick,
                     modifier = Modifier
                         .padding(end = 8.dp)
-                        .size(40.dp)
+                        .size(48.dp)
                         .background(DtaTheme.colors.surface, CircleShape)
                         .border(1.dp, DtaTheme.colors.line, CircleShape)
                 ) {
@@ -262,7 +262,7 @@ fun DtaSecondaryTopBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = DtaTheme.colors.background
         ),
-        modifier = modifier.statusBarsPadding()
+        modifier = modifier
     )
 }
 
@@ -308,7 +308,7 @@ fun DtaTopAppBar(
                     onClick = onBackClick,
                     modifier = Modifier
                         .padding(start = 8.dp)
-                        .size(40.dp)
+                        .size(48.dp)
                         .background(DtaTheme.colors.surface, CircleShape)
                         .border(1.dp, DtaTheme.colors.line, CircleShape)
                 ) {
@@ -328,6 +328,6 @@ fun DtaTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = DtaTheme.colors.background
         ),
-        modifier = modifier.statusBarsPadding()
+        modifier = modifier
     )
 }

@@ -13,7 +13,7 @@ data class AuthUiState(
     val user: User? = null,
     val error: String? = null,
     val referralCode: String? = null,
-    val isSuccess: Boolean = false
+    val isSuccess: Boolean = false,
 )
 
 class AuthViewModel(
@@ -79,5 +79,9 @@ class AuthViewModel(
 
     fun clearError() {
         _uiState.update { it.copy(error = null) }
+    }
+
+    fun consumeSuccess() {
+        _uiState.update { it.copy(isSuccess = false, user = null, error = null) }
     }
 }

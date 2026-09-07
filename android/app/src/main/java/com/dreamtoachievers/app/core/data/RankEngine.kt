@@ -21,9 +21,9 @@ object RankEngine {
         benefits = listOf(
             "Access to Partner Wholesale Catalog Pricing",
             "Unique Referral Code & Sharing Link",
-            "Real-time Sales & Progress Dashboard"
+            "Real-time Sales & Progress Dashboard",
         ),
-        isActive = true
+        isActive = true,
     )
 
     val CANONICAL_RANKS: List<RankDefinition> = listOf(
@@ -45,9 +45,9 @@ object RankEngine {
                 "Standard Partner Purchase Margin Pricing",
                 "Access to Official Dream to Achievers Community Channel",
                 "Silver Partner Digital Credential Badge",
-                "Direct-to-Customer Product Distribution Rights"
+                "Direct-to-Customer Product Distribution Rights",
             ),
-            isActive = true
+            isActive = true,
         ),
         RankDefinition(
             id = "rank-platinum",
@@ -118,7 +118,7 @@ object RankEngine {
     )
 
     fun getAllRanks(): List<RankDefinition> {
-        return CANONICAL_RANKS.filter { it.isActive }.sortedBy { it.order }
+        return CANONICAL_RANKS.asSequence().filter { it.isActive }.sortedBy { it.order }.toList()
     }
 
     /**
@@ -130,7 +130,7 @@ object RankEngine {
         var highestRank: RankDefinition = UNRANKED_DEFINITION
 
         for (rank in ranks) {
-            if (qualifyingSales >= rank.requiredSales && qualifyingCommunity >= rank.requiredCommunity) {
+            if ((qualifyingSales >= rank.requiredSales) && (qualifyingCommunity >= rank.requiredCommunity)) {
                 highestRank = rank
             }
         }
@@ -148,7 +148,7 @@ object RankEngine {
         val nextRank = if (currentRank.order == 0) {
             ranks.firstOrNull()
         } else {
-            ranks.firstOrNull { it.order == currentRank.order + 1 }
+            ranks.firstOrNull { it.order == (currentRank.order + 1) }
         }
 
         if (nextRank == null) {
@@ -176,7 +176,7 @@ object RankEngine {
         } else 100
 
         // Both conditions must be satisfied to reach 100%
-        val isFullyQualified = qualifyingSales >= nextRank.requiredSales && qualifyingCommunity >= nextRank.requiredCommunity
+        val isFullyQualified = (qualifyingSales >= nextRank.requiredSales) && (qualifyingCommunity >= nextRank.requiredCommunity)
         val overallProgressPercent = if (isFullyQualified) {
             100
         } else {

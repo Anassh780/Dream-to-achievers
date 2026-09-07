@@ -3,17 +3,52 @@ package com.dreamtoachievers.app.core.firebase
 import com.dreamtoachievers.app.core.model.User
 import com.dreamtoachievers.app.core.model.UserRole
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldValue
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 class FirebaseUserDataSource(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
-    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
-    private val rtdb: FirebaseDatabase = FirebaseDatabase.getInstance()
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
 
     fun getCurrentFirebaseUser() = auth.currentUser
+
+    suspend fun updateContactProfile(uid: String, fullName: String, phone: String, city: String) {
+        firestore.collection(FirebaseConfig.COLLECTION_USERS).document(uid)
+            .update(mapOf("fullName" to fullName, "phone" to phone, "city" to city)).await()
+    }
+
+    fun observeAddresses(uid: String): Flow<List<String>> = callbackFlow {
+        val registration = firestore.collection(FirebaseConfig.COLLECTION_USERS).document(uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+                val addresses = (snapshot?.get("addresses") as? List<*>)
+                    .orEmpty()
+                    .mapNotNull { it as? String }
+                    .map(String::trim)
+                    .filter(String::isNotEmpty)
+                    .distinct()
+                trySend(addresses)
+            }
+        awaitClose { registration.remove() }
+    }
+
+    suspend fun addAddress(uid: String, address: String) {
+        firestore.collection(FirebaseConfig.COLLECTION_USERS).document(uid)
+            .update("addresses", FieldValue.arrayUnion(address)).await()
+    }
+
+    suspend fun removeAddress(uid: String, address: String) {
+        firestore.collection(FirebaseConfig.COLLECTION_USERS).document(uid)
+            .update("addresses", FieldValue.arrayRemove(address)).await()
+    }
 
     suspend fun getUserProfile(uid: String): User? {
         return try {
@@ -56,10 +91,5 @@ class FirebaseUserDataSource(
         )
 
         firestore.collection(FirebaseConfig.COLLECTION_USERS).document(user.id).set(data).await()
-        try {
-            rtdb.reference.child("${FirebaseConfig.RTDB_PATH_USERS}/${user.id}").setValue(data).await()
-        } catch (e: Exception) {
-            // RTDB best-effort
-        }
     }
 }

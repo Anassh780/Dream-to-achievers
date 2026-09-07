@@ -60,7 +60,15 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!assets|images|logo.*|og-banner.*|favicon.*|apple-touch-icon.*|android-chrome.*|site\\.webmanifest|sitemap\\.xml|robots\\.txt|google.*\\.html).*)",
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    },
+    {
+      "source": "/products/:slug",
+      "destination": "/api/product-page?slug=:slug"
+    },
+    {
+      "source": "/((?!api|assets|images|logo.*|og-banner.*|favicon.*|apple-touch-icon.*|android-chrome.*|site\\.webmanifest|sitemap\\.xml|robots\\.txt|google.*\\.html).*)",
       "destination": "/index.html"
     }
   ]

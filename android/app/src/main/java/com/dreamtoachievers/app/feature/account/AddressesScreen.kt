@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,7 +29,7 @@ fun AddressesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
-    var newAddressInput by remember { mutableStateOf("") }
+    var newAddressInput by rememberSaveable { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -53,6 +55,13 @@ fun AddressesScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            if (uiState.savedAddresses.isEmpty()) {
+                item {
+                    Text("No saved addresses", style = DtaTheme.typography.TitleMedium)
+                    Text("Add a delivery address to keep it synced across your account.",
+                        color = DtaTheme.colors.inkSecondary)
+                }
+            }
             items(uiState.savedAddresses) { address ->
                 Card(
                     shape = DtaTheme.shapes.Card,
@@ -91,6 +100,9 @@ fun AddressesScreen(
                                 )
                             )
                         }
+                        IconButton(onClick = { viewModel.removeAddress(address) }) {
+                            Icon(Icons.Outlined.Delete, contentDescription = "Remove address: $address")
+                        }
                     }
                 }
             }
@@ -120,6 +132,7 @@ fun AddressesScreen(
             },
             confirmButton = {
                 TextButton(
+                    enabled = newAddressInput.isNotBlank(),
                     onClick = {
                         if (newAddressInput.isNotBlank()) {
                             viewModel.addAddress(newAddressInput)

@@ -109,7 +109,7 @@ export const AdminUsersPage: React.FC = () => {
       setReferrals(storage.get<ReferralRecord[]>('REFERRALS', []));
       showToast(`Synchronized ${synced.length} registered partners from cloud database.`);
     } catch (e) {
-      showToast('Could not reach cloud database. Showing local cached users.', 'error');
+      showToast('Could not reach Firebase. Please check your connection and try again.', 'error');
     } finally {
       setIsSyncing(false);
     }

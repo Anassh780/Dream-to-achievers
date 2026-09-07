@@ -1,5 +1,6 @@
 package com.dreamtoachievers.app.feature.admin.orders
 
+import com.dreamtoachievers.app.core.designsystem.util.openExternalIntent
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,6 +25,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -49,7 +51,7 @@ fun AdminOrderReviewScreen(
     val orders by adminRepository.platformOrders.collectAsState()
     val conflictError by adminRepository.lastConflictError.collectAsState()
     val order = orders.firstOrNull { it.id.equals(orderId, ignoreCase = true) }
-        ?: orders.firstOrNull { it.id == "DS1008" } // Fallback to Screen 08 sample
+        ?: orders.firstOrNull()
 
     var showLightbox by remember { mutableStateOf(false) }
     var showVerifyConfirmation by remember { mutableStateOf(false) }
@@ -79,7 +81,7 @@ fun AdminOrderReviewScreen(
                         putExtra(Intent.EXTRA_TEXT, "Payment slip for Order #${order.id}: ${order.paymentScreenshotUrl}")
                         type = "text/plain"
                     }
-                    context.startActivity(Intent.createChooser(shareIntent, "Share Payment Slip"))
+                    context.openExternalIntent(Intent.createChooser(shareIntent, "Share Payment Slip"))
                 }
             )
         }
@@ -572,8 +574,12 @@ private fun AdminOrderHeaderCard(order: ResellerSale) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "#${order.id.uppercase()}",
-                        style = DtaTheme.typography.TitleLarge.copy(fontWeight = FontWeight.Black)
+                        text = "ORDER REVIEW",
+                        style = DtaTheme.typography.Label.copy(
+                            color = DtaTheme.colors.inkSecondary,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.8.sp
+                        )
                     )
 
                     // Admin Badge (Point 44)
@@ -596,6 +602,13 @@ private fun AdminOrderHeaderCard(order: ResellerSale) {
 
                 DtaStatusChip(status = order.status)
             }
+
+            Text(
+                text = "#${order.id.uppercase()}",
+                style = DtaTheme.typography.TitleMedium.copy(fontWeight = FontWeight.ExtraBold),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
 
             Text(
                 text = "Created: ${order.createdAt}",
@@ -622,7 +635,7 @@ private fun PaymentSlipPreviewCard(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -630,13 +643,16 @@ private fun PaymentSlipPreviewCard(
                     style = DtaTheme.typography.TitleMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = DtaTheme.colors.primary
-                    )
+                    ),
+                    modifier = Modifier.weight(1f),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
 
-                TextButton(onClick = onExpandLightbox) {
-                    Icon(Icons.Default.Fullscreen, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Tap to Zoom")
+                if (!order.paymentScreenshotUrl.isNullOrBlank()) {
+                    IconButton(onClick = onExpandLightbox) {
+                        Icon(Icons.Default.Fullscreen, contentDescription = "Open receipt fullscreen")
+                    }
                 }
             }
 

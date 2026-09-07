@@ -39,6 +39,7 @@ fun DtaStatusChip(
     ) {
         Text(
             text = status.displayName,
+            maxLines = 1,
             style = DtaTheme.typography.Label.copy(
                 color = textColor,
                 fontWeight = FontWeight.Bold,

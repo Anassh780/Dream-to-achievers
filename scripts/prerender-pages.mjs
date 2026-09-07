@@ -15,13 +15,13 @@ const baseHtml = fs.readFileSync(BASE_HTML_FILE, 'utf8');
 const PAGES = [
   {
     path: '/',
-    title: 'Dream to Achievers | B2B Wholesale Platform Founded by Faria Imran',
-    description: 'Official platform of Dream to Achievers, founded by Faria Imran. Source verified wholesale inventory in Pakistan, sell nationwide with COD, and earn structured cash milestone rewards.',
+    title: 'Dream to Achievers Pakistan | B2B Wholesale & Reseller Platform',
+    description: 'Dream to Achievers is a B2B wholesale and online reselling platform in Pakistan. Source verified wholesale products and sell nationwide with COD fulfillment.',
     canonical: `${DOMAIN}/`,
     ogType: 'website',
     ogImage: `${DOMAIN}/images/brand-logo.png`,
-    h1: 'Dream to Achievers — Modern B2B Wholesale Commerce & Partner Growth Platform',
-    contentSummary: 'Pakistan\'s verified digital wholesale ecosystem. Source high-demand inventory at direct trade rates, distribute nationwide with automated Cash on Delivery across 150+ cities, and earn guaranteed unit profit margins.',
+    h1: 'Dream to Achievers Pakistan — B2B Wholesale & Online Reselling Platform',
+    contentSummary: 'Source verified wholesale products at transparent trade rates, start an online reselling business without advance inventory, and sell nationwide with Cash on Delivery fulfillment across Pakistan.',
     schema: {
       '@context': 'https://schema.org',
       '@graph': [

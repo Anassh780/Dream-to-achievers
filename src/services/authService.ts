@@ -23,16 +23,6 @@ import { ref, get, set, child, remove, onValue } from 'firebase/database';
 import { storage } from './storage';
 import { rankEngine } from './rankEngine';
 import { referralService, normalizeReferralCode } from './referralService';
-import { OFFICIAL_ADMIN_USER } from './cloudSyncService';
-
-export const ADMIN_EMAILS = [
-  'dreamtoachievers@gmail.com',
-  'admin@dreamtoachievers.com',
-  'dreamtoachievers.pk@gmail.com',
-  'dreamtoachiever@gmail.com',
-  'muskyna46@gmail.com',
-  'ghhhbbbhjn3@gmail.com',
-];
 
 export function formatDisplayName(fullName?: string, email?: string, displayName?: string): string {
   // Always preserve the exact name or username entered by the user
@@ -94,18 +84,10 @@ export const authService = {
   },
 
   /**
-   * Check if email is in the admin authorization list
-   */
-  isConfiguredAdmin(email: string): boolean {
-    return ADMIN_EMAILS.includes(email.toLowerCase().trim());
-  },
-
-  /**
    * Get user profile from Firestore / RTDB / Local Storage fallback
    */
   async getUserProfile(uid: string, fallbackEmail = ''): Promise<User | null> {
     const cleanEmail = fallbackEmail.toLowerCase().trim();
-    const isAdminEmail = authService.isConfiguredAdmin(cleanEmail);
 
     try {
       // 1. Try Firestore
@@ -114,11 +96,6 @@ export const authService = {
       if (userDoc.exists()) {
         const data = userDoc.data() as User;
         data.fullName = formatDisplayName(data.fullName, data.email, (auth.currentUser?.uid === uid ? auth.currentUser?.displayName : undefined) || undefined);
-        // Ensure admin status is updated if email is configured
-        if (isAdminEmail && data.role !== 'admin' && data.role !== 'superadmin') {
-          data.role = 'admin';
-          await authService.saveUserProfile(data);
-        }
         storage.setRaw('CURRENT_USER_ID', data.id);
         return data;
       }
@@ -133,10 +110,6 @@ export const authService = {
       if (snapshot.exists()) {
         const data = snapshot.val() as User;
         data.fullName = formatDisplayName(data.fullName, data.email, (auth.currentUser?.uid === uid ? auth.currentUser?.displayName : undefined) || undefined);
-        if (isAdminEmail && data.role !== 'admin' && data.role !== 'superadmin') {
-          data.role = 'admin';
-          await authService.saveUserProfile(data);
-        }
         storage.setRaw('CURRENT_USER_ID', data.id);
         return data;
       }
@@ -149,10 +122,6 @@ export const authService = {
     const foundLocal = localUsers.find((u) => u.id === uid || u.email.toLowerCase() === cleanEmail);
     if (foundLocal) {
       foundLocal.fullName = formatDisplayName(foundLocal.fullName, foundLocal.email, (auth.currentUser?.uid === uid ? auth.currentUser?.displayName : undefined) || undefined);
-      if (isAdminEmail && foundLocal.role !== 'admin' && foundLocal.role !== 'superadmin') {
-        foundLocal.role = 'admin';
-        await authService.saveUserProfile(foundLocal);
-      }
       storage.setRaw('CURRENT_USER_ID', foundLocal.id);
       return foundLocal;
     }
@@ -172,10 +141,10 @@ export const authService = {
         id: uid,
         fullName: formatDisplayName(auth.currentUser?.displayName || '', cleanEmail),
         email: cleanEmail,
-        role: isAdminEmail ? 'admin' : 'user',
+        role: 'user',
         referralCode: `DTA-${Math.floor(1000 + Math.random() * 9000)}`,
         referredByCode: validReferrer ? validReferrer.referralCode : (capturedRef || ''),
-        currentRankSlug: isAdminEmail ? 'diamond' : 'unranked',
+        currentRankSlug: 'unranked',
         isActive: true,
         createdAt: new Date().toISOString(),
       };
@@ -237,7 +206,6 @@ export const authService = {
 
     // Realtime Database
     try {
-      await set(ref(rtdb, `users/${clean.id}`), clean);
     } catch (err) {
       console.warn('RTDB set failed:', err);
     }
@@ -322,7 +290,6 @@ export const authService = {
     referralCode?: string;
   }): Promise<{ success: boolean; user?: User; error?: string }> {
     const cleanEmail = email.toLowerCase().trim();
-    const isAdminEmail = authService.isConfiguredAdmin(cleanEmail);
     const cleanName = fullName.trim() || cleanEmail.split('@')[0] || 'Partner';
 
     // Generate unique referral code for the new user (e.g. FARIA482)
@@ -407,10 +374,10 @@ export const authService = {
         id: fbUser.uid,
         fullName: cleanName,
         email: cleanEmail,
-        role: isAdminEmail ? 'admin' : (existingProfile?.role || 'user'),
+        role: existingProfile?.role || 'user',
         referralCode: existingProfile?.referralCode || newReferralCode,
         referredByCode: assignedReferrerCode,
-        currentRankSlug: isAdminEmail ? 'diamond' : (existingProfile?.currentRankSlug || 'unranked'),
+        currentRankSlug: existingProfile?.currentRankSlug || 'unranked',
         isActive: true,
         createdAt: existingProfile?.createdAt || new Date().toISOString(),
       };
@@ -444,11 +411,11 @@ export const authService = {
         userId: userToSave.id,
         type: 'welcome',
         title: '🌟 Welcome to Dream to Achievers!',
-        message: isAdminEmail
+        message: userToSave.role === 'admin' || userToSave.role === 'superadmin'
           ? 'Administrator account activated with full platform access.'
           : 'Your partner account is active. Explore products, share your referral link, and work toward Silver Rank!',
         isRead: false,
-        linkUrl: isAdminEmail ? '/admin' : '/dashboard/rank-progress',
+        linkUrl: userToSave.role === 'admin' || userToSave.role === 'superadmin' ? '/admin' : '/dashboard/rank-progress',
         createdAt: new Date().toISOString(),
       });
       storage.set('NOTIFICATIONS', userNotifs);
@@ -623,7 +590,6 @@ export const authService = {
         deletedAt: new Date().toISOString(),
       };
       await setDoc(doc(db, 'deleted_users', userId), tombstone, { merge: true });
-      await set(ref(rtdb, `deleted_users/${userId}`), tombstone);
     } catch {}
 
     // 9. Dispatch sync events so all views and open tabs refresh immediately
@@ -668,9 +634,6 @@ export const authService = {
       }
     } catch {}
 
-    // 0. Always guarantee Official Executive Admin user presence
-    userMap.set(OFFICIAL_ADMIN_USER.id, OFFICIAL_ADMIN_USER);
-
     // 1. Seed from local storage (excluding any blacklisted/deleted)
     const localUsers = storage.get<User[]>('USERS', []);
     for (const u of localUsers) {
@@ -681,10 +644,6 @@ export const authService = {
           (u.referralCode && blacklist.has(u.referralCode.toLowerCase()));
 
         if (!isDeleted) {
-          if (u.email && ADMIN_EMAILS.includes(u.email.toLowerCase())) {
-            u.role = 'admin';
-            u.currentRankSlug = 'diamond';
-          }
           userMap.set(u.id, u);
         }
       }
@@ -705,10 +664,6 @@ export const authService = {
             // Clean up resurrecting doc from Firestore immediately
             deleteDoc(doc(db, 'users', data.id)).catch(() => {});
           } else {
-            if (data.email && ADMIN_EMAILS.includes(data.email.toLowerCase())) {
-              data.role = 'admin';
-              data.currentRankSlug = 'diamond';
-            }
             userMap.set(data.id, { ...userMap.get(data.id), ...data });
           }
         }
@@ -733,10 +688,6 @@ export const authService = {
               if (isDeleted) {
                 remove(ref(rtdb, `users/${item.id}`)).catch(() => {});
               } else {
-                if (item.email && ADMIN_EMAILS.includes(item.email.toLowerCase())) {
-                  item.role = 'admin';
-                  item.currentRankSlug = 'diamond';
-                }
                 userMap.set(item.id, { ...userMap.get(item.id), ...item });
               }
             }
@@ -807,11 +758,6 @@ export const authService = {
               }
             }
           });
-
-          // Always ensure admin presence
-          if (!cloudUsers.some((u) => u.id === OFFICIAL_ADMIN_USER.id)) {
-            cloudUsers.unshift(OFFICIAL_ADMIN_USER);
-          }
 
           storage.set('USERS', cloudUsers);
           callback(cloudUsers);

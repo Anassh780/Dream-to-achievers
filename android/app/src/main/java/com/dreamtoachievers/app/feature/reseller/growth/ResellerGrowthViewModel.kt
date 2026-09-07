@@ -9,12 +9,10 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 data class ResellerGrowthUiState(
-    val rankProgress: RankProgress = RankEngine.calculateProgress(18, 32),
+    val rankProgress: RankProgress = RankEngine.calculateProgress(0, 0),
     val allRanks: List<RankDefinition> = RankEngine.getAllRanks(),
     val milestoneRewards: List<MilestoneReward> = emptyList(),
-    val communityMembers: List<TeamMember> = emptyList(),
-    val referralCode: String = "ALI-DTA-77",
-    val referralLink: String = "https://dreamtoachievers.com/?ref=ALI-DTA-77"
+    val communityMembers: List<TeamMember> = emptyList()
 )
 
 class ResellerGrowthViewModel(

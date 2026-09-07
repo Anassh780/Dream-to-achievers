@@ -4,7 +4,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -13,14 +12,16 @@ import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
+import com.dreamtoachievers.app.core.designsystem.theme.DtaColors
 import com.dreamtoachievers.app.core.designsystem.theme.DtaTheme
 
 enum class DtaNavDestination(
@@ -32,7 +33,7 @@ enum class DtaNavDestination(
     HOME("home", "Home", Icons.Filled.Home, Icons.Outlined.Home),
     MARKET("market", "Market", Icons.Filled.Storefront, Icons.Outlined.Storefront),
     ORDERS("orders", "Orders", Icons.Filled.ReceiptLong, Icons.Outlined.ReceiptLong),
-    GROWTH("growth", "Growth", Icons.Filled.Stars, Icons.Outlined.Stars),
+    GROWTH("growth", "Growth", Icons.Filled.Star, Icons.Outlined.StarBorder),
     ACCOUNT("account", "Account", Icons.Filled.Person, Icons.Outlined.Person)
 }
 
@@ -40,34 +41,46 @@ enum class DtaNavDestination(
 fun DtaBottomNavigation(
     currentRoute: String,
     onNavigate: (DtaNavDestination) -> Unit,
+    cartItemCount: Int = 0,
+    ordersBadgeCount: Int = 0,
     modifier: Modifier = Modifier
 ) {
     Surface(
-        color = DtaTheme.colors.surface,
+        color = DtaColors.CustomerBgWhite,
         modifier = modifier
+            .zIndex(10f)
             .fillMaxWidth()
             .navigationBarsPadding()
             .border(
                 width = 1.dp,
-                color = DtaTheme.colors.line
+                color = DtaColors.CustomerBorder
             )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp)
-                .padding(horizontal = 8.dp),
+                .padding(horizontal = 6.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
             DtaNavDestination.entries.forEach { destination ->
-                val isSelected = currentRoute == destination.route
+                val isSelected = when (destination) {
+                    DtaNavDestination.HOME -> currentRoute == "home" || currentRoute == ""
+                    DtaNavDestination.MARKET -> currentRoute.startsWith("market")
+                    DtaNavDestination.ORDERS -> currentRoute.startsWith("orders")
+                    DtaNavDestination.GROWTH -> currentRoute.startsWith("growth") || currentRoute.startsWith("rewards")
+                    DtaNavDestination.ACCOUNT -> currentRoute.startsWith("account")
+                }
+
+                val primaryGreen = DtaColors.CustomerPrimaryGreen
+                val inactiveGray = DtaColors.CustomerTextSecondary
+                val activePillBg = DtaColors.CustomerPillActiveGreen
+
                 val animatedIconColor by animateColorAsState(
-                    targetValue = if (isSelected) DtaTheme.colors.primary else DtaTheme.colors.inkSecondary,
+                    targetValue = if (isSelected) primaryGreen else inactiveGray,
                     label = "NavIconColor"
                 )
-
-                val interactionSource = remember { MutableInteractionSource() }
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -76,11 +89,7 @@ fun DtaBottomNavigation(
                         .weight(1f)
                         .fillMaxHeight()
                         .clip(DtaTheme.shapes.Chip)
-                        .clickable(
-                            interactionSource = interactionSource,
-                            indication = null,
-                            onClick = { onNavigate(destination) }
-                        )
+                        .clickable { onNavigate(destination) }
                         .padding(vertical = 4.dp)
                 ) {
                     Box(
@@ -89,17 +98,22 @@ fun DtaBottomNavigation(
                             .width(54.dp)
                             .clip(DtaTheme.shapes.Full)
                             .background(
-                                if (isSelected) DtaTheme.colors.primaryContainer
-                                else androidx.compose.ui.graphics.Color.Transparent
+                                if (isSelected) activePillBg
+                                else Color.Transparent
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = if (isSelected) destination.selectedIcon else destination.unselectedIcon,
-                            contentDescription = destination.title,
-                            tint = animatedIconColor,
-                            modifier = Modifier.size(20.dp)
-                        )
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = if (isSelected) destination.selectedIcon else destination.unselectedIcon,
+                                contentDescription = destination.title,
+                                tint = animatedIconColor,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            if (destination == DtaNavDestination.ORDERS && ordersBadgeCount > 0) {
+                                Badge(modifier = Modifier.align(Alignment.TopEnd)) { Text(if (ordersBadgeCount > 99) "99+" else ordersBadgeCount.toString()) }
+                            }
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(2.dp))

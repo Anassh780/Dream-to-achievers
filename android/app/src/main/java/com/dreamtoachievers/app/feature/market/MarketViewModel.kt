@@ -28,6 +28,13 @@ class MarketViewModel(
 
     private val _uiState = MutableStateFlow(MarketUiState())
     val uiState: StateFlow<MarketUiState> = _uiState.asStateFlow()
+    val cartCount = cartRepository.items.map { items -> items.sumOf { it.quantity } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+    val wishlistProducts = combine(productRepository.getProducts(), dataStoreManager.favoriteProductIds) { products, ids ->
+        products.filter { it.id in ids }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    private var productsJob: kotlinx.coroutines.Job? = null
 
     init {
         loadCategories()
@@ -43,14 +50,20 @@ class MarketViewModel(
         }
     }
 
+
+
     fun loadProducts() {
-        viewModelScope.launch {
+        productsJob?.cancel()
+        productsJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            productRepository.searchAndFilterProducts(
+            val productsFlow = if (_uiState.value.selectedCategorySlug == "trending") {
+                productRepository.getTrendingProducts()
+            } else productRepository.searchAndFilterProducts(
                 query = _uiState.value.searchQuery,
                 categorySlug = _uiState.value.selectedCategorySlug,
                 sortOrder = _uiState.value.sortOrder
-            ).catch { err ->
+            )
+            productsFlow.catch { err ->
                 _uiState.update { it.copy(isLoading = false, error = err.localizedMessage) }
             }.collect { list ->
                 _uiState.update { it.copy(isLoading = false, products = list) }

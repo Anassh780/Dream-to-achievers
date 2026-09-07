@@ -10,6 +10,14 @@ object FirebaseConfig {
     const val COLLECTION_SALES = "sales"
     const val COLLECTION_NOTIFICATIONS = "notifications"
     const val COLLECTION_REFERRALS = "referrals"
+    const val COLLECTION_WITHDRAWALS = "withdrawals"
+    const val COLLECTION_REWARDS = "rewards"
+    const val COLLECTION_AUDIT_LOGS = "audit_logs"
+    const val COLLECTION_CARTS = "carts"
+    const val COLLECTION_WISHLISTS = "wishlists"
+    const val COLLECTION_RECENT_SEARCHES = "recent_searches"
+    const val COLLECTION_BANNERS = "banners"
+    const val COLLECTION_REVIEWS = "reviews"
 
     const val RTDB_PATH_PRODUCTS = "products"
     const val RTDB_PATH_CATEGORIES = "categories"
@@ -25,7 +33,7 @@ object FirebaseConfig {
             accountTitle = "Dream to Achievers Global",
             accountNumber = "01020304050607",
             iban = "PK00MEZN0001020304050607",
-            instructions = "Transfer the order total to our official Meezan Bank account and upload the screenshot receipt slip."
+            instructions = "Transfer the order total to our official Meezan Bank account and upload the screenshot receipt slip.",
         ),
         CompanyPaymentAccount(
             type = PaymentMethodType.EASYPAISA,

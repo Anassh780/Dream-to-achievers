@@ -16,10 +16,18 @@ data class PartnerProduct(
     val currency: String = "PKR",
     val imageUrl: String = "",
     val additionalImages: List<String> = emptyList(),
+    val colors: List<ProductColor> = emptyList(),
+    val features: List<ProductFeature> = emptyList(),
     val inStock: Boolean = true,
     val stockCount: Int = 50,
     val rating: Double = 4.9,
-    val specifications: Map<String, String> = emptyMap()
+    val specifications: Map<String, String> = emptyMap(),
+    val sku: String = "",
+    val moq: Int = 1,
+    val sellerId: String = "",
+    val sellerName: String = "",
+    val sellerCity: String = "",
+    val status: String = "active",
 ) {
     val effectiveSuggestedPrice: Double
         get() = if (suggestedSellingPrice > 0) suggestedSellingPrice else retailPrice

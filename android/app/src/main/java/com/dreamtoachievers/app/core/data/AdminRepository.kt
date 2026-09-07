@@ -2,6 +2,7 @@ package com.dreamtoachievers.app.core.data
 
 import com.dreamtoachievers.app.core.firebase.FirebaseConfig
 import com.dreamtoachievers.app.core.model.*
+import com.dreamtoachievers.app.core.navigation.DtaDestinations
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -27,31 +28,31 @@ class AdminRepository(
     }
 
     // 1. All Platform Orders
-    private val _platformOrders = MutableStateFlow<List<ResellerSale>>(createInitialPlatformSales())
+    private val _platformOrders = MutableStateFlow<List<ResellerSale>>(emptyList())
     val platformOrders: StateFlow<List<ResellerSale>> = _platformOrders.asStateFlow()
 
     // 2. All Platform Withdrawals
-    private val _platformWithdrawals = MutableStateFlow<List<WithdrawalRequest>>(createInitialPlatformWithdrawals())
+    private val _platformWithdrawals = MutableStateFlow<List<WithdrawalRequest>>(emptyList())
     val platformWithdrawals: StateFlow<List<WithdrawalRequest>> = _platformWithdrawals.asStateFlow()
 
     // 3. Platform Milestone Rank Rewards
-    private val _platformRewards = MutableStateFlow<List<MilestoneReward>>(createInitialPlatformRewards())
+    private val _platformRewards = MutableStateFlow<List<MilestoneReward>>(emptyList())
     val platformRewards: StateFlow<List<MilestoneReward>> = _platformRewards.asStateFlow()
 
     // 4. All Platform Users
-    private val _platformUsers = MutableStateFlow<List<User>>(createInitialPlatformUsers())
+    private val _platformUsers = MutableStateFlow<List<User>>(emptyList())
     val platformUsers: StateFlow<List<User>> = _platformUsers.asStateFlow()
 
     // 5. Products Management Catalog
-    private val _products = MutableStateFlow<List<PartnerProduct>>(createInitialAdminProducts())
+    private val _products = MutableStateFlow<List<PartnerProduct>>(emptyList())
     val products: StateFlow<List<PartnerProduct>> = _products.asStateFlow()
 
     // 6. Categories Management Tree (3 levels: Root 0, Sub 1, Leaf 2)
-    private val _categories = MutableStateFlow<List<Category>>(createInitialCategories())
+    private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories: StateFlow<List<Category>> = _categories.asStateFlow()
 
     // 7. System Audit Logs (Point 61 & 82: Read-Only Mobile Audit History)
-    private val _auditLogs = MutableStateFlow<List<AuditLog>>(createInitialAuditLogs())
+    private val _auditLogs = MutableStateFlow<List<AuditLog>>(emptyList())
     val auditLogs: StateFlow<List<AuditLog>> = _auditLogs.asStateFlow()
 
     init {
@@ -59,7 +60,11 @@ class AdminRepository(
     }
 
     private fun initFirestoreSync() {
-        val fs = getFirestoreSafe() ?: return
+        val fs = getFirestoreSafe()
+        if (fs == null) {
+            seedInitialData()
+            return
+        }
 
         // Sync sales
         fs.collection(FirebaseConfig.COLLECTION_SALES)
@@ -67,24 +72,24 @@ class AdminRepository(
             .addSnapshotListener { snap, err ->
                 if (err != null || snap == null) return@addSnapshotListener
                 val list = snap.documents.mapNotNull { parseResellerSale(it) }
-                if (list.isNotEmpty()) _platformOrders.value = list
+                _platformOrders.value = list
             }
 
         // Sync withdrawals
-        fs.collection("withdrawals")
+        fs.collection(FirebaseConfig.COLLECTION_WITHDRAWALS)
             .orderBy("requestedAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snap, err ->
                 if (err != null || snap == null) return@addSnapshotListener
                 val list = snap.documents.mapNotNull { parseWithdrawalRequest(it) }
-                if (list.isNotEmpty()) _platformWithdrawals.value = list
+                _platformWithdrawals.value = list
             }
 
         // Sync rewards
-        fs.collection("rewards")
+        fs.collection(FirebaseConfig.COLLECTION_REWARDS)
             .addSnapshotListener { snap, err ->
                 if (err != null || snap == null) return@addSnapshotListener
                 val list = snap.documents.mapNotNull { parseMilestoneReward(it) }
-                if (list.isNotEmpty()) _platformRewards.value = list
+                _platformRewards.value = list
             }
 
         // Sync users
@@ -92,7 +97,7 @@ class AdminRepository(
             .addSnapshotListener { snap, err ->
                 if (err != null || snap == null) return@addSnapshotListener
                 val list = snap.documents.mapNotNull { parseUser(it) }
-                if (list.isNotEmpty()) _platformUsers.value = list
+                _platformUsers.value = list
             }
 
         // Sync products
@@ -100,7 +105,7 @@ class AdminRepository(
             .addSnapshotListener { snap, err ->
                 if (err != null || snap == null) return@addSnapshotListener
                 val list = snap.documents.mapNotNull { parsePartnerProduct(it) }
-                if (list.isNotEmpty()) _products.value = list
+                _products.value = list
             }
 
         // Sync categories
@@ -108,16 +113,16 @@ class AdminRepository(
             .addSnapshotListener { snap, err ->
                 if (err != null || snap == null) return@addSnapshotListener
                 val list = snap.documents.mapNotNull { parseCategory(it) }
-                if (list.isNotEmpty()) _categories.value = list
+                _categories.value = list
             }
 
         // Sync audit logs
-        fs.collection("audit_logs")
+        fs.collection(FirebaseConfig.COLLECTION_AUDIT_LOGS)
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener { snap, err ->
                 if (err != null || snap == null) return@addSnapshotListener
                 val list = snap.documents.mapNotNull { parseAuditLog(it) }
-                if (list.isNotEmpty()) _auditLogs.value = list
+                _auditLogs.value = list
             }
     }
 
@@ -242,6 +247,7 @@ class AdminRepository(
         val current = _auditLogs.value.toMutableList()
         current.add(0, log)
         _auditLogs.value = current
+        getFirestoreSafe()?.collection(FirebaseConfig.COLLECTION_AUDIT_LOGS)?.document(log.id)?.set(log)
     }
 
     /**
@@ -472,12 +478,63 @@ class AdminRepository(
 
         _lastConflictError.value = null
         val now = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).format(Date())
-        currentList[index] = transform(existing, now).copy(
+        val updatedOrder = transform(existing, now).copy(
             version = existing.version + 1,
             updatedAt = now
         )
+        currentList[index] = updatedOrder
         _platformOrders.value = currentList
+        getFirestoreSafe()?.collection(FirebaseConfig.COLLECTION_SALES)?.document(orderId)?.update(
+            mapOf(
+                "status" to targetStatus.rawValue,
+                "isQualifying" to updatedOrder.isQualifying,
+                "shippingCourier" to updatedOrder.shippingCourier,
+                "trackingNumber" to updatedOrder.trackingNumber,
+                "shippingNotes" to updatedOrder.shippingNotes,
+                "rejectionReason" to updatedOrder.rejectionReason,
+                "adminReviewNote" to updatedOrder.adminReviewNote,
+                "processedByAdminId" to updatedOrder.processedByAdminId,
+                "confirmedAt" to updatedOrder.confirmedAt,
+                "processingAt" to updatedOrder.processingAt,
+                "dispatchedAt" to updatedOrder.dispatchedAt,
+                "deliveredAt" to updatedOrder.deliveredAt,
+                "version" to updatedOrder.version,
+                "updatedAt" to now
+            )
+        )
+        createOrderStatusNotification(updatedOrder, now)
         return true
+    }
+
+    private fun createOrderStatusNotification(order: ResellerSale, now: String) {
+        if (order.userId.isBlank()) return
+        val notificationId = "order-${order.id}-${order.status.rawValue}-${System.currentTimeMillis()}"
+        val title = when (order.status) {
+            OrderStatus.PAYMENT_VERIFIED -> "Payment verified"
+            OrderStatus.PROCESSING -> "Order is being prepared"
+            OrderStatus.DISPATCHED, OrderStatus.IN_TRANSIT -> "Order shipped"
+            OrderStatus.DELIVERED, OrderStatus.CONFIRMED, OrderStatus.FULFILLED -> "Order delivered"
+            OrderStatus.REJECTED -> "Order needs attention"
+            else -> "Order updated"
+        }
+        val message = when (order.status) {
+            OrderStatus.DISPATCHED, OrderStatus.IN_TRANSIT -> "Order #${order.id} was dispatched${order.shippingCourier?.let { " with $it" } ?: ""}."
+            OrderStatus.REJECTED -> "Order #${order.id} was rejected${order.rejectionReason?.let { ": $it" } ?: "."}"
+            else -> "Order #${order.id} is now ${order.status.displayName.lowercase()}."
+        }
+        val data = mapOf(
+            "id" to notificationId,
+            "userId" to order.userId,
+            "targetRole" to "customer",
+            "type" to if (order.status == OrderStatus.REJECTED) "error" else "info",
+            "category" to "order_status",
+            "title" to title,
+            "message" to message,
+            "isRead" to false,
+            "deepLinkRoute" to DtaDestinations.orderTracking(order.id),
+            "createdAt" to now
+        )
+        getFirestoreSafe()?.collection(FirebaseConfig.COLLECTION_NOTIFICATIONS)?.document(notificationId)?.set(data)
     }
 
     // -------------------------------------------------------------
@@ -521,6 +578,9 @@ class AdminRepository(
             processedAt = now
         )
         _platformWithdrawals.value = currentList
+        getFirestoreSafe()?.collection(FirebaseConfig.COLLECTION_WITHDRAWALS)?.document(requestId)?.update(
+            mapOf("status" to WithdrawalStatus.PAID.rawValue, "transactionReference" to transactionReference, "payoutProofUrl" to currentList[index].payoutProofUrl, "adminNote" to adminNote, "processedAt" to now)
+        )
 
         logAuditEvent(
             actorId = adminId,
@@ -553,6 +613,9 @@ class AdminRepository(
             processedAt = now
         )
         _platformWithdrawals.value = currentList
+        getFirestoreSafe()?.collection(FirebaseConfig.COLLECTION_WITHDRAWALS)?.document(requestId)?.update(
+            mapOf("status" to WithdrawalStatus.REJECTED.rawValue, "adminNote" to adminReason, "processedAt" to now)
+        )
 
         logAuditEvent(
             actorId = adminId,
@@ -591,6 +654,9 @@ class AdminRepository(
             adminNote = adminNote ?: existing.adminNote
         )
         _platformRewards.value = currentList
+        getFirestoreSafe()?.collection(FirebaseConfig.COLLECTION_REWARDS)?.document(rewardId)?.update(
+            mapOf("status" to status.rawValue, "adminNote" to (adminNote ?: existing.adminNote))
+        )
 
         logAuditEvent(
             actorId = adminId,
@@ -618,6 +684,7 @@ class AdminRepository(
             currentList.add(0, product)
         }
         _products.value = currentList
+        getFirestoreSafe()?.collection(FirebaseConfig.COLLECTION_PRODUCTS)?.document(product.id)?.set(product)
 
         logAuditEvent(
             actorId = adminId,
@@ -639,6 +706,7 @@ class AdminRepository(
         val newState = !current.inStock
         currentList[index] = current.copy(inStock = newState)
         _products.value = currentList
+        getFirestoreSafe()?.collection(FirebaseConfig.COLLECTION_PRODUCTS)?.document(productId)?.update("inStock", newState)
 
         logAuditEvent(
             actorId = adminId,
@@ -681,6 +749,7 @@ class AdminRepository(
             currentList.add(category)
         }
         _categories.value = currentList
+        getFirestoreSafe()?.collection(FirebaseConfig.COLLECTION_CATEGORIES)?.document(category.id)?.set(category)
 
         logAuditEvent(
             actorId = adminId,
@@ -706,6 +775,7 @@ class AdminRepository(
         val previousRole = currentList[index].role
         currentList[index] = currentList[index].copy(role = newRole)
         _platformUsers.value = currentList
+        getFirestoreSafe()?.collection(FirebaseConfig.COLLECTION_USERS)?.document(userId)?.update("role", newRole.rawValue)
 
         logAuditEvent(
             actorId = adminId,
@@ -728,6 +798,7 @@ class AdminRepository(
         val newState = !previousState
         currentList[index] = currentList[index].copy(isActive = newState)
         _platformUsers.value = currentList
+        getFirestoreSafe()?.collection(FirebaseConfig.COLLECTION_USERS)?.document(userId)?.update("isActive", newState)
 
         logAuditEvent(
             actorId = adminId,
@@ -745,323 +816,144 @@ class AdminRepository(
     // Initial Seed Data
     // -------------------------------------------------------------
 
-    private fun createInitialPlatformSales(): List<ResellerSale> {
-        return listOf(
-            // Matches Screen 08: #DS1008 Pending Review
-            ResellerSale(
-                id = "DS1008",
-                userId = "reseller-1",
-                resellerName = "Ali Khan",
-                resellerReferralCode = "DTA-ALEX91",
-                resellerRank = "Silver Partner",
-                resellerStatus = "Active",
-                productId = "prod-dta-5328",
-                productName = "Libas-e-Yousaf Executive Fabric",
-                productImage = "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800&auto=format&fit=crop&q=80",
-                productSpecs = "Egyptian Blended Luxury • 4.5 Meters Standard",
-                customerName = "Muhammad Usman",
-                customerPhone = "+92 321 9876543",
-                customerEmail = "usman@gmail.com",
-                customerAddress = "House 14B, Street 3, F-8/2",
-                customerCity = "Islamabad",
-                paymentScreenshotUrl = "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&auto=format&fit=crop&q=80",
-                paymentProofNotes = "Transferred via Meezan Bank mobile app",
-                paymentMethod = "Bank Transfer (Meezan Bank)",
-                transactionReference = "MB-TRX-9821443",
-                quantity = 2,
-                retailPrice = 4500.0,
-                partnerPrice = 3500.0,
-                sellingPrice = 4500.0,
-                profitMargin = 1000.0,
-                status = OrderStatus.PENDING_VERIFICATION,
-                createdAt = "2026-03-05T09:12:00Z"
+    private fun seedInitialData() {
+        val seededProducts = listOf(
+            PartnerProduct(
+                id = "prod-01",
+                name = "Smart Watch",
+                partnerPrice = 12000.0,
+                retailPrice = 15000.0,
+                imageUrl = "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
+                inStock = true
             ),
-            // Matches Screen 07: #DS1007 Processing
-            ResellerSale(
-                id = "DS1007",
-                userId = "reseller-2",
-                resellerName = "Hamza Malik",
-                resellerReferralCode = "DTA-HAMZA22",
-                resellerRank = "Platinum Partner",
-                resellerStatus = "Active",
-                productId = "prod-nike-air",
-                productName = "Nike Air Max Sneakers",
-                productImage = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&auto=format&fit=crop&q=80",
-                productSpecs = "Size 42 • Black/White",
-                customerName = "Shahid Rafiq",
-                customerPhone = "+92 300 9988776",
-                customerAddress = "Plaza 45, Blue Area",
-                customerCity = "Islamabad",
-                paymentScreenshotUrl = "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&auto=format&fit=crop&q=80",
-                paymentProofNotes = "EasyPaisa TRX 9987214",
-                paymentMethod = "EasyPaisa Mobile Account",
-                transactionReference = "EP-TXN-9987214",
-                quantity = 2,
-                retailPrice = 8999.0,
-                partnerPrice = 6499.0,
-                sellingPrice = 8999.0,
-                profitMargin = 2500.0,
-                status = OrderStatus.PROCESSING,
-                shippingCourier = "TCS",
-                trackingNumber = "TCS123456789",
-                createdAt = "2026-03-05T08:00:00Z",
-                confirmedAt = "2026-03-05T08:30:00Z",
-                processingAt = "2026-03-05T09:00:00Z"
-            ),
-            ResellerSale(
-                id = "DS1006",
-                userId = "reseller-1",
-                resellerName = "Ali Khan",
-                resellerReferralCode = "DTA-ALEX91",
-                productId = "prod-dta-7102",
-                productName = "Executive Signature Pen & Leather Wallet Set",
-                customerName = "Bilal Ahmed",
-                customerPhone = "+92 301 2345678",
-                customerAddress = "Plot 89, Phase 6, DHA",
-                customerCity = "Karachi",
-                quantity = 3,
-                retailPrice = 2600.0,
-                partnerPrice = 1800.0,
-                sellingPrice = 2600.0,
-                profitMargin = 800.0,
-                status = OrderStatus.DISPATCHED,
-                shippingCourier = "TCS",
-                trackingNumber = "TCS99081234",
-                createdAt = "2026-03-04T11:00:00Z"
-            ),
-            ResellerSale(
-                id = "DS1005",
-                userId = "reseller-3",
-                resellerName = "Zainab Tariq",
-                resellerReferralCode = "DTA-ZAINAB09",
-                productId = "prod-dta-5328",
-                productName = "Libas-e-Yousaf Executive Fabric",
-                customerName = "Tariq Mehmood",
-                customerPhone = "+92 333 4567890",
-                customerAddress = "Flat 402, Al-Razi Heights, Gulberg III",
-                customerCity = "Lahore",
-                quantity = 1,
-                retailPrice = 4500.0,
-                partnerPrice = 3500.0,
-                sellingPrice = 4500.0,
-                profitMargin = 1000.0,
-                status = OrderStatus.DELIVERED,
-                isQualifying = true,
-                shippingCourier = "Trax",
-                trackingNumber = "TRX8876541",
-                createdAt = "2026-03-02T10:15:00Z",
-                deliveredAt = "2026-03-04T12:30:00Z"
+            PartnerProduct(
+                id = "prod-02",
+                name = "Wireless Earbuds",
+                partnerPrice = 6500.0,
+                retailPrice = 8000.0,
+                imageUrl = "https://images.unsplash.com/photo-1590658268037-6bf12165a8df",
+                inStock = true
             )
         )
-    }
-
-    private fun createInitialPlatformWithdrawals(): List<WithdrawalRequest> {
-        return listOf(
+        val seededSales = listOf(
+            ResellerSale(
+                id = "DS1008",
+                userId = "user-103",
+                resellerName = "Alex Khan",
+                productId = "prod-01",
+                productName = "Smart Watch",
+                sellingPrice = 15000.0,
+                partnerPrice = 12000.0,
+                profitMargin = 3000.0,
+                quantity = 1,
+                customerName = "Usman Ali",
+                customerPhone = "03001234567",
+                customerAddress = "Street 5, Sector F-7, Islamabad",
+                customerCity = "Islamabad",
+                status = OrderStatus.PENDING_VERIFICATION,
+                paymentScreenshotUrl = "https://example.com/receipt.jpg",
+                createdAt = "2026-09-05T10:00:00Z"
+            ),
+            ResellerSale(
+                id = "DS1007",
+                userId = "user-101",
+                resellerName = "Sara Ahmed",
+                productId = "prod-02",
+                productName = "Wireless Earbuds",
+                sellingPrice = 8000.0,
+                partnerPrice = 6500.0,
+                profitMargin = 1500.0,
+                quantity = 1,
+                customerName = "Zainab Bibi",
+                customerPhone = "03219876543",
+                customerAddress = "Model Town, Lahore",
+                customerCity = "Lahore",
+                status = OrderStatus.PAYMENT_VERIFIED,
+                createdAt = "2026-09-04T10:00:00Z"
+            )
+        )
+        val seededWithdrawals = listOf(
             WithdrawalRequest(
                 id = "wd-dta-1003",
-                userId = "reseller-1",
-                userName = "Ali Khan",
-                userEmail = "partner@dreamtoachievers.com",
-                userPhone = "+92 300 1234567",
-                amount = 2500.0,
-                currency = "PKR",
-                payoutMethod = PaymentMethod(
-                    id = "pm-ep-1",
-                    methodType = PaymentMethodType.EASYPAISA,
-                    accountTitle = "Ali Khan",
-                    accountNumber = "03001234567",
-                    bankName = "EasyPaisa Mobile Account"
-                ),
+                userId = "user-101",
+                userName = "Sara Ahmed",
+                userEmail = "sara@example.com",
+                userPhone = "03001112233",
+                amount = 5000.0,
                 status = WithdrawalStatus.PENDING,
-                requestedAt = "2026-03-05T07:45:00Z"
+                payoutMethod = PaymentMethod(methodType = PaymentMethodType.BANK_TRANSFER, bankName = "Meezan Bank", accountNumber = "1234567890"),
+                requestedAt = "2026-09-05T08:00:00Z"
             ),
             WithdrawalRequest(
                 id = "wd-dta-1002",
-                userId = "reseller-2",
-                userName = "Hamza Malik",
-                userEmail = "hamza@example.com",
-                userPhone = "+92 321 4455667",
-                amount = 4000.0,
-                currency = "PKR",
-                payoutMethod = PaymentMethod(
-                    id = "pm-jc-1",
-                    methodType = PaymentMethodType.JAZZCASH,
-                    accountTitle = "Hamza Malik",
-                    accountNumber = "03214455667",
-                    bankName = "JazzCash Mobile Account"
-                ),
+                userId = "user-101",
+                userName = "Sara Ahmed",
+                userEmail = "sara@example.com",
+                userPhone = "03001112233",
+                amount = 2000.0,
                 status = WithdrawalStatus.PAID,
-                transactionReference = "JC-TXN-902144",
-                payoutProofUrl = "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&auto=format&fit=crop&q=80",
-                requestedAt = "2026-03-03T11:00:00Z",
-                processedAt = "2026-03-03T15:00:00Z"
+                payoutMethod = PaymentMethod(methodType = PaymentMethodType.BANK_TRANSFER, bankName = "Meezan Bank", accountNumber = "1234567890"),
+                requestedAt = "2026-09-01T08:00:00Z"
             )
         )
-    }
-
-    private fun createInitialPlatformRewards(): List<MilestoneReward> {
-        return listOf(
+        val seededRewards = listOf(
             MilestoneReward(
                 id = "rew-rank-201",
                 userId = "reseller-1",
-                rankSlug = "platinum",
-                rankName = "Platinum Rank",
-                amount = 4000.0,
-                currency = "PKR",
-                status = RewardStatus.PENDING_REVIEW,
-                earnedAt = "2026-03-04T18:00:00Z",
-                adminNote = "Achieved 25 sales & 45 community members."
-            ),
-            MilestoneReward(
-                id = "rew-rank-200",
-                userId = "reseller-2",
                 rankSlug = "silver",
                 rankName = "Silver Rank",
                 amount = 2000.0,
-                currency = "PKR",
-                status = RewardStatus.APPROVED,
-                earnedAt = "2026-03-02T12:00:00Z",
-                adminNote = "Approved Silver Rank bonus."
+                status = RewardStatus.PENDING_REVIEW,
+                earnedAt = "2026-09-04T08:00:00Z"
+            ),
+            MilestoneReward(
+                id = "reward-silver-101",
+                userId = "user-101",
+                rankSlug = "silver",
+                rankName = "Silver Rank",
+                amount = 2000.0,
+                status = RewardStatus.PENDING_REVIEW,
+                earnedAt = "2026-09-04T08:00:00Z"
             )
         )
-    }
-
-    private fun createInitialPlatformUsers(): List<User> {
-        return listOf(
-            User(id = "reseller-1", fullName = "Ali Khan", email = "partner@dreamtoachievers.com", role = UserRole.RESELLER, phone = "+92 300 1234567", city = "Islamabad", isActive = true),
-            User(id = "reseller-2", fullName = "Hamza Malik", email = "hamza@example.com", role = UserRole.RESELLER, phone = "+92 321 4455667", city = "Lahore", isActive = true),
-            User(id = "user-103", fullName = "Sana Sheikh", email = "sana@example.com", role = UserRole.CUSTOMER, phone = "+92 333 1122334", city = "Karachi", isActive = true),
-            User(id = "admin-1", fullName = "Super Administrator", email = "admin@dreamtoachievers.com", role = UserRole.SUPERADMIN, phone = "+92 300 0000000", city = "Islamabad", isActive = true)
-        )
-    }
-
-    private fun createInitialAdminProducts(): List<PartnerProduct> {
-        return listOf(
-            PartnerProduct(
-                id = "prod-nike-air",
-                name = "Nike Air Max Sneakers",
-                slug = "nike-air-max",
-                category = "Executive Footwear",
-                retailPrice = 8999.0,
-                partnerPrice = 6499.0,
-                suggestedSellingPrice = 8999.0,
-                imageUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&auto=format&fit=crop&q=80",
-                inStock = true,
-                stockCount = 42
+        val seededUsers = listOf(
+            User(
+                id = "user-101",
+                fullName = "Sara Ahmed",
+                email = "sara@example.com",
+                role = UserRole.RESELLER
             ),
-            PartnerProduct(
-                id = "prod-dta-5328",
-                name = "Libas-e-Yousaf Executive Fabric",
-                slug = "libas-e-yousaf",
-                category = "Executive Gift Sets",
-                retailPrice = 4500.0,
-                partnerPrice = 3500.0,
-                suggestedSellingPrice = 4500.0,
-                imageUrl = "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800&auto=format&fit=crop&q=80",
-                inStock = true,
-                stockCount = 85
-            ),
-            PartnerProduct(
-                id = "prod-dta-6004",
-                name = "Max 1150 Ultra AMOLED Smartwatch",
-                slug = "max-1150",
-                category = "Smartwatches & Fitness",
-                retailPrice = 3800.0,
-                partnerPrice = 2800.0,
-                suggestedSellingPrice = 3800.0,
-                imageUrl = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&auto=format&fit=crop&q=80",
-                inStock = true,
-                stockCount = 6 // Low stock example
+            User(
+                id = "user-103",
+                fullName = "Alex Khan",
+                email = "alex@example.com",
+                role = UserRole.CUSTOMER
             )
         )
-    }
-
-    private fun createInitialCategories(): List<Category> {
-        return listOf(
-            // Level 0: Roots
-            Category(id = "cat-root-1", name = "Men's Executive Lifestyle", slug = "mens-lifestyle", depth = 0),
-            Category(id = "cat-root-2", name = "Smart Tech & Wearables", slug = "smart-tech", depth = 0),
-
-            // Level 1: Subs
-            Category(id = "cat-sub-1", name = "Luxury Fabrics", slug = "luxury-fabrics", parentId = "cat-root-1", depth = 1),
-            Category(id = "cat-sub-2", name = "Footwear & Shoes", slug = "footwear", parentId = "cat-root-1", depth = 1),
-            Category(id = "cat-sub-3", name = "Smartwatches", slug = "smartwatches", parentId = "cat-root-2", depth = 1),
-
-            // Level 2: Leaves
-            Category(id = "cat-leaf-1", name = "Egyptian Unstitched", slug = "egyptian-unstitched", parentId = "cat-sub-1", depth = 2),
-            Category(id = "cat-leaf-2", name = "Athletic Sneakers", slug = "athletic-sneakers", parentId = "cat-sub-2", depth = 2),
-            Category(id = "cat-leaf-3", name = "AMOLED Bluetooth Calling", slug = "amoled-calling", parentId = "cat-sub-3", depth = 2)
+        val seededCategories = listOf(
+            Category(id = "cat-01", name = "Electronics", slug = "electronics", depth = 0, status = "active"),
+            Category(id = "cat-02", name = "Wearables", slug = "wearables", parentId = "cat-01", depth = 1, status = "active"),
+            Category(id = "cat-03", name = "Smartwatches", slug = "smartwatches", parentId = "cat-02", depth = 2, status = "active")
         )
-    }
-
-    private fun createInitialAuditLogs(): List<AuditLog> {
-        return listOf(
+        val seededLogs = listOf(
             AuditLog(
-                id = "audit-101",
-                actorId = "admin-1",
-                actorName = "Super Administrator",
-                actorRole = "SUPERADMIN",
-                action = "VERIFY_PAYMENT",
-                entityType = "ORDER",
-                entityId = "DS1007",
-                previousState = "PENDING_VERIFICATION",
-                newState = "PAYMENT_VERIFIED",
-                note = "Verified EasyPaisa transaction slip EP-998811",
-                timestamp = "2026-09-03T09:15:00Z"
-            ),
-            AuditLog(
-                id = "audit-102",
-                actorId = "admin-1",
-                actorName = "Super Administrator",
-                actorRole = "SUPERADMIN",
-                action = "DISPATCH_ORDER",
-                entityType = "ORDER",
-                entityId = "DS1007",
-                previousState = "PROCESSING",
-                newState = "DISPATCHED",
-                note = "Dispatched via TCS Express (Tracking #TCS-99881124)",
-                timestamp = "2026-09-03T14:30:00Z"
-            ),
-            AuditLog(
-                id = "audit-103",
-                actorId = "admin-1",
-                actorName = "Super Administrator",
-                actorRole = "SUPERADMIN",
-                action = "DISBURSE_PAYOUT",
-                entityType = "WITHDRAWAL",
-                entityId = "WD1002",
-                previousState = "PENDING",
-                newState = "PAID",
-                note = "Disbursed PKR 2,000 to Ali Khan via EasyPaisa TXN-EP-776611",
-                timestamp = "2026-09-02T11:45:00Z"
-            ),
-            AuditLog(
-                id = "audit-104",
-                actorId = "admin-1",
-                actorName = "Super Administrator",
-                actorRole = "SUPERADMIN",
-                action = "UPDATE_REWARD_STATUS",
-                entityType = "REWARD",
-                entityId = "rew-rank-200",
-                previousState = "PENDING_REVIEW",
-                newState = "APPROVED",
-                note = "Approved Silver Rank milestone reward of PKR 2,000 for Hamza Malik",
-                timestamp = "2026-09-01T16:20:00Z"
-            ),
-            AuditLog(
-                id = "audit-105",
-                actorId = "admin-1",
-                actorName = "Super Administrator",
-                actorRole = "SUPERADMIN",
-                action = "UPDATE_USER_ROLE",
-                entityType = "USER",
-                entityId = "user-103",
-                previousState = "CUSTOMER",
-                newState = "RESELLER",
-                note = "Promoted user Sana Sheikh to verified Partner Reseller",
-                timestamp = "2026-08-30T10:00:00Z"
+                id = "log-01",
+                action = "ORDER_VERIFIED",
+                actorId = "admin-01",
+                actorName = "Super Admin",
+                entityId = "DS1008",
+                note = "Payment verified for DS1008",
+                timestamp = "2026-09-05T10:30:00Z"
             )
         )
+
+        _platformOrders.value = seededSales
+        _platformWithdrawals.value = seededWithdrawals
+        _platformRewards.value = seededRewards
+        _platformUsers.value = seededUsers
+        _products.value = seededProducts
+        _categories.value = seededCategories
+        _auditLogs.value = seededLogs
     }
 
     private fun parseResellerSale(doc: DocumentSnapshot): ResellerSale? {
@@ -1100,6 +992,7 @@ class AdminRepository(
 
     private fun parseWithdrawalRequest(doc: DocumentSnapshot): WithdrawalRequest? {
         return try {
+            val payout = doc.get("payoutMethod") as? Map<*, *>
             WithdrawalRequest(
                 id = doc.getString("id") ?: doc.id,
                 userId = doc.getString("userId") ?: "",
@@ -1109,9 +1002,9 @@ class AdminRepository(
                 amount = doc.getDouble("amount") ?: 0.0,
                 currency = doc.getString("currency") ?: "PKR",
                 payoutMethod = PaymentMethod(
-                    accountTitle = doc.getString("accountTitle") ?: "",
-                    accountNumber = doc.getString("accountNumber") ?: "",
-                    bankName = doc.getString("bankName") ?: ""
+                    accountTitle = payout?.get("accountTitle") as? String ?: doc.getString("accountTitle") ?: "",
+                    accountNumber = payout?.get("accountNumber") as? String ?: doc.getString("accountNumber") ?: "",
+                    bankName = payout?.get("bankName") as? String ?: doc.getString("bankName") ?: ""
                 ),
                 status = WithdrawalStatus.fromString(doc.getString("status") ?: "pending"),
                 transactionReference = doc.getString("transactionReference"),

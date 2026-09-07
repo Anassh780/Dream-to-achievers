@@ -16,5 +16,8 @@ class OrderRepository(
     suspend fun uploadReceipt(orderId: String, imageUri: Uri): String =
         dataSource.uploadPaymentReceipt(orderId, imageUri)
 
+    suspend fun attachReceipt(orderId: String, receiptUrl: String) =
+        dataSource.attachPaymentReceipt(orderId, receiptUrl)
+
     suspend fun submitOrder(order: Order): Result<Order> = dataSource.submitOrder(order)
 }

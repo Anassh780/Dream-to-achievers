@@ -34,7 +34,7 @@ fun AdminAdaptiveOrderVerificationScreen(
             // Adaptive 2-Pane List-Detail Layout (Point 79)
             val state by viewModel.uiState.collectAsState()
             var selectedOrderId by remember {
-                mutableStateOf(state.orders.firstOrNull()?.id ?: "DS1008")
+                mutableStateOf(state.orders.firstOrNull()?.id.orEmpty())
             }
 
             Row(modifier = Modifier.fillMaxSize()) {

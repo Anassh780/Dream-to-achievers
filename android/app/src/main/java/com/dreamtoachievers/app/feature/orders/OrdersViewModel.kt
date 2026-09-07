@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dreamtoachievers.app.core.data.DataStoreManager
 import com.dreamtoachievers.app.core.data.OrderRepository
+import com.dreamtoachievers.app.core.data.ProductRepository
 import com.dreamtoachievers.app.core.model.Order
 import com.dreamtoachievers.app.core.model.OrderStatus
 import kotlinx.coroutines.flow.*
@@ -27,7 +28,8 @@ data class OrdersUiState(
 
 class OrdersViewModel(
     private val orderRepository: OrderRepository,
-    private val dataStoreManager: DataStoreManager
+    private val dataStoreManager: DataStoreManager,
+    private val productRepository: ProductRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OrdersUiState())
@@ -35,20 +37,36 @@ class OrdersViewModel(
 
     private var allOrders: List<Order> = emptyList()
 
+    private var ordersJob: kotlinx.coroutines.Job? = null
+
     init {
         loadOrders()
     }
 
-    fun loadOrders() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            val userId = dataStoreManager.userId.first() ?: ""
 
-            orderRepository.getUserOrders(userId).catch { err ->
+
+    fun loadOrders() {
+        ordersJob?.cancel()
+        ordersJob = viewModelScope.launch {
+            dataStoreManager.userId.collectLatest { sessionId ->
+            allOrders = emptyList()
+            filterOrders(_uiState.value.selectedTab)
+            if (sessionId.isNullOrBlank()) return@collectLatest
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            val userId = sessionId
+
+            combine(orderRepository.getUserOrders(userId), productRepository.getProducts()) { orders, products ->
+                val productsById = products.associateBy { it.id }
+                orders.map { order ->
+                    if (order.productImage.isNotBlank()) order
+                    else order.copy(productImage = productsById[order.productId]?.imageUrl.orEmpty())
+                }
+            }.catch { err ->
                 _uiState.update { it.copy(isLoading = false, error = err.localizedMessage) }
             }.collect { orders ->
                 allOrders = orders
                 filterOrders(_uiState.value.selectedTab)
+            }
             }
         }
     }

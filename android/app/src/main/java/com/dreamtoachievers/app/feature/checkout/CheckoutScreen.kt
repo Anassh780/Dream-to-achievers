@@ -38,7 +38,8 @@ fun CheckoutScreen(
     viewModel: CheckoutViewModel,
     onNavigateBack: () -> Unit,
     onOrderPlaced: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    savedAddresses: List<String> = emptyList()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -99,10 +100,28 @@ fun CheckoutScreen(
                 start = DtaTheme.spacing.ScreenHorizontal,
                 end = DtaTheme.spacing.ScreenHorizontal,
                 top = 12.dp,
-                bottom = 24.dp
+                bottom = 56.dp
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            if (savedAddresses.isNotEmpty()) {
+                item {
+                    var expanded by remember { mutableStateOf(false) }
+                    Box {
+                        OutlinedButton(onClick = { expanded = true }, enabled = !uiState.isSubmitting) {
+                            Text("Use a saved address")
+                        }
+                        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                            savedAddresses.forEach { address ->
+                                DropdownMenuItem(text = { Text(address) }, onClick = {
+                                    viewModel.onAddressChanged(address)
+                                    expanded = false
+                                })
+                            }
+                        }
+                    }
+                }
+            }
             // Error notice
             if (uiState.error != null) {
                 item {

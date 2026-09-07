@@ -11,6 +11,20 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 class DataStoreManager(private val context: Context) {
 
+    private fun addressKey(userId: String?) = stringSetPreferencesKey("addresses_${userId ?: "guest"}")
+
+    fun savedAddresses(userId: String?): Flow<Set<String>> = context.dataStore.data.map {
+        it[addressKey(userId)] ?: emptySet()
+    }
+
+    suspend fun addAddress(userId: String?, address: String) {
+        context.dataStore.edit { it[addressKey(userId)] = (it[addressKey(userId)] ?: emptySet()) + address }
+    }
+
+    suspend fun removeAddress(userId: String?, address: String) {
+        context.dataStore.edit { it[addressKey(userId)] = (it[addressKey(userId)] ?: emptySet()) - address }
+    }
+
     private object PreferencesKeys {
         val REFERRAL_CODE = stringPreferencesKey("referral_code")
         val USER_ID = stringPreferencesKey("user_id")

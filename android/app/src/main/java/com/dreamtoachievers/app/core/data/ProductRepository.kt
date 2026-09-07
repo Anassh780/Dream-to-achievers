@@ -1,7 +1,9 @@
 package com.dreamtoachievers.app.core.data
 
+import android.net.Uri
 import com.dreamtoachievers.app.core.firebase.FirebaseProductDataSource
 import com.dreamtoachievers.app.core.model.Product
+import com.dreamtoachievers.app.core.model.ProductReview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -17,6 +19,7 @@ class ProductRepository(
 ) {
 
     fun getProducts(): Flow<List<Product>> = dataSource.observeProducts()
+    fun getTrendingProducts(): Flow<List<Product>> = dataSource.observeTrendingProducts()
 
     fun getFeaturedProducts(): Flow<List<Product>> = getProducts().map { list ->
         list.filter { it.isFeatured }
@@ -71,4 +74,7 @@ class ProductRepository(
     }
 
     suspend fun getProductById(productId: String): Product? = dataSource.getProductById(productId)
+    suspend fun submitResellerProduct(product: Product, imageUris: List<Uri>): Result<String> = dataSource.submitResellerProduct(product, imageUris)
+    fun observeReviews(productId: String): Flow<List<ProductReview>> = dataSource.observeReviews(productId)
+    suspend fun submitReview(productId: String, userName: String, rating: Int, comment: String): Result<Unit> = dataSource.submitReview(productId, userName, rating, comment)
 }

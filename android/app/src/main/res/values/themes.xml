@@ -1,16 +1,10 @@
 <resources>
     <!-- Base application theme -->
-    <style name="Theme.DreamToAchievers" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Base.Theme.DreamToAchievers" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
     </style>
+    <style name="Theme.DreamToAchievers" parent="Base.Theme.DreamToAchievers" />
 
-    <!-- SplashScreen Theme -->
-    <style name="Theme.DreamToAchievers.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/dta_bg_neutral</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_dta_brand_logo</item>
-        <item name="postSplashScreenTheme">@style/Theme.DreamToAchievers</item>
-    </style>
 </resources>

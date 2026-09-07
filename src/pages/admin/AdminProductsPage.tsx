@@ -4,9 +4,8 @@ import { auditService } from '@/services/auditService';
 import { categoryService } from '@/services/categoryService';
 import { useAuth } from '@/context/AuthContext';
 import { Product } from '@/types';
-import { SEED_PRODUCTS } from '@/config/products';
 import { Button } from '@/components/ui/Button';
-import { cloudSyncService, OFFICIAL_ADMIN_USER } from '@/services/cloudSyncService';
+import { cloudSyncService } from '@/services/cloudSyncService';
 import { uploadProductImage, isValidImageUrl } from '@/services/imageService';
 import {
   Plus,
@@ -30,7 +29,7 @@ import {
 export const AdminProductsPage: React.FC = () => {
   const { user: currentAdmin } = useAuth();
   const [products, setProducts] = useState<Product[]>(() =>
-    storage.get<Product[]>('PRODUCTS', SEED_PRODUCTS)
+    storage.get<Product[]>('PRODUCTS', [])
   );
   const allCategories = useMemo(() => categoryService.getAllCategories(), []);
 
@@ -39,7 +38,7 @@ export const AdminProductsPage: React.FC = () => {
       if (e.detail && Array.isArray(e.detail)) {
         setProducts(e.detail);
       } else {
-        setProducts(storage.get<Product[]>('PRODUCTS', SEED_PRODUCTS));
+        setProducts(storage.get<Product[]>('PRODUCTS', []));
       }
     };
     window.addEventListener('dta_products_update', handleProductsUpdate);
@@ -91,7 +90,7 @@ export const AdminProductsPage: React.FC = () => {
       const count = await cloudSyncService.syncAllProductsToCloud(products);
       showToast(`⚡ Successfully synchronized ${count} products to Firebase Cloud & all devices!`);
     } catch {
-      showToast('Cloud sync completed with local cached database.');
+      showToast('Firebase sync failed. Check your connection and try again.');
     } finally {
       setIsCloudSyncing(false);
     }
@@ -132,7 +131,11 @@ export const AdminProductsPage: React.FC = () => {
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    const adminUser = currentAdmin || OFFICIAL_ADMIN_USER;
+    if (!currentAdmin) {
+      showToast('Your admin session has expired. Please sign in again.');
+      return;
+    }
+    const adminUser = currentAdmin;
 
     const slug = name
       .toLowerCase()
@@ -234,7 +237,9 @@ export const AdminProductsPage: React.FC = () => {
         storage.set('DELETED_PRODUCTS', [p, ...archived]);
       }
 
-      cloudSyncService.deleteProductFromCloud(p.id);
+      cloudSyncService.archiveProduct(p).catch(() => {
+        showToast('Firebase could not archive this product. Please try again.');
+      });
 
       auditService.logAction({
         adminId: currentAdmin.id,
@@ -251,10 +256,7 @@ export const AdminProductsPage: React.FC = () => {
 
   const recoverableProducts = useMemo(() => {
     const archived = storage.get<Product[]>('DELETED_PRODUCTS', []);
-    const missingSeeds = SEED_PRODUCTS.filter(
-      (sp) => !products.some((p) => p.id === sp.id || p.sku === sp.sku) && !archived.some((a) => a.id === sp.id || a.sku === sp.sku)
-    );
-    return [...archived, ...missingSeeds];
+    return archived;
   }, [products, isRestoreModalOpen]);
 
   const filteredRecoverable = useMemo(() => {
@@ -294,7 +296,7 @@ export const AdminProductsPage: React.FC = () => {
 
     // Sync each restored item to cloud
     itemsToRestore.forEach((item) => {
-      cloudSyncService.syncProductToCloud(item);
+      cloudSyncService.restoreProduct(item);
     });
 
     const remainingArchive = storage
@@ -304,13 +306,6 @@ export const AdminProductsPage: React.FC = () => {
 
     setIsRestoreModalOpen(false);
     showToast(`Restored ${itemsToRestore.length} products to active catalog.`);
-  };
-
-  const handleRestoreAllOriginalSeed = async () => {
-    await cloudSyncService.seedCloudProducts();
-    storage.set('DELETED_PRODUCTS', []);
-    setIsRestoreModalOpen(false);
-    showToast('Restored all original catalog products successfully!');
   };
 
   const filteredList = useMemo(() => {
@@ -875,13 +870,6 @@ export const AdminProductsPage: React.FC = () => {
                   )}
                 </button>
 
-                <button
-                  onClick={handleRestoreAllOriginalSeed}
-                  className="text-[11px] font-mono text-[#B8862E] hover:underline cursor-pointer"
-                  title="Reset to 3 standard original catalog items"
-                >
-                  Reset Default 3
-                </button>
               </div>
             </div>
 
@@ -892,7 +880,7 @@ export const AdminProductsPage: React.FC = () => {
                   <Package size={32} className="text-[#7C7D70] mx-auto" />
                   <p className="font-bold text-sm text-[#1E241F]">No deleted or archived products found</p>
                   <p className="text-xs text-[#7C7D70]">
-                    All seed products are currently active in your live store catalog.
+                    Deleted products will appear here until they are restored.
                   </p>
                 </div>
               ) : (

@@ -551,9 +551,7 @@ export const referralService = {
 
     // 3. Realtime Database
     try {
-      await set(ref(rtdb, `referrals/${clean.id}`), clean);
       if (clean.referrerId) {
-        await set(ref(rtdb, `user_referrals/${clean.referrerId}/${clean.id}`), clean);
       }
     } catch (err) {
       console.warn('RTDB save referral failed:', err);
@@ -588,9 +586,7 @@ export const referralService = {
     }
 
     try {
-      await set(ref(rtdb, `referral_index/${normalized}`), payload);
       if (user.referralCode.toUpperCase() !== normalized) {
-        await set(ref(rtdb, `referral_index/${user.referralCode.toUpperCase()}`), payload);
       }
     } catch (err) {
       console.warn('RTDB referral_index save failed:', err);
@@ -760,4 +756,3 @@ export const referralService = {
     }
   },
 };
-

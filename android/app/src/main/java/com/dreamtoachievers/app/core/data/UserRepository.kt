@@ -12,7 +12,7 @@ import kotlinx.coroutines.tasks.await
 class UserRepository(
     private val dataSource: FirebaseUserDataSource = FirebaseUserDataSource(),
     private val dataStoreManager: DataStoreManager,
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
 ) {
 
     private val _currentUser = MutableStateFlow<User?>(null)
@@ -90,5 +90,26 @@ class UserRepository(
         auth.signOut()
         _currentUser.value = null
         dataStoreManager.clearUserSession()
+    }
+
+    suspend fun updateProfile(name: String, phone: String, city: String): Result<Unit> = runCatching {
+        val user = _currentUser.value ?: error("Sign in to edit your profile")
+        require(name.isNotBlank()) { "Please enter your full name" }
+        dataSource.updateContactProfile(user.id, name.trim(), phone.trim(), city.trim())
+        val updated = user.copy(fullName = name.trim(), phone = phone.trim(), city = city.trim())
+        _currentUser.value = updated
+        dataStoreManager.saveUserSession(updated.id, updated.email, updated.fullName, updated.role.rawValue)
+    }
+
+    fun observeAddresses(uid: String) = dataSource.observeAddresses(uid)
+
+    suspend fun addAddress(address: String): Result<Unit> = runCatching {
+        val user = _currentUser.value ?: error("Sign in to save an address")
+        dataSource.addAddress(user.id, address.trim())
+    }
+
+    suspend fun removeAddress(address: String): Result<Unit> = runCatching {
+        val user = _currentUser.value ?: error("Sign in to remove an address")
+        dataSource.removeAddress(user.id, address)
     }
 }

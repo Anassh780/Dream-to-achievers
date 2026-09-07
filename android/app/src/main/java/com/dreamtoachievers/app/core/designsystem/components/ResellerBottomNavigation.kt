@@ -4,7 +4,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -12,7 +11,6 @@ import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,6 +18,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.dreamtoachievers.app.core.designsystem.theme.DtaTheme
 import com.dreamtoachievers.app.core.navigation.DtaDestinations
 
@@ -45,6 +44,7 @@ fun ResellerBottomNavigation(
     Surface(
         color = DtaTheme.colors.surface,
         modifier = modifier
+            .zIndex(10f)
             .fillMaxWidth()
             .navigationBarsPadding()
             .border(
@@ -69,8 +69,6 @@ fun ResellerBottomNavigation(
                     label = "ResellerNavIconColor"
                 )
 
-                val interactionSource = remember { MutableInteractionSource() }
-
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
@@ -78,11 +76,7 @@ fun ResellerBottomNavigation(
                         .weight(1f)
                         .fillMaxHeight()
                         .clip(DtaTheme.shapes.Chip)
-                        .clickable(
-                            interactionSource = interactionSource,
-                            indication = null,
-                            onClick = { onNavigate(destination) }
-                        )
+                        .clickable { onNavigate(destination) }
                         .padding(vertical = 4.dp)
                 ) {
                     Box(

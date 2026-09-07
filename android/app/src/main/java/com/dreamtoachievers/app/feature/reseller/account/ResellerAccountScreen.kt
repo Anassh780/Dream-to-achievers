@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.dreamtoachievers.app.core.data.ResellerRepository
 import com.dreamtoachievers.app.core.designsystem.components.*
 import com.dreamtoachievers.app.core.designsystem.theme.DtaTheme
+import com.dreamtoachievers.app.core.model.User
 
 /**
  * Point 85: Role-Specific Reseller Account Screen
@@ -37,17 +38,30 @@ import com.dreamtoachievers.app.core.designsystem.theme.DtaTheme
 @Composable
 fun ResellerAccountScreen(
     resellerRepository: ResellerRepository,
+    currentUser: User?,
     onNavigateToWallet: () -> Unit,
     onNavigateToGrowth: () -> Unit,
     onNavigateToReferrals: () -> Unit,
     onSwitchRole: () -> Unit,
     onSignOut: () -> Unit,
+    onNavigateToSupport: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     var showSignOutDialog by remember { mutableStateOf(false) }
+    var showSecurityInfo by remember { mutableStateOf(false) }
+    if (showSecurityInfo) {
+        AlertDialog(onDismissRequest = { showSecurityInfo = false },
+            title = { Text("Account Security") },
+            text = { Text("Withdrawal PIN and two-factor setup are not available in this app yet. Contact support for help securing your account. No security settings have been changed.") },
+            confirmButton = { TextButton(onClick = { showSecurityInfo = false; onNavigateToSupport() }) { Text("Contact Support") } },
+            dismissButton = { TextButton(onClick = { showSecurityInfo = false }) { Text("Close") } })
+    }
 
-    val referralCode = resellerRepository.currentReferralCode
+    val displayName = currentUser?.fullName?.takeIf { it.isNotBlank() } ?: "Partner"
+    val referralCode = currentUser?.referralCode?.takeIf { it.isNotBlank() } ?: "Not assigned"
+    val contactLine = listOfNotNull(currentUser?.phone, currentUser?.city)
+        .filter { it.isNotBlank() }.joinToString(" • ").ifBlank { currentUser?.email.orEmpty() }
 
     if (showSignOutDialog) {
         AlertDialog(
@@ -84,7 +98,7 @@ fun ResellerAccountScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Partner Account",
                             style = DtaTheme.typography.TitleLarge.copy(fontWeight = FontWeight.Bold)
@@ -109,7 +123,7 @@ fun ResellerAccountScreen(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Switch",
+                            text = "Role",
                             style = DtaTheme.typography.Label.copy(
                                 color = DtaTheme.colors.primary,
                                 fontWeight = FontWeight.Bold
@@ -150,7 +164,7 @@ fun ResellerAccountScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "AK",
+                                text = displayName.split(" ").filter { it.isNotBlank() }.take(2).joinToString("") { it.take(1) }.uppercase(),
                                 style = DtaTheme.typography.TitleLarge.copy(
                                     color = DtaTheme.colors.primary,
                                     fontWeight = FontWeight.Bold
@@ -164,7 +178,7 @@ fun ResellerAccountScreen(
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 Text(
-                                    text = "Ali Khan",
+                                    text = displayName,
                                     style = DtaTheme.typography.TitleMedium.copy(fontWeight = FontWeight.Bold)
                                 )
                                 Box(
@@ -184,11 +198,11 @@ fun ResellerAccountScreen(
                                 }
                             }
                             Text(
-                                text = "+92 300 1234567 • Islamabad",
+                                text = contactLine,
                                 style = DtaTheme.typography.BodySmall.copy(color = DtaTheme.colors.inkSecondary)
                             )
                             Text(
-                                text = "Partner Merchant ID: DTA-M9921",
+                                text = "Partner ID: ${currentUser?.id?.take(12) ?: "Unavailable"}",
                                 style = DtaTheme.typography.Label.copy(
                                     color = DtaTheme.colors.primary,
                                     fontSize = 10.sp
@@ -218,8 +232,8 @@ fun ResellerAccountScreen(
 
                         AccountInfoRow(
                             label = "National CNIC",
-                            value = "61101-*******-9",
-                            badgeText = "Verified",
+                            value = "Managed by administrator",
+                            badgeText = "Account",
                             badgeColor = DtaTheme.colors.primary
                         )
                         HorizontalDivider(color = DtaTheme.colors.line)
@@ -314,10 +328,10 @@ fun ResellerAccountScreen(
 
                         AccountActionRow(
                             icon = Icons.Default.Security,
-                            title = "Security & PIN",
-                            subtitle = "Two-factor authentication and withdrawal PIN",
+                            title = "Account Security",
+                            subtitle = "Security options and account assistance",
                             onClick = {
-                                Toast.makeText(context, "Withdrawal PIN protection enabled", Toast.LENGTH_SHORT).show()
+                                showSecurityInfo = true
                             }
                         )
                         HorizontalDivider(color = DtaTheme.colors.line)
@@ -327,7 +341,7 @@ fun ResellerAccountScreen(
                             title = "Partner Support Desk",
                             subtitle = "Wholesale inventory inquiries and logistics assistance",
                             onClick = {
-                                Toast.makeText(context, "Connecting to Partner Logistics Support", Toast.LENGTH_SHORT).show()
+                                onNavigateToSupport()
                             }
                         )
                     }

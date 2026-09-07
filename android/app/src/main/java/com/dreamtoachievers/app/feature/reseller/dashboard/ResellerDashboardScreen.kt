@@ -29,10 +29,12 @@ import androidx.compose.ui.unit.sp
 import com.dreamtoachievers.app.core.designsystem.components.*
 import com.dreamtoachievers.app.core.designsystem.theme.DtaTheme
 import com.dreamtoachievers.app.core.model.ResellerSale
+import com.dreamtoachievers.app.core.model.User
 
 @Composable
 fun ResellerDashboardScreen(
     viewModel: ResellerDashboardViewModel,
+    currentUser: User?,
     onNavigateToRecordSale: (String?) -> Unit,
     onNavigateToCatalog: () -> Unit,
     onNavigateToWallet: () -> Unit,
@@ -55,7 +57,7 @@ fun ResellerDashboardScreen(
         // 1. Partner Header with Role Switcher
         item {
             ResellerHeader(
-                partnerName = "Ali Khan",
+                partnerName = currentUser?.fullName?.takeIf { it.isNotBlank() } ?: "Partner",
                 rankName = state.rankProgress.currentRank.name,
                 onSwitchRole = onSwitchRole
             )
@@ -150,6 +152,7 @@ private fun ResellerHeader(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
+                modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -169,7 +172,7 @@ private fun ResellerHeader(
                     )
                 }
 
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)

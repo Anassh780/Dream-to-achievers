@@ -11,7 +11,9 @@ class FirebaseReferralDataSource(
 ) {
 
     fun normalizeReferralCode(code: String): String {
-        return code.trim().uppercase().replace("[^A-Z0-9-]".toRegex(), "")
+        return code.trim().uppercase()
+            .replace(Regex("^DTA-?"), "")
+            .replace("[^A-Z0-9]".toRegex(), "")
     }
 
     suspend fun recordReferralAttribution(
@@ -24,15 +26,11 @@ class FirebaseReferralDataSource(
         if (cleanCode.isBlank()) return
 
         try {
-            // Find referrer by referralCode
-            val snap = firestore.collection(FirebaseConfig.COLLECTION_USERS)
-                .whereEqualTo("referralCode", cleanCode)
-                .limit(1)
-                .get()
-                .await()
-
-            val referrerDoc = snap.documents.firstOrNull()
-            val referrerId = referrerDoc?.getString("id") ?: "system-admin"
+            // referral_index is intentionally public for one-document code lookup;
+            // user profiles remain private and cannot be searched by customers.
+            val indexDoc = firestore.collection("referral_index").document(cleanCode).get().await()
+            val referrerId = indexDoc.getString("userId") ?: return
+            if (referrerId == newUserId) return
 
             val refId = "ref-${System.currentTimeMillis()}-${(100..999).random()}"
             val isoDate = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
