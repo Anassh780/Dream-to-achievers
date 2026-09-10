@@ -29,7 +29,7 @@ export const AdminAuditLogsPage: React.FC = () => {
         <select
           value={filterAction}
           onChange={(e) => setFilterAction(e.target.value)}
-          className="px-3 py-1.5 rounded-lg bg-white border border-[#E3DCC8] text-xs text-[#1E241F] focus:outline-none focus:border-[#1F4D3E]"
+          className="w-full sm:w-auto px-3 py-1.5 rounded-lg bg-white border border-[#E3DCC8] text-xs text-[#1E241F] focus:outline-none focus:border-[#1F4D3E]"
         >
           <option value="all">All Actions</option>
           <option value="user">User Actions</option>

@@ -197,10 +197,10 @@ export const AdminRewardsPage: React.FC = () => {
       )}
 
       {/* Tab Switcher */}
-      <div className="flex items-center space-x-2 border-b border-[#E3DCC8] pb-1">
+      <div className="flex items-center space-x-2 border-b border-[#E3DCC8] pb-1 overflow-x-auto overscroll-x-contain scrollbar-none">
         <button
           onClick={() => setActiveTab('withdrawals')}
-          className={`px-4 py-2 text-xs font-mono font-medium transition-all border-b-2 -mb-[5px] flex items-center space-x-2 ${
+          className={`shrink-0 px-4 py-2 text-xs font-mono font-medium transition-all border-b-2 -mb-[5px] flex items-center space-x-2 ${
             activeTab === 'withdrawals'
               ? 'border-[#1F4D3E] text-[#1F4D3E]'
               : 'border-transparent text-[#5B5C50] hover:text-[#1E241F]'
@@ -217,7 +217,7 @@ export const AdminRewardsPage: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('rewards')}
-          className={`px-4 py-2 text-xs font-mono font-medium transition-all border-b-2 -mb-[5px] flex items-center space-x-2 ${
+          className={`shrink-0 px-4 py-2 text-xs font-mono font-medium transition-all border-b-2 -mb-[5px] flex items-center space-x-2 ${
             activeTab === 'rewards'
               ? 'border-[#1F4D3E] text-[#1F4D3E]'
               : 'border-transparent text-[#5B5C50] hover:text-[#1E241F]'
@@ -612,4 +612,3 @@ export const AdminRewardsPage: React.FC = () => {
     </div>
   );
 };
-

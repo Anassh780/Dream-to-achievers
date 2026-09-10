@@ -433,12 +433,12 @@ export const AdminUsersPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
           <Button
             onClick={handleExportCSV}
             variant="outline"
             size="sm"
-            className="text-xs font-semibold shrink-0"
+            className="w-full text-xs font-semibold shrink-0"
             iconLeft={<DownloadSimple size={14} />}
             title="Download partner database as CSV spreadsheet"
           >
@@ -449,7 +449,7 @@ export const AdminUsersPage: React.FC = () => {
             onClick={handleManualSync}
             variant="outline"
             size="sm"
-            className="text-xs font-semibold shrink-0"
+            className="w-full text-xs font-semibold shrink-0"
             isLoading={isSyncing}
             iconLeft={<ArrowClockwise size={14} className={isSyncing ? 'animate-spin' : ''} />}
             title="Fetch all registered users from Cloud Firestore & RTDB"

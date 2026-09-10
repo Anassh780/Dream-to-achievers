@@ -171,10 +171,10 @@ export const AdminCategoriesPage: React.FC = () => {
           onClick={() => handleOpenCreate(null)}
           variant="primary"
           size="sm"
-          className="text-xs font-medium shrink-0"
+          className="w-full sm:w-auto text-xs font-medium shrink-0"
           iconLeft={<Plus size={14} />}
         >
-          + Add New Category
+          Add category
         </Button>
       </div>
 

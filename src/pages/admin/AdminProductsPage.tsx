@@ -3,7 +3,7 @@ import { storage } from '@/services/storage';
 import { auditService } from '@/services/auditService';
 import { categoryService } from '@/services/categoryService';
 import { useAuth } from '@/context/AuthContext';
-import { Product } from '@/types';
+import { Category, Product } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { cloudSyncService } from '@/services/cloudSyncService';
 import { uploadProductImage, isValidImageUrl } from '@/services/imageService';
@@ -31,7 +31,9 @@ export const AdminProductsPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>(() =>
     storage.get<Product[]>('PRODUCTS', [])
   );
-  const allCategories = useMemo(() => categoryService.getAllCategories(), []);
+  const [allCategories, setAllCategories] = useState<Category[]>(() =>
+    categoryService.getAllCategories()
+  );
 
   useEffect(() => {
     const handleProductsUpdate = (e: any) => {
@@ -47,6 +49,18 @@ export const AdminProductsPage: React.FC = () => {
       window.removeEventListener('dta_products_update', handleProductsUpdate);
       window.removeEventListener('dta_storage_change', handleProductsUpdate);
     };
+  }, []);
+
+  useEffect(() => {
+    const refreshCategories = (event?: Event) => {
+      const detail = (event as CustomEvent<{ key?: string }>)?.detail;
+      if (!detail?.key || detail.key === 'CATEGORIES') {
+        setAllCategories(categoryService.getAllCategories());
+      }
+    };
+    refreshCategories();
+    window.addEventListener('dta_storage_change', refreshCategories);
+    return () => window.removeEventListener('dta_storage_change', refreshCategories);
   }, []);
 
   const [isCreating, setIsCreating] = useState(false);
@@ -74,6 +88,12 @@ export const AdminProductsPage: React.FC = () => {
   const [inStock, setInStock] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  useEffect(() => {
+    if (allCategories.length > 0 && !allCategories.some((category) => category.id === categoryId)) {
+      setCategoryId(allCategories[0].id);
+    }
+  }, [allCategories, categoryId]);
 
   const [toastMsg, setToastMsg] = useState('');
 
@@ -335,22 +355,22 @@ export const AdminProductsPage: React.FC = () => {
           </h1>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full sm:w-auto shrink-0">
           <Button
             onClick={handleForceCloudSync}
             variant="outline"
             size="sm"
             disabled={isCloudSyncing}
-            className="text-xs font-medium border-[#1F4D3E]/30 text-[#1F4D3E] hover:bg-[#1F4D3E]/10"
+            className="w-full text-xs font-medium border-[#1F4D3E]/30 text-[#1F4D3E] hover:bg-[#1F4D3E]/10"
             iconLeft={<Sparkle size={14} className={isCloudSyncing ? 'animate-spin' : 'text-[#B8862E]'} />}
           >
-            {isCloudSyncing ? 'Syncing to Cloud...' : '⚡ Sync to Firebase'}
+            {isCloudSyncing ? 'Syncing...' : 'Sync catalog'}
           </Button>
           <Button
             onClick={handleOpenRestoreModal}
             variant="outline"
             size="sm"
-            className="text-xs font-medium"
+            className="w-full text-xs font-medium"
             iconLeft={<ArrowCounterClockwise size={14} />}
           >
             Restore Deleted ({recoverableProducts.length})
@@ -359,10 +379,10 @@ export const AdminProductsPage: React.FC = () => {
             onClick={handleOpenCreate}
             variant="primary"
             size="sm"
-            className="text-xs font-medium"
+            className="w-full text-xs font-medium"
             iconLeft={<Plus size={14} />}
           >
-            + Add New Product
+            Add product
           </Button>
         </div>
       </div>
@@ -407,12 +427,12 @@ export const AdminProductsPage: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-end">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 w-full sm:w-auto sm:flex sm:justify-end">
           <span className="text-xs text-[#5B5C50] font-mono hidden sm:inline">Filter Category:</span>
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-3 py-1.5 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] text-xs focus:outline-none focus:border-[#1F4D3E] cursor-pointer"
+            className="w-full sm:w-auto px-3 py-1.5 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] text-xs focus:outline-none focus:border-[#1F4D3E] cursor-pointer"
           >
             <option value="all">All Categories ({products.length})</option>
             {allCategories.map((c) => (
@@ -428,7 +448,39 @@ export const AdminProductsPage: React.FC = () => {
       </div>
 
       {/* 3. Operational Data Table */}
-      <div className="rounded-xl bg-white border border-[#E3DCC8] overflow-x-auto shadow-xs">
+      <div className="sm:hidden space-y-3" aria-label="Product inventory">
+        {filteredList.map((prod) => (
+          <article key={prod.id} className="rounded-2xl bg-white border border-[#E3DCC8] p-4 shadow-xs space-y-3">
+            <div className="flex items-start gap-3">
+              <img
+                src={prod.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
+                alt={prod.name}
+                className="size-16 rounded-xl object-cover bg-[#FAF7EF] border border-[#E3DCC8] shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <h2 className="font-semibold text-sm text-[#1E241F] leading-snug">{prod.name}</h2>
+                <p className="mt-1 text-[10px] font-mono text-[#5B5C50] truncate">{prod.sku} · {prod.category}</p>
+                <span className={`mt-2 inline-flex text-[10px] font-mono font-medium px-2 py-1 rounded-lg border ${
+                  prod.inStock ? 'bg-[#F1ECDD] text-[#1F4D3E] border-[#E3DCC8]' : 'bg-rose-50 text-rose-700 border-rose-200'
+                }`}>
+                  {prod.inStock ? 'In stock' : 'Out of stock'}
+                </span>
+              </div>
+            </div>
+            <dl className="grid grid-cols-3 gap-2 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] p-3 text-center">
+              <div><dt className="text-[9px] text-[#5B5C50]">Retail</dt><dd className="text-[11px] font-mono font-semibold">PKR {prod.retailPrice.toLocaleString()}</dd></div>
+              <div><dt className="text-[9px] text-[#5B5C50]">Cost</dt><dd className="text-[11px] font-mono font-semibold text-[#1F4D3E]">PKR {prod.partnerPrice.toLocaleString()}</dd></div>
+              <div><dt className="text-[9px] text-[#5B5C50]">Margin</dt><dd className="text-[11px] font-mono font-bold text-[#B8862E]">+{prod.grossMargin.toLocaleString()}</dd></div>
+            </dl>
+            <div className="grid grid-cols-2 gap-2">
+              <Button type="button" variant="outline" size="sm" className="w-full" iconLeft={<PencilSimple size={14} />} onClick={() => handleOpenEdit(prod)}>Edit</Button>
+              <Button type="button" variant="danger" size="sm" className="w-full" iconLeft={<Trash size={14} />} onClick={() => handleDelete(prod)}>Delete</Button>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div className="hidden sm:block rounded-xl bg-white border border-[#E3DCC8] overflow-x-auto shadow-xs">
         <table className="w-full text-left text-xs border-collapse font-sans">
           <thead>
             <tr className="border-b border-[#E3DCC8] bg-[#F1ECDD] text-[#5B5C50] font-mono text-[11px]">
@@ -511,10 +563,10 @@ export const AdminProductsPage: React.FC = () => {
       {/* 4. Product Modal Drawer */}
       {isCreating && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="rounded-2xl bg-white border border-[#E3DCC8] p-6 max-w-xl w-full max-h-[90vh] overflow-y-auto space-y-4 shadow-xl">
-            <div className="flex items-center justify-between pb-3 border-b border-[#E3DCC8]">
+          <div role="dialog" aria-modal="true" aria-labelledby="product-dialog-title" className="rounded-2xl bg-white border border-[#E3DCC8] p-4 sm:p-6 max-w-xl w-full max-h-[90vh] overflow-y-auto space-y-4 shadow-xl">
+            <div className="sticky top-0 z-10 -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 px-4 sm:px-6 py-4 flex items-start justify-between gap-3 border-b border-[#E3DCC8] bg-white">
               <div>
-                <h3 className="font-serif font-medium text-lg text-[#1E241F]">
+                <h3 id="product-dialog-title" className="font-serif font-medium text-lg text-[#1E241F]">
                   {editingProd ? 'Edit Product SKU' : 'Add New Wholesale Product'}
                 </h3>
                 <p className="text-[11px] font-mono text-[#5B5C50]">
@@ -523,7 +575,8 @@ export const AdminProductsPage: React.FC = () => {
               </div>
               <button
                 onClick={() => setIsCreating(false)}
-                className="p-1 rounded text-[#5B5C50] hover:text-[#1E241F]"
+                className="size-11 shrink-0 inline-flex items-center justify-center rounded-xl text-[#5B5C50] hover:text-[#1E241F] hover:bg-[#F1ECDD]"
+                aria-label="Close product editor"
               >
                 <X size={18} />
               </button>
@@ -556,18 +609,27 @@ export const AdminProductsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-[#5B5C50] mb-1 font-medium">Category Assignment</label>
+                <label htmlFor="product-category" className="block text-[#5B5C50] mb-1 font-medium">Category Assignment *</label>
                 <select
+                  id="product-category"
+                  required
+                  disabled={allCategories.length === 0}
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E] cursor-pointer"
                 >
+                  {allCategories.length === 0 && <option value="">No categories available</option>}
                   {allCategories.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
                     </option>
                   ))}
                 </select>
+                {allCategories.length === 0 && (
+                  <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-[11px] leading-relaxed text-amber-900">
+                    Create a category before adding products. <a href="/admin/categories" className="font-semibold underline underline-offset-2">Open Category Management</a>
+                  </p>
+                )}
               </div>
 
               {/* Product Image Dual-Option Selector */}
@@ -579,30 +641,30 @@ export const AdminProductsPage: React.FC = () => {
                   </span>
                   
                   {/* Mode Tabs */}
-                  <div className="flex items-center bg-white p-0.5 rounded-lg border border-[#E3DCC8] text-xs">
+                  <div className="grid grid-cols-2 w-full sm:w-auto bg-white p-0.5 rounded-lg border border-[#E3DCC8] text-xs">
                     <button
                       type="button"
                       onClick={() => setImageInputMode('url')}
-                      className={`px-2.5 py-1 rounded-md transition-colors flex items-center gap-1 font-medium ${
+                      className={`min-w-0 px-2.5 py-1 rounded-md transition-colors flex items-center justify-center gap-1 font-medium ${
                         imageInputMode === 'url'
                           ? 'bg-[#1F4D3E] text-white shadow-xs'
                           : 'text-[#5B5C50] hover:text-[#1E241F]'
                       }`}
                     >
                       <LinkIcon size={13} />
-                      <span>Option 1: Image URL</span>
+                      <span>Image URL</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setImageInputMode('upload')}
-                      className={`px-2.5 py-1 rounded-md transition-colors flex items-center gap-1 font-medium ${
+                      className={`min-w-0 px-2.5 py-1 rounded-md transition-colors flex items-center justify-center gap-1 font-medium ${
                         imageInputMode === 'upload'
                           ? 'bg-[#1F4D3E] text-white shadow-xs'
                           : 'text-[#5B5C50] hover:text-[#1E241F]'
                       }`}
                     >
                       <UploadSimple size={13} />
-                      <span>Option 2: Upload File</span>
+                      <span>Upload file</span>
                     </button>
                   </div>
                 </div>
@@ -772,7 +834,7 @@ export const AdminProductsPage: React.FC = () => {
                 />
               </div>
 
-              <div className="flex items-center space-x-6 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <label className="flex items-center space-x-2 text-xs text-[#5B5C50] cursor-pointer">
                   <input
                     type="checkbox"
@@ -794,16 +856,17 @@ export const AdminProductsPage: React.FC = () => {
                 </label>
               </div>
 
-              <div className="pt-3 border-t border-[#E3DCC8] flex items-center justify-end space-x-2">
+              <div className="sticky bottom-0 z-10 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 px-4 sm:px-6 py-4 border-t border-[#E3DCC8] bg-white/95 backdrop-blur-sm grid grid-cols-2 gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setIsCreating(false)}
+                  className="w-full"
                 >
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary" size="sm" className="font-medium">
+                <Button type="submit" variant="primary" size="sm" disabled={allCategories.length === 0} className="w-full font-medium">
                   {editingProd ? 'Save Changes' : 'Create Product SKU'}
                 </Button>
               </div>

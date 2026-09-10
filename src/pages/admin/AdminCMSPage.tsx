@@ -132,13 +132,14 @@ export const AdminCMSPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center space-x-2 shrink-0">
+        <div className="grid grid-cols-2 gap-2 w-full sm:w-auto shrink-0">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={handleReset}
             iconLeft={<ArrowCounterClockwise size={13} />}
+            className="w-full"
           >
             Reset
           </Button>
@@ -149,6 +150,7 @@ export const AdminCMSPage: React.FC = () => {
             size="sm"
             isLoading={isSubmitting}
             iconLeft={<FloppyDisk size={14} />}
+            className="w-full"
           >
             Save All Changes
           </Button>

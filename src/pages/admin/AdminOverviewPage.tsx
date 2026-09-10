@@ -41,14 +41,14 @@ export const AdminOverviewPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center space-x-2.5">
-          <Link to="/admin/rewards">
-            <Button variant="outline" size="sm" className="text-xs">
+        <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
+          <Link to="/admin/rewards" className="min-w-0">
+            <Button variant="outline" size="sm" className="w-full text-xs">
               Payouts Queue ({pendingRewardsCount})
             </Button>
           </Link>
-          <Link to="/admin/products">
-            <Button variant="primary" size="sm" className="text-xs">
+          <Link to="/admin/products" className="min-w-0">
+            <Button variant="primary" size="sm" className="w-full text-xs">
               + Add Product
             </Button>
           </Link>

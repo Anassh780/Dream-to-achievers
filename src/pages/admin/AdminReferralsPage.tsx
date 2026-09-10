@@ -90,14 +90,14 @@ export const AdminReferralsPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button
             variant="primary"
             size="sm"
             onClick={handleRunReconciliation}
             disabled={isReconciling}
             iconLeft={<Wrench size={14} className={isReconciling ? 'animate-spin' : ''} />}
-            className="text-xs font-medium"
+            className="w-full text-xs font-medium"
           >
             {isReconciling ? 'Checking...' : 'Sync & Reconcile Network'}
           </Button>
@@ -198,4 +198,3 @@ export const AdminReferralsPage: React.FC = () => {
     </div>
   );
 };
-

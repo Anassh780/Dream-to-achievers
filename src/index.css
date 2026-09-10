@@ -238,6 +238,51 @@ th, td {
   th, td {
     white-space: nowrap;
   }
+
+  /* Mobile admin workspace: readable controls, stable action areas, no clipped labels. */
+  #admin-main {
+    padding: 1rem;
+    padding-bottom: max(2rem, env(safe-area-inset-bottom));
+  }
+
+  #admin-main > div {
+    width: 100%;
+    max-width: none;
+  }
+
+  #admin-main h1,
+  #admin-main h2,
+  #admin-main h3,
+  #admin-main p,
+  #admin-main label {
+    overflow-wrap: anywhere;
+  }
+
+  #admin-main button,
+  #admin-main a {
+    max-width: 100%;
+  }
+
+  #admin-main button > span,
+  #admin-main a > span {
+    min-width: 0;
+    text-overflow: ellipsis;
+  }
+
+  #admin-main table {
+    min-width: 42rem;
+  }
+
+  #admin-main [class~="overflow-x-auto"] {
+    overscroll-behavior-inline: contain;
+    scrollbar-gutter: stable;
+  }
+
+  #admin-main input,
+  #admin-main select,
+  #admin-main textarea {
+    font-size: 16px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
