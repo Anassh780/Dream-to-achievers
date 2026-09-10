@@ -1,10 +1,10 @@
 export const SITE_URL = 'https://dream-to-achievers.vercel.app';
 
 function getFirestoreProductsUrl() {
-  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
-  if (!projectId) {
-    throw new Error('FIREBASE_PROJECT_ID is not configured');
-  }
+  const projectId =
+    process.env.FIREBASE_PROJECT_ID ||
+    process.env.VITE_FIREBASE_PROJECT_ID ||
+    'uc-store-b5265';
   return `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents/products`;
 }
 

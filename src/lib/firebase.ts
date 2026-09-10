@@ -6,19 +6,23 @@ import { getStorage } from 'firebase/storage';
 import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics';
 
 /**
- * Firebase project credentials are supplied by the deployment environment.
- * Copy `.env.example` to `.env.local` when connecting the replacement project.
- * Never commit real Firebase configuration values to this repository.
+ * Firebase web configuration is safe to ship to browsers. Environment variables
+ * can override these deployment defaults without making the production bundle
+ * depend on Vercel environment setup.
  */
 export const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyD8XpLrFfjXTHafqTbhsZ9ts3XpIBZutak',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'uc-store-b5265.firebaseapp.com',
+  databaseURL:
+    import.meta.env.VITE_FIREBASE_DATABASE_URL ||
+    'https://uc-store-b5265-default-rtdb.firebaseio.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'uc-store-b5265',
+  storageBucket:
+    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'uc-store-b5265.firebasestorage.app',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '391296623869',
+  appId:
+    import.meta.env.VITE_FIREBASE_APP_ID || '1:391296623869:web:500cee5c46badef7c9ca94',
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || 'G-R0RV5YV022',
 };
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
