@@ -172,3 +172,4 @@ class FirebaseProductDataSource(
     private fun parseColors(raw: Any?): List<ProductColor> = (raw as? List<*>)?.mapNotNull { (it as? Map<*, *>)?.let { map -> ProductColor(map["name"] as? String ?: return@let null, map["hex"] as? String ?: "#1F2937", map["imageUrl"] as? String ?: "") } } ?: emptyList()
     private fun parseFeatures(raw: Any?): List<ProductFeature> = (raw as? List<*>)?.mapNotNull { (it as? Map<*, *>)?.let { map -> ProductFeature(map["title"] as? String ?: return@let null, map["detail"] as? String ?: "", map["icon"] as? String ?: "verified") } } ?: emptyList()
 }
+

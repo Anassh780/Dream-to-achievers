@@ -1,6 +1,7 @@
 package com.dreamtoachievers.app.core.data
 
 import com.dreamtoachievers.app.core.firebase.FirebaseUserDataSource
+import com.dreamtoachievers.app.core.firebase.FirebaseReferralDataSource
 import com.dreamtoachievers.app.core.model.User
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.Flow
@@ -13,6 +14,7 @@ class UserRepository(
     private val dataSource: FirebaseUserDataSource = FirebaseUserDataSource(),
     private val dataStoreManager: DataStoreManager,
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
+    private val referralDataSource: FirebaseReferralDataSource = FirebaseReferralDataSource(),
 ) {
 
     private val _currentUser = MutableStateFlow<User?>(null)
@@ -78,6 +80,9 @@ class UserRepository(
             )
 
             dataSource.saveUserProfile(newUser)
+            newUser.referredByCode?.let {
+                referralDataSource.recordReferralAttribution(it, newUser.id, newUser.fullName, newUser.email)
+            }
             _currentUser.value = newUser
             dataStoreManager.saveUserSession(newUser.id, newUser.email, newUser.fullName, newUser.role.rawValue)
             Result.success(newUser)

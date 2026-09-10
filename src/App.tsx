@@ -76,6 +76,7 @@ const SuspenseFallback = () => (
 export const App: React.FC = () => {
   useEffect(() => {
     cloudSyncService.init();
+    return () => cloudSyncService.destroy();
   }, []);
 
   return (

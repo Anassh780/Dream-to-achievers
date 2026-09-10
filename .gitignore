@@ -18,3 +18,10 @@ android/local.properties
 android/app/google-services.json
 android/**/.cxx/
 android/.idea/
+
+# Test screenshots & device dumps
+android/*.xml
+android/*.png
+android/audit/
+
+

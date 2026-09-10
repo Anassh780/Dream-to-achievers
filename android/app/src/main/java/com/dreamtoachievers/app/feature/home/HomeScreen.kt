@@ -416,3 +416,4 @@ private fun categoryIcon(value: String) = when(value.lowercase()) {
 @Composable private fun Skeleton(modifier: Modifier) { Box(modifier.clip(RoundedCornerShape(12.dp)).background(Color(0xFFE9EDF2))) }
 @Composable private fun SectionGap(height: Int) { Spacer(Modifier.height(height.dp)) }
 private fun money(value: Double): String = "Rs ${NumberFormat.getIntegerInstance(Locale.forLanguageTag("en-PK")).format(value)}"
+

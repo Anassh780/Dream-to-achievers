@@ -529,14 +529,11 @@ fun DtaNavHost(
                     onNavigateToRecordSale = { productId ->
                         navController.navigate(DtaDestinations.recordSale(productId))
                     },
-                    onNavigateToCatalog = { navController.navigate(DtaDestinations.PARTNER_CATALOG) },
                     onNavigateToWallet = { navController.navigate(DtaDestinations.RESELLER_WALLET) },
                     onNavigateToGrowth = { navController.navigate(DtaDestinations.RESELLER_GROWTH) },
                     onNavigateToOrders = { navController.navigate(DtaDestinations.RESELLER_ORDERS) },
                     onNavigateToReferrals = { navController.navigate(DtaDestinations.RESELLER_REFERRALS) },
-                    onNavigateToTracking = { orderId ->
-                        navController.navigate(DtaDestinations.resellerOrderTracking(orderId))
-                    },
+                    onNavigateToNotifications = { navController.navigate(DtaDestinations.NOTIFICATIONS) },
                     onSwitchRole = { showRoleSwitcherSheet = true }
                 )
             }

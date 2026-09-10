@@ -91,5 +91,10 @@ class FirebaseUserDataSource(
         )
 
         firestore.collection(FirebaseConfig.COLLECTION_USERS).document(user.id).set(data).await()
+        if (user.referralCode.isNotBlank()) {
+            val normalized = user.referralCode.uppercase().replace(Regex("^DTA-?"), "").replace("[^A-Z0-9]".toRegex(), "")
+            firestore.collection("referral_index").document(normalized)
+                .set(mapOf("userId" to user.id, "referralCode" to user.referralCode)).await()
+        }
     }
 }

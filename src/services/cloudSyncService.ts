@@ -1,28 +1,89 @@
-import { db } from '@/lib/firebase';
-import { collection, deleteDoc, doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { collection, deleteDoc, doc, getDoc, onSnapshot, query, setDoc, where } from 'firebase/firestore';
 import { storage } from './storage';
 import type { Category, Product } from '@/types';
 
+type CacheKey = Parameters<typeof storage.set>[0];
+
 class CloudSyncService {
   private isInitialized = false;
-  private unsubscribers: Array<() => void> = [];
+  private publicUnsubscribers: Array<() => void> = [];
+  private privateUnsubscribers: Array<() => void> = [];
+  private authUnsubscribe?: () => void;
+  private authRevision = 0;
 
-  async init() {
+  init() {
     if (this.isInitialized || typeof window === 'undefined') return;
     this.isInitialized = true;
-    this.listen('products', 'PRODUCTS'); this.listen('categories', 'CATEGORIES');
-    this.listen('sales', 'SALES'); this.listen('users', 'USERS');
-    this.listen('withdrawals', 'WITHDRAWALS'); this.listen('rewards', 'REWARDS');
-    this.listen('notifications', 'NOTIFICATIONS'); this.listen('audit_logs', 'AUDIT_LOGS');
-    this.listen('referrals', 'REFERRALS');
-    this.listen('deleted_products', 'DELETED_PRODUCTS');
+    this.listenCollection('products', 'PRODUCTS', this.publicUnsubscribers);
+    this.listenCollection('categories', 'CATEGORIES', this.publicUnsubscribers);
+    this.authUnsubscribe = onAuthStateChanged(auth, (user: any) => void this.bindProtectedListeners(user));
   }
 
-  private listen(collectionName: string, cacheKey: Parameters<typeof storage.set>[0]) {
-    const unsubscribe = onSnapshot(collection(db, collectionName), (snapshot: any) => {
+  private async bindProtectedListeners(user: any | null) {
+    const revision = ++this.authRevision;
+    this.clearPrivateListeners();
+    const protectedKeys: CacheKey[] = ['SALES', 'USERS', 'WITHDRAWALS', 'REWARDS', 'NOTIFICATIONS', 'AUDIT_LOGS', 'REFERRALS', 'DELETED_PRODUCTS'];
+    if (!user) {
+      protectedKeys.forEach((key) => storage.set(key, []));
+      return;
+    }
+
+    try {
+      const profile = await getDoc(doc(db, 'users', user.uid));
+      if (revision !== this.authRevision || auth.currentUser?.uid !== user.uid) return;
+      const role = profile.data()?.role;
+      if (role === 'admin' || role === 'superadmin') {
+        ['sales', 'users', 'withdrawals', 'rewards', 'notifications', 'audit_logs', 'referrals', 'deleted_products'].forEach((name) =>
+          this.listenCollection(name, name.toUpperCase() as CacheKey, this.privateUnsubscribers));
+        return;
+      }
+
+      storage.set('USERS', profile.exists() ? [{ id: profile.id, ...profile.data() }] : []);
+      storage.set('AUDIT_LOGS', []);
+      storage.set('DELETED_PRODUCTS', []);
+      this.listenQuery(query(collection(db, 'sales'), where('userId', '==', user.uid)), 'sales', 'SALES');
+      this.listenQuery(query(collection(db, 'withdrawals'), where('userId', '==', user.uid)), 'withdrawals', 'WITHDRAWALS');
+      this.listenQuery(query(collection(db, 'rewards'), where('userId', '==', user.uid)), 'rewards', 'REWARDS');
+      this.listenQuery(query(collection(db, 'notifications'), where('userId', '==', user.uid)), 'notifications', 'NOTIFICATIONS');
+      this.listenUserReferrals(user.uid);
+    } catch (error: any) {
+      console.warn('[Firestore] could not bind authenticated listeners:', error.code || error.message);
+    }
+  }
+
+  private listenCollection(collectionName: string, cacheKey: CacheKey, bucket: Array<() => void>) {
+    bucket.push(onSnapshot(collection(db, collectionName), (snapshot: any) => {
       storage.set(cacheKey, snapshot.docs.map((item: any) => ({ id: item.id, ...item.data() })));
-    }, (error: any) => console.warn(`[Firestore] ${collectionName} listener failed:`, error.code));
-    this.unsubscribers.push(unsubscribe);
+    }, (error: any) => console.warn(`[Firestore] ${collectionName} listener failed:`, error.code)));
+  }
+
+  private listenQuery(source: any, label: string, cacheKey: CacheKey) {
+    this.privateUnsubscribers.push(onSnapshot(source, (snapshot: any) => {
+      storage.set(cacheKey, snapshot.docs.map((item: any) => ({ id: item.id, ...item.data() })));
+    }, (error: any) => console.warn(`[Firestore] ${label} listener failed:`, error.code)));
+  }
+
+  private listenUserReferrals(uid: string) {
+    const sides = new Map<string, Map<string, Record<string, unknown>>>();
+    const update = (side: string, documents: Array<{ id: string; data: () => Record<string, unknown> }>) => {
+      sides.set(side, new Map(documents.map((item) => [item.id, { id: item.id, ...item.data() }])));
+      const merged = new Map<string, Record<string, unknown>>();
+      sides.forEach((items) => items.forEach((value, id) => merged.set(id, value)));
+      storage.set('REFERRALS', Array.from(merged.values()));
+    };
+    const incoming = query(collection(db, 'referrals'), where('referredUserId', '==', uid));
+    const outgoing = query(collection(db, 'referrals'), where('referrerId', '==', uid));
+    this.privateUnsubscribers.push(
+      onSnapshot(incoming, (snapshot: any) => update('incoming', snapshot.docs), (error: any) => console.warn('[Firestore] referrals listener failed:', error.code)),
+      onSnapshot(outgoing, (snapshot: any) => update('outgoing', snapshot.docs), (error: any) => console.warn('[Firestore] referrals listener failed:', error.code)),
+    );
+  }
+
+  private clearPrivateListeners() {
+    this.privateUnsubscribers.forEach((unsubscribe) => unsubscribe());
+    this.privateUnsubscribers = [];
   }
 
   cleanProductForCloud(product: Product): Record<string, unknown> {
@@ -32,17 +93,19 @@ class CloudSyncService {
   async syncProductToCloud(product: Product) { await setDoc(doc(db, 'products', product.id), this.cleanProductForCloud(product), { merge: true }); }
   async syncAllProductsToCloud(products: Product[]) { for (const product of products) await this.syncProductToCloud(product); return products.length; }
   async deleteProductFromCloud(productId: string) { await deleteDoc(doc(db, 'products', productId)); }
-  async archiveProduct(product: Product) {
-    await setDoc(doc(db, 'deleted_products', product.id), this.cleanProductForCloud(product));
-    await this.deleteProductFromCloud(product.id);
-  }
-  async restoreProduct(product: Product) {
-    await this.syncProductToCloud(product);
-    await deleteDoc(doc(db, 'deleted_products', product.id));
-  }
+  async archiveProduct(product: Product) { await setDoc(doc(db, 'deleted_products', product.id), this.cleanProductForCloud(product)); await this.deleteProductFromCloud(product.id); }
+  async restoreProduct(product: Product) { await this.syncProductToCloud(product); await deleteDoc(doc(db, 'deleted_products', product.id)); }
   async syncCategoryToCloud(category: Category) { await setDoc(doc(db, 'categories', category.id), category, { merge: true }); }
 
-  destroy() { this.unsubscribers.forEach(unsubscribe => unsubscribe()); this.unsubscribers = []; this.isInitialized = false; }
+  destroy() {
+    this.authRevision++;
+    this.authUnsubscribe?.();
+    this.authUnsubscribe = undefined;
+    this.publicUnsubscribers.forEach((unsubscribe) => unsubscribe());
+    this.publicUnsubscribers = [];
+    this.clearPrivateListeners();
+    this.isInitialized = false;
+  }
 }
 
 export const cloudSyncService = new CloudSyncService();

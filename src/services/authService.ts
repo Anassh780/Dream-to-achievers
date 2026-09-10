@@ -60,9 +60,9 @@ export const authService = {
   onAuthStateChange(callback: (user: User | null) => void): () => void {
     return onAuthStateChanged(auth, async (fbUser: any) => {
       if (!fbUser) {
-        // If no Firebase user but we have local active session, preserve it unless explicitly logged out
-        const localCached = authService.getCurrentUser();
-        callback(localCached);
+        // A local cache is not an authenticated Firebase session. Treating it as
+        // one creates a UID mismatch with the credentials Firestore rules see.
+        callback(null);
         return;
       }
 

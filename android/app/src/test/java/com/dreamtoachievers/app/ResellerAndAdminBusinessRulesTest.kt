@@ -1106,3 +1106,4 @@ class ResellerAndAdminBusinessRulesTest {
         assertEquals("PKR 5,400", samplePartnerProduct.formattedPartnerPrice)
     }
 }
+

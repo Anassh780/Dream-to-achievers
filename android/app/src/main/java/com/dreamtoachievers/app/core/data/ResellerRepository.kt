@@ -4,6 +4,7 @@ import com.dreamtoachievers.app.core.firebase.FirebaseConfig
 import com.dreamtoachievers.app.core.model.*
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +15,8 @@ import java.util.*
 class ResellerRepository(
     private val dataStoreManager: DataStoreManager? = null,
 ) {
+    private val protectedListeners = mutableListOf<ListenerRegistration>()
+    private var authStateListener: FirebaseAuth.AuthStateListener? = null
     private fun getAuthUserSafe() = try {
         FirebaseAuth.getInstance().currentUser
     } catch (_: Exception) {
@@ -73,9 +76,23 @@ class ResellerRepository(
                 _partnerProducts.value = list
             }
 
-        val currentUserId = getAuthUserSafe()?.uid ?: return
+        val firebaseAuth = FirebaseAuth.getInstance()
+        authStateListener = FirebaseAuth.AuthStateListener { auth ->
+            bindUserListeners(fs, auth.currentUser?.uid)
+        }.also(firebaseAuth::addAuthStateListener)
+    }
 
-        fs.collection(FirebaseConfig.COLLECTION_SALES)
+    private fun bindUserListeners(fs: FirebaseFirestore, currentUserId: String?) {
+        protectedListeners.forEach(ListenerRegistration::remove)
+        protectedListeners.clear()
+        if (currentUserId.isNullOrBlank()) {
+            _resellerSales.value = emptyList()
+            _withdrawals.value = emptyList()
+            _milestoneRewards.value = emptyList()
+            return
+        }
+
+        protectedListeners += fs.collection(FirebaseConfig.COLLECTION_SALES)
             .whereEqualTo("userId", currentUserId)
             .addSnapshotListener { snap, err ->
                 if ((err != null) || (snap == null)) return@addSnapshotListener
@@ -83,7 +100,7 @@ class ResellerRepository(
                 _resellerSales.value = list
             }
 
-        fs.collection(FirebaseConfig.COLLECTION_WITHDRAWALS)
+        protectedListeners += fs.collection(FirebaseConfig.COLLECTION_WITHDRAWALS)
             .whereEqualTo("userId", currentUserId)
             .addSnapshotListener { snap, err ->
                 if (err != null || snap == null) return@addSnapshotListener
@@ -91,7 +108,7 @@ class ResellerRepository(
                 _withdrawals.value = list
             }
 
-        fs.collection(FirebaseConfig.COLLECTION_REWARDS)
+        protectedListeners += fs.collection(FirebaseConfig.COLLECTION_REWARDS)
             .whereEqualTo("userId", currentUserId)
             .addSnapshotListener { snap, err ->
                 if (err != null || snap == null) return@addSnapshotListener

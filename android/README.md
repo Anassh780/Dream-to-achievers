@@ -2,7 +2,7 @@
 
 Production-quality native Android application for **Dream to Achievers Global Network (Pvt) Ltd**.
 
-Built with **Jetpack Compose**, **Material 3 Expressive**, **Navigation 3**, and prepared for Firebase Authentication, Firestore, Realtime Database, and Storage. Add a fresh `app/google-services.json` from the replacement Firebase project before building the Android app.
+Built with **Jetpack Compose**, **Material 3 Expressive**, and **Navigation Compose**. Android and web use the same Firebase project and shared Firestore collections for real-time reads and writes.
 
 ---
 
@@ -40,7 +40,7 @@ The application integrates three unified user experiences in a single native cod
 
 ```
 android/app/src/main/java/com/dreamtoachievers/app/
-├── DreamToAchieversApp.kt       # Application class (Firebase & DataStore initialization)
+├── DreamToAchieversApp.kt       # Application class and DataStore initialization
 ├── MainActivity.kt              # Root Activity with Edge-to-edge, DI, and Deep-link handling
 │
 ├── core/
@@ -53,7 +53,6 @@ android/app/src/main/java/com/dreamtoachievers/app/
 │   │                            # RankDefinition, RankProgress, MilestoneReward, WalletLedger, User)
 │   ├── data/                    # Repositories (ProductRepository, CartRepository, OrderRepository,
 │   │                            # ResellerRepository, AdminRepository, RankEngine, UserRepository)
-│   ├── firebase/                # Firebase Data Sources (Firestore & RTDB listeners and adapters)
 │   └── navigation/              # DtaDestinations routes & DtaNavHost (Role-aware router)
 │
 └── feature/

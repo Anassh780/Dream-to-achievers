@@ -6,7 +6,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
+import androidx.compose.material.icons.automirrored.outlined.TrendingUp
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -25,14 +26,13 @@ import com.dreamtoachievers.app.core.navigation.DtaDestinations
 enum class ResellerNavDestination(
     val route: String,
     val title: String,
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector
+    val icon: ImageVector,
 ) {
-    HOME(DtaDestinations.RESELLER_DASHBOARD, "Home", Icons.Filled.Home, Icons.Outlined.Home),
-    MARKET(DtaDestinations.PARTNER_CATALOG, "Market", Icons.Filled.Storefront, Icons.Outlined.Storefront),
-    ORDERS(DtaDestinations.RESELLER_ORDERS, "Orders", Icons.Filled.ReceiptLong, Icons.Outlined.ReceiptLong),
-    GROWTH(DtaDestinations.RESELLER_GROWTH, "Growth", Icons.Filled.TrendingUp, Icons.Outlined.TrendingUp),
-    ACCOUNT(DtaDestinations.RESELLER_ACCOUNT, "Account", Icons.Filled.Person, Icons.Outlined.Person)
+    HOME(DtaDestinations.RESELLER_DASHBOARD, "Home", Icons.Outlined.Home),
+    MARKET(DtaDestinations.PARTNER_CATALOG, "Catalog", Icons.Outlined.Storefront),
+    ORDERS(DtaDestinations.RESELLER_ORDERS, "Orders", Icons.AutoMirrored.Outlined.ReceiptLong),
+    GROWTH(DtaDestinations.RESELLER_GROWTH, "Growth", Icons.AutoMirrored.Outlined.TrendingUp),
+    ACCOUNT(DtaDestinations.RESELLER_ACCOUNT, "Account", Icons.Outlined.Person)
 }
 
 @Composable
@@ -41,29 +41,19 @@ fun ResellerBottomNavigation(
     onNavigate: (ResellerNavDestination) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        color = DtaTheme.colors.surface,
-        modifier = modifier
-            .zIndex(10f)
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .border(
-                width = 1.dp,
-                color = DtaTheme.colors.line
-            )
-    ) {
-        Row(
+    Surface(color = DtaTheme.colors.surface, modifier = modifier.zIndex(10f).fillMaxWidth().navigationBarsPadding()) {
+        Column {
+            HorizontalDivider(color = DtaTheme.colors.line)
+            Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp)
                 .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
-        ) {
-            ResellerNavDestination.entries.forEach { destination ->
+            ) {
+                ResellerNavDestination.entries.forEach { destination ->
                 val isSelected = currentRoute.startsWith(destination.route.substringBefore("?"))
-                val isRecordSale = false
-
                 val animatedIconColor by animateColorAsState(
                     targetValue = if (isSelected) DtaTheme.colors.primary else DtaTheme.colors.inkSecondary,
                     label = "ResellerNavIconColor"
@@ -87,16 +77,15 @@ fun ResellerBottomNavigation(
                             .background(
                                 when {
                                     isSelected -> DtaTheme.colors.primaryContainer
-                                    isRecordSale -> DtaTheme.colors.accentSoft.copy(alpha = 0.4f)
                                     else -> androidx.compose.ui.graphics.Color.Transparent
                                 }
                             ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = if (isSelected) destination.selectedIcon else destination.unselectedIcon,
+                            imageVector = destination.icon,
                             contentDescription = destination.title,
-                            tint = if (isRecordSale && !isSelected) DtaTheme.colors.accent else animatedIconColor,
+                            tint = animatedIconColor,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -111,6 +100,7 @@ fun ResellerBottomNavigation(
                             fontSize = 11.sp
                         )
                     )
+                }
                 }
             }
         }
