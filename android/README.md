@@ -2,7 +2,7 @@
 
 Production-quality native Android application for **Dream to Achievers Global Network (Pvt) Ltd**.
 
-Built with **Jetpack Compose**, **Material 3 Expressive**, **Navigation 3**, and backed directly by the existing **Firebase** backend (Firestore `uc-store-b5265` & Realtime Database `uc-store-b5265-default-rtdb`).
+Built with **Jetpack Compose**, **Material 3 Expressive**, **Navigation 3**, and prepared for Firebase Authentication, Firestore, Realtime Database, and Storage. Add a fresh `app/google-services.json` from the replacement Firebase project before building the Android app.
 
 ---
 

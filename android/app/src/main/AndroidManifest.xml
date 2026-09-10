@@ -27,7 +27,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Referral deep link handling: https://dream-to-achievers.firebaseapp.com/?ref=... -->
+            <!-- Referral deep-link handling. Add the replacement Firebase Hosting domain during reintegration. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />

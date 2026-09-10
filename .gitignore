@@ -2,6 +2,7 @@ node_modules
 dist
 .env
 .env.local
+.env.*.local
 *.log
 .DS_Store
 tsconfig.tsbuildinfo
@@ -14,5 +15,6 @@ android/.gradle/
 android/build/
 android/*/build/
 android/local.properties
+android/app/google-services.json
 android/**/.cxx/
 android/.idea/

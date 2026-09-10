@@ -1,6 +1,12 @@
 export const SITE_URL = 'https://dream-to-achievers.vercel.app';
-export const FIRESTORE_PRODUCTS_URL =
-  'https://firestore.googleapis.com/v1/projects/uc-store-b5265/databases/(default)/documents/products';
+
+function getFirestoreProductsUrl() {
+  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
+  if (!projectId) {
+    throw new Error('FIREBASE_PROJECT_ID is not configured');
+  }
+  return `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents/products`;
+}
 
 export function escapeXml(value = '') {
   return String(value)
@@ -35,7 +41,7 @@ function decodeFields(fields = {}) {
 }
 
 export async function getActiveProducts() {
-  const response = await fetch(`${FIRESTORE_PRODUCTS_URL}?pageSize=1000`, {
+  const response = await fetch(`${getFirestoreProductsUrl()}?pageSize=1000`, {
     headers: { Accept: 'application/json' },
   });
   if (!response.ok) throw new Error(`Firestore returned ${response.status}`);
