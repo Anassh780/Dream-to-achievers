@@ -587,10 +587,10 @@ export const AdminUsersPage: React.FC = () => {
               className="w-full px-2.5 py-2 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E] cursor-pointer"
             >
               <option value="all">All Ranks</option>
-              <option value="diamond">👑 Diamond (Level 04)</option>
-              <option value="platinum">⭐ Platinum (Level 03)</option>
-              <option value="gold">🥇 Gold (Level 02)</option>
-              <option value="silver">🥈 Silver (Level 01)</option>
+              <option value="diamond">Diamond · Level 04</option>
+              <option value="platinum">Platinum · Level 03</option>
+              <option value="gold">Gold · Level 02</option>
+              <option value="silver">Silver · Level 01</option>
               <option value="unranked">Unranked (Starter)</option>
               <option value="admin">Administrators</option>
             </select>
@@ -605,9 +605,9 @@ export const AdminUsersPage: React.FC = () => {
               className="w-full px-2.5 py-2 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E] cursor-pointer"
             >
               <option value="all">All Sales Levels</option>
-              <option value="high_volume">🔥 High Volume (5+ Units)</option>
-              <option value="top_earners">💰 Top Margin Earners (&gt;PKR 3k)</option>
-              <option value="has_sales">📦 Has Sold (1+ Units)</option>
+              <option value="high_volume">High Volume · 5+ Units</option>
+              <option value="top_earners">Top Margin Earners · Over PKR 3k</option>
+              <option value="has_sales">Has Sold · 1+ Units</option>
               <option value="no_sales">No Sales Yet</option>
             </select>
           </div>
@@ -621,8 +621,8 @@ export const AdminUsersPage: React.FC = () => {
               className="w-full px-2.5 py-2 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E] cursor-pointer"
             >
               <option value="all">All Team Sizes</option>
-              <option value="top_recruiters">👥 Top Recruiters (5+ Team)</option>
-              <option value="has_referrals">🌱 Has Referrals (1+ Team)</option>
+              <option value="top_recruiters">Top Recruiters · 5+ Team</option>
+              <option value="has_referrals">Has Referrals · 1+ Team</option>
               <option value="no_referrals">Zero Referrals</option>
             </select>
           </div>
@@ -650,10 +650,10 @@ export const AdminUsersPage: React.FC = () => {
               className="w-full px-2.5 py-2 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] focus:outline-none focus:border-[#1F4D3E] cursor-pointer font-medium"
             >
               <option value="newest">Recently Registered</option>
-              <option value="highest_sales">Highest Units Sold 🔥</option>
-              <option value="highest_profit">Highest Profit Earned 💰</option>
-              <option value="most_referrals">Most Referrals Onboarded 👥</option>
-              <option value="rank_desc">Highest Rank Milestone 👑</option>
+              <option value="highest_sales">Highest Units Sold</option>
+              <option value="highest_profit">Highest Profit Earned</option>
+              <option value="most_referrals">Most Referrals Onboarded</option>
+              <option value="rank_desc">Highest Rank Milestone</option>
               <option value="name_asc">Name (A to Z)</option>
               <option value="oldest">Earliest Registered</option>
             </select>

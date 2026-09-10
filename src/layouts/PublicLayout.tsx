@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
@@ -23,6 +23,24 @@ export const PublicLayout: React.FC = () => {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const location = useLocation();
 
+  useEffect(() => {
+    setMobileDrawerOpen(false);
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    if (!mobileDrawerOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileDrawerOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [mobileDrawerOpen]);
+
   const navLinks = [
     { label: 'Home', href: '/' },
     { label: 'Products', href: '/products' },
@@ -35,6 +53,7 @@ export const PublicLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF7EF] text-[#1E241F] font-sans selection:bg-[#B8862E]/25">
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       
       {/* 1. Clean Editorial Top Navigation Bar */}
       <nav className="sticky top-0 z-40 bg-[#FAF7EF]/95 backdrop-blur-md border-b border-[#E3DCC8]">
@@ -63,7 +82,7 @@ export const PublicLayout: React.FC = () => {
           </div>
 
           {/* Header Action Controls */}
-          <div className="hidden md:flex items-center gap-2.5 shrink-0">
+          <div className="hidden lg:flex items-center gap-2.5 shrink-0">
             <SwitchButton size="sm" showLabel={false} />
 
             {isAdmin && (
@@ -97,12 +116,14 @@ export const PublicLayout: React.FC = () => {
           </div>
 
           {/* Mobile Menu Button with SwitchButton */}
-          <div className="md:hidden flex items-center gap-2">
+          <div className="lg:hidden flex items-center gap-2">
             <SwitchButton size="sm" showLabel={false} />
             <button
               onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
               className="p-2 rounded-lg text-[#1E241F] hover:bg-[#F1ECDD] transition-colors"
               aria-label="Toggle Navigation Menu"
+              aria-expanded={mobileDrawerOpen}
+              aria-controls="public-mobile-navigation"
             >
               {mobileDrawerOpen ? <X size={22} /> : <List size={22} />}
             </button>
@@ -112,7 +133,7 @@ export const PublicLayout: React.FC = () => {
 
       {/* Mobile Drawer */}
       {mobileDrawerOpen && (
-        <div className="md:hidden fixed inset-0 top-[61px] z-30 bg-[#FAF7EF] p-6 flex flex-col justify-between border-b border-[#E3DCC8] animate-in slide-in-from-top-2">
+        <div id="public-mobile-navigation" className="lg:hidden fixed inset-x-0 bottom-0 top-[61px] z-30 bg-[#FAF7EF] p-5 sm:p-6 flex flex-col justify-between border-b border-[#E3DCC8] overflow-y-auto overscroll-contain animate-in slide-in-from-top-2" role="dialog" aria-modal="true" aria-label="Site navigation">
           <div className="space-y-4">
             <span className="text-[10px] font-mono uppercase text-[#7C7D70] font-semibold tracking-wider block">
               Menu Navigation
@@ -141,7 +162,7 @@ export const PublicLayout: React.FC = () => {
             {isAdmin && (
               <Link to="/admin" onClick={() => setMobileDrawerOpen(false)} className="block">
                 <Button variant="outline" size="md" className="w-full justify-center text-xs font-mono text-[#1F4D3E] border-[#1F4D3E]/30 bg-[#1F4D3E]/5">
-                  🔐 Open Admin Portal
+                  <ShieldCheck size={16} aria-hidden="true" /> Open Admin Portal
                 </Button>
               </Link>
             )}
@@ -186,7 +207,7 @@ export const PublicLayout: React.FC = () => {
       )}
 
       {/* Main Page Body */}
-      <main className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1 min-w-0">
         <Outlet />
       </main>
 
@@ -318,7 +339,12 @@ export const PublicLayout: React.FC = () => {
 
           <div className="pt-6 border-t border-[#E3DCC8] flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] font-mono text-[#7C7D70]">
             <p>© {new Date().getFullYear()} Dream to Achievers (DTA). All rights reserved.</p>
-            <p>Verified B2B Wholesale Distribution Network</p>
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+              <Link to="/privacy" className="hover:text-[#1E241F] transition-colors">Privacy</Link>
+              <Link to="/terms" className="hover:text-[#1E241F] transition-colors">Terms</Link>
+              <Link to="/disclaimer" className="hover:text-[#1E241F] transition-colors">Disclaimer</Link>
+              <span>Verified B2B Wholesale Distribution Network</span>
+            </div>
           </div>
 
         </div>

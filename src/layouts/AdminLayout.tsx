@@ -56,6 +56,24 @@ export const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileMenuOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [mobileMenuOpen]);
+
   const toggleSidebarCollapse = () => {
     setIsCollapsed((prev) => {
       const next = !prev;
@@ -186,10 +204,11 @@ export const AdminLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] flex flex-col md:flex-row font-sans selection:bg-[#B8862E]/25">
+      <a href="#admin-main" className="skip-link">Skip to admin content</a>
       
       {/* Desktop VIP Admin Sidebar (Advanced Expand/Collapse) */}
       <aside
-        className={`hidden md:flex flex-col justify-between bg-white border-r border-[#E3DCC8] shrink-0 min-h-screen sticky top-0 shadow-xs z-30 transition-all duration-300 ease-in-out ${
+        className={`hidden md:flex flex-col justify-between bg-white border-r border-[#E3DCC8] shrink-0 h-screen sticky top-0 shadow-xs z-30 transition-all duration-300 ease-in-out overflow-y-auto overscroll-contain ${
           isCollapsed ? 'w-20' : 'w-64'
         }`}
       >
@@ -381,6 +400,8 @@ export const AdminLayout: React.FC = () => {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 rounded-xl text-[#1E241F] hover:bg-[#FAF7EF] border border-[#E3DCC8]"
             aria-label="Toggle Admin Navigation Menu"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="admin-mobile-navigation"
           >
             {mobileMenuOpen ? <X size={20} weight="bold" /> : <List size={20} weight="bold" />}
           </button>
@@ -389,7 +410,7 @@ export const AdminLayout: React.FC = () => {
 
       {/* Mobile Full Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 top-[57px] z-50 bg-[#FAF7EF] p-5 flex flex-col justify-between overflow-y-auto border-b border-[#E3DCC8] animate-in slide-in-from-top-2">
+        <div id="admin-mobile-navigation" className="md:hidden fixed inset-x-0 bottom-0 top-[57px] z-50 bg-[#FAF7EF] p-5 flex flex-col justify-between overflow-y-auto overscroll-contain border-b border-[#E3DCC8] animate-in slide-in-from-top-2" role="dialog" aria-modal="true" aria-label="Admin navigation">
           <nav className="space-y-4 text-xs">
             {navGroups.map((group) => (
               <div key={group.title} className="space-y-1">
@@ -465,7 +486,7 @@ export const AdminLayout: React.FC = () => {
       )}
 
       {/* Main Admin Content Viewport */}
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl overflow-x-hidden min-w-0">
+      <main id="admin-main" tabIndex={-1} className="flex-1 w-full p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto overflow-x-hidden min-w-0">
         <Outlet />
       </main>
     </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import {
   X,
@@ -24,6 +24,42 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   onClose,
 }) => {
   const [dontShowAgain, setDontShowAgain] = useState(true);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') handleDismiss();
+      if (event.key === 'Tab' && dialogRef.current) {
+        const focusable = Array.from(
+          dialogRef.current.querySelectorAll<HTMLElement>('button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+        ).filter((element) => !element.hasAttribute('disabled'));
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+      previouslyFocusedRef.current?.focus();
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -35,14 +71,19 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="ui-dialog-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-[#E3DCC8] overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="onboarding-title"
+        className="ui-dialog-panel relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-[#E3DCC8] overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
         <div className="p-6 bg-linear-to-br from-[#1F4D3E] to-[#153A2E] text-white relative">
           <button
+            ref={closeButtonRef}
             onClick={handleDismiss}
             className="absolute top-5 right-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors cursor-pointer"
             aria-label="Close modal"
@@ -55,8 +96,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             <span>Welcome to Dream to Achievers Wholesale Network</span>
           </div>
 
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-            Welcome, {userName}! 🎉
+          <h2 id="onboarding-title" className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+            Welcome, {userName}
           </h2>
           <p className="text-xs text-white/80 mt-1 max-w-lg">
             Here is your simple 4-step roadmap to start sourcing wholesale products, fulfilling client orders, and withdrawing daily profits.

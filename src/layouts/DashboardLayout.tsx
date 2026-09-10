@@ -37,6 +37,24 @@ export const DashboardLayout: React.FC = () => {
   const [, setBadgeTrigger] = useState(0);
   const location = useLocation();
 
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileMenuOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [mobileMenuOpen]);
+
   const toggleSidebarCollapse = () => {
     setIsCollapsed((prev) => {
       const next = !prev;
@@ -139,10 +157,11 @@ export const DashboardLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FAF7EF] text-[#1E241F] flex flex-col md:flex-row font-sans selection:bg-[#B8862E]/25">
+      <a href="#dashboard-main" className="skip-link">Skip to dashboard content</a>
       
       {/* Desktop Persistent Sidebar with Expand/Collapse */}
       <aside
-        className={`hidden md:flex flex-col justify-between bg-white border-r border-[#E3DCC8] p-3 shrink-0 min-h-screen sticky top-0 shadow-xs transition-all duration-300 ease-in-out z-30 ${
+        className={`hidden md:flex flex-col justify-between bg-white border-r border-[#E3DCC8] p-3 shrink-0 h-screen sticky top-0 shadow-xs transition-all duration-300 ease-in-out z-30 overflow-y-auto overscroll-contain ${
           isCollapsed ? 'w-20' : 'w-64'
         }`}
       >
@@ -337,6 +356,9 @@ export const DashboardLayout: React.FC = () => {
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 rounded-lg text-[#1E241F] hover:bg-[#FAF7EF]"
+            aria-label="Toggle partner navigation"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="partner-mobile-navigation"
           >
             {mobileMenuOpen ? <X size={18} /> : <List size={18} />}
           </button>
@@ -345,7 +367,7 @@ export const DashboardLayout: React.FC = () => {
 
       {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 top-14 z-30 bg-[#FAF7EF] p-5 flex flex-col justify-between overflow-y-auto">
+        <div id="partner-mobile-navigation" className="md:hidden fixed inset-x-0 bottom-0 top-14 z-30 bg-[#FAF7EF] p-5 flex flex-col justify-between overflow-y-auto overscroll-contain" role="dialog" aria-modal="true" aria-label="Partner navigation">
           <nav className="space-y-1 text-sm">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -419,7 +441,7 @@ export const DashboardLayout: React.FC = () => {
       )}
 
       {/* Main Content Viewport */}
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-7xl">
+      <main id="dashboard-main" tabIndex={-1} className="flex-1 w-full min-w-0 p-4 sm:p-6 lg:p-8 overflow-x-hidden max-w-7xl mx-auto">
         <Outlet />
       </main>
     </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -20,6 +20,29 @@ export const AdminQuickSwitch: React.FC = () => {
   const { user, isAuthenticated, isAdmin } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const switcherRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!switcherRef.current?.contains(event.target as Node)) setIsOpen(false);
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [isOpen]);
 
   if (!isAuthenticated || !isAdmin) {
     return null;
@@ -42,10 +65,10 @@ export const AdminQuickSwitch: React.FC = () => {
   ];
 
   return (
-    <div className="hidden sm:block fixed bottom-5 right-5 z-50 font-sans select-none">
+    <div ref={switcherRef} className="hidden sm:block fixed bottom-5 right-5 z-50 font-sans select-none">
       {/* Floating Panel Popup */}
       {isOpen && (
-        <div className="mb-3 w-72 rounded-2xl bg-[#080E1E]/95 backdrop-blur-2xl border border-white/15 p-4 shadow-[0_20px_50px_rgba(0,0,0,0.9)] animate-in fade-in slide-in-from-bottom-3 duration-200">
+        <div id="admin-quick-menu" role="menu" aria-label="Admin quick access" className="mb-3 w-72 max-h-[min(32rem,calc(100dvh-7rem))] overflow-y-auto rounded-2xl bg-[#080E1E]/95 backdrop-blur-2xl border border-white/15 p-4 shadow-[0_20px_50px_rgba(0,0,0,0.55)] animate-in fade-in slide-in-from-bottom-3 duration-200">
           <div className="flex items-center justify-between pb-2.5 border-b border-white/[0.08]">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 rounded-md bg-cyan-500/20 text-cyan-400 flex items-center justify-center border border-cyan-500/30">
@@ -61,6 +84,7 @@ export const AdminQuickSwitch: React.FC = () => {
             <button
               onClick={() => setIsOpen(false)}
               className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/5 cursor-pointer"
+              aria-label="Close admin quick access"
             >
               <X size={13} />
             </button>
@@ -97,6 +121,7 @@ export const AdminQuickSwitch: React.FC = () => {
                   to={sc.href}
                   onClick={() => setIsOpen(false)}
                   className="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                  role="menuitem"
                 >
                   <div className="flex items-center space-x-2">
                     <Icon size={13} className="text-cyan-400" />
@@ -111,8 +136,12 @@ export const AdminQuickSwitch: React.FC = () => {
 
       {/* Floating Toggle Pill */}
       <button
+        ref={triggerRef}
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-2 px-3.5 py-2 rounded-full bg-[#080E1E] hover:bg-[#0C152B] text-white border border-white/15 shadow-xl transition-all duration-200 cursor-pointer group active:scale-95 text-xs"
+        aria-expanded={isOpen}
+        aria-controls="admin-quick-menu"
+        aria-haspopup="menu"
       >
         <div className="w-4 h-4 rounded-full bg-cyan-400/20 text-cyan-400 flex items-center justify-center">
           <ShieldCheck size={11} weight="fill" />
