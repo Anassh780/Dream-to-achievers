@@ -1,6 +1,7 @@
 import { AppNotification } from '@/types';
 import { storage } from './storage';
 import { webNotificationService } from './webNotificationService';
+import { cloudSyncService } from './cloudSyncService';
 
 export const notificationService = {
   getUserNotifications(userId: string): AppNotification[] {
@@ -25,6 +26,9 @@ export const notificationService = {
 
     notifs.unshift(newNotif);
     storage.set('NOTIFICATIONS', notifs);
+    cloudSyncService.syncNotificationToCloud(newNotif).catch((error) => {
+      console.error('Failed to save notification to Firebase:', error);
+    });
 
     // Dispatch Web Push notification to user device
     webNotificationService.sendLocalNotification(
@@ -36,19 +40,21 @@ export const notificationService = {
     return newNotif;
   },
 
-  markAsRead(notificationId: string): void {
+  async markAsRead(notificationId: string): Promise<void> {
     const notifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
     const index = notifs.findIndex((n) => n.id === notificationId);
     if (index >= 0) {
       notifs[index].isRead = true;
+      await cloudSyncService.syncNotificationToCloud(notifs[index]);
       storage.set('NOTIFICATIONS', notifs);
     }
   },
 
-  markAllAsRead(userId: string): void {
+  async markAllAsRead(userId: string): Promise<void> {
     const notifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
     const updated = notifs.map((n) => (n.userId === userId ? { ...n, isRead: true } : n));
+    const changed = updated.filter((notification, index) => notification.isRead && !notifs[index]?.isRead);
+    await Promise.all(changed.map((notification) => cloudSyncService.syncNotificationToCloud(notification)));
     storage.set('NOTIFICATIONS', updated);
   },
 };
-

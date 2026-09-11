@@ -98,14 +98,14 @@ export const AdminCategoriesPage: React.FC = () => {
   };
 
   // Save Category Form Submit
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim() || !user) {
       showToast('Category name is required.', 'error');
       return;
     }
 
-    const result = categoryService.saveCategory(
+    const result = await categoryService.saveCategory(
       {
         id: editingCategory?.id,
         name: formName.trim(),
@@ -131,10 +131,10 @@ export const AdminCategoriesPage: React.FC = () => {
   };
 
   // Delete Category Protection Check
-  const handleDelete = (cat: Category) => {
+  const handleDelete = async (cat: Category) => {
     if (!user) return;
     if (confirm(`Are you sure you want to delete category "${cat.name}"?`)) {
-      const result = categoryService.deleteCategory(cat.id, allProducts, user.email);
+      const result = await categoryService.deleteCategory(cat.id, allProducts, user.email);
       if (result.success) {
         showToast(`Category "${cat.name}" deleted.`);
         setRefreshKey((k) => k + 1);

@@ -2,7 +2,7 @@ import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, deleteDoc, doc, getDoc, onSnapshot, query, setDoc, where } from 'firebase/firestore';
 import { storage } from './storage';
-import type { Category, Product } from '@/types';
+import type { AppNotification, Category, Product } from '@/types';
 
 type CacheKey = Parameters<typeof storage.set>[0];
 
@@ -96,6 +96,8 @@ class CloudSyncService {
   async archiveProduct(product: Product) { await setDoc(doc(db, 'deleted_products', product.id), this.cleanProductForCloud(product)); await this.deleteProductFromCloud(product.id); }
   async restoreProduct(product: Product) { await this.syncProductToCloud(product); await deleteDoc(doc(db, 'deleted_products', product.id)); }
   async syncCategoryToCloud(category: Category) { await setDoc(doc(db, 'categories', category.id), category, { merge: true }); }
+  async deleteCategoryFromCloud(categoryId: string) { await deleteDoc(doc(db, 'categories', categoryId)); }
+  async syncNotificationToCloud(notification: AppNotification) { await setDoc(doc(db, 'notifications', notification.id), notification, { merge: true }); }
 
   destroy() {
     this.authRevision++;

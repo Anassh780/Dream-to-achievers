@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore } from 'firebase/firestore';
 import { getDatabase } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics';
@@ -36,7 +36,9 @@ if (typeof window !== 'undefined') {
   });
 }
 
-export const db = getFirestore(app);
+// Several domain models contain optional properties. Ignoring undefined values
+// keeps valid documents from being rejected when an optional field is omitted.
+export const db = initializeFirestore(app, { ignoreUndefinedProperties: true });
 export const rtdb = getDatabase(app);
 export const storageBucket = getStorage(app);
 

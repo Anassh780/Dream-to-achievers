@@ -149,10 +149,10 @@ export const categoryService = {
   /**
    * Validates and saves or creates a category with gap-indexed sortOrder
    */
-  saveCategory(
+  async saveCategory(
     categoryData: Partial<Category> & { name: string },
     adminEmail = 'admin@dreamtoachievers.com'
-  ): { success: boolean; category?: Category; error?: string } {
+  ): Promise<{ success: boolean; category?: Category; error?: string }> {
     const all = this.getAllCategories();
     const isNew = !categoryData.id;
     const now = new Date().toISOString();
@@ -235,10 +235,18 @@ export const categoryService = {
       }
     }
 
-    storage.set('CATEGORIES', all);
-
-    // Sync to Cloud
-    cloudSyncService.syncCategoryToCloud(category);
+    try {
+      await cloudSyncService.syncCategoryToCloud(category);
+      storage.set('CATEGORIES', all);
+    } catch (error: any) {
+      console.error('Failed to save category to Firebase:', error);
+      return {
+        success: false,
+        error: error?.code === 'permission-denied'
+          ? 'Firebase denied this write. Confirm this account has an admin role.'
+          : 'Firebase could not save this category. Check your connection and try again.',
+      };
+    }
 
     auditService.logAction({
       adminId: 'admin',
@@ -255,7 +263,7 @@ export const categoryService = {
   /**
    * Reorders sibling categories using batched gap-indexed sortOrder
    */
-  reorderCategories(orderedIds: string[], parentId: string | null = null, adminEmail = 'admin@dreamtoachievers.com'): void {
+  async reorderCategories(orderedIds: string[], parentId: string | null = null, adminEmail = 'admin@dreamtoachievers.com'): Promise<void> {
     const all = this.getAllCategories();
     let orderCounter = 10;
 
@@ -268,6 +276,10 @@ export const categoryService = {
       }
     });
 
+    await Promise.all(orderedIds.map((id) => {
+      const category = all.find((item) => item.id === id);
+      return category ? cloudSyncService.syncCategoryToCloud(category) : Promise.resolve();
+    }));
     storage.set('CATEGORIES', all);
 
     auditService.logAction({
@@ -283,7 +295,7 @@ export const categoryService = {
   /**
    * Soft-archives a category (checks for active children first)
    */
-  archiveCategory(categoryId: string, adminEmail = 'admin@dreamtoachievers.com'): { success: boolean; error?: string } {
+  async archiveCategory(categoryId: string, adminEmail = 'admin@dreamtoachievers.com'): Promise<{ success: boolean; error?: string }> {
     const all = this.getAllCategories();
     const activeChildren = all.filter((c) => c.parentId === categoryId && c.status === 'active');
 
@@ -301,7 +313,13 @@ export const categoryService = {
     cat.archivedAt = new Date().toISOString();
     cat.updatedAt = new Date().toISOString();
 
-    storage.set('CATEGORIES', all);
+    try {
+      await cloudSyncService.syncCategoryToCloud(cat);
+      storage.set('CATEGORIES', all);
+    } catch (error) {
+      console.error('Failed to archive category in Firebase:', error);
+      return { success: false, error: 'Firebase could not archive this category.' };
+    }
 
     auditService.logAction({
       adminId: 'admin',
@@ -318,7 +336,7 @@ export const categoryService = {
   /**
    * Hard-deletes a category only if productCount === 0 and no children
    */
-  deleteCategory(categoryId: string, products: Product[], adminEmail = 'admin@dreamtoachievers.com'): { success: boolean; error?: string } {
+  async deleteCategory(categoryId: string, products: Product[], adminEmail = 'admin@dreamtoachievers.com'): Promise<{ success: boolean; error?: string }> {
     const all = this.getAllCategories();
     const children = all.filter((c) => c.parentId === categoryId);
     if (children.length > 0) {
@@ -331,7 +349,13 @@ export const categoryService = {
     }
 
     const filtered = all.filter((c) => c.id !== categoryId);
-    storage.set('CATEGORIES', filtered);
+    try {
+      await cloudSyncService.deleteCategoryFromCloud(categoryId);
+      storage.set('CATEGORIES', filtered);
+    } catch (error) {
+      console.error('Failed to delete category from Firebase:', error);
+      return { success: false, error: 'Firebase could not delete this category.' };
+    }
 
     auditService.logAction({
       adminId: 'admin',

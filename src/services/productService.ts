@@ -108,7 +108,7 @@ export const productService = {
     }
   },
 
-  saveProduct(product: Product): void {
+  async saveProduct(product: Product): Promise<void> {
     const products = storage.get<Product[]>('PRODUCTS', []);
     const index = products.findIndex((p) => p.id === product.id);
     if (index >= 0) {
@@ -116,18 +116,14 @@ export const productService = {
     } else {
       products.unshift(product);
     }
+    await cloudSyncService.syncProductToCloud(product);
     storage.set('PRODUCTS', products);
-
-    // Sync directly to Firebase Cloud (Firestore + RTDB)
-    cloudSyncService.syncProductToCloud(product);
   },
 
-  deleteProduct(productId: string): void {
+  async deleteProduct(productId: string): Promise<void> {
     const products = storage.get<Product[]>('PRODUCTS', []);
     const updated = products.filter((p) => p.id !== productId);
+    await cloudSyncService.deleteProductFromCloud(productId);
     storage.set('PRODUCTS', updated);
-
-    // Remove from Firebase Cloud (Firestore + RTDB)
-    cloudSyncService.deleteProductFromCloud(productId);
   },
 };

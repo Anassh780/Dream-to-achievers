@@ -50,13 +50,26 @@ export const storage = {
     if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(SITE_CONFIG));
     }
-    cloudDataKeys.forEach(key => localStorage.removeItem(STORAGE_KEYS[key]));
+    // Cloud-backed data is also cached locally. Firestore remains the source of
+    // truth, while the cache prevents a blank UI during startup/offline periods.
+    cloudDataKeys.forEach((key) => {
+      const cached = localStorage.getItem(STORAGE_KEYS[key]);
+      if (!cached) return;
+      try {
+        memoryData.set(key, JSON.parse(cached));
+      } catch {
+        localStorage.removeItem(STORAGE_KEYS[key]);
+      }
+    });
   },
 
   get<T>(key: keyof typeof STORAGE_KEYS, defaultValue: T): T {
     if (typeof window === 'undefined') return defaultValue;
     try {
-      if (cloudDataKeys.has(key)) return (memoryData.get(key) as T | undefined) ?? defaultValue;
+      if (cloudDataKeys.has(key)) {
+        const memoryValue = memoryData.get(key) as T | undefined;
+        if (memoryValue !== undefined) return memoryValue;
+      }
       const item = localStorage.getItem(STORAGE_KEYS[key]);
       if (!item) return defaultValue;
       const parsed = JSON.parse(item);
@@ -70,7 +83,7 @@ export const storage = {
     if (typeof window === 'undefined') return;
     try {
       if (cloudDataKeys.has(key)) memoryData.set(key, value);
-      else localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(value));
+      localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(value));
       window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key, value } }));
     } catch (err) {
       console.error(`Error saving to storage key ${key}:`, err);
@@ -89,12 +102,14 @@ export const storage = {
 
   remove(key: keyof typeof STORAGE_KEYS): void {
     if (typeof window === 'undefined') return;
+    memoryData.delete(key);
     localStorage.removeItem(STORAGE_KEYS[key]);
   },
 
   clearAllData(): void {
     if (typeof window === 'undefined') return;
     Object.values(STORAGE_KEYS).forEach((k) => localStorage.removeItem(k));
+    memoryData.clear();
     this.init();
   }
 };
