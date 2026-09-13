@@ -6,7 +6,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -36,6 +38,15 @@ fun AdminProductManagementScreen(
     val products by adminRepository.products.collectAsState()
     var editingProduct by remember { mutableStateOf<PartnerProduct?>(null) }
     var showCreateSheet by remember { mutableStateOf(false) }
+    var feedback by remember { mutableStateOf<String?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(feedback) {
+        feedback?.let {
+            snackbarHostState.showSnackbar(it)
+            feedback = null
+        }
+    }
 
     // Create / Edit Product Modal Bottom Sheet (Point 59)
     if (showCreateSheet || editingProduct != null) {
@@ -58,9 +69,13 @@ fun AdminProductManagementScreen(
                 editingProduct = null
             },
             onSave = { updated ->
-                adminRepository.saveProduct(updated)
-                showCreateSheet = false
-                editingProduct = null
+                if (adminRepository.saveProduct(updated)) {
+                    feedback = if (editingProduct == null) "Product created." else "Product updated."
+                    showCreateSheet = false
+                    editingProduct = null
+                } else {
+                    feedback = "We couldn't save this product. Try again."
+                }
             }
         )
     }
@@ -74,6 +89,7 @@ fun AdminProductManagementScreen(
                 onNavigationClick = onNavigateBack
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showCreateSheet = true },
@@ -97,7 +113,13 @@ fun AdminProductManagementScreen(
                 AdminProductCard(
                     product = product,
                     onEdit = { editingProduct = product },
-                    onToggleStock = { adminRepository.toggleProductStock(product.id) }
+                    onToggleStock = {
+                        feedback = if (adminRepository.toggleProductStock(product.id)) {
+                            if (product.inStock) "Product marked out of stock." else "Product marked in stock."
+                        } else {
+                            "We couldn't update product availability. Try again."
+                        }
+                    }
                 )
             }
         }
@@ -228,6 +250,9 @@ private fun ProductFormBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .navigationBarsPadding()
+                .imePadding()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {

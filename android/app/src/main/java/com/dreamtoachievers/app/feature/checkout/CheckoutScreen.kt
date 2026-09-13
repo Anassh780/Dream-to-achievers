@@ -95,7 +95,8 @@ fun CheckoutScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .imePadding(),
             contentPadding = PaddingValues(
                 start = DtaTheme.spacing.ScreenHorizontal,
                 end = DtaTheme.spacing.ScreenHorizontal,

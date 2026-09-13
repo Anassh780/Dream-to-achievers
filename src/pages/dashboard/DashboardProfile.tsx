@@ -5,6 +5,8 @@ import { authService } from '@/services/authService';
 import { payoutService } from '@/services/payoutService';
 import { User as UserType, PaymentMethod, PaymentMethodType } from '@/types';
 import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/context/ToastContext';
 import {
   User,
   EnvelopeSimple,
@@ -23,6 +25,7 @@ import {
 
 export const DashboardProfile: React.FC = () => {
   const { user, refreshUserData } = useAuth();
+  const { success: toastSuccess, error: toastError } = useToast();
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [city, setCity] = useState(user?.city || '');
@@ -32,6 +35,7 @@ export const DashboardProfile: React.FC = () => {
   // Payment Methods state
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [showAddMethodModal, setShowAddMethodModal] = useState(false);
+  const [methodToDelete, setMethodToDelete] = useState<PaymentMethod | null>(null);
   const [methodType, setMethodType] = useState<PaymentMethodType>('easypaisa');
   const [bankName, setBankName] = useState('EasyPaisa');
   const [accountTitle, setAccountTitle] = useState(user?.fullName || '');
@@ -63,6 +67,7 @@ export const DashboardProfile: React.FC = () => {
     refreshUserData();
     setLoading(false);
     setSaved(true);
+    toastSuccess('Profile details saved successfully.');
     setTimeout(() => setSaved(false), 3000);
   };
 
@@ -86,18 +91,27 @@ export const DashboardProfile: React.FC = () => {
     setAccountNumber('');
     setBranchCity('');
     setIsDefault(false);
+    toastSuccess(`Payout method (${bankName} - ${accountNumber}) saved.`);
     setMethodMsg('Payout method added successfully.');
     setTimeout(() => setMethodMsg(''), 3000);
   };
 
-  const handleDeleteMethod = (id: string) => {
-    payoutService.deletePaymentMethod(user.id, id);
+  const handleDeleteMethod = (method: PaymentMethod) => {
+    setMethodToDelete(method);
+  };
+
+  const handleConfirmDeleteMethod = () => {
+    if (!methodToDelete || !user) return;
+    payoutService.deletePaymentMethod(user.id, methodToDelete.id);
     setPaymentMethods(payoutService.getUserPaymentMethods(user.id));
+    toastSuccess(`Payout method (${methodToDelete.bankName}) removed.`);
+    setMethodToDelete(null);
   };
 
   const handleSetDefaultMethod = (id: string) => {
     payoutService.setDefaultPaymentMethod(user.id, id);
     setPaymentMethods(payoutService.getUserPaymentMethods(user.id));
+    toastSuccess('Default payout account updated.');
   };
 
   const getMethodIcon = (type: PaymentMethodType) => {
@@ -149,12 +163,12 @@ export const DashboardProfile: React.FC = () => {
       <div className="p-6 rounded-2xl bg-white border border-[#E3DCC8] space-y-5 shadow-xs">
         <div className="flex items-center space-x-4 pb-4 border-b border-[#E3DCC8]">
           <div className="w-12 h-12 rounded-full bg-[#1F4D3E] text-white flex items-center justify-center font-serif font-semibold text-lg">
-            {user.fullName.charAt(0).toUpperCase()}
+            {(user.fullName || 'P').charAt(0).toUpperCase()}
           </div>
           <div>
-            <h3 className="font-serif font-medium text-base text-[#1E241F]">{user.fullName}</h3>
+            <h3 className="font-serif font-medium text-base text-[#1E241F]">{user.fullName || 'Partner Member'}</h3>
             <p className="text-xs font-mono text-[#5B5C50]">
-              Partner Code: <span className="text-[#1F4D3E] font-semibold">{user.referralCode}</span> • Rank: <span className="uppercase text-[#1E241F] font-semibold">{user.currentRankSlug}</span>
+              Partner Code: <span className="text-[#1F4D3E] font-semibold">{user.referralCode || 'NO-CODE'}</span> • Rank: <span className="uppercase text-[#1E241F] font-semibold">{user.currentRankSlug || 'unranked'}</span>
             </p>
           </div>
         </div>
@@ -348,9 +362,11 @@ export const DashboardProfile: React.FC = () => {
                   )}
 
                   <button
-                    onClick={() => handleDeleteMethod(m.id)}
+                    type="button"
+                    onClick={() => handleDeleteMethod(m)}
                     className="text-[#5B5C50] hover:text-rose-600 p-1 transition-colors cursor-pointer"
-                    title="Remove method"
+                    title={`Remove ${m.bankName} account`}
+                    aria-label={`Remove ${m.bankName} account`}
                   >
                     <Trash size={15} />
                   </button>
@@ -364,7 +380,7 @@ export const DashboardProfile: React.FC = () => {
       {/* Add Payout Method Modal */}
       {showAddMethodModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="rounded-2xl bg-white border border-[#E3DCC8] p-6 max-w-md w-full space-y-4 shadow-xl animate-in zoom-in-95 text-xs">
+          <div className="rounded-2xl bg-white border border-[#E3DCC8] p-6 max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto space-y-4 shadow-xl animate-in zoom-in-95 text-xs">
             <div className="flex items-center justify-between pb-3 border-b border-[#E3DCC8]">
               <div>
                 <h3 className="font-serif font-medium text-base text-[#1E241F]">
@@ -376,7 +392,8 @@ export const DashboardProfile: React.FC = () => {
               </div>
               <button
                 onClick={() => setShowAddMethodModal(false)}
-                className="p-1 rounded-lg text-[#5B5C50] hover:text-[#1E241F]"
+                className="min-h-[44px] min-w-[44px] -m-2 p-2 inline-flex items-center justify-center rounded-lg text-[#5B5C50] hover:text-[#1E241F]"
+                aria-label="Close modal"
               >
                 <X size={18} />
               </button>
@@ -502,6 +519,18 @@ export const DashboardProfile: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Confirmation Dialog for Removing Payout Method */}
+      <ConfirmDialog
+        isOpen={!!methodToDelete}
+        title={`Remove Payout Account`}
+        description={`Are you sure you want to remove your ${methodToDelete?.bankName || 'bank'} account (${methodToDelete?.accountNumber || ''})? Future payouts will not be sent to this destination.`}
+        confirmLabel="Remove Account"
+        cancelLabel="Keep Account"
+        variant="danger"
+        onConfirm={handleConfirmDeleteMethod}
+        onClose={() => setMethodToDelete(null)}
+      />
 
     </div>
   );

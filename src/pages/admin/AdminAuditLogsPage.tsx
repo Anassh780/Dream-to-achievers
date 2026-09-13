@@ -52,7 +52,7 @@ export const AdminAuditLogsPage: React.FC = () => {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left font-sans">
+            <table className="w-full min-w-[750px] text-left font-sans">
               <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                 <tr>
                   <th className="p-3.5 font-medium">Log ID</th>

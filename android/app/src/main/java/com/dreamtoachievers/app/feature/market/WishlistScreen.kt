@@ -52,7 +52,7 @@ fun WishlistScreen(
                 )
             } else {
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
+                    columns = GridCells.Adaptive(minSize = 150.dp),
                     contentPadding = PaddingValues(
                         start = DtaTheme.spacing.ScreenHorizontal,
                         end = DtaTheme.spacing.ScreenHorizontal,

@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { SiteSettings } from '@/types';
 import { SITE_CONFIG } from '@/config/site';
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/context/ToastContext';
 import {
   YouTubeIcon,
   XIcon,
@@ -28,6 +29,7 @@ import {
 
 export const AdminCMSPage: React.FC = () => {
   const { user: currentAdmin } = useAuth();
+  const { success: toastSuccess, info: toastInfo } = useToast();
   const [settings, setSettings] = useState<SiteSettings>(() =>
     storage.get<SiteSettings>('SETTINGS', SITE_CONFIG)
   );
@@ -68,6 +70,7 @@ export const AdminCMSPage: React.FC = () => {
     setFacebookUrl(current.facebookUrl || SITE_CONFIG.facebookUrl || 'https://facebook.com/dreamtoachievers');
     setTiktokUrl(current.tiktokUrl || SITE_CONFIG.tiktokUrl || 'https://www.tiktok.com/@dream.to.achievers');
     setDisclaimer(current.disclaimerText || SITE_CONFIG.disclaimerText);
+    toastInfo('CMS configurations reset to saved defaults.');
   };
 
   const handleSave = (e: React.FormEvent) => {
@@ -109,6 +112,7 @@ export const AdminCMSPage: React.FC = () => {
 
       setIsSubmitting(false);
       setSaved(true);
+      toastSuccess('Platform branding & social links updated successfully.');
       setTimeout(() => setSaved(false), 3500);
     }, 300);
   };

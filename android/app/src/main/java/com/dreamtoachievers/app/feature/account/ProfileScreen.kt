@@ -9,7 +9,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dreamtoachievers.app.core.data.UserRepository
+import com.dreamtoachievers.app.core.designsystem.components.DtaPrimaryButton
 import com.dreamtoachievers.app.core.designsystem.components.DtaSecondaryTopBar
+import com.dreamtoachievers.app.core.designsystem.theme.DtaTheme
 import kotlinx.coroutines.launch
 
 @Composable
@@ -20,36 +22,53 @@ fun ProfileScreen(repository: UserRepository, onBack: () -> Unit, onSignIn: () -
     var city by rememberSaveable(user?.id) { mutableStateOf(user?.city.orEmpty()) }
     var saving by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var saveConfirmation by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    Scaffold(topBar = { DtaSecondaryTopBar("Edit Profile", onBack) }) { padding ->
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(saveConfirmation) {
+        if (saveConfirmation) {
+            snackbarHostState.showSnackbar("Profile changes saved.")
+            saveConfirmation = false
+        }
+    }
+    Scaffold(
+        topBar = { DtaSecondaryTopBar("Edit Profile", onBack) },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        containerColor = DtaTheme.colors.background
+    ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).imePadding()
             .verticalScroll(rememberScrollState()).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
             if (user == null) {
-                Text("Sign in to manage your profile and contact details.")
-                Button(onClick = onSignIn) { Text("Sign In") }
+                Text("Sign in to manage your profile and contact details.", style = DtaTheme.typography.Body)
+                DtaPrimaryButton(text = "Sign In", onClick = onSignIn)
             } else {
-                Text("Keep your contact details up to date.", style = MaterialTheme.typography.titleMedium)
-                OutlinedTextField(name, { name = it }, label = { Text("Full name") },
+                Text("Keep your contact details up to date.", style = DtaTheme.typography.TitleMedium)
+                OutlinedTextField(name, { name = it; saveConfirmation = false }, label = { Text("Full name *") },
                     modifier = Modifier.fillMaxWidth(), singleLine = true, enabled = !saving)
                 OutlinedTextField(user?.email.orEmpty(), {}, label = { Text("Email") },
                     modifier = Modifier.fillMaxWidth(), readOnly = true)
-                OutlinedTextField(phone, { phone = it }, label = { Text("Phone") },
+                OutlinedTextField(phone, { phone = it; saveConfirmation = false }, label = { Text("Phone") },
                     modifier = Modifier.fillMaxWidth(), singleLine = true, enabled = !saving)
-                OutlinedTextField(city, { city = it }, label = { Text("City") },
+                OutlinedTextField(city, { city = it; saveConfirmation = false }, label = { Text("City") },
                     modifier = Modifier.fillMaxWidth(), singleLine = true, enabled = !saving)
-                error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                Button(enabled = !saving && name.isNotBlank(), modifier = Modifier.fillMaxWidth(), onClick = {
+                error?.let { Text(it, color = DtaTheme.colors.error, style = DtaTheme.typography.BodySmall) }
+                DtaPrimaryButton(
+                    text = "Save Changes",
+                    enabled = !saving && name.isNotBlank(),
+                    isLoading = saving,
+                    onClick = {
                     saving = true
                     error = null
                     scope.launch {
                         repository.updateProfile(name, phone, city).fold(
-                            onSuccess = { onBack() },
-                            onFailure = { error = it.localizedMessage ?: "Unable to save. Please try again." }
+                            onSuccess = { saveConfirmation = true },
+                            onFailure = { error = "We couldn't save your profile. Check your connection and try again." }
                         )
                         saving = false
                     }
-                }) { Text(if (saving) "Saving…" else "Save Changes") }
+                }
+                )
             }
         }
     }

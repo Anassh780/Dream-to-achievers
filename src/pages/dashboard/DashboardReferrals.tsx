@@ -145,12 +145,12 @@ export const DashboardReferrals: React.FC = () => {
           <div className="flex-1 p-2.5 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] font-mono text-xs text-[#1E241F] break-all select-all">
             {referralUrl}
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0">
             <Button
               variant="primary"
               size="md"
               onClick={handleCopyLink}
-              className="text-xs font-medium"
+              className="flex-1 sm:flex-initial justify-center text-xs font-medium"
               iconLeft={copiedLink ? <Check size={14} /> : <Copy size={14} />}
             >
               {copiedLink ? 'Link Copied' : 'Copy Referral Link'}
@@ -159,7 +159,7 @@ export const DashboardReferrals: React.FC = () => {
               variant="outline"
               size="md"
               onClick={handleShareWhatsApp}
-              className="text-xs font-medium text-[#25D366] hover:bg-[#25D366]/10 border-[#E3DCC8]"
+              className="flex-1 sm:flex-initial justify-center text-xs font-medium text-[#25D366] hover:bg-[#25D366]/10 border-[#E3DCC8]"
               iconLeft={<WhatsappLogo size={16} weight="fill" />}
             >
               WhatsApp
@@ -205,7 +205,7 @@ export const DashboardReferrals: React.FC = () => {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left font-sans">
+            <table className="w-full min-w-[700px] text-left font-sans">
               <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                 <tr>
                   <th className="p-3.5 font-medium">Partner Name</th>
@@ -218,12 +218,12 @@ export const DashboardReferrals: React.FC = () => {
               <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50]">
                 {referrals.map((ref) => (
                   <tr key={ref.id} className="hover:bg-[#FAF7EF] transition-colors">
-                    <td className="p-3.5 font-serif font-semibold text-[#1E241F]">{ref.referredUserName}</td>
-                    <td className="p-3.5 font-mono text-[#5B5C50]">{ref.referredUserEmail}</td>
-                    <td className="p-3.5 font-mono uppercase text-[#1F4D3E] font-medium">{ref.referredUserRank}</td>
+                    <td className="p-3.5 font-serif font-semibold text-[#1E241F]">{ref.referredUserName || 'Teammate'}</td>
+                    <td className="p-3.5 font-mono text-[#5B5C50]">{ref.referredUserEmail || '—'}</td>
+                    <td className="p-3.5 font-mono uppercase text-[#1F4D3E] font-medium">{ref.referredUserRank || 'unranked'}</td>
                     <td className="p-3.5 text-center">
                       <span className="inline-block text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#F1ECDD] text-[#1F4D3E] border border-[#E3DCC8]">
-                        {ref.status}
+                        {ref.status || 'active'}
                       </span>
                     </td>
                     <td className="p-3.5 text-right font-mono text-[#7C7D70]">

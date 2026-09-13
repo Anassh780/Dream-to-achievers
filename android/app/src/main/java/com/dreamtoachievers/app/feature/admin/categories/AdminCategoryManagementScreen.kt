@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -35,14 +37,27 @@ fun AdminCategoryManagementScreen(
 
     var expandedNodeIds by remember { mutableStateOf(setOf("cat-root-1", "cat-sub-1")) }
     var showAddCategorySheet by remember { mutableStateOf(false) }
+    var feedback by remember { mutableStateOf<String?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(feedback) {
+        feedback?.let {
+            snackbarHostState.showSnackbar(it)
+            feedback = null
+        }
+    }
 
     if (showAddCategorySheet) {
         AddCategoryBottomSheet(
             availableParents = categories.filter { it.depth < 2 },
             onDismiss = { showAddCategorySheet = false },
             onSave = { newCat ->
-                adminRepository.saveCategory(newCat)
-                showAddCategorySheet = false
+                if (adminRepository.saveCategory(newCat)) {
+                    feedback = "Category created."
+                    showAddCategorySheet = false
+                } else {
+                    feedback = "We couldn't create that category. Try again."
+                }
             }
         )
     }
@@ -56,6 +71,7 @@ fun AdminCategoryManagementScreen(
                 onNavigationClick = onNavigateBack
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddCategorySheet = true },
@@ -252,6 +268,9 @@ private fun AddCategoryBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .navigationBarsPadding()
+                .imePadding()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {

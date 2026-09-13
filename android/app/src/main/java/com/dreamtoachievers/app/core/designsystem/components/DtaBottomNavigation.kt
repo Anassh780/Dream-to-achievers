@@ -21,8 +21,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.dreamtoachievers.app.core.designsystem.theme.DtaColors
 import com.dreamtoachievers.app.core.designsystem.theme.DtaTheme
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 
 enum class DtaNavDestination(
     val route: String,
@@ -46,14 +49,14 @@ fun DtaBottomNavigation(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        color = DtaColors.CustomerBgWhite,
+        color = DtaTheme.colors.surface,
         modifier = modifier
             .zIndex(10f)
             .fillMaxWidth()
             .navigationBarsPadding()
             .border(
                 width = 1.dp,
-                color = DtaColors.CustomerBorder
+                color = DtaTheme.colors.line
             )
     ) {
         Row(
@@ -73,9 +76,9 @@ fun DtaBottomNavigation(
                     DtaNavDestination.ACCOUNT -> currentRoute.startsWith("account")
                 }
 
-                val primaryGreen = DtaColors.CustomerPrimaryGreen
-                val inactiveGray = DtaColors.CustomerTextSecondary
-                val activePillBg = DtaColors.CustomerPillActiveGreen
+                val primaryGreen = DtaTheme.colors.primary
+                val inactiveGray = DtaTheme.colors.inkSecondary
+                val activePillBg = DtaTheme.colors.primaryContainer
 
                 val animatedIconColor by animateColorAsState(
                     targetValue = if (isSelected) primaryGreen else inactiveGray,
@@ -89,6 +92,10 @@ fun DtaBottomNavigation(
                         .weight(1f)
                         .fillMaxHeight()
                         .clip(DtaTheme.shapes.Chip)
+                        .semantics {
+                            role = Role.Tab
+                            selected = isSelected
+                        }
                         .clickable { onNavigate(destination) }
                         .padding(vertical = 4.dp)
                 ) {

@@ -355,19 +355,19 @@ export const DashboardLayout: React.FC = () => {
           </span>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg text-[#1E241F] hover:bg-[#FAF7EF]"
+            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 rounded-lg text-[#1E241F] hover:bg-[#FAF7EF]"
             aria-label="Toggle partner navigation"
             aria-expanded={mobileMenuOpen}
             aria-controls="partner-mobile-navigation"
           >
-            {mobileMenuOpen ? <X size={18} /> : <List size={18} />}
+            {mobileMenuOpen ? <X size={20} /> : <List size={20} />}
           </button>
         </div>
       </header>
 
       {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
-        <div id="partner-mobile-navigation" className="md:hidden fixed inset-x-0 bottom-0 top-14 z-30 bg-[#FAF7EF] p-5 flex flex-col justify-between overflow-y-auto overscroll-contain" role="dialog" aria-modal="true" aria-label="Partner navigation">
+        <div id="partner-mobile-navigation" className="md:hidden fixed inset-x-0 bottom-0 top-14 z-30 bg-[#FAF7EF] p-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] flex flex-col justify-between overflow-y-auto overscroll-contain" role="dialog" aria-modal="true" aria-label="Partner navigation">
           <nav className="space-y-1 text-sm">
             {navItems.map((item) => {
               const Icon = item.icon;

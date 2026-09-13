@@ -63,6 +63,7 @@ fun RegisterScreen(
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = DtaTheme.spacing.ScreenHorizontal),
             horizontalAlignment = Alignment.CenterHorizontally

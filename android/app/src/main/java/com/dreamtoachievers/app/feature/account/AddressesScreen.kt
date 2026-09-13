@@ -30,6 +30,15 @@ fun AddressesScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
     var newAddressInput by rememberSaveable { mutableStateOf("") }
+    var addressPendingRemoval by remember { mutableStateOf<String?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.addressFeedback) {
+        uiState.addressFeedback?.let { message ->
+            snackbarHostState.showSnackbar(message = message)
+            viewModel.clearAddressFeedback()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -40,6 +49,7 @@ fun AddressesScreen(
                 onActionClick = { showAddDialog = true }
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         containerColor = DtaTheme.colors.background,
         modifier = modifier.fillMaxSize()
     ) { paddingValues ->
@@ -100,7 +110,7 @@ fun AddressesScreen(
                                 )
                             )
                         }
-                        IconButton(onClick = { viewModel.removeAddress(address) }) {
+                        IconButton(onClick = { addressPendingRemoval = address }, enabled = !uiState.isAddressActionInProgress) {
                             Icon(Icons.Outlined.Delete, contentDescription = "Remove address: $address")
                         }
                     }
@@ -132,7 +142,7 @@ fun AddressesScreen(
             },
             confirmButton = {
                 TextButton(
-                    enabled = newAddressInput.isNotBlank(),
+                    enabled = newAddressInput.isNotBlank() && !uiState.isAddressActionInProgress,
                     onClick = {
                         if (newAddressInput.isNotBlank()) {
                             viewModel.addAddress(newAddressInput)
@@ -147,6 +157,30 @@ fun AddressesScreen(
             dismissButton = {
                 TextButton(onClick = { showAddDialog = false }) {
                     Text("Cancel", color = DtaTheme.colors.inkPrimary)
+                }
+            },
+            containerColor = DtaTheme.colors.surface,
+            shape = DtaTheme.shapes.Card
+        )
+    }
+
+    addressPendingRemoval?.let { address ->
+        AlertDialog(
+            onDismissRequest = { if (!uiState.isAddressActionInProgress) addressPendingRemoval = null },
+            title = { Text("Remove delivery address?") },
+            text = { Text("This address will no longer be available at checkout. You can add it again later.") },
+            confirmButton = {
+                TextButton(
+                    enabled = !uiState.isAddressActionInProgress,
+                    onClick = {
+                        viewModel.removeAddress(address)
+                        addressPendingRemoval = null
+                    }
+                ) { Text(if (uiState.isAddressActionInProgress) "Removing…" else "Remove", color = DtaTheme.colors.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { addressPendingRemoval = null }, enabled = !uiState.isAddressActionInProgress) {
+                    Text("Cancel")
                 }
             },
             containerColor = DtaTheme.colors.surface,

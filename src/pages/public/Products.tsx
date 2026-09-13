@@ -125,8 +125,8 @@ export const Products: React.FC = () => {
         <div className="max-w-[1180px] mx-auto space-y-4">
           
           {/* Dynamic Breadcrumbs */}
-          <nav className="flex items-center space-x-1.5 text-xs font-mono text-[#5B5C50]">
-            <Link to="/" className="hover:text-[#1E241F] flex items-center space-x-1 transition-colors">
+          <nav className="flex flex-wrap items-center gap-1.5 text-xs font-mono text-[#5B5C50]">
+            <Link to="/" className="hover:text-[#1E241F] flex items-center gap-1 transition-colors">
               <House size={13} />
               <span>Home</span>
             </Link>
@@ -176,7 +176,7 @@ export const Products: React.FC = () => {
             </div>
 
             {/* Catalog SKU & Margin Summary */}
-            <div className="p-3.5 rounded-xl bg-white border border-[#E3DCC8] flex items-center space-x-4 shrink-0 text-xs shadow-xs">
+            <div className="p-3.5 rounded-xl bg-white border border-[#E3DCC8] flex items-center justify-between sm:justify-start space-x-4 shrink-0 text-xs shadow-xs w-full sm:w-auto">
               <div>
                 <span className="text-[10px] text-[#5B5C50] block font-mono">Available SKUs</span>
                 <span className="font-bold text-[#1E241F] font-mono flex items-center space-x-1">

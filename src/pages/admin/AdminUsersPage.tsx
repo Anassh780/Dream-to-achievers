@@ -2,37 +2,26 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { storage } from '@/services/storage';
 import { authService } from '@/services/authService';
 import { referralService, normalizeReferralCode } from '@/services/referralService';
-import { salesService } from '@/services/salesService';
 import { auditService } from '@/services/auditService';
 import { useAuth } from '@/context/AuthContext';
 import { User, RankSlug, ReferralRecord, Sale } from '@/types';
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/context/ToastContext';
 import {
   MagnifyingGlass,
   Users,
   X,
   Trash,
   CheckCircle,
-  ShieldCheck,
   TreeStructure,
-  UserCircle,
   Crown,
   Check,
   Warning,
-  Eye,
   ArrowClockwise,
-  Funnel,
   DownloadSimple,
   ShoppingCart,
-  TrendUp,
-  SlidersHorizontal,
   Sparkle,
   Fire,
-  UserPlus,
-  CurrencyDollar,
-  Phone,
-  MapPin,
-  CaretUpDown,
   Clock,
 } from '@phosphor-icons/react';
 
@@ -40,7 +29,8 @@ export const AdminUsersPage: React.FC = () => {
   const { user: currentAdmin } = useAuth();
   const [users, setUsers] = useState<User[]>(() => storage.get<User[]>('USERS', []));
 
-  const formatTimeAgo = (dateStr: string) => {
+  const formatTimeAgo = (dateStr?: string) => {
+    if (!dateStr) return 'Recently';
     try {
       const d = new Date(dateStr);
       const now = new Date();
@@ -62,10 +52,12 @@ export const AdminUsersPage: React.FC = () => {
       return dateStr;
     }
   };
+
   const [referrals, setReferrals] = useState<ReferralRecord[]>(() => storage.get<ReferralRecord[]>('REFERRALS', []));
   const [sales, setSales] = useState<Sale[]>(() => storage.get<Sale[]>('SALES', []));
   const [isSyncing, setIsSyncing] = useState(false);
-  
+  const [isStandardizing, setIsStandardizing] = useState(false);
+
   // Search, Filters & Sorting state
   const [searchQuery, setSearchQuery] = useState('');
   const [quickTab, setQuickTab] = useState<'all' | 'active' | 'top_sellers' | 'top_recruiters' | 'high_ranks' | 'suspended'>('all');
@@ -80,11 +72,11 @@ export const AdminUsersPage: React.FC = () => {
   const [inspectingUser, setInspectingUser] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const { success: toastSuccess, error: toastError } = useToast();
 
   const showToast = (text: string, type: 'success' | 'error' = 'success') => {
-    setToastMsg({ text, type });
-    setTimeout(() => setToastMsg(null), 4000);
+    if (type === 'error') toastError(text);
+    else toastSuccess(text);
   };
 
   const refreshData = async () => {
@@ -108,16 +100,30 @@ export const AdminUsersPage: React.FC = () => {
       setSales(storage.get<Sale[]>('SALES', []));
       setReferrals(storage.get<ReferralRecord[]>('REFERRALS', []));
       showToast(`Synchronized ${synced.length} registered partners from cloud database.`);
-    } catch (e) {
+    } catch {
       showToast('Could not reach Firebase. Please check your connection and try again.', 'error');
     } finally {
       setIsSyncing(false);
     }
   };
 
+  const handleStandardizeCodes = async () => {
+    setIsStandardizing(true);
+    try {
+      const res = await referralService.standardizeAndResetAllReferralCodes();
+      await refreshData();
+      showToast(
+        `Reset complete! Updated ${res.totalCodesMigrated} partner codes to DTA prefix, updated ${res.totalDownlinesUpdated} referral records.`,
+        'success'
+      );
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to standardize referral codes.', 'error');
+    } finally {
+      setIsStandardizing(false);
+    }
+  };
+
   useEffect(() => {
-    // 1. Initial reconciliation & Real-time Cloud Firestore/RTDB stream listener
-    referralService.runPlatformReconciliation().catch(() => {});
     const unsubscribe = authService.subscribeToAllUsers((cloudUsers) => {
       setUsers(cloudUsers);
       setReferrals(storage.get<ReferralRecord[]>('REFERRALS', []));
@@ -202,9 +208,9 @@ export const AdminUsersPage: React.FC = () => {
         // 1. Search Query (Name, Email, Referral Code, Sponsor)
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase().trim();
-          const matchesName = u.fullName.toLowerCase().includes(q);
-          const matchesEmail = u.email.toLowerCase().includes(q);
-          const matchesCode = u.referralCode.toLowerCase().includes(q);
+          const matchesName = (u.fullName || '').toLowerCase().includes(q);
+          const matchesEmail = (u.email || '').toLowerCase().includes(q);
+          const matchesCode = (u.referralCode || '').toLowerCase().includes(q);
           const matchesSponsor = (u.referredByCode || '').toLowerCase().includes(q);
 
           if (!matchesName && !matchesEmail && !matchesCode && !matchesSponsor) {
@@ -254,16 +260,16 @@ export const AdminUsersPage: React.FC = () => {
           case 'most_referrals':
             return (mb?.downlineCount || 0) - (ma?.downlineCount || 0);
           case 'rank_desc': {
-            const rankWeights: Record<string, number> = { diamond: 5, platinum: 4, gold: 3, silver: 2, unranked: 1 };
+            const rankWeights: Record<string, number> = { diamond: 5, gold: 4, platinum: 3, silver: 2, unranked: 1 };
             return (rankWeights[b.currentRankSlug || 'unranked'] || 0) - (rankWeights[a.currentRankSlug || 'unranked'] || 0);
           }
           case 'name_asc':
-            return a.fullName.localeCompare(b.fullName);
+            return (a.fullName || '').localeCompare(b.fullName || '');
           case 'oldest':
-            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
           case 'newest':
           default:
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
         }
       });
   }, [users, searchQuery, quickTab, rankFilter, statusFilter, referralFilter, salesFilter, sortBy, userMetricsMap]);
@@ -297,11 +303,11 @@ export const AdminUsersPage: React.FC = () => {
       const sponsor = getSponsorInfo(u.referredByCode);
       return [
         `"${u.id}"`,
-        `"${u.fullName.replace(/"/g, '""')}"`,
-        `"${u.email}"`,
-        `"${u.referralCode}"`,
+        `"${(u.fullName || '').replace(/"/g, '""')}"`,
+        `"${u.email || ''}"`,
+        `"${u.referralCode || ''}"`,
         `"${sponsor ? `${sponsor.name} (${sponsor.code})` : 'Organic / Direct'}"`,
-        `"${u.currentRankSlug.toUpperCase()}"`,
+        `"${(u.currentRankSlug || 'unranked').toUpperCase()}"`,
         `"${u.role}"`,
         `"${u.isActive !== false ? 'Active' : 'Suspended'}"`,
         metrics?.unitsSold || 0,
@@ -309,7 +315,7 @@ export const AdminUsersPage: React.FC = () => {
         metrics?.totalProfit || 0,
         metrics?.downlineCount || 0,
         metrics?.qualifyingCount || 0,
-        `"${new Date(u.createdAt).toISOString()}"`,
+        `"${u.createdAt ? new Date(u.createdAt).toISOString() : new Date().toISOString()}"`,
       ].join(',');
     });
 
@@ -352,10 +358,8 @@ export const AdminUsersPage: React.FC = () => {
     setIsDeleting(true);
 
     try {
-      // 1. Unified permanent single-click delete across Firestore, RTDB, tombstone blacklist, and Local Storage
       await authService.deleteUser(deletingUser.id, deletingUser.referralCode, deletingUser.email);
 
-      // 2. Instant UI optimistic update
       setUsers((prev) =>
         prev.filter(
           (u) =>
@@ -365,7 +369,6 @@ export const AdminUsersPage: React.FC = () => {
         )
       );
 
-      // 3. Record in audit log
       if (currentAdmin) {
         auditService.logAction({
           adminId: currentAdmin.id,
@@ -378,7 +381,7 @@ export const AdminUsersPage: React.FC = () => {
       }
 
       showToast(`User ${deletingUser.fullName} (${deletingUser.email}) permanently deleted.`);
-    } catch (e: any) {
+    } catch {
       setUsers((prev) =>
         prev.filter(
           (u) =>
@@ -433,12 +436,24 @@ export const AdminUsersPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
+          <Button
+            onClick={handleStandardizeCodes}
+            variant="outline"
+            size="sm"
+            className="w-full sm:w-auto text-xs font-semibold shrink-0 text-[#B8862E] border-[#B8862E]/40 hover:bg-[#FAF7EF]"
+            isLoading={isStandardizing}
+            iconLeft={<Sparkle size={14} className={isStandardizing ? 'animate-spin' : 'text-[#B8862E]'} />}
+            title="Scan and upgrade all partner codes in database to DTA prefix (e.g. DTA-XXXX)"
+          >
+            {isStandardizing ? 'Resetting to DTA...' : 'Reset to DTA Codes'}
+          </Button>
+
           <Button
             onClick={handleExportCSV}
             variant="outline"
             size="sm"
-            className="w-full text-xs font-semibold shrink-0"
+            className="w-full sm:w-auto text-xs font-semibold shrink-0"
             iconLeft={<DownloadSimple size={14} />}
             title="Download partner database as CSV spreadsheet"
           >
@@ -449,7 +464,7 @@ export const AdminUsersPage: React.FC = () => {
             onClick={handleManualSync}
             variant="outline"
             size="sm"
-            className="w-full text-xs font-semibold shrink-0"
+            className="w-full sm:w-auto text-xs font-semibold shrink-0"
             isLoading={isSyncing}
             iconLeft={<ArrowClockwise size={14} className={isSyncing ? 'animate-spin' : ''} />}
             title="Fetch all registered users from Cloud Firestore & RTDB"
@@ -459,18 +474,6 @@ export const AdminUsersPage: React.FC = () => {
         </div>
       </div>
 
-      {toastMsg && (
-        <div
-          className={`p-3.5 rounded-2xl border text-xs flex items-center space-x-2 animate-in fade-in shadow-xs ${
-            toastMsg.type === 'success'
-              ? 'bg-[#F1ECDD] border-[#E3DCC8] text-[#1F4D3E]'
-              : 'bg-rose-50 border-rose-200 text-rose-700'
-          }`}
-        >
-          {toastMsg.type === 'success' ? <Check size={16} weight="bold" /> : <Warning size={16} weight="bold" />}
-          <span className="font-semibold">{toastMsg.text}</span>
-        </div>
-      )}
 
       {/* 1. Quick Metric Filter Chips */}
       <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -507,7 +510,7 @@ export const AdminUsersPage: React.FC = () => {
           }`}
         >
           <Fire size={14} className="text-amber-500" weight="fill" />
-          <span>Top Resellers / High Sales ({totalTopSellers})</span>
+          <span>Top Resellers ({totalTopSellers})</span>
         </button>
 
         <button
@@ -559,7 +562,7 @@ export const AdminUsersPage: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name, email, referral code, sponsor, city, or phone..."
+              placeholder="Search by name, email, referral code, or sponsor..."
               className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] text-[#1E241F] placeholder:text-[#7C7D70] focus:outline-none focus:border-[#1F4D3E] text-xs"
             />
           </div>
@@ -588,15 +591,15 @@ export const AdminUsersPage: React.FC = () => {
             >
               <option value="all">All Ranks</option>
               <option value="diamond">Diamond · Level 04</option>
-              <option value="platinum">Platinum · Level 03</option>
-              <option value="gold">Gold · Level 02</option>
+              <option value="gold">Gold · Level 03</option>
+              <option value="platinum">Platinum · Level 02</option>
               <option value="silver">Silver · Level 01</option>
               <option value="unranked">Unranked (Starter)</option>
               <option value="admin">Administrators</option>
             </select>
           </div>
 
-          {/* 2. Filter by Sales (Products Sold High) */}
+          {/* 2. Filter by Sales */}
           <div className="space-y-1">
             <label className="text-[10.5px] font-mono text-[#5B5C50] font-semibold block">Sales Volume (Sold High)</label>
             <select
@@ -606,7 +609,7 @@ export const AdminUsersPage: React.FC = () => {
             >
               <option value="all">All Sales Levels</option>
               <option value="high_volume">High Volume · 5+ Units</option>
-              <option value="top_earners">Top Margin Earners · Over PKR 3k</option>
+              <option value="top_earners">Top Earners · Over PKR 3k</option>
               <option value="has_sales">Has Sold · 1+ Units</option>
               <option value="no_sales">No Sales Yet</option>
             </select>
@@ -661,7 +664,7 @@ export const AdminUsersPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Filtered Users Table */}
+      {/* 3. Filtered Users Table / Mobile Cards */}
       <div className="rounded-3xl border border-[#E3DCC8] bg-white overflow-hidden text-xs shadow-xs">
         <div className="p-4 bg-[#FAF7EF] border-b border-[#E3DCC8] flex flex-col sm:flex-row sm:items-center justify-between gap-2 font-mono">
           <div className="flex items-center space-x-2">
@@ -688,166 +691,287 @@ export const AdminUsersPage: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left font-sans">
-              <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10.5px] bg-[#FAF7EF]">
-                <tr>
-                  <th className="p-3.5 font-semibold">Partner Profile</th>
-                  <th className="p-3.5 font-semibold">Referral &amp; Sponsor</th>
-                  <th className="p-3.5 font-semibold">Rank Level</th>
-                  <th className="p-3.5 font-semibold text-right">Delivered Sales (Sold High)</th>
-                  <th className="p-3.5 font-semibold text-center">Downline Team</th>
-                  <th className="p-3.5 font-semibold text-center">Status</th>
-                  <th className="p-3.5 font-semibold text-center">Registered</th>
-                  <th className="p-3.5 font-semibold text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50]">
-                {processedUsers.map((u) => {
-                  const metrics = userMetricsMap.get(u.id) || {
-                    salesCount: 0,
-                    unitsSold: 0,
-                    totalRevenue: 0,
-                    totalProfit: 0,
-                    downlineCount: 0,
-                    qualifyingCount: 0,
-                  };
-                  const sponsor = getSponsorInfo(u.referredByCode);
+          <>
+            {/* Desktop Table: strict min-w-[1100px] ensures no column crushing */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full min-w-[1100px] text-left font-sans">
+                <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10.5px] bg-[#FAF7EF]">
+                  <tr>
+                    <th className="p-3.5 font-semibold w-[240px]">Partner Profile</th>
+                    <th className="p-3.5 font-semibold w-[180px]">Referral &amp; Sponsor</th>
+                    <th className="p-3.5 font-semibold w-[130px]">Rank Level</th>
+                    <th className="p-3.5 font-semibold text-right w-[170px]">Delivered Sales</th>
+                    <th className="p-3.5 font-semibold text-center w-[130px]">Downline Team</th>
+                    <th className="p-3.5 font-semibold text-center w-[110px]">Status</th>
+                    <th className="p-3.5 font-semibold text-center w-[110px]">Registered</th>
+                    <th className="p-3.5 font-semibold text-center w-[130px]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50]">
+                  {processedUsers.map((u) => {
+                    const metrics = userMetricsMap.get(u.id) || {
+                      salesCount: 0,
+                      unitsSold: 0,
+                      totalRevenue: 0,
+                      totalProfit: 0,
+                      downlineCount: 0,
+                      qualifyingCount: 0,
+                    };
+                    const sponsor = getSponsorInfo(u.referredByCode);
 
-                  return (
-                    <tr key={u.id} className="hover:bg-[#FAF7EF]/70 transition-colors">
-                      {/* 1. Partner Profile */}
-                      <td className="p-3.5">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 rounded-full bg-[#1F4D3E] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
-                            {u.fullName.charAt(0).toUpperCase()}
+                    return (
+                      <tr key={u.id} className="hover:bg-[#FAF7EF]/70 transition-colors">
+                        {/* 1. Partner Profile */}
+                        <td className="p-3.5">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 rounded-full bg-[#1F4D3E] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                              {(u.fullName || 'U').charAt(0).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-bold text-[#1E241F] text-xs sm:text-sm truncate">{u.fullName || 'Unnamed User'}</p>
+                              <p className="text-[10.5px] font-mono text-[#7C7D70] truncate">{u.email || 'No email'}</p>
+                            </div>
                           </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-[#1E241F] text-xs sm:text-sm truncate">{u.fullName}</p>
-                            <p className="text-[10.5px] font-mono text-[#7C7D70] truncate">{u.email}</p>
+                        </td>
+
+                        {/* 2. Referral & Sponsor */}
+                        <td className="p-3.5">
+                          <div className="space-y-0.5">
+                            <span className="font-mono font-bold text-[#1F4D3E] bg-[#FAF7EF] px-2 py-0.5 rounded border border-[#E3DCC8] text-xs inline-block">
+                              {u.referralCode || 'NO-CODE'}
+                            </span>
+                            <p className="text-[10px] text-[#7C7D70] font-mono truncate">
+                              {sponsor ? `Invited by: ${sponsor.name}` : 'Direct / Organic'}
+                            </p>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* 2. Referral & Sponsor */}
-                      <td className="p-3.5">
-                        <div className="space-y-0.5">
-                          <span className="font-mono font-bold text-[#1F4D3E] bg-[#FAF7EF] px-2 py-0.5 rounded border border-[#E3DCC8] text-xs inline-block">
-                            {u.referralCode}
+                        {/* 3. Rank Level */}
+                        <td className="p-3.5">
+                          <span className="font-mono uppercase text-[10.5px] font-bold text-[#1E241F] px-2.5 py-1 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] inline-flex items-center gap-1">
+                            {u.currentRankSlug === 'diamond' && <Crown size={12} weight="fill" className="text-[#B8862E]" />}
+                            {u.currentRankSlug === 'gold' && <Sparkle size={12} weight="fill" className="text-amber-500" />}
+                            {u.currentRankSlug === 'platinum' && <Sparkle size={12} weight="fill" className="text-purple-600" />}
+                            {u.currentRankSlug === 'silver' && <Sparkle size={12} weight="fill" className="text-slate-400" />}
+                            <span>{u.currentRankSlug || 'unranked'}</span>
                           </span>
-                          <p className="text-[10px] text-[#7C7D70] font-mono truncate">
-                            {sponsor ? `Invited by: ${sponsor.name} (${sponsor.code})` : 'Direct / Organic'}
-                          </p>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* 3. Rank Level */}
-                      <td className="p-3.5">
-                        <span className="font-mono uppercase text-[10.5px] font-bold text-[#1E241F] px-2.5 py-1 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] inline-flex items-center gap-1">
-                          {u.currentRankSlug === 'diamond' && <Crown size={12} weight="fill" className="text-[#B8862E]" />}
-                          {u.currentRankSlug === 'platinum' && <Sparkle size={12} weight="fill" className="text-purple-600" />}
-                          {u.currentRankSlug === 'gold' && <Sparkle size={12} weight="fill" className="text-amber-500" />}
-                          {u.currentRankSlug === 'silver' && <Sparkle size={12} weight="fill" className="text-slate-400" />}
-                          <span>{u.currentRankSlug}</span>
-                        </span>
-                      </td>
+                        {/* 4. Delivered Sales & Profit */}
+                        <td className="p-3.5 text-right">
+                          <div className="space-y-0.5">
+                            <span className="font-mono font-bold text-[#1F4D3E] text-xs block">
+                              {metrics.unitsSold} units delivered
+                            </span>
+                            <span className="font-mono text-[10.5px] text-[#B8862E] font-semibold block">
+                              +PKR {metrics.totalProfit.toLocaleString()} profit
+                            </span>
+                            {metrics.totalRevenue > 0 && (
+                              <span className="text-[9.5px] text-[#7C7D70] font-mono block">
+                                PKR {metrics.totalRevenue.toLocaleString()} volume
+                              </span>
+                            )}
+                          </div>
+                        </td>
 
-                      {/* 4. Delivered Sales & Profit (Sold High) */}
-                      <td className="p-3.5 text-right">
-                        <div className="space-y-0.5">
-                          <span className="font-mono font-bold text-[#1F4D3E] text-xs block">
-                            {metrics.unitsSold} units delivered
+                        {/* 5. Downline Team */}
+                        <td className="p-3.5 text-center">
+                          <button
+                            onClick={() => setInspectingUser(u)}
+                            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#FAF7EF] hover:bg-[#F1ECDD] text-[#1E241F] border border-[#E3DCC8] font-mono text-xs transition-colors cursor-pointer"
+                            title="Inspect Onboarded Teammates"
+                          >
+                            <TreeStructure size={14} className="text-[#1F4D3E]" />
+                            <span className="font-bold">{metrics.downlineCount}</span>
+                            <span className="text-[10px] text-[#7C7D70]">({metrics.qualifyingCount} Active)</span>
+                          </button>
+                        </td>
+
+                        {/* 6. Status */}
+                        <td className="p-3.5 text-center">
+                          <span
+                            className={`inline-block text-[10.5px] font-mono font-bold capitalize px-2.5 py-0.5 rounded-full border ${
+                              u.isActive !== false
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                : 'bg-rose-50 text-rose-700 border-rose-200'
+                            }`}
+                          >
+                            {u.isActive !== false ? 'Active' : 'Suspended'}
                           </span>
-                          <span className="font-mono text-[10.5px] text-[#B8862E] font-semibold block">
-                            +PKR {metrics.totalProfit.toLocaleString()} profit
-                          </span>
-                          {metrics.totalRevenue > 0 && (
-                            <span className="text-[9.5px] text-[#7C7D70] font-mono block">
-                              PKR {metrics.totalRevenue.toLocaleString()} volume
+                          {u.role === 'admin' && (
+                            <span className="block mt-1 font-mono text-[9px] text-white bg-[#1F4D3E] px-1.5 py-0.2 rounded mx-auto w-fit">
+                              ADMIN
                             </span>
                           )}
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* 5. Downline Team */}
-                      <td className="p-3.5 text-center">
-                        <button
-                          onClick={() => setInspectingUser(u)}
-                          className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#FAF7EF] hover:bg-[#F1ECDD] text-[#1E241F] border border-[#E3DCC8] font-mono text-xs transition-colors cursor-pointer"
-                          title="Inspect Onboarded Teammates"
-                        >
-                          <TreeStructure size={14} className="text-[#1F4D3E]" />
-                          <span className="font-bold">{metrics.downlineCount}</span>
-                          <span className="text-[10px] text-[#7C7D70]">({metrics.qualifyingCount} Active)</span>
-                        </button>
-                      </td>
-
-                      {/* 6. Status */}
-                      <td className="p-3.5 text-center">
-                        <span
-                          className={`inline-block text-[10.5px] font-mono font-bold capitalize px-2.5 py-0.5 rounded-full border ${
-                            u.isActive !== false
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                              : 'bg-rose-50 text-rose-700 border-rose-200'
-                          }`}
-                        >
-                          {u.isActive !== false ? 'Active' : 'Suspended'}
-                        </span>
-                        {u.role === 'admin' && (
-                          <span className="block mt-1 font-mono text-[9px] text-white bg-[#1F4D3E] px-1.5 py-0.2 rounded mx-auto w-fit">
-                            ADMIN
+                        {/* 7. Registered Time Ago */}
+                        <td className="p-3.5 text-center">
+                          <span
+                            className="font-mono text-[10.5px] text-[#1E241F] bg-[#FAF7EF] px-2.5 py-1 rounded-lg border border-[#E3DCC8] inline-flex items-center gap-1 font-medium shadow-2xs whitespace-nowrap"
+                            title={u.createdAt ? new Date(u.createdAt).toLocaleString() : ''}
+                          >
+                            <Clock size={12} className="text-[#1F4D3E]" />
+                            <span>{formatTimeAgo(u.createdAt)}</span>
                           </span>
-                        )}
-                      </td>
+                        </td>
 
-                      {/* 7. Registered Time Ago */}
-                      <td className="p-3.5 text-center">
-                        <span
-                          className="font-mono text-[10.5px] text-[#1E241F] bg-[#FAF7EF] px-2.5 py-1 rounded-lg border border-[#E3DCC8] inline-flex items-center gap-1 font-medium shadow-2xs whitespace-nowrap"
-                          title={new Date(u.createdAt).toLocaleString()}
-                        >
-                          <Clock size={12} className="text-[#1F4D3E]" />
-                          <span>{formatTimeAgo(u.createdAt)}</span>
-                        </span>
-                      </td>
+                        {/* 8. Actions */}
+                        <td className="p-3.5 text-center">
+                          <div className="flex items-center justify-center space-x-1.5">
+                            <button
+                              onClick={() => setSelectedUser(u)}
+                              className="px-2.5 py-1 rounded-lg bg-[#FAF7EF] hover:bg-[#F1ECDD] text-[#1E241F] border border-[#E3DCC8] text-[11px] font-mono font-medium cursor-pointer"
+                              title="Override Milestone Rank Level"
+                            >
+                              Rank
+                            </button>
+                            <button
+                              onClick={() => handleToggleStatus(u)}
+                              className="px-2.5 py-1 rounded-lg bg-[#FAF7EF] hover:bg-rose-50 text-[#5B5C50] hover:text-rose-700 border border-[#E3DCC8] text-[11px] font-mono font-medium cursor-pointer"
+                              title={u.isActive !== false ? 'Suspend User' : 'Activate User'}
+                            >
+                              {u.isActive !== false ? 'Suspend' : 'Activate'}
+                            </button>
+                            <button
+                              onClick={() => setDeletingUser(u)}
+                              disabled={u.id === currentAdmin?.id}
+                              className={`p-1.5 rounded-lg border text-[11px] transition-colors ${
+                                u.id === currentAdmin?.id
+                                  ? 'opacity-30 cursor-not-allowed text-gray-400 border-gray-200'
+                                  : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 cursor-pointer'
+                              }`}
+                              title={u.id === currentAdmin?.id ? 'Cannot delete current logged in admin' : 'Permanently Delete User'}
+                            >
+                              <Trash size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
-                      {/* 8. Actions */}
-                      <td className="p-3.5 text-center">
-                        <div className="flex items-center justify-center space-x-1.5">
-                          <button
-                            onClick={() => setSelectedUser(u)}
-                            className="px-2.5 py-1 rounded-lg bg-[#FAF7EF] hover:bg-[#F1ECDD] text-[#1E241F] border border-[#E3DCC8] text-[11px] font-mono font-medium cursor-pointer"
-                            title="Override Milestone Rank Level"
-                          >
-                            Rank
-                          </button>
-                          <button
-                            onClick={() => handleToggleStatus(u)}
-                            className="px-2.5 py-1 rounded-lg bg-[#FAF7EF] hover:bg-rose-50 text-[#5B5C50] hover:text-rose-700 border border-[#E3DCC8] text-[11px] font-mono font-medium cursor-pointer"
-                            title={u.isActive !== false ? 'Suspend User' : 'Activate User'}
-                          >
-                            {u.isActive !== false ? 'Suspend' : 'Activate'}
-                          </button>
-                          <button
-                            onClick={() => setDeletingUser(u)}
-                            disabled={u.id === currentAdmin?.id}
-                            className={`p-1.5 rounded-lg border text-[11px] transition-colors ${
-                              u.id === currentAdmin?.id
-                                ? 'opacity-30 cursor-not-allowed text-gray-400 border-gray-200'
-                                : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 cursor-pointer'
-                            }`}
-                            title={u.id === currentAdmin?.id ? 'Cannot delete current logged in admin' : 'Permanently Delete User'}
-                          >
-                            <Trash size={14} />
-                          </button>
+            {/* Mobile / Tablet Responsive Cards: Visible on screens < 1024px */}
+            <div className="lg:hidden divide-y divide-[#E3DCC8]">
+              {processedUsers.map((u) => {
+                const metrics = userMetricsMap.get(u.id) || {
+                  salesCount: 0,
+                  unitsSold: 0,
+                  totalRevenue: 0,
+                  totalProfit: 0,
+                  downlineCount: 0,
+                  qualifyingCount: 0,
+                };
+                const sponsor = getSponsorInfo(u.referredByCode);
+
+                return (
+                  <div key={u.id} className="p-4 space-y-3 hover:bg-[#FAF7EF]/40 transition-colors">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center space-x-3 min-w-0">
+                        <div className="w-10 h-10 rounded-full bg-[#1F4D3E] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                          {(u.fullName || 'U').charAt(0).toUpperCase()}
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-bold text-[#1E241F] text-sm truncate">{u.fullName || 'Unnamed User'}</p>
+                            {u.role === 'admin' && (
+                              <span className="font-mono text-[9px] text-white bg-[#1F4D3E] px-1.5 py-0.5 rounded shrink-0">
+                                ADMIN
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] font-mono text-[#7C7D70] truncate">{u.email || 'No email'}</p>
+                        </div>
+                      </div>
+
+                      <span
+                        className={`inline-block text-[10px] font-mono font-bold capitalize px-2 py-0.5 rounded-full border shrink-0 ${
+                          u.isActive !== false
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                            : 'bg-rose-50 text-rose-700 border-rose-200'
+                        }`}
+                      >
+                        {u.isActive !== false ? 'Active' : 'Suspended'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                      <div className="p-2.5 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] space-y-0.5">
+                        <span className="text-[#7C7D70] block font-mono text-[10px]">Referral Code</span>
+                        <span className="font-mono font-bold text-[#1F4D3E] text-xs block">{u.referralCode || 'NO-CODE'}</span>
+                        <span className="text-[9.5px] text-[#5B5C50] font-mono truncate block">
+                          {sponsor ? `By: ${sponsor.name}` : 'Direct / Organic'}
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8] space-y-0.5">
+                        <span className="text-[#7C7D70] block font-mono text-[10px]">Current Rank</span>
+                        <span className="font-mono uppercase font-bold text-[#1E241F] text-xs flex items-center gap-1">
+                          {u.currentRankSlug === 'diamond' && <Crown size={12} weight="fill" className="text-[#B8862E]" />}
+                          {u.currentRankSlug === 'gold' && <Sparkle size={12} weight="fill" className="text-amber-500" />}
+                          {u.currentRankSlug === 'platinum' && <Sparkle size={12} weight="fill" className="text-purple-600" />}
+                          {u.currentRankSlug === 'silver' && <Sparkle size={12} weight="fill" className="text-slate-400" />}
+                          <span>{u.currentRankSlug || 'unranked'}</span>
+                        </span>
+                        <span className="text-[9.5px] text-[#5B5C50] font-mono block">
+                          Joined {formatTimeAgo(u.createdAt)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8]">
+                      <div className="space-y-0.5">
+                        <span className="text-[10px] font-mono text-[#7C7D70]">Performance</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-[#1F4D3E] text-xs">{metrics.unitsSold} units</span>
+                          <span className="font-mono text-xs text-[#B8862E] font-semibold">+PKR {metrics.totalProfit.toLocaleString()}</span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => setInspectingUser(u)}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white hover:bg-[#F1ECDD] text-[#1E241F] border border-[#E3DCC8] font-mono text-[11px] font-bold cursor-pointer"
+                      >
+                        <TreeStructure size={13} className="text-[#1F4D3E]" />
+                        <span>Team ({metrics.downlineCount})</span>
+                      </button>
+                    </div>
+
+                    {/* Mobile Action Buttons */}
+                    <div className="flex items-center justify-end gap-2 pt-1">
+                      <button
+                        onClick={() => setSelectedUser(u)}
+                        className="px-3 py-1.5 rounded-lg bg-[#FAF7EF] hover:bg-[#F1ECDD] text-[#1E241F] border border-[#E3DCC8] text-xs font-mono font-medium cursor-pointer"
+                      >
+                        Rank Level
+                      </button>
+                      <button
+                        onClick={() => handleToggleStatus(u)}
+                        className="px-3 py-1.5 rounded-lg bg-[#FAF7EF] hover:bg-rose-50 text-[#5B5C50] hover:text-rose-700 border border-[#E3DCC8] text-xs font-mono font-medium cursor-pointer"
+                      >
+                        {u.isActive !== false ? 'Suspend' : 'Activate'}
+                      </button>
+                      <button
+                        onClick={() => setDeletingUser(u)}
+                        disabled={u.id === currentAdmin?.id}
+                        className={`p-2 rounded-lg border text-xs transition-colors ${
+                          u.id === currentAdmin?.id
+                            ? 'opacity-30 cursor-not-allowed text-gray-400 border-gray-200'
+                            : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 cursor-pointer'
+                        }`}
+                        title="Delete User"
+                      >
+                        <Trash size={14} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
 
@@ -873,66 +997,66 @@ export const AdminUsersPage: React.FC = () => {
               <div className="flex items-start justify-between pb-4 border-b border-[#E3DCC8]">
                 <div className="flex items-center space-x-3.5">
                   <div className="w-12 h-12 rounded-2xl bg-[#1F4D3E] text-white flex items-center justify-center font-bold text-lg shadow-sm">
-                    {inspectingUser.fullName.charAt(0).toUpperCase()}
+                    {(inspectingUser.fullName || 'U').charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <div className="flex items-center space-x-2">
                       <h3 className="font-bold text-lg text-[#1E241F]">
-                        {inspectingUser.fullName}
+                        {inspectingUser.fullName || 'Unnamed User'}
                       </h3>
                       <span className="font-mono uppercase text-[10px] font-bold text-[#1E241F] px-2 py-0.5 rounded bg-[#FAF7EF] border border-[#E3DCC8]">
-                        {inspectingUser.currentRankSlug}
+                        {inspectingUser.currentRankSlug || 'unranked'}
                       </span>
                     </div>
-                    <p className="text-xs font-mono text-[#5B5C50]">
-                      {inspectingUser.email} {inspectingUser.phone && `• ${inspectingUser.phone}`} {inspectingUser.city && `• 📍 ${inspectingUser.city}`}
-                    </p>
-                    <p className="text-[11px] text-[#7C7D70] font-mono mt-0.5">
-                      Code: <strong className="text-[#1F4D3E]">{inspectingUser.referralCode}</strong> • Sponsor: <strong className="text-[#1E241F]">{sponsor ? `${sponsor.name} (${sponsor.code})` : 'Direct / Organic'}</strong>
+                    <p className="text-[11px] font-mono text-[#7C7D70]">
+                      {inspectingUser.email || 'No email'} · Partner Code: <span className="font-bold text-[#1F4D3E]">{inspectingUser.referralCode}</span>
                     </p>
                   </div>
                 </div>
+
                 <button
                   onClick={() => setInspectingUser(null)}
-                  className="p-1.5 rounded-lg text-[#5B5C50] hover:text-[#1E241F] hover:bg-[#FAF7EF] transition-colors cursor-pointer"
+                  className="p-2 rounded-xl bg-[#FAF7EF] hover:bg-[#F1ECDD] text-[#5B5C50] hover:text-[#1E241F] transition-colors cursor-pointer"
                 >
-                  <X size={20} />
+                  <X size={16} />
                 </button>
               </div>
 
-              {/* 4 Performance Metric Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
-                <div className="p-3.5 rounded-2xl bg-[#FAF7EF] border border-[#E3DCC8] space-y-1">
-                  <span className="text-[10px] text-[#5B5C50] font-semibold block">Delivered Units</span>
-                  <p className="text-xl font-bold text-[#1F4D3E]">{metrics.unitsSold} Units</p>
-                  <span className="text-[10px] text-[#7C7D70]">{metrics.salesCount} delivered orders</span>
+              {/* 4 Metric Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3.5 rounded-2xl bg-[#FAF7EF] border border-[#E3DCC8]">
+                  <span className="text-[#7C7D70] block font-mono text-[10px]">Delivered Volume</span>
+                  <span className="text-xl font-bold font-mono text-[#1E241F] mt-0.5 block">{metrics.unitsSold} Units</span>
+                  <span className="text-[10px] text-[#5B5C50] font-mono">{metrics.salesCount} delivered orders</span>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-[#FAF7EF] border border-[#E3DCC8] space-y-1">
-                  <span className="text-[10px] text-[#5B5C50] font-semibold block">Total Margin Earned</span>
-                  <p className="text-xl font-bold text-[#B8862E]">PKR {metrics.totalProfit.toLocaleString()}</p>
-                  <span className="text-[10px] text-[#7C7D70]">Net seller profit</span>
+                <div className="p-3.5 rounded-2xl bg-[#FAF7EF] border border-[#E3DCC8]">
+                  <span className="text-[#7C7D70] block font-mono text-[10px]">Net Profit Earned</span>
+                  <span className="text-xl font-bold font-mono text-[#1F4D3E] mt-0.5 block">PKR {metrics.totalProfit.toLocaleString()}</span>
+                  <span className="text-[10px] text-[#5B5C50] font-mono">Credited to wallet</span>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-[#FAF7EF] border border-[#E3DCC8] space-y-1">
-                  <span className="text-[10px] text-[#5B5C50] font-semibold block">Sales Volume (Gross)</span>
-                  <p className="text-xl font-bold text-[#1E241F]">PKR {metrics.totalRevenue.toLocaleString()}</p>
-                  <span className="text-[10px] text-[#7C7D70]">Client order value</span>
+                <div className="p-3.5 rounded-2xl bg-[#FAF7EF] border border-[#E3DCC8]">
+                  <span className="text-[#7C7D70] block font-mono text-[10px]">Downline Team</span>
+                  <span className="text-xl font-bold font-mono text-[#1E241F] mt-0.5 block">{metrics.downlineCount} Teammates</span>
+                  <span className="text-[10px] text-emerald-700 font-mono font-semibold">{metrics.qualifyingCount} Qualifying</span>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-[#FAF7EF] border border-[#E3DCC8] space-y-1">
-                  <span className="text-[10px] text-[#5B5C50] font-semibold block">Downline Team</span>
-                  <p className="text-xl font-bold text-[#1E241F]">{metrics.downlineCount} Members</p>
-                  <span className="text-[10px] text-[#7C7D70]">{metrics.qualifyingCount} qualifying active</span>
+                <div className="p-3.5 rounded-2xl bg-[#FAF7EF] border border-[#E3DCC8]">
+                  <span className="text-[#7C7D70] block font-mono text-[10px]">Invited By (Sponsor)</span>
+                  <span className="text-xs font-bold text-[#1E241F] mt-0.5 block truncate">
+                    {sponsor ? sponsor.name : 'Direct / Organic'}
+                  </span>
+                  <span className="text-[10px] text-[#5B5C50] font-mono">{sponsor ? sponsor.code : 'None'}</span>
                 </div>
               </div>
 
-              {/* Section 1: Customer Purchases & Product Orders */}
+              {/* Section 1: Customer Sales & Resale Margin */}
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between font-mono">
                   <span className="font-bold text-xs text-[#1E241F] flex items-center gap-1.5">
                     <ShoppingCart size={15} className="text-[#1F4D3E]" />
-                    Customer Orders Sold ({userSalesList.length})
+                    Delivered Client Sales ({userSalesList.length})
                   </span>
                   <span className="text-[10.5px] text-[#7C7D70]">
                     Total Units: {metrics.unitsSold}
@@ -1071,7 +1195,7 @@ export const AdminUsersPage: React.FC = () => {
       {/* Modal 2: Delete User Confirmation */}
       {deletingUser && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md p-6 rounded-3xl bg-white border border-[#E3DCC8] shadow-2xl space-y-4 text-xs">
+          <div className="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto p-6 rounded-3xl bg-white border border-[#E3DCC8] shadow-2xl space-y-4 text-xs">
             <div className="flex items-center space-x-3 text-rose-700 pb-3 border-b border-[#E3DCC8]">
               <div className="w-10 h-10 rounded-2xl bg-rose-50 flex items-center justify-center shrink-0 border border-rose-200">
                 <Trash size={20} />
@@ -1121,7 +1245,7 @@ export const AdminUsersPage: React.FC = () => {
       {/* Modal 3: Change Level Modal */}
       {selectedUser && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-sm p-6 rounded-3xl bg-white border border-[#E3DCC8] shadow-2xl space-y-4 text-xs">
+          <div className="w-full max-w-sm max-h-[calc(100dvh-2rem)] overflow-y-auto p-6 rounded-3xl bg-white border border-[#E3DCC8] shadow-2xl space-y-4 text-xs">
             <div className="flex items-center justify-between pb-2 border-b border-[#E3DCC8]">
               <h3 className="font-bold text-base text-[#1E241F]">
                 Override Rank: {selectedUser.fullName}
@@ -1154,4 +1278,3 @@ export const AdminUsersPage: React.FC = () => {
     </div>
   );
 };
-

@@ -4,6 +4,7 @@ import { salesService } from '@/services/salesService';
 import { notificationService } from '@/services/notificationService';
 import { Sale, SaleStatus, User } from '@/types';
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/context/ToastContext';
 import {
   ShoppingCart,
   Truck,
@@ -25,6 +26,7 @@ import {
 } from '@phosphor-icons/react';
 
 export const AdminSalesPage: React.FC = () => {
+  const { success: toastSuccess, error: toastError } = useToast();
   const [sales, setSales] = useState<Sale[]>(() => salesService.getAllSales());
   const [users] = useState<User[]>(() => storage.get<User[]>('USERS', []));
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -88,7 +90,7 @@ export const AdminSalesPage: React.FC = () => {
     if (!file) return;
 
     if (file.size > 4 * 1024 * 1024) {
-      alert('Proof slip image must be smaller than 4MB.');
+      toastError('Proof slip image must be smaller than 4MB.');
       return;
     }
 
@@ -129,6 +131,7 @@ export const AdminSalesPage: React.FC = () => {
 
     refreshData();
     setIsUpdating(false);
+    toastSuccess(`Order #${selectedSale.id} updated to ${targetStatus.replace('_', ' ')}.`);
     setSuccessMsg(`Order ${selectedSale.id} updated to ${targetStatus.replace('_', ' ')}.`);
     setTimeout(() => {
       setSuccessMsg('');
@@ -162,6 +165,7 @@ export const AdminSalesPage: React.FC = () => {
 
     refreshData();
     setIsRejecting(false);
+    toastSuccess('Order rejected and partner notified.');
     setRejectingSale(null);
     setSelectedSale(null);
     setCustomRejectReason('');
@@ -319,7 +323,7 @@ export const AdminSalesPage: React.FC = () => {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left font-sans">
+            <table className="w-full min-w-[950px] text-left font-sans">
               <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                 <tr>
                   <th className="p-3.5 font-medium">Order ID</th>
@@ -761,7 +765,7 @@ export const AdminSalesPage: React.FC = () => {
       {/* 3. Rejection Reason Modal */}
       {rejectingSale && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-lg p-6 sm:p-7 rounded-3xl bg-white border border-[#E3DCC8] shadow-2xl space-y-4 text-xs">
+          <div className="w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto p-6 sm:p-7 rounded-3xl bg-white border border-[#E3DCC8] shadow-2xl space-y-4 text-xs">
             <div className="flex items-center space-x-3 text-rose-700 pb-3 border-b border-[#E3DCC8]">
               <div className="w-10 h-10 rounded-2xl bg-rose-50 flex items-center justify-center shrink-0 border border-rose-200">
                 <Prohibit size={22} weight="bold" />

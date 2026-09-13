@@ -117,8 +117,12 @@ class ResellerWalletViewModel(
         }.onFailure { ex ->
             _uiState.value = _uiState.value.copy(
                 isSubmitting = false,
-                errorMessage = ex.message
+                errorMessage = "We couldn't submit your payout request. Check your details and try again."
             )
         }
+    }
+
+    fun clearSuccessMessage() {
+        _uiState.value = _uiState.value.copy(successMessage = null)
     }
 }

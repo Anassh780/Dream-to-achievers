@@ -5,6 +5,7 @@ import { salesService } from '@/services/salesService';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { SEOHead } from '@/components/common/SEOHead';
+import { useToast } from '@/context/ToastContext';
 import {
   ArrowLeft,
   Check,
@@ -32,6 +33,7 @@ export const ProductDetail: React.FC = () => {
 
   const product = useMemo(() => productService.getProductBySlug(slug || ''), [slug, syncKey]);
   const { user, isAuthenticated } = useAuth();
+  const { success: toastSuccess } = useToast();
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [quantity, setQuantity] = useState(1);
@@ -77,6 +79,7 @@ export const ProductDetail: React.FC = () => {
       quantity,
     });
 
+    toastSuccess(`Order recorded! +PKR ${(product.grossMargin * quantity).toLocaleString()} gross profit added to ledger.`);
     setSaleRecorded(true);
   };
 
@@ -203,22 +206,22 @@ export const ProductDetail: React.FC = () => {
                 </span>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="p-3 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8]">
-                  <span className="text-[10px] text-[#5B5C50] block font-mono">Retail Price</span>
-                  <span className="font-mono font-medium text-[#1E241F] text-sm sm:text-base">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-3 text-center">
+                <div className="p-2 sm:p-3 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8]">
+                  <span className="text-[10px] text-[#5B5C50] block font-mono truncate">Retail Price</span>
+                  <span className="font-mono font-medium text-[#1E241F] text-xs sm:text-base block truncate">
                     PKR {product.retailPrice.toLocaleString()}
                   </span>
                 </div>
-                <div className="p-3 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8]">
-                  <span className="text-[10px] text-[#5B5C50] block font-mono">Wholesale Cost</span>
-                  <span className="font-mono font-medium text-[#1F4D3E] text-sm sm:text-base">
+                <div className="p-2 sm:p-3 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8]">
+                  <span className="text-[10px] text-[#5B5C50] block font-mono truncate">Wholesale Cost</span>
+                  <span className="font-mono font-medium text-[#1F4D3E] text-xs sm:text-base block truncate">
                     PKR {product.partnerPrice.toLocaleString()}
                   </span>
                 </div>
-                <div className="p-3 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8]">
-                  <span className="text-[10px] text-[#5B5C50] block font-mono">Partner Margin</span>
-                  <span className="font-mono font-bold text-[#B8862E] text-sm sm:text-base">
+                <div className="p-2 sm:p-3 rounded-xl bg-[#FAF7EF] border border-[#E3DCC8]">
+                  <span className="text-[10px] text-[#5B5C50] block font-mono truncate">Partner Margin</span>
+                  <span className="font-mono font-bold text-[#B8862E] text-xs sm:text-base block truncate">
                     +PKR {product.grossMargin.toLocaleString()}
                   </span>
                 </div>
@@ -332,7 +335,7 @@ export const ProductDetail: React.FC = () => {
               {relatedProducts.map((rel) => (
                 <div
                   key={rel.id}
-                  className="rounded-xl bg-white border border-[#E3DCC8] p-4 flex flex-col justify-between space-y-3 shadow-2xs hover:border-[#D2C8AF] transition-colors"
+                  className="rounded-xl bg-white border border-[#E3DCC8] p-4 flex flex-col justify-between space-y-3 shadow-2xs hover:border-[#D2C8AF] transition-colors h-full"
                 >
                   <div className="flex items-center space-x-3">
                     <img

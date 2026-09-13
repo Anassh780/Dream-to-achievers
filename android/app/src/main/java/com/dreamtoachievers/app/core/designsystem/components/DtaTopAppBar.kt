@@ -49,6 +49,7 @@ fun DtaHomeTopBar(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
+                .weight(1f, fill = false)
                 .clip(DtaTheme.shapes.Chip)
                 .clickable(onClick = onAvatarClick)
                 .padding(4.dp)
@@ -81,7 +82,7 @@ fun DtaHomeTopBar(
 
             Spacer(modifier = Modifier.width(DtaTheme.spacing.sm))
 
-            Column {
+            Column(modifier = Modifier.weight(1f, fill = false)) {
                 Text(
                     text = "Good Morning,",
                     style = DtaTheme.typography.Metadata.copy(
@@ -101,7 +102,8 @@ fun DtaHomeTopBar(
                             fontSize = 15.sp
                         ),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
                     if (isVerifiedPartner) {
                         Row(

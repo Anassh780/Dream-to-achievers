@@ -120,7 +120,7 @@ export const PublicLayout: React.FC = () => {
             <SwitchButton size="sm" showLabel={false} />
             <button
               onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
-              className="p-2 rounded-lg text-[#1E241F] hover:bg-[#F1ECDD] transition-colors"
+              className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 rounded-lg text-[#1E241F] hover:bg-[#F1ECDD] transition-colors"
               aria-label="Toggle Navigation Menu"
               aria-expanded={mobileDrawerOpen}
               aria-controls="public-mobile-navigation"
@@ -133,7 +133,7 @@ export const PublicLayout: React.FC = () => {
 
       {/* Mobile Drawer */}
       {mobileDrawerOpen && (
-        <div id="public-mobile-navigation" className="lg:hidden fixed inset-x-0 bottom-0 top-[61px] z-30 bg-[#FAF7EF] p-5 sm:p-6 flex flex-col justify-between border-b border-[#E3DCC8] overflow-y-auto overscroll-contain animate-in slide-in-from-top-2" role="dialog" aria-modal="true" aria-label="Site navigation">
+        <div id="public-mobile-navigation" className="lg:hidden fixed inset-x-0 bottom-0 top-[57px] sm:top-[61px] z-30 bg-[#FAF7EF] p-5 sm:p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] flex flex-col justify-between border-b border-[#E3DCC8] overflow-y-auto overscroll-contain animate-in slide-in-from-top-2" role="dialog" aria-modal="true" aria-label="Site navigation">
           <div className="space-y-4">
             <span className="text-[10px] font-mono uppercase text-[#7C7D70] font-semibold tracking-wider block">
               Menu Navigation

@@ -5,9 +5,11 @@ import { payoutService } from '@/services/payoutService';
 import { notificationService } from '@/services/notificationService';
 import { Reward, WithdrawalRequest, User } from '@/types';
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/context/ToastContext';
 import { Gift, HandCoins, X, Check, CheckCircle, Bank, DeviceMobile, WhatsappLogo } from '@phosphor-icons/react';
 
 export const AdminRewardsPage: React.FC = () => {
+  const { success: toastSuccess, error: toastError } = useToast();
   const [activeTab, setActiveTab] = useState<'withdrawals' | 'rewards'>('withdrawals');
 
   const [rewards, setRewards] = useState<Reward[]>(() => storage.get<Reward[]>('REWARDS', []));
@@ -46,7 +48,7 @@ export const AdminRewardsPage: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 4 * 1024 * 1024) {
-      alert('Proof slip must be smaller than 4MB.');
+      toastError('Proof slip must be smaller than 4MB.');
       return;
     }
     const reader = new FileReader();
@@ -66,6 +68,7 @@ export const AdminRewardsPage: React.FC = () => {
       adminNote: 'Approved by administrator',
     });
     refreshData();
+    toastSuccess(`Milestone reward (${reward.rankName} - PKR ${reward.amount.toLocaleString()}) approved.`);
   };
 
   const handlePayReward = (e: React.FormEvent) => {
@@ -78,6 +81,7 @@ export const AdminRewardsPage: React.FC = () => {
       adminNote: 'Disbursed',
       transactionReference: rewardRefText,
     });
+    toastSuccess(`Milestone reward of PKR ${selectedReward.amount.toLocaleString()} marked as disbursed.`);
     setSelectedReward(null);
     setRewardRefText('');
     refreshData();
@@ -90,6 +94,7 @@ export const AdminRewardsPage: React.FC = () => {
       adminNote: 'Verification failed or duplicate account',
     });
     refreshData();
+    toastSuccess(`Milestone reward (${reward.rankName}) marked as rejected.`);
   };
 
   // Profit Withdrawal Actions
@@ -100,6 +105,7 @@ export const AdminRewardsPage: React.FC = () => {
       adminNote: 'Approved for disbursement',
     });
     refreshData();
+    toastSuccess(`Withdrawal #${w.id} (PKR ${w.amount.toLocaleString()}) approved.`);
     setActionSuccessMsg(`Withdrawal ${w.id} approved.`);
     setTimeout(() => setActionSuccessMsg(''), 3000);
   };
@@ -116,6 +122,7 @@ export const AdminRewardsPage: React.FC = () => {
       payoutProofUrl: withdrawalProofSlip || undefined,
     });
 
+    toastSuccess(`Payout of PKR ${selectedWithdrawal.amount.toLocaleString()} marked as Paid with proof.`);
     setSelectedWithdrawal(null);
     setWithdrawalRefText('');
     setWithdrawalAdminNote('');
@@ -248,7 +255,7 @@ export const AdminRewardsPage: React.FC = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left font-sans">
+              <table className="w-full min-w-[900px] text-left font-sans">
                 <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                   <tr>
                     <th className="p-3.5 font-medium">Claim ID</th>
@@ -370,7 +377,7 @@ export const AdminRewardsPage: React.FC = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left font-sans">
+              <table className="w-full min-w-[900px] text-left font-sans">
                 <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                   <tr>
                     <th className="p-3.5 font-medium">Claim ID</th>
@@ -454,7 +461,7 @@ export const AdminRewardsPage: React.FC = () => {
       {/* Modal 1: Mark Milestone Bonus Paid */}
       {selectedReward && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="rounded-2xl bg-white border border-[#E3DCC8] p-6 max-w-sm w-full space-y-4 shadow-xl text-xs">
+          <div className="rounded-2xl bg-white border border-[#E3DCC8] p-6 max-w-sm w-full max-h-[calc(100dvh-2rem)] overflow-y-auto space-y-4 shadow-xl text-xs">
             <div className="flex items-center justify-between pb-2 border-b border-[#E3DCC8]">
               <h3 className="font-serif font-medium text-base text-[#1E241F]">Record Bonus Disbursement</h3>
               <button onClick={() => setSelectedReward(null)} className="text-[#5B5C50] hover:text-[#1E241F]">
@@ -491,7 +498,7 @@ export const AdminRewardsPage: React.FC = () => {
       {/* Modal 2: Mark Seller Profit Withdrawal Paid */}
       {selectedWithdrawal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="rounded-2xl bg-white border border-[#E3DCC8] p-6 max-w-md w-full space-y-4 shadow-xl text-xs">
+          <div className="rounded-2xl bg-white border border-[#E3DCC8] p-6 max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto space-y-4 shadow-xl text-xs">
             <div className="flex items-center justify-between pb-2 border-b border-[#E3DCC8]">
               <div>
                 <h3 className="font-serif font-medium text-base text-[#1E241F]">

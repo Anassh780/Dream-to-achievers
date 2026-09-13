@@ -5,6 +5,8 @@ import { categoryService } from '@/services/categoryService';
 import { useAuth } from '@/context/AuthContext';
 import { Category, Product } from '@/types';
 import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/context/ToastContext';
 import { cloudSyncService } from '@/services/cloudSyncService';
 import { uploadProductImage, isValidImageUrl } from '@/services/imageService';
 import {
@@ -95,11 +97,16 @@ export const AdminProductsPage: React.FC = () => {
     }
   }, [allCategories, categoryId]);
 
-  const [toastMsg, setToastMsg] = useState('');
+  const { success: toastSuccess, error: toastError } = useToast();
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [isDeletingProduct, setIsDeletingProduct] = useState(false);
 
   const showToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(''), 4000);
+    if (msg.toLowerCase().includes('fail') || msg.toLowerCase().includes('error') || msg.toLowerCase().includes('expire')) {
+      toastError(msg);
+    } else {
+      toastSuccess(msg);
+    }
   };
 
   const [isCloudSyncing, setIsCloudSyncing] = useState(false);
@@ -247,31 +254,38 @@ export const AdminProductsPage: React.FC = () => {
 
   const handleDelete = (p: Product) => {
     if (!currentAdmin) return;
-    if (confirm(`Are you sure you want to delete ${p.name}? You can restore it anytime from the Restore Products popup.`)) {
-      const updated = products.filter((item) => item.id !== p.id);
-      storage.set('PRODUCTS', updated);
-      setProducts(updated);
+    setProductToDelete(p);
+  };
 
-      const archived = storage.get<Product[]>('DELETED_PRODUCTS', []);
-      if (!archived.some((item) => item.id === p.id)) {
-        storage.set('DELETED_PRODUCTS', [p, ...archived]);
-      }
+  const handleConfirmDeleteProduct = async () => {
+    if (!productToDelete || !currentAdmin) return;
+    const p = productToDelete;
+    setIsDeletingProduct(true);
+    const updated = products.filter((item) => item.id !== p.id);
+    storage.set('PRODUCTS', updated);
+    setProducts(updated);
 
-      cloudSyncService.archiveProduct(p).catch(() => {
-        showToast('Firebase could not archive this product. Please try again.');
-      });
-
-      auditService.logAction({
-        adminId: currentAdmin.id,
-        adminEmail: currentAdmin.email,
-        action: 'DELETE_PRODUCT',
-        entityType: 'product',
-        entityId: p.id,
-        details: `Deleted product "${p.name}" (SKU: ${p.sku})`,
-      });
-
-      showToast(`Product "${p.name}" moved to deleted archive.`);
+    const archived = storage.get<Product[]>('DELETED_PRODUCTS', []);
+    if (!archived.some((item) => item.id === p.id)) {
+      storage.set('DELETED_PRODUCTS', [p, ...archived]);
     }
+
+    cloudSyncService.archiveProduct(p).catch(() => {
+      showToast('Firebase could not archive this product. Please try again.');
+    });
+
+    auditService.logAction({
+      adminId: currentAdmin.id,
+      adminEmail: currentAdmin.email,
+      action: 'DELETE_PRODUCT',
+      entityType: 'product',
+      entityId: p.id,
+      details: `Deleted product "${p.name}" (SKU: ${p.sku})`,
+    });
+
+    setIsDeletingProduct(false);
+    setProductToDelete(null);
+    showToast(`Product "${p.name}" moved to deleted archive.`);
   };
 
   const recoverableProducts = useMemo(() => {
@@ -387,12 +401,6 @@ export const AdminProductsPage: React.FC = () => {
         </div>
       </div>
 
-      {toastMsg && (
-        <div className="p-3.5 rounded-xl bg-[#F1ECDD] border border-[#E3DCC8] text-[#1F4D3E] text-xs flex items-center space-x-2 animate-in fade-in">
-          <Check size={16} weight="bold" className="shrink-0" />
-          <span className="font-semibold">{toastMsg}</span>
-        </div>
-      )}
 
       {/* KPI Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1028,6 +1036,19 @@ export const AdminProductsPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Accessible Confirmation Dialog for Product Deletion */}
+      <ConfirmDialog
+        isOpen={!!productToDelete}
+        title={`Archive Product "${productToDelete?.name || ''}"`}
+        description={`Are you sure you want to delete ${productToDelete?.name || 'this product'}? You can restore it anytime from the Restore Products archive.`}
+        confirmLabel="Archive Product"
+        cancelLabel="Keep in Catalog"
+        variant="danger"
+        isLoading={isDeletingProduct}
+        onConfirm={handleConfirmDeleteProduct}
+        onClose={() => setProductToDelete(null)}
+      />
 
     </div>
   );

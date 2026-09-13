@@ -48,6 +48,14 @@ fun AdminWithdrawalApprovalScreen(
 
     var showRejectDialog by remember { mutableStateOf<WithdrawalRequest?>(null) }
     var rejectReasonInput by remember { mutableStateOf("") }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(state.successMessage) {
+        state.successMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearFeedback()
+        }
+    }
 
     // Disburse Dialog
     if (showDisburseDialog != null) {
@@ -162,6 +170,7 @@ fun AdminWithdrawalApprovalScreen(
                 onNavigationClick = onNavigateBack
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         containerColor = DtaTheme.colors.background,
         modifier = modifier.fillMaxSize()
     ) { paddingValues ->

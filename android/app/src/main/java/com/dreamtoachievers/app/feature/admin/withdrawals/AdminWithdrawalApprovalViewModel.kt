@@ -51,7 +51,7 @@ class AdminWithdrawalApprovalViewModel(
         )
         _uiState.value = _uiState.value.copy(
             isUpdating = false,
-            successMessage = if (success) "Withdrawal marked as paid!" else null
+            successMessage = if (success) "Withdrawal marked as paid." else "We couldn't mark this withdrawal as paid. Try again."
         )
     }
 
@@ -63,8 +63,12 @@ class AdminWithdrawalApprovalViewModel(
         )
         _uiState.value = _uiState.value.copy(
             isUpdating = false,
-            successMessage = if (success) "Withdrawal rejected" else null
+            successMessage = if (success) "Withdrawal rejected." else "We couldn't reject this withdrawal. Try again."
         )
+    }
+
+    fun clearFeedback() {
+        _uiState.value = _uiState.value.copy(successMessage = null)
     }
 
     private fun filter(withdrawals: List<WithdrawalRequest>, statusRaw: String): List<WithdrawalRequest> {

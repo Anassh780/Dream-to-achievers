@@ -5,6 +5,8 @@ import { useAuth } from '@/context/AuthContext';
 import { Category, CategoryStatus } from '@/types';
 import { CategoryIcon, AVAILABLE_ICONS } from '@/components/categories/CategoryIcon';
 import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/context/ToastContext';
 import {
   Plus,
   PencilSimple,
@@ -16,7 +18,10 @@ import {
 
 export const AdminCategoriesPage: React.FC = () => {
   const { user } = useAuth();
+  const { success: toastSuccess, error: toastError } = useToast();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [isDeletingCategory, setIsDeletingCategory] = useState(false);
 
   const allProducts = useMemo(() => productService.getAllAdminProducts(), [refreshKey]);
   const rawCategories = useMemo(() => categoryService.getAllCategories(), [refreshKey]);
@@ -46,12 +51,9 @@ export const AdminCategoriesPage: React.FC = () => {
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const [iconSearch, setIconSearch] = useState('');
 
-  // Notification banners
-  const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
-
   const showToast = (text: string, type: 'success' | 'error' = 'success') => {
-    setToastMsg({ text, type });
-    setTimeout(() => setToastMsg(null), 4000);
+    if (type === 'error') toastError(text);
+    else toastSuccess(text);
   };
 
   // Open Create Drawer
@@ -131,16 +133,22 @@ export const AdminCategoriesPage: React.FC = () => {
   };
 
   // Delete Category Protection Check
-  const handleDelete = async (cat: Category) => {
+  const handleDelete = (cat: Category) => {
     if (!user) return;
-    if (confirm(`Are you sure you want to delete category "${cat.name}"?`)) {
-      const result = await categoryService.deleteCategory(cat.id, allProducts, user.email);
-      if (result.success) {
-        showToast(`Category "${cat.name}" deleted.`);
-        setRefreshKey((k) => k + 1);
-      } else {
-        showToast(result.error || 'Failed to delete category.', 'error');
-      }
+    setCategoryToDelete(cat);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!categoryToDelete || !user) return;
+    setIsDeletingCategory(true);
+    const result = await categoryService.deleteCategory(categoryToDelete.id, allProducts, user.email);
+    setIsDeletingCategory(false);
+    if (result.success) {
+      toastSuccess(`Category "${categoryToDelete.name}" deleted successfully.`);
+      setCategoryToDelete(null);
+      setRefreshKey((k) => k + 1);
+    } else {
+      toastError(result.error || 'Failed to delete category.');
     }
   };
 
@@ -177,19 +185,6 @@ export const AdminCategoriesPage: React.FC = () => {
           Add category
         </Button>
       </div>
-
-      {toastMsg && (
-        <div
-          className={`p-3.5 rounded-xl border text-xs flex items-center space-x-2 animate-in fade-in ${
-            toastMsg.type === 'success'
-              ? 'bg-[#F1ECDD] border-[#E3DCC8] text-[#1F4D3E]'
-              : 'bg-rose-50 border-rose-200 text-rose-700'
-          }`}
-        >
-          {toastMsg.type === 'success' ? <Check size={16} weight="bold" /> : <X size={16} weight="bold" />}
-          <span className="font-semibold">{toastMsg.text}</span>
-        </div>
-      )}
 
       {/* KPI Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -452,6 +447,19 @@ export const AdminCategoriesPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Confirmation Dialog for Category Deletion */}
+      <ConfirmDialog
+        isOpen={!!categoryToDelete}
+        title={`Delete Category "${categoryToDelete?.name || ''}"`}
+        description={`Are you sure you want to permanently delete this category? Categories assigned to active catalog products cannot be deleted until those products are reassigned.`}
+        confirmLabel="Delete Category"
+        cancelLabel="Keep Category"
+        variant="danger"
+        isLoading={isDeletingCategory}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setCategoryToDelete(null)}
+      />
 
     </div>
   );

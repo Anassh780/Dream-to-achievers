@@ -5,19 +5,23 @@ import { collection, query, where, getDocs, doc, setDoc, getDoc, deleteDoc } fro
 import { ref, get, set, child, remove } from 'firebase/database';
 
 /**
- * Normalizes a referral code by stripping whitespace, dashes, underscores, and converting to uppercase.
- * Example: 'FARIA-939' -> 'FARIA939', 'faria 939' -> 'FARIA939', 'dta-faria939' -> 'FARIA939'
+ * Normalizes a referral code by stripping whitespace, dashes, underscores, and ensuring
+ * canonical alignment with the 'DTA' brand prefix.
+ * Example: 'FARIA-939' -> 'DTAFARIA939', 'faria 939' -> 'DTAFARIA939', 'DTA-3024' -> 'DTA3024', '3024' -> 'DTA3024'
  */
 export function normalizeReferralCode(code?: string | null): string {
   if (!code) return '';
-  return code
-    .trim()
-    .toUpperCase()
-    .replace(/^DTA-?/, '')
-    .replace(/[^A-Z0-9]/g, '');
+  const clean = code.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (!clean) return '';
+  return clean.startsWith('DTA') ? clean : `DTA${clean}`;
 }
 
 export function cleanReferralForCloud(r: ReferralRecord): ReferralRecord {
+  const cleanCode = String(r.referralCodeUsed || '').trim().toUpperCase();
+  const standardizedCode = cleanCode && !cleanCode.startsWith('DTA')
+    ? `DTA-${cleanCode.replace(/[^A-Z0-9]/g, '')}`
+    : cleanCode;
+
   return {
     id: String(r.id || `ref-${Date.now()}`).trim(),
     referrerId: String(r.referrerId || '').trim(),
@@ -25,7 +29,7 @@ export function cleanReferralForCloud(r: ReferralRecord): ReferralRecord {
     referredUserName: String(r.referredUserName || 'Partner Reseller').trim(),
     referredUserEmail: String(r.referredUserEmail || '').toLowerCase().trim(),
     referredUserRank: r.referredUserRank || 'unranked',
-    referralCodeUsed: String(r.referralCodeUsed || '').trim().toUpperCase(),
+    referralCodeUsed: standardizedCode,
     status: r.status || 'active',
     isQualifying: r.isQualifying !== false,
     createdAt: r.createdAt || new Date().toISOString(),
@@ -560,15 +564,17 @@ export const referralService = {
 
   /**
    * Index a referral code in Firestore and RTDB for instant O(1) resolution.
+   * Also indexes legacy aliases (without DTA) so older links continue resolving seamlessly.
    */
   async indexReferralCode(user: User): Promise<void> {
     if (!user || !user.referralCode || !user.id) return;
-    const normalized = normalizeReferralCode(user.referralCode);
+    const rawCode = String(user.referralCode || '').trim().toUpperCase();
+    const normalized = normalizeReferralCode(rawCode);
     if (!normalized) return;
 
     const payload = {
       userId: String(user.id || '').trim(),
-      referralCode: String(user.referralCode || '').trim().toUpperCase(),
+      referralCode: rawCode,
       normalizedCode: normalized,
       fullName: String(user.fullName || 'Partner Reseller').trim(),
       email: String(user.email || '').toLowerCase().trim(),
@@ -576,17 +582,29 @@ export const referralService = {
       updatedAt: new Date().toISOString(),
     };
 
+    // 1. Firestore index
     try {
       await setDoc(doc(db, 'referral_index', normalized), payload, { merge: true });
-      if (user.referralCode.toUpperCase() !== normalized) {
-        await setDoc(doc(db, 'referral_index', user.referralCode.toUpperCase()), payload, { merge: true });
+      if (rawCode !== normalized) {
+        await setDoc(doc(db, 'referral_index', rawCode), payload, { merge: true });
+      }
+      const legacyWithoutDta = rawCode.replace(/^DTA-?/, '');
+      if (legacyWithoutDta && legacyWithoutDta !== rawCode && legacyWithoutDta !== normalized) {
+        await setDoc(doc(db, 'referral_index', legacyWithoutDta), payload, { merge: true });
       }
     } catch (err) {
       console.warn('Firestore referral_index save failed:', err);
     }
 
+    // 2. RTDB index
     try {
-      if (user.referralCode.toUpperCase() !== normalized) {
+      await set(ref(rtdb, `referral_index/${normalized}`), payload);
+      if (rawCode !== normalized) {
+        await set(ref(rtdb, `referral_index/${rawCode}`), payload);
+      }
+      const legacyWithoutDta = rawCode.replace(/^DTA-?/, '');
+      if (legacyWithoutDta && legacyWithoutDta !== rawCode && legacyWithoutDta !== normalized) {
+        await set(ref(rtdb, `referral_index/${legacyWithoutDta}`), payload);
       }
     } catch (err) {
       console.warn('RTDB referral_index save failed:', err);
@@ -624,27 +642,247 @@ export const referralService = {
   },
 
   /**
+   * Scans every user across Firestore, RTDB, and LocalStorage.
+   * If any user has a referral code that does not start with 'DTA',
+   * resets their code to 'DTA-${cleanCode}', updates all sponsor links,
+   * updates referral records, re-indexes the new code, and purges fake synthetic accounts.
+   */
+  async standardizeAndResetAllReferralCodes(): Promise<{
+    totalUsersEvaluated: number;
+    totalCodesMigrated: number;
+    totalDownlinesUpdated: number;
+    details: string[];
+  }> {
+    let totalCodesMigrated = 0;
+    let totalDownlinesUpdated = 0;
+    const details: string[] = [];
+
+    try {
+      const userMap = new Map<string, User>();
+
+      // 1. Gather users from Firestore
+      try {
+        const snap = await getDocs(collection(db, 'users'));
+        snap.forEach((d: any) => {
+          const u = d.data() as User;
+          const id = u.id || d.id;
+          if (id) userMap.set(id, { ...u, id });
+        });
+      } catch (err) {
+        console.warn('Firestore fetch users for code reset warning:', err);
+      }
+
+      // 2. Gather users from RTDB
+      try {
+        const rtdbSnap = await get(ref(rtdb, 'users'));
+        if (rtdbSnap.exists()) {
+          const val = rtdbSnap.val();
+          if (val && typeof val === 'object') {
+            Object.values(val).forEach((u: any) => {
+              if (u && u.id) {
+                userMap.set(u.id, { ...userMap.get(u.id), ...u });
+              }
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('RTDB fetch users for code reset warning:', err);
+      }
+
+      // 3. Gather users from local storage
+      const localUsers = storage.get<User[]>('USERS', []);
+      localUsers.forEach((u) => {
+        if (u && u.id) userMap.set(u.id, { ...userMap.get(u.id), ...u });
+      });
+
+      // Filter out synthetic accounts and deduplicate by email
+      const emailMap = new Map<string, User>();
+      const realUsers: User[] = [];
+
+      userMap.forEach((u) => {
+        const isFakeSynthetic =
+          (u.email?.endsWith('@dreamtoachievers.com') && u.id?.startsWith('user-')) ||
+          (u.id && u.id.length > 25 && /^[A-Z0-9]+$/.test(u.id) && u.email?.endsWith('@dreamtoachievers.com'));
+
+        if (isFakeSynthetic) {
+          try {
+            deleteDoc(doc(db, 'users', u.id)).catch(() => {});
+            remove(ref(rtdb, `users/${u.id}`)).catch(() => {});
+          } catch {}
+          return;
+        }
+
+        const cleanEmail = (u.email || '').toLowerCase().trim();
+        if (cleanEmail) {
+          if (emailMap.has(cleanEmail)) {
+            const existing = emailMap.get(cleanEmail)!;
+            const isExistingTemp = existing.id?.startsWith('user-');
+            const isCurrentTemp = u.id?.startsWith('user-');
+            if (isExistingTemp && !isCurrentTemp) {
+              emailMap.set(cleanEmail, { ...existing, ...u });
+            } else {
+              emailMap.set(cleanEmail, { ...u, ...existing });
+            }
+          } else {
+            emailMap.set(cleanEmail, u);
+          }
+        } else {
+          realUsers.push(u);
+        }
+      });
+
+      emailMap.forEach((u) => realUsers.push(u));
+
+      // 4. Check every user and identify non-DTA codes
+      const migrationMap = new Map<string, string>(); // oldCodeClean -> newCode
+
+      for (const u of realUsers) {
+        const currentCode = String(u.referralCode || '').trim().toUpperCase();
+        if (!currentCode || !currentCode.startsWith('DTA')) {
+          // Needs reset!
+          const cleanOld = currentCode.replace(/[^A-Z0-9]/gi, '');
+          let newCode = '';
+          if (cleanOld) {
+            newCode = `DTA-${cleanOld}`;
+          } else {
+            const base = (u.fullName || 'VIP').replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4) || 'VIP';
+            const rand = Math.floor(100 + Math.random() * 900);
+            newCode = `DTA-${base}${rand}`;
+          }
+
+          if (currentCode) {
+            migrationMap.set(currentCode, newCode);
+            migrationMap.set(cleanOld, newCode);
+          }
+
+          u.referralCode = newCode;
+          totalCodesMigrated++;
+          details.push(`Reset user "${u.fullName}" (${u.email}): ${currentCode || '[none]'} -> ${newCode}`);
+
+          // Update in Firestore
+          try {
+            await setDoc(doc(db, 'users', u.id), { referralCode: newCode }, { merge: true });
+          } catch (e) {
+            console.warn(`Failed to update user doc in Firestore for ${u.id}:`, e);
+          }
+
+          // Update in RTDB
+          try {
+            await set(ref(rtdb, `users/${u.id}/referralCode`), newCode);
+          } catch (e) {
+            console.warn(`Failed to update user in RTDB for ${u.id}:`, e);
+          }
+
+          // Re-index new code
+          await this.indexReferralCode(u).catch(() => {});
+        } else {
+          // Already starts with DTA, ensure it's indexed
+          await this.indexReferralCode(u).catch(() => {});
+        }
+      }
+
+      // 5. Update downlines whose referredByCode was an old code
+      for (const u of realUsers) {
+        if (u.referredByCode) {
+          const oldRefClean = u.referredByCode.trim().toUpperCase();
+          const cleanNoDta = oldRefClean.replace(/[^A-Z0-9]/gi, '');
+          const mappedNew = migrationMap.get(oldRefClean) || migrationMap.get(cleanNoDta);
+          if (mappedNew && mappedNew !== u.referredByCode) {
+            u.referredByCode = mappedNew;
+            totalDownlinesUpdated++;
+            details.push(`Updated downline link for ${u.fullName}: sponsor ${oldRefClean} -> ${mappedNew}`);
+
+            try {
+              await setDoc(doc(db, 'users', u.id), { referredByCode: mappedNew }, { merge: true });
+            } catch {}
+            try {
+              await set(ref(rtdb, `users/${u.id}/referredByCode`), mappedNew);
+            } catch {}
+          }
+        }
+      }
+
+      // 6. Update ReferralRecords in local storage, Firestore, RTDB
+      const allReferrals = storage.get<ReferralRecord[]>('REFERRALS', []);
+      let referralsChanged = false;
+      const updatedReferrals = allReferrals.map((r) => {
+        const cleanRefCode = (r.referralCodeUsed || '').trim().toUpperCase();
+        const cleanNoDta = cleanRefCode.replace(/[^A-Z0-9]/gi, '');
+        const mapped = migrationMap.get(cleanRefCode) || migrationMap.get(cleanNoDta);
+        if (mapped && mapped !== r.referralCodeUsed) {
+          referralsChanged = true;
+          return { ...r, referralCodeUsed: mapped };
+        }
+        return r;
+      });
+
+      if (referralsChanged) {
+        storage.set('REFERRALS', updatedReferrals);
+        for (const r of updatedReferrals) {
+          if (r.id) {
+            try {
+              await setDoc(doc(db, 'referrals', r.id), { referralCodeUsed: r.referralCodeUsed }, { merge: true });
+            } catch {}
+            try {
+              await set(ref(rtdb, `referrals/${r.id}/referralCodeUsed`), r.referralCodeUsed);
+            } catch {}
+          }
+        }
+      }
+
+      // 7. Save normalized real users back to local storage and dispatch real-time events
+      storage.set('USERS', realUsers);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('dta_users_update', { detail: realUsers }));
+        window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key: 'USERS', value: realUsers } }));
+        if (referralsChanged) {
+          window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key: 'REFERRALS', value: updatedReferrals } }));
+        }
+      }
+
+      return {
+        totalUsersEvaluated: realUsers.length,
+        totalCodesMigrated,
+        totalDownlinesUpdated,
+        details,
+      };
+    } catch (err: any) {
+      console.error('standardizeAndResetAllReferralCodes error:', err);
+      return {
+        totalUsersEvaluated: 0,
+        totalCodesMigrated,
+        totalDownlinesUpdated,
+        details: [err?.message || 'Error running migration'],
+      };
+    }
+  },
+
+  /**
    * Platform-wide Reconciliation Tool for Admins.
    * Scans all registered users across Firestore, RTDB, and LocalStorage,
-   * detects any missing sponsor codes (like LISHU267), auto-restores full User profiles,
+   * standardizes non-DTA referral codes, auto-restores full User profiles,
    * repairs missing referral records, indexes all sponsor codes, and recalculates rank progress.
    */
   async runPlatformReconciliation(): Promise<{ totalHealed: number; totalReferrals: number }> {
     let totalHealed = 0;
     try {
+      // 1. First standardize and reset any non-DTA referral codes across platform
+      await this.standardizeAndResetAllReferralCodes().catch(() => {});
+
       const allUsersMap = new Map<string, User>();
 
-      // 1. Firestore users
+      // 2. Firestore users
       try {
         const usersColl = collection(db, 'users');
         const usersSnap = await getDocs(usersColl);
         usersSnap.forEach((d: any) => {
           const u = d.data() as User;
-          if (u && u.id) allUsersMap.set(u.id, u);
+          const id = u.id || d.id;
+          if (id) allUsersMap.set(id, { ...u, id });
         });
       } catch {}
 
-      // 2. RTDB users
+      // 3. RTDB users
       try {
         const rtdbSnap = await get(ref(rtdb, 'users'));
         if (rtdbSnap.exists()) {
@@ -659,53 +897,11 @@ export const referralService = {
         }
       } catch {}
 
-      // 3. Local users
+      // 4. Local users
       const localUsers = storage.get<User[]>('USERS', []);
       localUsers.forEach((lu) => {
         if (lu && lu.id) {
           allUsersMap.set(lu.id, { ...allUsersMap.get(lu.id), ...lu });
-        }
-      });
-
-      // 4. Scan Firestore & RTDB referral_index for any registered sponsor codes
-      const referralIndexMap = new Map<string, any>();
-      try {
-        const refIndexSnap = await getDocs(collection(db, 'referral_index'));
-        refIndexSnap.forEach((d: any) => {
-          const data = d.data();
-          if (data && data.referralCode) {
-            referralIndexMap.set(normalizeReferralCode(data.referralCode), data);
-          }
-        });
-      } catch {}
-
-      try {
-        const rtdbIndexSnap = await get(ref(rtdb, 'referral_index'));
-        if (rtdbIndexSnap.exists()) {
-          const val = rtdbIndexSnap.val();
-          if (val && typeof val === 'object') {
-            Object.values(val).forEach((item: any) => {
-              if (item && item.referralCode) {
-                referralIndexMap.set(normalizeReferralCode(item.referralCode), item);
-              }
-            });
-          }
-        }
-      } catch {}
-
-      // 5. Detect all referenced sponsor codes from users and referrals
-      const referencedSponsorCodes = new Set<string>();
-      allUsersMap.forEach((u) => {
-        if (u.referredByCode && u.referredByCode.trim()) {
-          referencedSponsorCodes.add(u.referredByCode.trim().toUpperCase());
-        }
-      });
-
-      const localRefs = storage.get<ReferralRecord[]>('REFERRALS', []);
-      localRefs.forEach((r) => {
-        if (r.referralCodeUsed) referencedSponsorCodes.add(r.referralCodeUsed.trim().toUpperCase());
-        if (r.referrerId && !r.referrerId.startsWith('user-') && !r.referrerId.startsWith('admin-')) {
-          referencedSponsorCodes.add(r.referrerId.trim().toUpperCase());
         }
       });
 
@@ -718,8 +914,8 @@ export const referralService = {
 
         if (isFakeSynthetic) {
           try {
-            deleteDoc(doc(db, 'users', u.id));
-            remove(ref(rtdb, `users/${u.id}`));
+            deleteDoc(doc(db, 'users', u.id)).catch(() => {});
+            remove(ref(rtdb, `users/${u.id}`)).catch(() => {});
           } catch {}
         } else {
           realUsers.push(u);

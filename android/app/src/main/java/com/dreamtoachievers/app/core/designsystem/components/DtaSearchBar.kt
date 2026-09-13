@@ -98,7 +98,7 @@ fun DtaSearchBar(
         if (query.isNotEmpty() && !readOnly) {
             IconButton(
                 onClick = { onQueryChange("") },
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(DtaTheme.spacing.MinTouchTarget)
             ) {
                 Icon(
                     imageVector = Icons.Default.Clear,
@@ -110,21 +110,20 @@ fun DtaSearchBar(
         } else if (onFilterClick == null) {
             Icon(
                 imageVector = androidx.compose.material.icons.Icons.Outlined.Mic,
-                contentDescription = "Voice search",
+                contentDescription = null,
                 tint = DtaTheme.colors.inkMuted,
                 modifier = Modifier.size(20.dp)
             )
         }
 
         if (onFilterClick != null) {
-            Box(
+            IconButton(
+                onClick = onFilterClick,
                 modifier = Modifier
                     .padding(start = 6.dp)
-                    .size(34.dp)
+                    .size(DtaTheme.spacing.MinTouchTarget)
                     .clip(DtaTheme.shapes.Small)
                     .background(DtaTheme.colors.surfaceAlt)
-                    .clickable(onClick = onFilterClick),
-                contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Tune,

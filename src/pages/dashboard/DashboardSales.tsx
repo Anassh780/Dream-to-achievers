@@ -334,7 +334,7 @@ export const DashboardSales: React.FC = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left font-sans">
+              <table className="w-full min-w-[800px] text-left font-sans">
                 <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                   <tr>
                     <th className="p-3.5 font-medium">Order ID</th>
@@ -431,7 +431,7 @@ export const DashboardSales: React.FC = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left font-sans">
+              <table className="w-full min-w-[800px] text-left font-sans">
                 <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                   <tr>
                     <th className="p-3.5 font-medium">Request ID</th>
@@ -504,7 +504,7 @@ export const DashboardSales: React.FC = () => {
       {/* 1. Request Withdrawal Modal */}
       {showWithdrawModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="rounded-2xl bg-white border border-[#E3DCC8] p-6 max-w-md w-full space-y-4 shadow-xl animate-in zoom-in-95 text-xs">
+          <div className="rounded-2xl bg-white border border-[#E3DCC8] p-6 max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto space-y-4 shadow-xl animate-in zoom-in-95 text-xs">
             <div className="flex items-center justify-between pb-3 border-b border-[#E3DCC8]">
               <div>
                 <h3 className="font-serif font-medium text-base text-[#1E241F]">
@@ -516,7 +516,8 @@ export const DashboardSales: React.FC = () => {
               </div>
               <button
                 onClick={() => setShowWithdrawModal(false)}
-                className="p-1 rounded-lg text-[#5B5C50] hover:text-[#1E241F]"
+                className="min-h-[44px] min-w-[44px] -m-2 p-2 inline-flex items-center justify-center rounded-lg text-[#5B5C50] hover:text-[#1E241F]"
+                aria-label="Close modal"
               >
                 <X size={18} />
               </button>

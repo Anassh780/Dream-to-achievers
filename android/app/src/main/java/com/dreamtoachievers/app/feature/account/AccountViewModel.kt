@@ -17,7 +17,9 @@ data class AccountUiState(
     val totalOrders: Int = 0,
     val savedAddresses: List<String> = emptyList(),
     val notifications: List<Notification> = emptyList(),
-    val isLoggedOut: Boolean = false
+    val isLoggedOut: Boolean = false,
+    val isAddressActionInProgress: Boolean = false,
+    val addressFeedback: String? = null
 )
 
 class AccountViewModel(
@@ -63,12 +65,36 @@ class AccountViewModel(
 
     fun addAddress(addr: String) {
         if (addr.isNotBlank()) {
-            viewModelScope.launch { userRepository.addAddress(addr.trim()) }
+            viewModelScope.launch {
+                _uiState.update { it.copy(isAddressActionInProgress = true, addressFeedback = null) }
+                userRepository.addAddress(addr.trim()).fold(
+                    onSuccess = {
+                        _uiState.update { it.copy(isAddressActionInProgress = false, addressFeedback = "Delivery address saved.") }
+                    },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(isAddressActionInProgress = false, addressFeedback = error.userFacingAddressMessage("save")) }
+                    }
+                )
+            }
         }
     }
 
     fun removeAddress(address: String) {
-        viewModelScope.launch { userRepository.removeAddress(address) }
+        viewModelScope.launch {
+            _uiState.update { it.copy(isAddressActionInProgress = true, addressFeedback = null) }
+            userRepository.removeAddress(address).fold(
+                onSuccess = {
+                    _uiState.update { it.copy(isAddressActionInProgress = false, addressFeedback = "Delivery address removed.") }
+                },
+                onFailure = { error ->
+                    _uiState.update { it.copy(isAddressActionInProgress = false, addressFeedback = error.userFacingAddressMessage("remove")) }
+                }
+            )
+        }
+    }
+
+    fun clearAddressFeedback() {
+        _uiState.update { it.copy(addressFeedback = null) }
     }
 
     fun markNotificationRead(id: String) {
@@ -82,3 +108,6 @@ class AccountViewModel(
         }
     }
 }
+
+private fun Throwable.userFacingAddressMessage(action: String): String =
+    "We couldn't $action that address. Check your connection and try again."

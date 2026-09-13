@@ -398,7 +398,7 @@ export const AdminLayout: React.FC = () => {
           )}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-xl text-[#1E241F] hover:bg-[#FAF7EF] border border-[#E3DCC8]"
+            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 rounded-xl text-[#1E241F] hover:bg-[#FAF7EF] border border-[#E3DCC8]"
             aria-label="Toggle Admin Navigation Menu"
             aria-expanded={mobileMenuOpen}
             aria-controls="admin-mobile-navigation"
@@ -410,7 +410,7 @@ export const AdminLayout: React.FC = () => {
 
       {/* Mobile Full Menu Overlay */}
       {mobileMenuOpen && (
-        <div id="admin-mobile-navigation" className="md:hidden fixed inset-x-0 bottom-0 top-[57px] z-50 bg-[#FAF7EF] p-5 flex flex-col justify-between overflow-y-auto overscroll-contain border-b border-[#E3DCC8] animate-in slide-in-from-top-2" role="dialog" aria-modal="true" aria-label="Admin navigation">
+        <div id="admin-mobile-navigation" className="md:hidden fixed inset-x-0 bottom-0 top-[57px] z-50 bg-[#FAF7EF] p-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] flex flex-col justify-between overflow-y-auto overscroll-contain border-b border-[#E3DCC8] animate-in slide-in-from-top-2" role="dialog" aria-modal="true" aria-label="Admin navigation">
           <nav className="space-y-4 text-xs">
             {navGroups.map((group) => (
               <div key={group.title} className="space-y-1">

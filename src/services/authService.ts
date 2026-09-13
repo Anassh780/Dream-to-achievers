@@ -38,13 +38,22 @@ export function formatDisplayName(fullName?: string, email?: string, displayName
 
 export function cleanUserForCloud(u: User): User {
   const finalName = formatDisplayName(u.fullName, u.email);
+  let refCode = String(u.referralCode || '').trim().toUpperCase();
+  if (refCode && !refCode.startsWith('DTA')) {
+    refCode = `DTA-${refCode.replace(/[^A-Z0-9]/g, '')}`;
+  }
+  let sponsorCode = u.referredByCode ? String(u.referredByCode).trim().toUpperCase() : '';
+  if (sponsorCode && !sponsorCode.startsWith('DTA') && !sponsorCode.startsWith('USER-')) {
+    sponsorCode = `DTA-${sponsorCode.replace(/[^A-Z0-9]/g, '')}`;
+  }
+
   return {
     id: String(u.id || '').trim(),
     fullName: finalName,
     email: String(u.email || '').toLowerCase().trim(),
     role: u.role || 'user',
-    referralCode: String(u.referralCode || '').trim().toUpperCase(),
-    referredByCode: u.referredByCode ? String(u.referredByCode).trim().toUpperCase() : '',
+    referralCode: refCode,
+    referredByCode: sponsorCode,
     currentRankSlug: u.currentRankSlug || 'unranked',
     phone: u.phone ? String(u.phone).trim() : '',
     city: u.city ? String(u.city).trim() : '',
@@ -292,10 +301,10 @@ export const authService = {
     const cleanEmail = email.toLowerCase().trim();
     const cleanName = fullName.trim() || cleanEmail.split('@')[0] || 'Partner';
 
-    // Generate unique referral code for the new user (e.g. FARIA482)
-    const baseCode = cleanName.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 5) || 'DTA';
+    // Generate unique referral code for the new user (MUST start with DTA-)
+    const baseCode = cleanName.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4) || 'VIP';
     const randNum = Math.floor(100 + Math.random() * 900);
-    const newReferralCode = `${baseCode}${randNum}`;
+    const newReferralCode = `DTA-${baseCode}${randNum}`;
 
     let validReferrer: User | undefined;
     const cleanRef = referralCode?.trim().toUpperCase() || storage.getRaw('CAPTURED_REF')?.trim().toUpperCase() || undefined;
@@ -698,8 +707,10 @@ export const authService = {
       console.warn('RTDB getAllUsers fetch warning:', err);
     }
 
-    // 4. Purge any fake synthetic accounts and keep only 100% REAL users
+    // 4. Purge fake synthetic accounts and deduplicate by email
+    const emailMap = new Map<string, User>();
     const realUsers: User[] = [];
+
     userMap.forEach((u) => {
       const isFakeSynthetic =
         (u.email?.endsWith('@dreamtoachievers.com') && u.id?.startsWith('user-')) ||
@@ -712,16 +723,43 @@ export const authService = {
 
       if (isFakeSynthetic || isDeleted) {
         try {
-          deleteDoc(doc(db, 'users', u.id));
-          remove(ref(rtdb, `users/${u.id}`));
+          deleteDoc(doc(db, 'users', u.id)).catch(() => {});
+          remove(ref(rtdb, `users/${u.id}`)).catch(() => {});
         } catch {}
+        return;
+      }
+
+      let code = String(u.referralCode || '').trim().toUpperCase();
+      if (code && !code.startsWith('DTA')) {
+        code = `DTA-${code.replace(/[^A-Z0-9]/g, '')}`;
+      }
+
+      const formattedUser: User = {
+        ...u,
+        fullName: formatDisplayName(u.fullName, u.email),
+        referralCode: code || u.referralCode,
+      };
+
+      const cleanEmail = formattedUser.email?.toLowerCase().trim();
+      if (cleanEmail) {
+        if (emailMap.has(cleanEmail)) {
+          const existing = emailMap.get(cleanEmail)!;
+          const isExistingTemp = existing.id?.startsWith('user-');
+          const isCurrentTemp = formattedUser.id?.startsWith('user-');
+          if (isExistingTemp && !isCurrentTemp) {
+            emailMap.set(cleanEmail, { ...existing, ...formattedUser });
+          } else {
+            emailMap.set(cleanEmail, { ...formattedUser, ...existing });
+          }
+        } else {
+          emailMap.set(cleanEmail, formattedUser);
+        }
       } else {
-        realUsers.push({
-          ...u,
-          fullName: formatDisplayName(u.fullName, u.email),
-        });
+        realUsers.push(formattedUser);
       }
     });
+
+    emailMap.forEach((u) => realUsers.push(u));
 
     storage.set('USERS', realUsers);
     return realUsers;
@@ -741,23 +779,56 @@ export const authService = {
         collection(db, 'users'),
         (snapshot: any) => {
           const blacklist = authService.getDeletedBlacklist();
+          const emailMap = new Map<string, User>();
           const cloudUsers: User[] = [];
+
           snapshot.forEach((d: any) => {
-            const data = d.data() as User;
+            const rawData = d.data() as User;
+            const data: User = { ...rawData, id: d.id || rawData.id };
             if (data && data.id) {
+              const isFakeSynthetic =
+                (data.email?.endsWith('@dreamtoachievers.com') && data.id?.startsWith('user-')) ||
+                (data.id && data.id.length > 25 && /^[A-Z0-9]+$/.test(data.id) && data.email?.endsWith('@dreamtoachievers.com'));
+
               const isDeleted =
                 blacklist.has(data.id.toLowerCase()) ||
                 (data.email && blacklist.has(data.email.toLowerCase())) ||
                 (data.referralCode && blacklist.has(data.referralCode.toLowerCase()));
 
-              if (!isDeleted) {
-                cloudUsers.push({
+              if (!isDeleted && !isFakeSynthetic) {
+                let code = String(data.referralCode || '').trim().toUpperCase();
+                if (code && !code.startsWith('DTA')) {
+                  code = `DTA-${code.replace(/[^A-Z0-9]/g, '')}`;
+                }
+
+                const userObj: User = {
                   ...data,
                   fullName: formatDisplayName(data.fullName, data.email),
-                });
+                  referralCode: code || data.referralCode,
+                };
+
+                const cleanEmail = userObj.email?.toLowerCase().trim();
+                if (cleanEmail) {
+                  if (emailMap.has(cleanEmail)) {
+                    const existing = emailMap.get(cleanEmail)!;
+                    const isExistingTemp = existing.id?.startsWith('user-');
+                    const isCurrentTemp = userObj.id?.startsWith('user-');
+                    if (isExistingTemp && !isCurrentTemp) {
+                      emailMap.set(cleanEmail, { ...existing, ...userObj });
+                    } else {
+                      emailMap.set(cleanEmail, { ...userObj, ...existing });
+                    }
+                  } else {
+                    emailMap.set(cleanEmail, userObj);
+                  }
+                } else {
+                  cloudUsers.push(userObj);
+                }
               }
             }
           });
+
+          emailMap.forEach((u) => cloudUsers.push(u));
 
           storage.set('USERS', cloudUsers);
           callback(cloudUsers);

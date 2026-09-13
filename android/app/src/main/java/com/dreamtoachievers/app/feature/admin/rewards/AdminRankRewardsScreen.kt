@@ -37,6 +37,15 @@ fun AdminRankRewardsScreen(
 
     var showRejectDialog by remember { mutableStateOf<MilestoneReward?>(null) }
     var rejectionReasonInput by remember { mutableStateOf("") }
+    var feedback by remember { mutableStateOf<String?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(feedback) {
+        feedback?.let {
+            snackbarHostState.showSnackbar(it)
+            feedback = null
+        }
+    }
 
     if (showRejectDialog != null) {
         val reward = showRejectDialog!!
@@ -63,7 +72,12 @@ fun AdminRankRewardsScreen(
                 Button(
                     onClick = {
                         val ok = adminRepository.updateRewardStatus(reward.id, RewardStatus.REJECTED, rejectionReasonInput)
-                        if (ok) DtaHaptics.action(haptic)
+                        if (ok) {
+                            DtaHaptics.action(haptic)
+                            feedback = "Reward rejected."
+                        } else {
+                            feedback = "We couldn't update this reward. Try again."
+                        }
                         showRejectDialog = null
                         rejectionReasonInput = ""
                     },
@@ -87,6 +101,7 @@ fun AdminRankRewardsScreen(
                 onNavigationClick = onNavigateBack
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         containerColor = DtaTheme.colors.background,
         modifier = modifier.fillMaxSize()
     ) { paddingValues ->
@@ -109,11 +124,21 @@ fun AdminRankRewardsScreen(
                         reward = reward,
                         onApprove = {
                             val ok = adminRepository.updateRewardStatus(reward.id, RewardStatus.APPROVED)
-                            if (ok) DtaHaptics.action(haptic)
+                            if (ok) {
+                                DtaHaptics.action(haptic)
+                                feedback = "Reward approved."
+                            } else {
+                                feedback = "We couldn't approve this reward. Try again."
+                            }
                         },
                         onMarkPaid = {
                             val ok = adminRepository.updateRewardStatus(reward.id, RewardStatus.PAID, "Disbursed via bank transfer")
-                            if (ok) DtaHaptics.milestone(haptic)
+                            if (ok) {
+                                DtaHaptics.milestone(haptic)
+                                feedback = "Reward marked as paid."
+                            } else {
+                                feedback = "We couldn't mark this reward as paid. Try again."
+                            }
                         },
                         onReject = { showRejectDialog = reward }
                     )

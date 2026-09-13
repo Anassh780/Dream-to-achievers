@@ -4,6 +4,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { referralService } from '@/services/referralService';
 import { cloudSyncService } from '@/services/cloudSyncService';
+import { ToastProvider } from '@/context/ToastContext';
 
 // Global Referral URL Interceptor
 const ReferralTracker: React.FC = () => {
@@ -82,102 +83,110 @@ export const App: React.FC = () => {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <ReferralTracker />
-          <Routes>
-            {/* Public Portal Routes */}
-            <Route path="/" element={<PublicLayout />}>
-              <Route index element={<Home />} />
-              <Route path="about" element={<About />} />
-              <Route path="founder/faria-imran" element={<FounderPage />} />
-              <Route path="about/faria-imran" element={<Navigate to="/founder/faria-imran" replace />} />
-              <Route path="how-it-works" element={<HowItWorks />} />
-              <Route path="products" element={<Products />} />
-              <Route path="products/:slug" element={<ProductDetail />} />
-              <Route path="ranks" element={<RanksPage />} />
-              <Route path="services" element={<ServicesPage />} />
-              <Route path="faq" element={<FAQPage />} />
-              <Route path="contact" element={<ContactPage />} />
-              <Route path="terms" element={<TermsPage />} />
-              <Route path="privacy" element={<PrivacyPage />} />
-              <Route path="disclaimer" element={<DisclaimerPage />} />
+        <ToastProvider>
+          <BrowserRouter>
+            <ReferralTracker />
+            <Routes>
+              {/* Public Portal Routes */}
+              <Route path="/" element={<PublicLayout />}>
+                <Route index element={<Home />} />
+                <Route path="about" element={<About />} />
+                <Route path="founder/faria-imran" element={<FounderPage />} />
+                <Route path="about/faria-imran" element={<Navigate to="/founder/faria-imran" replace />} />
+                <Route path="how-it-works" element={<HowItWorks />} />
+                <Route path="products" element={<Products />} />
+                <Route path="products/:slug" element={<ProductDetail />} />
+                <Route path="ranks" element={<RanksPage />} />
+                <Route path="services" element={<ServicesPage />} />
+                <Route path="faq" element={<FAQPage />} />
+                <Route path="contact" element={<ContactPage />} />
+                <Route path="terms" element={<TermsPage />} />
+                <Route path="privacy" element={<PrivacyPage />} />
+                <Route path="disclaimer" element={<DisclaimerPage />} />
 
-              {/* Useful Search & Keyword Aliases */}
-              <Route path="rewards" element={<Navigate to="/ranks" replace />} />
-              <Route path="resellers" element={<Navigate to="/how-it-works" replace />} />
-              <Route path="referral-program" element={<Navigate to="/ranks" replace />} />
-            </Route>
+                {/* Useful Search & Keyword Aliases */}
+                <Route path="rewards" element={<Navigate to="/ranks" replace />} />
+                <Route path="resellers" element={<Navigate to="/how-it-works" replace />} />
+                <Route path="referral-program" element={<Navigate to="/ranks" replace />} />
+              </Route>
 
-            {/* Auth Routes (Lazy Loaded) */}
-            <Route
-              path="/login"
-              element={
-                <Suspense fallback={<SuspenseFallback />}>
-                  <Login />
-                </Suspense>
-              }
-            />
-            <Route
-              path="/signup"
-              element={
-                <Suspense fallback={<SuspenseFallback />}>
-                  <Signup />
-                </Suspense>
-              }
-            />
-            <Route
-              path="/forgot-password"
-              element={
-                <Suspense fallback={<SuspenseFallback />}>
-                  <ForgotPassword />
-                </Suspense>
-              }
-            />
+              {/* Authentication Routes */}
+              <Route path="/login" element={<PublicLayout />}>
+                <Route
+                  index
+                  element={
+                    <Suspense fallback={<SuspenseFallback />}>
+                      <Login />
+                    </Suspense>
+                  }
+                />
+              </Route>
+              <Route path="/signup" element={<PublicLayout />}>
+                <Route
+                  index
+                  element={
+                    <Suspense fallback={<SuspenseFallback />}>
+                      <Signup />
+                    </Suspense>
+                  }
+                />
+              </Route>
+              <Route path="/forgot-password" element={<PublicLayout />}>
+                <Route
+                  index
+                  element={
+                    <Suspense fallback={<SuspenseFallback />}>
+                      <ForgotPassword />
+                    </Suspense>
+                  }
+                />
+              </Route>
 
-            {/* Partner Protected Dashboard (Lazy Loaded) */}
-            <Route
-              path="/dashboard"
-              element={
-                <Suspense fallback={<SuspenseFallback />}>
-                  <DashboardLayout />
-                </Suspense>
-              }
-            >
-              <Route index element={<DashboardOverview />} />
-              <Route path="rank-progress" element={<RankProgressPage />} />
-              <Route path="products" element={<DashboardProducts />} />
-              <Route path="sales" element={<DashboardSales />} />
-              <Route path="referrals" element={<DashboardReferrals />} />
-              <Route path="rewards" element={<DashboardRewards />} />
-              <Route path="notifications" element={<DashboardNotifications />} />
-              <Route path="profile" element={<DashboardProfile />} />
-            </Route>
+              {/* Partner Reseller Dashboard Routes */}
+              <Route
+                path="/dashboard"
+                element={
+                  <Suspense fallback={<SuspenseFallback />}>
+                    <DashboardLayout />
+                  </Suspense>
+                }
+              >
+                <Route index element={<DashboardOverview />} />
+                <Route path="ranks" element={<RankProgressPage />} />
+                <Route path="products" element={<DashboardProducts />} />
+                <Route path="sales" element={<DashboardSales />} />
+                <Route path="referrals" element={<DashboardReferrals />} />
+                <Route path="rewards" element={<DashboardRewards />} />
+                <Route path="notifications" element={<DashboardNotifications />} />
+                <Route path="profile" element={<DashboardProfile />} />
+              </Route>
 
-            {/* Admin Management Panel (Lazy Loaded) */}
-            <Route
-              path="/admin"
-              element={
-                <Suspense fallback={<SuspenseFallback />}>
-                  <AdminLayout />
-                </Suspense>
-              }
-            >
-              <Route index element={<AdminOverviewPage />} />
-              <Route path="categories" element={<AdminCategoriesPage />} />
-              <Route path="users" element={<AdminUsersPage />} />
-              <Route path="products" element={<AdminProductsPage />} />
-              <Route path="sales" element={<AdminSalesPage />} />
-              <Route path="referrals" element={<AdminReferralsPage />} />
-              <Route path="ranks" element={<AdminRanksPage />} />
-              <Route path="rewards" element={<AdminRewardsPage />} />
-              <Route path="cms" element={<AdminCMSPage />} />
-              <Route path="audit-logs" element={<AdminAuditLogsPage />} />
-            </Route>
+              {/* Administrative Portal Routes */}
+              <Route
+                path="/admin"
+                element={
+                  <Suspense fallback={<SuspenseFallback />}>
+                    <AdminLayout />
+                  </Suspense>
+                }
+              >
+                <Route index element={<AdminOverviewPage />} />
+                <Route path="categories" element={<AdminCategoriesPage />} />
+                <Route path="users" element={<AdminUsersPage />} />
+                <Route path="products" element={<AdminProductsPage />} />
+                <Route path="sales" element={<AdminSalesPage />} />
+                <Route path="referrals" element={<AdminReferralsPage />} />
+                <Route path="ranks" element={<AdminRanksPage />} />
+                <Route path="rewards" element={<AdminRewardsPage />} />
+                <Route path="cms" element={<AdminCMSPage />} />
+                <Route path="audit-logs" element={<AdminAuditLogsPage />} />
+              </Route>
 
-            {/* 404 Route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+              {/* 404 Route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </ToastProvider>
       </AuthProvider>
     </ThemeProvider>
   );

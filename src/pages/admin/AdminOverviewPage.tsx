@@ -1,28 +1,58 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { storage } from '@/services/storage';
 import { User, Sale, Reward } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router-dom';
 
 export const AdminOverviewPage: React.FC = () => {
-  const users = storage.get<User[]>('USERS', []);
-  const sales = storage.get<Sale[]>('SALES', []);
-  const rewards = storage.get<Reward[]>('REWARDS', []);
+  const [syncKey, setSyncKey] = useState(0);
 
-  const totalSalesRevenue = sales.reduce((sum, s) => sum + s.sellingPrice * s.quantity, 0);
-  const totalProfitIssued = sales.reduce((sum, s) => sum + s.profitMargin * s.quantity, 0);
-  const totalRewardsApproved = rewards
-    .filter((r) => r.status === 'approved' || r.status === 'paid')
-    .reduce((sum, r) => sum + r.amount, 0);
-  const pendingRewardsCount = rewards.filter((r) => r.status === 'pending_review').length;
+  useEffect(() => {
+    const handleUpdate = () => setSyncKey((k) => k + 1);
+    window.addEventListener('dta_storage_change', handleUpdate);
+    window.addEventListener('dta_users_update', handleUpdate);
+    window.addEventListener('dta_products_update', handleUpdate);
+    return () => {
+      window.removeEventListener('dta_storage_change', handleUpdate);
+      window.removeEventListener('dta_users_update', handleUpdate);
+      window.removeEventListener('dta_products_update', handleUpdate);
+    };
+  }, []);
 
-  const rankCounts = {
-    silver: users.filter((u) => u.currentRankSlug === 'silver').length,
-    platinum: users.filter((u) => u.currentRankSlug === 'platinum').length,
-    gold: users.filter((u) => u.currentRankSlug === 'gold').length,
-    diamond: users.filter((u) => u.currentRankSlug === 'diamond').length,
-    unranked: users.filter((u) => u.currentRankSlug === 'unranked').length,
-  };
+  const users = useMemo(() => storage.get<User[]>('USERS', []), [syncKey]);
+  const sales = useMemo(() => storage.get<Sale[]>('SALES', []), [syncKey]);
+  const rewards = useMemo(() => storage.get<Reward[]>('REWARDS', []), [syncKey]);
+
+  const totalSalesRevenue = useMemo(
+    () => sales.reduce((sum, s) => sum + s.sellingPrice * s.quantity, 0),
+    [sales]
+  );
+  const totalProfitIssued = useMemo(
+    () => sales.reduce((sum, s) => sum + s.profitMargin * s.quantity, 0),
+    [sales]
+  );
+  const totalRewardsApproved = useMemo(
+    () =>
+      rewards
+        .filter((r) => r.status === 'approved' || r.status === 'paid')
+        .reduce((sum, r) => sum + r.amount, 0),
+    [rewards]
+  );
+  const pendingRewardsCount = useMemo(
+    () => rewards.filter((r) => r.status === 'pending_review').length,
+    [rewards]
+  );
+
+  const rankCounts = useMemo(
+    () => ({
+      silver: users.filter((u) => u.currentRankSlug === 'silver').length,
+      platinum: users.filter((u) => u.currentRankSlug === 'platinum').length,
+      gold: users.filter((u) => u.currentRankSlug === 'gold').length,
+      diamond: users.filter((u) => u.currentRankSlug === 'diamond').length,
+      unranked: users.filter((u) => u.currentRankSlug === 'unranked').length,
+    }),
+    [users]
+  );
 
   return (
     <div className="space-y-6 font-sans max-w-7xl">

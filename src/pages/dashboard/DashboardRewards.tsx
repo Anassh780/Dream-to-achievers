@@ -78,7 +78,7 @@ export const DashboardRewards: React.FC = () => {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full min-w-[800px] text-left">
               <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                 <tr>
                   <th className="p-3.5 font-medium">Reward ID</th>

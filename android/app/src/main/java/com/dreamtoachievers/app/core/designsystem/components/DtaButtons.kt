@@ -109,6 +109,8 @@ fun DtaSecondaryButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
+    val backgroundColor = if (enabled) DtaTheme.colors.surface else DtaTheme.colors.surfaceAlt
+    val contentColor = if (enabled) DtaTheme.colors.inkPrimary else DtaTheme.colors.inkMuted
     val scale by animateFloatAsState(
         targetValue = if (isPressed) 0.97f else 1.0f,
         label = "SecondaryPressScale"
@@ -120,7 +122,7 @@ fun DtaSecondaryButton(
             .heightIn(min = DtaTheme.spacing.MinTouchTarget)
             .fillMaxWidth()
             .clip(DtaTheme.shapes.Button)
-            .background(DtaTheme.colors.surface)
+            .background(backgroundColor)
             .border(1.dp, DtaTheme.colors.line, DtaTheme.shapes.Button)
             .clickable(
                 interactionSource = interactionSource,
@@ -139,7 +141,7 @@ fun DtaSecondaryButton(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = DtaTheme.colors.inkPrimary,
+                    tint = contentColor,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(DtaTheme.spacing.xs))
@@ -147,7 +149,7 @@ fun DtaSecondaryButton(
             Text(
                 text = text,
                 style = DtaTheme.typography.Button.copy(
-                    color = DtaTheme.colors.inkPrimary,
+                    color = contentColor,
                     fontWeight = FontWeight.SemiBold
                 )
             )

@@ -3,9 +3,11 @@ import { storage } from '@/services/storage';
 import { RankDefinition } from '@/types';
 import { CANONICAL_RANKS } from '@/config/ranks';
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/context/ToastContext';
 import { Crown, Pencil, X } from '@phosphor-icons/react';
 
 export const AdminRanksPage: React.FC = () => {
+  const { success: toastSuccess } = useToast();
   const [ranks, setRanks] = useState<RankDefinition[]>(() => storage.get<RankDefinition[]>('RANKS', CANONICAL_RANKS));
   const [selectedRank, setSelectedRank] = useState<RankDefinition | null>(null);
   const [salesReq, setSalesReq] = useState<number>(0);
@@ -36,6 +38,7 @@ export const AdminRanksPage: React.FC = () => {
 
     storage.set('RANKS', updated);
     setRanks(updated);
+    toastSuccess(`Milestone thresholds for ${selectedRank.name} updated successfully.`);
     setSelectedRank(null);
   };
 
@@ -67,9 +70,11 @@ export const AdminRanksPage: React.FC = () => {
                   Level 0{rank.order}
                 </span>
                 <button
+                  type="button"
                   onClick={() => handleEdit(rank)}
-                  className="p-1 rounded text-[#5B5C50] hover:text-[#1E241F] cursor-pointer"
-                  title="Edit thresholds"
+                  className="p-1 rounded text-[#5B5C50] hover:text-[#1E241F] focus-visible:ring-2 focus-visible:ring-[#1F4D3E] focus-visible:outline-none cursor-pointer"
+                  title={`Edit thresholds for ${rank.name}`}
+                  aria-label={`Edit thresholds for ${rank.name}`}
                 >
                   <Pencil size={14} />
                 </button>
@@ -99,7 +104,7 @@ export const AdminRanksPage: React.FC = () => {
       {/* Edit Thresholds Modal */}
       {selectedRank && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md p-6 rounded-2xl bg-white border border-[#E3DCC8] shadow-xl space-y-4 text-xs">
+          <div className="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto p-6 rounded-2xl bg-white border border-[#E3DCC8] shadow-xl space-y-4 text-xs">
             <div className="flex items-center justify-between pb-2 border-b border-[#E3DCC8]">
               <h3 className="font-serif font-medium text-base text-[#1E241F]">
                 Configure Level: {selectedRank.name}

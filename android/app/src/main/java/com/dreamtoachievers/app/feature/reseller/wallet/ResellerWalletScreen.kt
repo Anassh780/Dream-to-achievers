@@ -34,7 +34,14 @@ fun ResellerWalletScreen(
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsState()
-    var showSuccessSnackbar by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(state.successMessage) {
+        state.successMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearSuccessMessage()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -43,27 +50,15 @@ fun ResellerWalletScreen(
                 subtitle = "Track realized profits and withdraw to mobile wallet or bank"
             )
         },
-        snackbarHost = {
-            if (showSuccessSnackbar) {
-                Snackbar(
-                    modifier = Modifier.padding(16.dp),
-                    action = {
-                        TextButton(onClick = { showSuccessSnackbar = false }) {
-                            Text("OK", color = DtaTheme.colors.accent)
-                        }
-                    }
-                ) {
-                    Text("Payout request submitted successfully for verification!")
-                }
-            }
-        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         containerColor = DtaTheme.colors.background,
         modifier = modifier.fillMaxSize()
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .imePadding(),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 80.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
@@ -89,11 +84,7 @@ fun ResellerWalletScreen(
                     canSubmit = state.canSubmit,
                     isSubmitting = state.isSubmitting,
                     errorMessage = state.errorMessage,
-                    onSubmit = {
-                        viewModel.submitWithdrawalRequest {
-                            showSuccessSnackbar = true
-                        }
-                    }
+                    onSubmit = { viewModel.submitWithdrawalRequest {} }
                 )
             }
 
@@ -365,6 +356,7 @@ private fun PayoutRequestCard(
                 text = if (isSubmitting) "Processing..." else "Submit Payout Request",
                 onClick = onSubmit,
                 enabled = canSubmit,
+                isLoading = isSubmitting,
                 modifier = Modifier.fillMaxWidth()
             )
         }
