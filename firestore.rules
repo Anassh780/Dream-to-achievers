@@ -8,11 +8,22 @@ service cloud.firestore {
         ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
         : null;
     }
+    function isHardcodedAdmin() {
+      return signedIn() && (
+        request.auth.uid == 'oi8O5XbNHZOtnXaV10BRXdOATgi2' ||
+        request.auth.uid == 'PN9MiF9b8ZP54utzL8fgDu1XU072' ||
+        (request.auth.token != null && 'email' in request.auth.token && (
+          request.auth.token.email == 'ghhhbbbhjn3@gmail.com' ||
+          request.auth.token.email == 'Ghhhbbbhjn3@gmail.com' ||
+          request.auth.token.email == 'dreamtoachievers@gmail.com'
+        ))
+      );
+    }
     function admin() { 
-      return role() == 'admin' || role() == 'superadmin' || request.auth.token.email == 'ghhhbbbhjn3@gmail.com'; 
+      return isHardcodedAdmin() || role() == 'admin' || role() == 'superadmin'; 
     }
     function superadmin() { 
-      return role() == 'superadmin' || request.auth.token.email == 'ghhhbbbhjn3@gmail.com'; 
+      return isHardcodedAdmin() || role() == 'superadmin'; 
     }
 
     match /products/{id} {
