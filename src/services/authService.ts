@@ -830,8 +830,15 @@ export const authService = {
 
           emailMap.forEach((u) => cloudUsers.push(u));
 
-          storage.set('USERS', cloudUsers);
-          callback(cloudUsers);
+          // Safe merge: ensure complete directory visibility across all database layers
+          const cached = storage.get<User[]>('USERS', []);
+          const finalMap = new Map<string, User>();
+          cached.forEach((u) => { if (u?.id) finalMap.set(u.id, u); });
+          cloudUsers.forEach((u) => { if (u?.id) finalMap.set(u.id, { ...finalMap.get(u.id), ...u }); });
+
+          const fullList = Array.from(finalMap.values());
+          storage.set('USERS', fullList);
+          callback(fullList);
         },
         (err: any) => {
           console.warn('Firestore user stream warning:', err);
