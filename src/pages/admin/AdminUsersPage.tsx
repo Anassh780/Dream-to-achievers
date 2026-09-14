@@ -1181,29 +1181,6 @@ export const AdminUsersPage: React.FC = () => {
                   >
                     {inspectingUser.isActive !== false ? 'Suspend Account' : 'Activate Account'}
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={async () => {
-                      if (!currentAdmin) return;
-                      const newRole = inspectingUser.role === 'admin' ? 'user' : 'admin';
-                      const updatedUsers = users.map(u => u.id === inspectingUser.id ? { ...u, role: newRole } : u);
-                      setUsers(updatedUsers);
-                      storage.set('USERS', updatedUsers);
-                      // Best-effort update if database allows it
-                      try {
-                        await authService.updateUser(inspectingUser.id, { role: newRole });
-                        showToast(`Successfully changed ${inspectingUser.fullName} role to ${newRole.toUpperCase()}.`);
-                      } catch (err) {
-                        // Optimistic update fallback warning
-                        showToast(`Local state updated to ${newRole.toUpperCase()}, but database rejected write. Ensure you have superadmin privileges.`, 'error');
-                      }
-                      setInspectingUser(null);
-                    }}
-                    className="text-xs font-semibold text-[#1F4D3E]"
-                  >
-                    {inspectingUser.role === 'admin' ? 'Revoke Admin' : 'Make Admin'}
-                  </Button>
                 </div>
 
                 <Button variant="primary" size="sm" onClick={() => setInspectingUser(null)}>
