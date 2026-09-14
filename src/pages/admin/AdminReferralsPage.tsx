@@ -159,33 +159,33 @@ export const AdminReferralsPage: React.FC = () => {
             <p className="font-serif font-medium text-base text-[#1E241F]">No referral affiliations match query</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[850px] text-left font-sans">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full min-w-[950px] text-left font-sans border-collapse">
               <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                 <tr>
-                  <th className="p-3.5 font-medium">Record ID</th>
-                  <th className="p-3.5 font-medium">Sponsor Code Used</th>
-                  <th className="p-3.5 font-medium">Referred Partner</th>
-                  <th className="p-3.5 font-medium">Email Address</th>
-                  <th className="p-3.5 font-medium">Rank Tier</th>
-                  <th className="p-3.5 font-medium text-center">Status</th>
-                  <th className="p-3.5 font-medium text-right">Registered</th>
+                  <th className="p-3.5 font-medium min-w-[120px] whitespace-nowrap">Record ID</th>
+                  <th className="p-3.5 font-medium min-w-[150px] whitespace-nowrap">Sponsor Code Used</th>
+                  <th className="p-3.5 font-medium min-w-[180px]">Referred Partner</th>
+                  <th className="p-3.5 font-medium min-w-[180px]">Email Address</th>
+                  <th className="p-3.5 font-medium min-w-[120px] whitespace-nowrap">Rank Tier</th>
+                  <th className="p-3.5 font-medium text-center min-w-[110px] whitespace-nowrap">Status</th>
+                  <th className="p-3.5 font-medium text-right min-w-[120px] whitespace-nowrap">Registered</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50]">
                 {filteredReferrals.map((r) => (
                   <tr key={r.id} className="hover:bg-[#FAF7EF] transition-colors">
-                    <td className="p-3.5 font-mono text-[#7C7D70] text-[11px]">{r.id}</td>
-                    <td className="p-3.5 font-mono font-bold text-[#1F4D3E]">{r.referralCodeUsed}</td>
-                    <td className="p-3.5 font-serif font-semibold text-[#1E241F]">{r.referredUserName}</td>
-                    <td className="p-3.5 font-mono text-[#5B5C50]">{r.referredUserEmail}</td>
-                    <td className="p-3.5 font-mono uppercase text-[#1F4D3E] font-medium">{r.referredUserRank || 'unranked'}</td>
-                    <td className="p-3.5 text-center">
-                      <span className="inline-block text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#F1ECDD] text-[#1F4D3E] border border-[#E3DCC8]">
+                    <td className="p-3.5 font-mono text-[#7C7D70] text-[11px] min-w-[120px] whitespace-nowrap">{r.id}</td>
+                    <td className="p-3.5 font-mono font-bold text-[#1F4D3E] min-w-[150px] whitespace-nowrap">{r.referralCodeUsed}</td>
+                    <td className="p-3.5 font-serif font-semibold text-[#1E241F] min-w-[180px]">{r.referredUserName}</td>
+                    <td className="p-3.5 font-mono text-[#5B5C50] min-w-[180px] truncate">{r.referredUserEmail}</td>
+                    <td className="p-3.5 font-mono uppercase text-[#1F4D3E] font-medium min-w-[120px] whitespace-nowrap">{r.referredUserRank || 'unranked'}</td>
+                    <td className="p-3.5 text-center min-w-[110px] whitespace-nowrap">
+                      <span className="inline-block text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#F1ECDD] text-[#1F4D3E] border border-[#E3DCC8] whitespace-nowrap">
                         {r.status}
                       </span>
                     </td>
-                    <td className="p-3.5 text-right font-mono text-[#7C7D70]">
+                    <td className="p-3.5 text-right font-mono text-[#7C7D70] min-w-[120px] whitespace-nowrap">
                       {new Date(r.createdAt).toLocaleDateString()}
                     </td>
                   </tr>

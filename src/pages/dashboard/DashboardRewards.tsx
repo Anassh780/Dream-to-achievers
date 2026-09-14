@@ -77,39 +77,39 @@ export const DashboardRewards: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px] text-left">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full min-w-[850px] text-left font-sans border-collapse">
               <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                 <tr>
-                  <th className="p-3.5 font-medium">Reward ID</th>
-                  <th className="p-3.5 font-medium">Milestone Tier</th>
-                  <th className="p-3.5 font-medium text-right">Amount (PKR)</th>
-                  <th className="p-3.5 font-medium text-center">Status</th>
-                  <th className="p-3.5 font-medium">Reference / Note</th>
-                  <th className="p-3.5 font-medium text-right">Earned Date</th>
+                  <th className="p-3.5 font-medium whitespace-nowrap min-w-[130px]">Reward ID</th>
+                  <th className="p-3.5 font-medium whitespace-nowrap min-w-[150px]">Milestone Tier</th>
+                  <th className="p-3.5 font-medium text-right whitespace-nowrap min-w-[120px]">Amount (PKR)</th>
+                  <th className="p-3.5 font-medium text-center whitespace-nowrap min-w-[110px]">Status</th>
+                  <th className="p-3.5 font-medium whitespace-nowrap min-w-[200px]">Reference / Note</th>
+                  <th className="p-3.5 font-medium text-right whitespace-nowrap min-w-[120px]">Earned Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50] font-sans">
                 {rewards.map((rew) => (
                   <tr key={rew.id} className="hover:bg-[#FAF7EF] transition-colors">
-                    <td className="p-3.5 font-mono text-[#5B5C50]">{rew.id}</td>
-                    <td className="p-3.5 font-serif font-semibold text-[#1E241F]">{rew.rankName}</td>
-                    <td className="p-3.5 text-right font-mono font-bold text-[#B8862E]">
+                    <td className="p-3.5 font-mono text-[#5B5C50] whitespace-nowrap min-w-[130px]">{rew.id}</td>
+                    <td className="p-3.5 font-serif font-semibold text-[#1E241F] whitespace-nowrap min-w-[150px]">{rew.rankName}</td>
+                    <td className="p-3.5 text-right font-mono font-bold text-[#B8862E] whitespace-nowrap min-w-[120px]">
                       PKR {rew.amount.toLocaleString()}
                     </td>
-                    <td className="p-3.5 text-center">
+                    <td className="p-3.5 text-center whitespace-nowrap min-w-[110px]">
                       <span
-                        className={`inline-block text-[10px] font-mono font-semibold capitalize px-2 py-0.5 rounded border ${
+                        className={`inline-block text-[10px] font-mono font-semibold capitalize px-2 py-0.5 rounded border whitespace-nowrap ${
                           statusStyles[rew.status] || 'bg-[#FAF7EF] text-[#5B5C50]'
                         }`}
                       >
                         {rew.status.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="p-3.5 text-[#5B5C50] text-xs font-mono">
+                    <td className="p-3.5 text-[#5B5C50] text-xs font-mono whitespace-nowrap min-w-[200px]">
                       {rew.transactionReference || rew.adminNote || 'Queued for operations disbursement'}
                     </td>
-                    <td className="p-3.5 text-right text-[#5B5C50] font-mono">
+                    <td className="p-3.5 text-right text-[#5B5C50] font-mono whitespace-nowrap min-w-[120px]">
                       {new Date(rew.earnedAt).toLocaleDateString()}
                     </td>
                   </tr>

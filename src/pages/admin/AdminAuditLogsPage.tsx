@@ -51,27 +51,27 @@ export const AdminAuditLogsPage: React.FC = () => {
             <p className="font-serif font-medium text-base text-[#1E241F]">No audit log records found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[750px] text-left font-sans">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full min-w-[850px] text-left font-sans border-collapse">
               <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                 <tr>
-                  <th className="p-3.5 font-medium">Log ID</th>
-                  <th className="p-3.5 font-medium">Actor</th>
-                  <th className="p-3.5 font-medium">Action</th>
-                  <th className="p-3.5 font-medium">Target Entity</th>
-                  <th className="p-3.5 font-medium">Details</th>
-                  <th className="p-3.5 font-medium text-right">Timestamp</th>
+                  <th className="p-3.5 font-medium min-w-[100px] whitespace-nowrap">Log ID</th>
+                  <th className="p-3.5 font-medium min-w-[160px] whitespace-nowrap">Actor</th>
+                  <th className="p-3.5 font-medium min-w-[140px] whitespace-nowrap">Action</th>
+                  <th className="p-3.5 font-medium min-w-[140px] whitespace-nowrap">Target Entity</th>
+                  <th className="p-3.5 font-medium min-w-[200px]">Details</th>
+                  <th className="p-3.5 font-medium text-right min-w-[150px] whitespace-nowrap">Timestamp</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50]">
                 {filteredLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-[#FAF7EF] transition-colors">
-                    <td className="p-3.5 font-mono text-[#7C7D70]">{log.id}</td>
-                    <td className="p-3.5 font-medium text-[#1E241F]">{log.adminEmail}</td>
-                    <td className="p-3.5 font-mono font-semibold text-[#1F4D3E]">{log.action}</td>
-                    <td className="p-3.5 font-mono text-[#5B5C50]">{log.entityType} ({log.entityId})</td>
-                    <td className="p-3.5 text-[#5B5C50] max-w-xs truncate">{log.details}</td>
-                    <td className="p-3.5 text-right font-mono text-[#7C7D70]">
+                    <td className="p-3.5 font-mono text-[#7C7D70] min-w-[100px] whitespace-nowrap">{log.id}</td>
+                    <td className="p-3.5 font-medium text-[#1E241F] min-w-[160px] whitespace-nowrap">{log.adminEmail}</td>
+                    <td className="p-3.5 font-mono font-semibold text-[#1F4D3E] min-w-[140px] whitespace-nowrap">{log.action}</td>
+                    <td className="p-3.5 font-mono text-[#5B5C50] min-w-[140px] whitespace-nowrap">{log.entityType} ({log.entityId})</td>
+                    <td className="p-3.5 text-[#5B5C50] min-w-[200px] max-w-xs truncate">{log.details}</td>
+                    <td className="p-3.5 text-right font-mono text-[#7C7D70] min-w-[150px] whitespace-nowrap">
                       {new Date(log.timestamp).toLocaleString()}
                     </td>
                   </tr>

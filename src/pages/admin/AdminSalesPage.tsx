@@ -322,18 +322,18 @@ export const AdminSalesPage: React.FC = () => {
             <p className="font-bold text-base text-[#1E241F]">No sales records found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[950px] text-left font-sans">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full min-w-[1050px] text-left font-sans border-collapse">
               <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                 <tr>
-                  <th className="p-3.5 font-medium">Order ID</th>
-                  <th className="p-3.5 font-medium">Product / SKU</th>
-                  <th className="p-3.5 font-medium">Reseller Partner</th>
-                  <th className="p-3.5 font-medium">Customer (Buyer)</th>
-                  <th className="p-3.5 font-medium text-center">Qty</th>
-                  <th className="p-3.5 font-medium text-right">Profit Margin</th>
-                  <th className="p-3.5 font-medium text-center">Status</th>
-                  <th className="p-3.5 font-medium text-center">Actions</th>
+                  <th className="p-3.5 font-medium min-w-[110px] whitespace-nowrap">Order ID</th>
+                  <th className="p-3.5 font-medium min-w-[180px]">Product / SKU</th>
+                  <th className="p-3.5 font-medium min-w-[160px] whitespace-nowrap">Reseller Partner</th>
+                  <th className="p-3.5 font-medium min-w-[180px]">Customer (Buyer)</th>
+                  <th className="p-3.5 font-medium text-center min-w-[70px] whitespace-nowrap">Qty</th>
+                  <th className="p-3.5 font-medium text-right min-w-[140px] whitespace-nowrap">Profit Margin</th>
+                  <th className="p-3.5 font-medium text-center min-w-[120px] whitespace-nowrap">Status</th>
+                  <th className="p-3.5 font-medium text-center min-w-[140px] whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50]">
@@ -342,50 +342,50 @@ export const AdminSalesPage: React.FC = () => {
 
                   return (
                     <tr key={sale.id} className="hover:bg-[#FAF7EF] transition-colors">
-                      <td className="p-3.5 font-mono text-[#7C7D70]">{sale.id}</td>
-                      <td className="p-3.5">
+                      <td className="p-3.5 font-mono text-[#7C7D70] min-w-[110px] whitespace-nowrap">{sale.id}</td>
+                      <td className="p-3.5 min-w-[180px]">
                         <p className="font-semibold text-[#1E241F]">{sale.productName}</p>
-                        <p className="text-[10px] font-mono text-[#7C7D70]">{new Date(sale.createdAt).toLocaleDateString()}</p>
+                        <p className="text-[10px] font-mono text-[#7C7D70] whitespace-nowrap">{new Date(sale.createdAt).toLocaleDateString()}</p>
                       </td>
-                      <td className="p-3.5">
-                        <p className="font-medium text-[#1E241F]">{partner.name}</p>
-                        <p className="text-[10px] font-mono text-[#1F4D3E] font-semibold">
+                      <td className="p-3.5 min-w-[160px] whitespace-nowrap">
+                        <p className="font-medium text-[#1E241F] whitespace-nowrap">{partner.name}</p>
+                        <p className="text-[10px] font-mono text-[#1F4D3E] font-semibold whitespace-nowrap">
                           Code: {partner.code}
                         </p>
                       </td>
-                      <td className="p-3.5">
+                      <td className="p-3.5 min-w-[180px]">
                         <p className="text-[#1E241F] font-medium">{sale.customerName}</p>
-                        <div className="flex items-center space-x-2 text-[10px] text-[#7C7D70] font-mono">
+                        <div className="flex items-center space-x-2 text-[10px] text-[#7C7D70] font-mono whitespace-nowrap">
                           {sale.customerPhone && (
                             <a
                               href={`https://wa.me/${sale.customerPhone.replace(/[^0-9]/g, '')}`}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-[#1F4D3E] flex items-center space-x-0.5 hover:underline"
+                              className="text-[#1F4D3E] flex items-center space-x-0.5 hover:underline whitespace-nowrap"
                             >
-                              <WhatsappLogo size={11} weight="fill" />
+                              <WhatsappLogo size={11} weight="fill" className="shrink-0" />
                               <span>{sale.customerPhone}</span>
                             </a>
                           )}
-                          {sale.customerCity && <span>• {sale.customerCity}</span>}
+                          {sale.customerCity && <span className="whitespace-nowrap">• {sale.customerCity}</span>}
                         </div>
                       </td>
-                      <td className="p-3.5 text-center font-mono font-medium text-[#1E241F]">
+                      <td className="p-3.5 text-center font-mono font-medium text-[#1E241F] min-w-[70px] whitespace-nowrap">
                         {sale.quantity}
                       </td>
-                      <td className="p-3.5 text-right font-mono font-bold text-[#B8862E]">
+                      <td className="p-3.5 text-right font-mono font-bold text-[#B8862E] min-w-[140px] whitespace-nowrap">
                         +PKR {(sale.profitMargin * sale.quantity).toLocaleString()}
                       </td>
-                      <td className="p-3.5 text-center">
+                      <td className="p-3.5 text-center min-w-[120px] whitespace-nowrap">
                         {getStatusBadge(sale.status)}
                       </td>
-                      <td className="p-3.5 text-center">
+                      <td className="p-3.5 text-center min-w-[140px] whitespace-nowrap">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => openFulfillmentModal(sale)}
-                          iconLeft={<Eye size={13} />}
-                          className="text-[11px] px-2.5 py-1"
+                          iconLeft={<Eye size={13} className="shrink-0" />}
+                          className="text-[11px] px-2.5 py-1 whitespace-nowrap shrink-0"
                         >
                           Fulfill / Verify
                         </Button>

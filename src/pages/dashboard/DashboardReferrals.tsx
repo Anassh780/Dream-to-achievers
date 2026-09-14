@@ -204,29 +204,29 @@ export const DashboardReferrals: React.FC = () => {
             <p className="text-xs">Share your referral link or sponsor code to onboard new distributor partners.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[700px] text-left font-sans">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full min-w-[750px] text-left font-sans border-collapse">
               <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                 <tr>
-                  <th className="p-3.5 font-medium">Partner Name</th>
-                  <th className="p-3.5 font-medium">Email Address</th>
-                  <th className="p-3.5 font-medium">Current Level</th>
-                  <th className="p-3.5 font-medium text-center">Status</th>
-                  <th className="p-3.5 font-medium text-right">Registered</th>
+                  <th className="p-3.5 font-medium min-w-[160px]">Partner Name</th>
+                  <th className="p-3.5 font-medium min-w-[180px]">Email Address</th>
+                  <th className="p-3.5 font-medium min-w-[130px] whitespace-nowrap">Current Level</th>
+                  <th className="p-3.5 font-medium text-center min-w-[110px] whitespace-nowrap">Status</th>
+                  <th className="p-3.5 font-medium text-right min-w-[120px] whitespace-nowrap">Registered</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50]">
                 {referrals.map((ref) => (
                   <tr key={ref.id} className="hover:bg-[#FAF7EF] transition-colors">
-                    <td className="p-3.5 font-serif font-semibold text-[#1E241F]">{ref.referredUserName || 'Teammate'}</td>
-                    <td className="p-3.5 font-mono text-[#5B5C50]">{ref.referredUserEmail || '—'}</td>
-                    <td className="p-3.5 font-mono uppercase text-[#1F4D3E] font-medium">{ref.referredUserRank || 'unranked'}</td>
-                    <td className="p-3.5 text-center">
-                      <span className="inline-block text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#F1ECDD] text-[#1F4D3E] border border-[#E3DCC8]">
+                    <td className="p-3.5 font-serif font-semibold text-[#1E241F] min-w-[160px]">{ref.referredUserName || 'Teammate'}</td>
+                    <td className="p-3.5 font-mono text-[#5B5C50] min-w-[180px] truncate">{ref.referredUserEmail || '—'}</td>
+                    <td className="p-3.5 font-mono uppercase text-[#1F4D3E] font-medium min-w-[130px] whitespace-nowrap">{ref.referredUserRank || 'unranked'}</td>
+                    <td className="p-3.5 text-center min-w-[110px] whitespace-nowrap">
+                      <span className="inline-block text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#F1ECDD] text-[#1F4D3E] border border-[#E3DCC8] whitespace-nowrap">
                         {ref.status || 'active'}
                       </span>
                     </td>
-                    <td className="p-3.5 text-right font-mono text-[#7C7D70]">
+                    <td className="p-3.5 text-right font-mono text-[#7C7D70] min-w-[120px] whitespace-nowrap">
                       {new Date(ref.createdAt).toLocaleDateString()}
                     </td>
                   </tr>

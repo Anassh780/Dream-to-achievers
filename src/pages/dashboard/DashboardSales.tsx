@@ -23,6 +23,7 @@ import {
   MagnifyingGlassMinus,
   ArrowClockwise,
   DownloadSimple,
+  Plus,
 } from '@phosphor-icons/react';
 
 export const DashboardSales: React.FC = () => {
@@ -333,64 +334,64 @@ export const DashboardSales: React.FC = () => {
               </Link>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px] text-left font-sans">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full min-w-[950px] text-left font-sans border-collapse">
                 <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                   <tr>
-                    <th className="p-3.5 font-medium">Order ID</th>
-                    <th className="p-3.5 font-medium">Product</th>
-                    <th className="p-3.5 font-medium">Client Info</th>
-                    <th className="p-3.5 font-medium text-center">Qty</th>
-                    <th className="p-3.5 font-medium text-right">Profit Margin</th>
-                    <th className="p-3.5 font-medium text-center">Status</th>
-                    <th className="p-3.5 font-medium text-center">Fulfillment</th>
+                    <th className="p-3.5 font-medium min-w-[110px] whitespace-nowrap">Order ID</th>
+                    <th className="p-3.5 font-medium min-w-[180px]">Product</th>
+                    <th className="p-3.5 font-medium min-w-[180px]">Client Info</th>
+                    <th className="p-3.5 font-medium text-center min-w-[70px] whitespace-nowrap">Qty</th>
+                    <th className="p-3.5 font-medium text-right min-w-[140px] whitespace-nowrap">Profit Margin</th>
+                    <th className="p-3.5 font-medium text-center min-w-[110px] whitespace-nowrap">Status</th>
+                    <th className="p-3.5 font-medium text-center min-w-[150px] whitespace-nowrap">Fulfillment</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50]">
                   {sales.map((sale) => (
                     <tr key={sale.id} className="hover:bg-[#FAF7EF] transition-colors">
-                      <td className="p-3.5 font-mono text-[#7C7D70]">{sale.id}</td>
-                      <td className="p-3.5">
+                      <td className="p-3.5 font-mono text-[#7C7D70] min-w-[110px] whitespace-nowrap">{sale.id}</td>
+                      <td className="p-3.5 min-w-[180px]">
                         <p className="font-serif font-semibold text-[#1E241F]">{sale.productName}</p>
-                        <p className="text-[10px] font-mono text-[#7C7D70]">
+                        <p className="text-[10px] font-mono text-[#7C7D70] whitespace-nowrap">
                           {new Date(sale.createdAt).toLocaleDateString()}
                         </p>
                       </td>
-                      <td className="p-3.5">
+                      <td className="p-3.5 min-w-[180px]">
                         <p className="text-[#1E241F] font-medium">{sale.customerName}</p>
-                        <div className="flex items-center space-x-2 text-[10px] text-[#7C7D70] font-mono">
+                        <div className="flex items-center space-x-2 text-[10px] text-[#7C7D70] font-mono whitespace-nowrap">
                           {sale.customerPhone ? (
                             <a
                               href={`https://wa.me/${sale.customerPhone.replace(/[^0-9]/g, '')}`}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-[#1F4D3E] flex items-center space-x-0.5 hover:underline"
+                              className="text-[#1F4D3E] flex items-center space-x-0.5 hover:underline whitespace-nowrap"
                             >
-                              <WhatsappLogo size={12} weight="fill" />
+                              <WhatsappLogo size={12} weight="fill" className="shrink-0" />
                               <span>{sale.customerPhone}</span>
                             </a>
                           ) : (
-                            <span>{sale.customerEmail || 'No contact'}</span>
+                            <span className="truncate">{sale.customerEmail || 'No contact'}</span>
                           )}
-                          {sale.customerCity && <span>• {sale.customerCity}</span>}
+                          {sale.customerCity && <span className="whitespace-nowrap">• {sale.customerCity}</span>}
                         </div>
                       </td>
-                      <td className="p-3.5 text-center font-mono font-medium text-[#1E241F]">
+                      <td className="p-3.5 text-center font-mono font-medium text-[#1E241F] min-w-[70px] whitespace-nowrap">
                         {sale.quantity}
                       </td>
-                      <td className="p-3.5 text-right font-mono font-bold text-[#B8862E]">
+                      <td className="p-3.5 text-right font-mono font-bold text-[#B8862E] min-w-[140px] whitespace-nowrap">
                         +PKR {(sale.profitMargin * sale.quantity).toLocaleString()}
                       </td>
-                      <td className="p-3.5 text-center">
+                      <td className="p-3.5 text-center min-w-[110px] whitespace-nowrap">
                         {getStatusBadge(sale.status)}
                       </td>
-                      <td className="p-3.5 text-center">
+                      <td className="p-3.5 text-center min-w-[150px] whitespace-nowrap">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setSelectedSale(sale)}
-                          iconLeft={<Truck size={13} />}
-                          className="text-[11px] px-2.5 py-1"
+                          iconLeft={<Truck size={13} className="shrink-0" />}
+                          className="text-[11px] px-2.5 py-1 whitespace-nowrap shrink-0"
                         >
                           Track Shipping
                         </Button>
@@ -409,57 +410,57 @@ export const DashboardSales: React.FC = () => {
         <div className="rounded-xl border border-[#E3DCC8] bg-white overflow-hidden text-xs shadow-xs">
           <div className="p-3.5 bg-[#F1ECDD] border-b border-[#E3DCC8] flex items-center justify-between font-mono">
             <span className="font-semibold text-[#1E241F]">Profit Withdrawal Claims</span>
-            <span className="text-[10px] text-[#5B5C50]">{withdrawals.length} Records</span>
+            <span className="text-[#5B5C50] text-[11px]">{withdrawals.length} Submitted</span>
           </div>
 
           {withdrawals.length === 0 ? (
-            <div className="p-12 text-center text-[#5B5C50] space-y-2">
-              <CurrencyDollar size={32} className="text-[#7C7D70] mx-auto" />
-              <p className="font-serif font-medium text-base text-[#1E241F]">No withdrawal requests yet</p>
-              <p className="text-xs">
-                When you have approved profit margin in your account, you can request a manual payout.
+            <div className="p-12 text-center text-[#5B5C50] space-y-3">
+              <HandCoins size={32} className="text-[#7C7D70] mx-auto" />
+              <p className="font-serif font-medium text-base text-[#1E241F]">No profit withdrawals requested yet</p>
+              <p className="text-xs text-[#7C7D70] max-w-sm mx-auto">
+                Once your delivered sales profits clear, request payout directly to your bank account or mobile wallet.
               </p>
               <Button
                 variant="primary"
                 size="sm"
                 onClick={() => setShowWithdrawModal(true)}
-                disabled={availableBalance < 500}
-                className="mt-2 text-xs"
+                iconLeft={<Plus size={14} />}
+                className="mt-2"
               >
-                Request Withdrawal
+                Request Payout Now
               </Button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px] text-left font-sans">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full min-w-[950px] text-left font-sans border-collapse">
                 <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                   <tr>
-                    <th className="p-3.5 font-medium">Request ID</th>
-                    <th className="p-3.5 font-medium">Payout Account</th>
-                    <th className="p-3.5 font-medium text-right">Amount (PKR)</th>
-                    <th className="p-3.5 font-medium text-center">Status</th>
-                    <th className="p-3.5 font-medium">Admin Reference / Note</th>
-                    <th className="p-3.5 font-medium text-right">Date</th>
+                    <th className="p-3.5 font-medium min-w-[110px] whitespace-nowrap">Request ID</th>
+                    <th className="p-3.5 font-medium min-w-[200px]">Payout Account</th>
+                    <th className="p-3.5 font-medium text-right min-w-[130px] whitespace-nowrap">Amount (PKR)</th>
+                    <th className="p-3.5 font-medium text-center min-w-[110px] whitespace-nowrap">Status</th>
+                    <th className="p-3.5 font-medium min-w-[150px]">Admin Reference / Note</th>
+                    <th className="p-3.5 font-medium text-right min-w-[110px] whitespace-nowrap">Date</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50]">
                   {withdrawals.map((w) => (
                     <tr key={w.id} className="hover:bg-[#FAF7EF] transition-colors">
-                      <td className="p-3.5 font-mono text-[#7C7D70]">{w.id}</td>
-                      <td className="p-3.5">
-                        <p className="font-serif font-semibold text-[#1E241F]">
+                      <td className="p-3.5 font-mono text-[#7C7D70] min-w-[110px] whitespace-nowrap">{w.id}</td>
+                      <td className="p-3.5 min-w-[200px]">
+                        <p className="font-serif font-semibold text-[#1E241F] whitespace-nowrap">
                           {w.payoutMethod.bankName}
                         </p>
-                        <p className="text-[10px] font-mono text-[#7C7D70]">
+                        <p className="text-[10px] font-mono text-[#7C7D70] whitespace-nowrap">
                           {w.payoutMethod.accountTitle} • {w.payoutMethod.accountNumber}
                         </p>
                       </td>
-                      <td className="p-3.5 text-right font-mono font-bold text-[#1F4D3E]">
+                      <td className="p-3.5 text-right font-mono font-bold text-[#1F4D3E] min-w-[130px] whitespace-nowrap">
                         PKR {w.amount.toLocaleString()}
                       </td>
-                      <td className="p-3.5 text-center">
+                      <td className="p-3.5 text-center min-w-[110px] whitespace-nowrap">
                         <span
-                          className={`inline-block text-[10px] font-mono font-semibold capitalize px-2 py-0.5 rounded border ${
+                          className={`inline-block text-[10px] font-mono font-semibold capitalize px-2 py-0.5 rounded border whitespace-nowrap ${
                             w.status === 'paid'
                               ? 'bg-[#F1ECDD] text-[#1F4D3E] border-[#E3DCC8]'
                               : w.status === 'approved'
@@ -472,7 +473,7 @@ export const DashboardSales: React.FC = () => {
                           {w.status}
                         </span>
                       </td>
-                      <td className="p-3.5 font-mono text-[11px] text-[#5B5C50]">
+                      <td className="p-3.5 font-mono text-[11px] text-[#5B5C50] min-w-[150px]">
                         <p>{w.transactionReference || w.adminNote || 'Pending manual transfer'}</p>
                         {w.payoutProofUrl && (
                           <button

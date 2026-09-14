@@ -325,22 +325,22 @@ export const DashboardProducts: React.FC = () => {
       ) : (
         /* Dense Operational Table View */
         <div className="rounded-xl bg-white border border-[#E3DCC8] overflow-x-auto shadow-xs">
-          <table className="w-full min-w-[750px] text-left text-xs border-collapse font-sans">
+          <table className="w-full min-w-[850px] text-left text-xs border-collapse font-sans">
             <thead>
               <tr className="border-b border-[#E3DCC8] bg-[#F1ECDD] text-[#5B5C50] font-mono text-[11px]">
-                <th className="p-3.5">Product Details</th>
-                <th className="p-3.5">SKU / Category</th>
-                <th className="p-3.5">Stock Status</th>
-                <th className="p-3.5 text-right">Retail Price</th>
-                <th className="p-3.5 text-right">Wholesale Cost</th>
-                <th className="p-3.5 text-right">Gross Margin</th>
-                <th className="p-3.5 text-center">Action</th>
+                <th className="p-3.5 whitespace-nowrap min-w-[220px]">Product Details</th>
+                <th className="p-3.5 whitespace-nowrap min-w-[130px]">SKU / Category</th>
+                <th className="p-3.5 whitespace-nowrap min-w-[110px]">Stock Status</th>
+                <th className="p-3.5 text-right whitespace-nowrap min-w-[110px]">Retail Price</th>
+                <th className="p-3.5 text-right whitespace-nowrap min-w-[110px]">Wholesale Cost</th>
+                <th className="p-3.5 text-right whitespace-nowrap min-w-[110px]">Gross Margin</th>
+                <th className="p-3.5 text-center whitespace-nowrap min-w-[120px]">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E3DCC8]">
               {filteredProducts.map((p) => (
                 <tr key={p.id} className="hover:bg-[#FAF7EF] transition-colors">
-                  <td className="p-3.5">
+                  <td className="p-3.5 min-w-[220px]">
                     <div className="flex items-center space-x-3">
                       <img
                         src={p.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
@@ -350,18 +350,18 @@ export const DashboardProducts: React.FC = () => {
                           e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
                         }}
                       />
-                      <span className="font-serif font-medium text-[#1E241F] truncate max-w-[200px]">
+                      <span className="font-serif font-medium text-[#1E241F] truncate max-w-[180px]" title={p.name}>
                         {p.name}
                       </span>
                     </div>
                   </td>
-                  <td className="p-3.5 font-mono text-[#5B5C50]">
-                    <span className="block text-[#1E241F]">{p.sku}</span>
+                  <td className="p-3.5 font-mono text-[#5B5C50] whitespace-nowrap min-w-[130px]">
+                    <span className="block text-[#1E241F] font-bold">{p.sku}</span>
                     <span className="text-[10px] text-[#7C7D70]">{p.category}</span>
                   </td>
-                  <td className="p-3.5">
+                  <td className="p-3.5 whitespace-nowrap min-w-[110px]">
                     <span
-                      className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded ${
+                      className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded whitespace-nowrap ${
                         p.inStock
                           ? 'bg-[#F1ECDD] text-[#1F4D3E] border border-[#E3DCC8]'
                           : 'bg-rose-50 text-rose-700 border border-rose-200'
@@ -370,21 +370,21 @@ export const DashboardProducts: React.FC = () => {
                       {p.inStock ? 'In Stock' : 'Out of Stock'}
                     </span>
                   </td>
-                  <td className="p-3.5 text-right font-mono text-[#1E241F]">
+                  <td className="p-3.5 text-right font-mono text-[#1E241F] whitespace-nowrap min-w-[110px]">
                     PKR {p.retailPrice.toLocaleString()}
                   </td>
-                  <td className="p-3.5 text-right font-mono text-[#1F4D3E] font-medium">
+                  <td className="p-3.5 text-right font-mono text-[#1F4D3E] font-medium whitespace-nowrap min-w-[110px]">
                     PKR {p.partnerPrice.toLocaleString()}
                   </td>
-                  <td className="p-3.5 text-right font-mono text-[#B8862E] font-bold">
+                  <td className="p-3.5 text-right font-mono text-[#B8862E] font-bold whitespace-nowrap min-w-[110px]">
                     +PKR {p.grossMargin.toLocaleString()}
                   </td>
-                  <td className="p-3.5 text-center">
+                  <td className="p-3.5 text-center whitespace-nowrap min-w-[120px]">
                     <Button
                       onClick={() => setSelectedProduct(p)}
                       variant="outline"
                       size="sm"
-                      className="text-xs px-3 py-1 hover:bg-[#F1ECDD]"
+                      className="text-xs px-3 py-1 hover:bg-[#F1ECDD] whitespace-nowrap shrink-0"
                     >
                       Record Sale
                     </Button>
@@ -598,26 +598,26 @@ export const DashboardProducts: React.FC = () => {
 
             {/* Printable Table */}
             <div className="flex-1 overflow-y-auto overflow-x-auto pr-1">
-              <table className="w-full min-w-[600px] text-left text-xs border-collapse font-sans">
+              <table className="w-full min-w-[650px] text-left text-xs border-collapse font-sans">
                 <thead>
                   <tr className="border-b border-[#E3DCC8] bg-[#F1ECDD] text-[#5B5C50] font-mono text-[10px]">
-                    <th className="p-2.5">SKU</th>
-                    <th className="p-2.5">Product Name</th>
-                    <th className="p-2.5">Category</th>
-                    <th className="p-2.5 text-right">Retail</th>
-                    <th className="p-2.5 text-right">Wholesale</th>
-                    <th className="p-2.5 text-right">Partner Margin</th>
+                    <th className="p-2.5 whitespace-nowrap min-w-[90px]">SKU</th>
+                    <th className="p-2.5 whitespace-nowrap min-w-[200px]">Product Name</th>
+                    <th className="p-2.5 whitespace-nowrap min-w-[120px]">Category</th>
+                    <th className="p-2.5 text-right whitespace-nowrap min-w-[100px]">Retail</th>
+                    <th className="p-2.5 text-right whitespace-nowrap min-w-[100px]">Wholesale</th>
+                    <th className="p-2.5 text-right whitespace-nowrap min-w-[110px]">Partner Margin</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E3DCC8] text-[11px]">
                   {allProducts.map((prod) => (
                     <tr key={prod.id}>
-                      <td className="p-2.5 font-mono text-[#5B5C50]">{prod.sku}</td>
-                      <td className="p-2.5 font-serif font-medium text-[#1E241F]">{prod.name}</td>
-                      <td className="p-2.5 text-[#5B5C50]">{prod.category}</td>
-                      <td className="p-2.5 text-right font-mono text-[#1E241F]">PKR {prod.retailPrice}</td>
-                      <td className="p-2.5 text-right font-mono text-[#1F4D3E]">PKR {prod.partnerPrice}</td>
-                      <td className="p-2.5 text-right font-mono text-[#B8862E] font-bold">+{prod.grossMargin}</td>
+                      <td className="p-2.5 font-mono text-[#5B5C50] whitespace-nowrap min-w-[90px]">{prod.sku}</td>
+                      <td className="p-2.5 font-serif font-medium text-[#1E241F] whitespace-nowrap min-w-[200px]">{prod.name}</td>
+                      <td className="p-2.5 text-[#5B5C50] whitespace-nowrap min-w-[120px]">{prod.category}</td>
+                      <td className="p-2.5 text-right font-mono text-[#1E241F] whitespace-nowrap min-w-[100px]">PKR {prod.retailPrice}</td>
+                      <td className="p-2.5 text-right font-mono text-[#1F4D3E] whitespace-nowrap min-w-[100px]">PKR {prod.partnerPrice}</td>
+                      <td className="p-2.5 text-right font-mono text-[#B8862E] font-bold whitespace-nowrap min-w-[110px]">+{prod.grossMargin}</td>
                     </tr>
                   ))}
                 </tbody>

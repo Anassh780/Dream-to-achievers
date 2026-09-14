@@ -692,19 +692,19 @@ export const AdminUsersPage: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Desktop Table: strict min-w-[1100px] ensures no column crushing */}
-            <div className="hidden lg:block overflow-x-auto">
-              <table className="w-full min-w-[1100px] text-left font-sans">
+            {/* Desktop Table: strict min-w-[1250px] and whitespace-nowrap ensures zero column crushing */}
+            <div className="hidden lg:block overflow-x-auto w-full">
+              <table className="w-full min-w-[1250px] text-left font-sans border-collapse">
                 <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10.5px] bg-[#FAF7EF]">
                   <tr>
-                    <th className="p-3.5 font-semibold w-[240px]">Partner Profile</th>
-                    <th className="p-3.5 font-semibold w-[180px]">Referral &amp; Sponsor</th>
-                    <th className="p-3.5 font-semibold w-[130px]">Rank Level</th>
-                    <th className="p-3.5 font-semibold text-right w-[170px]">Delivered Sales</th>
-                    <th className="p-3.5 font-semibold text-center w-[130px]">Downline Team</th>
-                    <th className="p-3.5 font-semibold text-center w-[110px]">Status</th>
-                    <th className="p-3.5 font-semibold text-center w-[110px]">Registered</th>
-                    <th className="p-3.5 font-semibold text-center w-[130px]">Actions</th>
+                    <th className="p-3.5 font-semibold min-w-[240px] whitespace-nowrap">Partner Profile</th>
+                    <th className="p-3.5 font-semibold min-w-[190px] whitespace-nowrap">Referral &amp; Sponsor</th>
+                    <th className="p-3.5 font-semibold min-w-[140px] text-center whitespace-nowrap">Rank Level</th>
+                    <th className="p-3.5 font-semibold text-right min-w-[190px] whitespace-nowrap">Delivered Sales</th>
+                    <th className="p-3.5 font-semibold text-center min-w-[160px] whitespace-nowrap">Downline Team</th>
+                    <th className="p-3.5 font-semibold text-center min-w-[110px] whitespace-nowrap">Status</th>
+                    <th className="p-3.5 font-semibold text-center min-w-[120px] whitespace-nowrap">Registered</th>
+                    <th className="p-3.5 font-semibold text-center min-w-[170px] whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50]">
@@ -722,33 +722,37 @@ export const AdminUsersPage: React.FC = () => {
                     return (
                       <tr key={u.id} className="hover:bg-[#FAF7EF]/70 transition-colors">
                         {/* 1. Partner Profile */}
-                        <td className="p-3.5">
+                        <td className="p-3.5 min-w-[240px]">
                           <div className="flex items-center space-x-3">
                             <div className="w-8 h-8 rounded-full bg-[#1F4D3E] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                               {(u.fullName || 'U').charAt(0).toUpperCase()}
                             </div>
-                            <div className="min-w-0">
-                              <p className="font-bold text-[#1E241F] text-xs sm:text-sm truncate">{u.fullName || 'Unnamed User'}</p>
-                              <p className="text-[10.5px] font-mono text-[#7C7D70] truncate">{u.email || 'No email'}</p>
+                            <div className="min-w-0 max-w-[190px]">
+                              <p className="font-bold text-[#1E241F] text-xs sm:text-sm truncate" title={u.fullName || 'Unnamed User'}>
+                                {u.fullName || 'Unnamed User'}
+                              </p>
+                              <p className="text-[10.5px] font-mono text-[#7C7D70] truncate" title={u.email || 'No email'}>
+                                {u.email || 'No email'}
+                              </p>
                             </div>
                           </div>
                         </td>
 
                         {/* 2. Referral & Sponsor */}
-                        <td className="p-3.5">
+                        <td className="p-3.5 min-w-[190px] whitespace-nowrap">
                           <div className="space-y-0.5">
-                            <span className="font-mono font-bold text-[#1F4D3E] bg-[#FAF7EF] px-2 py-0.5 rounded border border-[#E3DCC8] text-xs inline-block">
+                            <span className="font-mono font-bold text-[#1F4D3E] bg-[#FAF7EF] px-2 py-0.5 rounded border border-[#E3DCC8] text-xs inline-block whitespace-nowrap">
                               {u.referralCode || 'NO-CODE'}
                             </span>
-                            <p className="text-[10px] text-[#7C7D70] font-mono truncate">
+                            <p className="text-[10px] text-[#7C7D70] font-mono truncate max-w-[180px]" title={sponsor ? `Invited by: ${sponsor.name}` : 'Direct / Organic'}>
                               {sponsor ? `Invited by: ${sponsor.name}` : 'Direct / Organic'}
                             </p>
                           </div>
                         </td>
 
                         {/* 3. Rank Level */}
-                        <td className="p-3.5">
-                          <span className="font-mono uppercase text-[10.5px] font-bold text-[#1E241F] px-2.5 py-1 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] inline-flex items-center gap-1">
+                        <td className="p-3.5 min-w-[140px] text-center whitespace-nowrap">
+                          <span className="font-mono uppercase text-[10.5px] font-bold text-[#1E241F] px-2.5 py-1 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] inline-flex items-center gap-1 whitespace-nowrap">
                             {u.currentRankSlug === 'diamond' && <Crown size={12} weight="fill" className="text-[#B8862E]" />}
                             {u.currentRankSlug === 'gold' && <Sparkle size={12} weight="fill" className="text-amber-500" />}
                             {u.currentRankSlug === 'platinum' && <Sparkle size={12} weight="fill" className="text-purple-600" />}
@@ -758,16 +762,16 @@ export const AdminUsersPage: React.FC = () => {
                         </td>
 
                         {/* 4. Delivered Sales & Profit */}
-                        <td className="p-3.5 text-right">
-                          <div className="space-y-0.5">
-                            <span className="font-mono font-bold text-[#1F4D3E] text-xs block">
+                        <td className="p-3.5 min-w-[190px] text-right whitespace-nowrap">
+                          <div className="space-y-0.5 whitespace-nowrap">
+                            <span className="font-mono font-bold text-[#1F4D3E] text-xs block whitespace-nowrap">
                               {metrics.unitsSold} units delivered
                             </span>
-                            <span className="font-mono text-[10.5px] text-[#B8862E] font-semibold block">
+                            <span className="font-mono text-[10.5px] text-[#B8862E] font-semibold block whitespace-nowrap">
                               +PKR {metrics.totalProfit.toLocaleString()} profit
                             </span>
                             {metrics.totalRevenue > 0 && (
-                              <span className="text-[9.5px] text-[#7C7D70] font-mono block">
+                              <span className="text-[9.5px] text-[#7C7D70] font-mono block whitespace-nowrap">
                                 PKR {metrics.totalRevenue.toLocaleString()} volume
                               </span>
                             )}
@@ -775,22 +779,22 @@ export const AdminUsersPage: React.FC = () => {
                         </td>
 
                         {/* 5. Downline Team */}
-                        <td className="p-3.5 text-center">
+                        <td className="p-3.5 min-w-[160px] text-center whitespace-nowrap">
                           <button
                             onClick={() => setInspectingUser(u)}
-                            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#FAF7EF] hover:bg-[#F1ECDD] text-[#1E241F] border border-[#E3DCC8] font-mono text-xs transition-colors cursor-pointer"
+                            className="inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#FAF7EF] hover:bg-[#F1ECDD] text-[#1E241F] border border-[#E3DCC8] font-mono text-xs transition-colors cursor-pointer whitespace-nowrap shrink-0"
                             title="Inspect Onboarded Teammates"
                           >
-                            <TreeStructure size={14} className="text-[#1F4D3E]" />
+                            <TreeStructure size={14} className="text-[#1F4D3E] shrink-0" />
                             <span className="font-bold">{metrics.downlineCount}</span>
                             <span className="text-[10px] text-[#7C7D70]">({metrics.qualifyingCount} Active)</span>
                           </button>
                         </td>
 
                         {/* 6. Status */}
-                        <td className="p-3.5 text-center">
+                        <td className="p-3.5 min-w-[110px] text-center whitespace-nowrap">
                           <span
-                            className={`inline-block text-[10.5px] font-mono font-bold capitalize px-2.5 py-0.5 rounded-full border ${
+                            className={`inline-block text-[10.5px] font-mono font-bold capitalize px-2.5 py-0.5 rounded-full border whitespace-nowrap ${
                               u.isActive !== false
                                 ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                                 : 'bg-rose-50 text-rose-700 border-rose-200'
@@ -799,36 +803,36 @@ export const AdminUsersPage: React.FC = () => {
                             {u.isActive !== false ? 'Active' : 'Suspended'}
                           </span>
                           {u.role === 'admin' && (
-                            <span className="block mt-1 font-mono text-[9px] text-white bg-[#1F4D3E] px-1.5 py-0.2 rounded mx-auto w-fit">
+                            <span className="block mt-1 font-mono text-[9px] text-white bg-[#1F4D3E] px-1.5 py-0.2 rounded mx-auto w-fit whitespace-nowrap">
                               ADMIN
                             </span>
                           )}
                         </td>
 
                         {/* 7. Registered Time Ago */}
-                        <td className="p-3.5 text-center">
+                        <td className="p-3.5 min-w-[120px] text-center whitespace-nowrap">
                           <span
                             className="font-mono text-[10.5px] text-[#1E241F] bg-[#FAF7EF] px-2.5 py-1 rounded-lg border border-[#E3DCC8] inline-flex items-center gap-1 font-medium shadow-2xs whitespace-nowrap"
                             title={u.createdAt ? new Date(u.createdAt).toLocaleString() : ''}
                           >
-                            <Clock size={12} className="text-[#1F4D3E]" />
-                            <span>{formatTimeAgo(u.createdAt)}</span>
+                            <Clock size={12} className="text-[#1F4D3E] shrink-0" />
+                            <span className="whitespace-nowrap">{formatTimeAgo(u.createdAt)}</span>
                           </span>
                         </td>
 
                         {/* 8. Actions */}
-                        <td className="p-3.5 text-center">
-                          <div className="flex items-center justify-center space-x-1.5">
+                        <td className="p-3.5 min-w-[170px] text-center whitespace-nowrap">
+                          <div className="flex items-center justify-center space-x-1.5 whitespace-nowrap">
                             <button
                               onClick={() => setSelectedUser(u)}
-                              className="px-2.5 py-1 rounded-lg bg-[#FAF7EF] hover:bg-[#F1ECDD] text-[#1E241F] border border-[#E3DCC8] text-[11px] font-mono font-medium cursor-pointer"
+                              className="px-2.5 py-1 rounded-lg bg-[#FAF7EF] hover:bg-[#F1ECDD] text-[#1E241F] border border-[#E3DCC8] text-[11px] font-mono font-medium cursor-pointer whitespace-nowrap shrink-0"
                               title="Override Milestone Rank Level"
                             >
                               Rank
                             </button>
                             <button
                               onClick={() => handleToggleStatus(u)}
-                              className="px-2.5 py-1 rounded-lg bg-[#FAF7EF] hover:bg-rose-50 text-[#5B5C50] hover:text-rose-700 border border-[#E3DCC8] text-[11px] font-mono font-medium cursor-pointer"
+                              className="px-2.5 py-1 rounded-lg bg-[#FAF7EF] hover:bg-rose-50 text-[#5B5C50] hover:text-rose-700 border border-[#E3DCC8] text-[11px] font-mono font-medium cursor-pointer whitespace-nowrap shrink-0"
                               title={u.isActive !== false ? 'Suspend User' : 'Activate User'}
                             >
                               {u.isActive !== false ? 'Suspend' : 'Activate'}
@@ -836,14 +840,14 @@ export const AdminUsersPage: React.FC = () => {
                             <button
                               onClick={() => setDeletingUser(u)}
                               disabled={u.id === currentAdmin?.id}
-                              className={`p-1.5 rounded-lg border text-[11px] transition-colors ${
+                              className={`p-1.5 rounded-lg border text-[11px] transition-colors shrink-0 ${
                                 u.id === currentAdmin?.id
                                   ? 'opacity-30 cursor-not-allowed text-gray-400 border-gray-200'
                                   : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 cursor-pointer'
                               }`}
                               title={u.id === currentAdmin?.id ? 'Cannot delete current logged in admin' : 'Permanently Delete User'}
                             >
-                              <Trash size={14} />
+                              <Trash size={14} className="shrink-0" />
                             </button>
                           </div>
                         </td>
@@ -1069,29 +1073,29 @@ export const AdminUsersPage: React.FC = () => {
                   </div>
                 ) : (
                   <div className="rounded-2xl border border-[#E3DCC8] overflow-x-auto max-h-48 overflow-y-auto">
-                    <table className="w-full text-left font-sans">
+                    <table className="w-full min-w-[550px] text-left font-sans">
                       <thead className="bg-[#FAF7EF] border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] sticky top-0">
                         <tr>
-                          <th className="p-2.5">Order ID</th>
-                          <th className="p-2.5">Product Name</th>
-                          <th className="p-2.5">Customer (Buyer)</th>
-                          <th className="p-2.5 text-center">Qty</th>
-                          <th className="p-2.5 text-right">Profit Margin</th>
-                          <th className="p-2.5 text-center">Status</th>
+                          <th className="p-2.5 whitespace-nowrap">Order ID</th>
+                          <th className="p-2.5 whitespace-nowrap">Product Name</th>
+                          <th className="p-2.5 whitespace-nowrap">Customer (Buyer)</th>
+                          <th className="p-2.5 text-center whitespace-nowrap">Qty</th>
+                          <th className="p-2.5 text-right whitespace-nowrap">Profit Margin</th>
+                          <th className="p-2.5 text-center whitespace-nowrap">Status</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50]">
                         {userSalesList.map((s) => (
                           <tr key={s.id} className="hover:bg-[#FAF7EF]/60">
-                            <td className="p-2.5 font-mono text-[10.5px] font-bold text-[#1E241F]">{s.id}</td>
-                            <td className="p-2.5 font-medium text-[#1E241F]">{s.productName}</td>
-                            <td className="p-2.5 text-[#5B5C50]">{s.customerName || 'Direct Buyer'}</td>
-                            <td className="p-2.5 text-center font-mono font-bold">{s.quantity || 1}</td>
-                            <td className="p-2.5 text-right font-mono font-bold text-[#1F4D3E]">
+                            <td className="p-2.5 font-mono text-[10.5px] font-bold text-[#1E241F] whitespace-nowrap">{s.id}</td>
+                            <td className="p-2.5 font-medium text-[#1E241F] whitespace-nowrap">{s.productName}</td>
+                            <td className="p-2.5 text-[#5B5C50] whitespace-nowrap">{s.customerName || 'Direct Buyer'}</td>
+                            <td className="p-2.5 text-center font-mono font-bold whitespace-nowrap">{s.quantity || 1}</td>
+                            <td className="p-2.5 text-right font-mono font-bold text-[#1F4D3E] whitespace-nowrap">
                               +PKR {((s.profitMargin || 0) * (s.quantity || 1)).toLocaleString()}
                             </td>
-                            <td className="p-2.5 text-center">
-                              <span className="font-mono text-[9.5px] px-2 py-0.5 rounded capitalize bg-[#FAF7EF] border border-[#E3DCC8]">
+                            <td className="p-2.5 text-center whitespace-nowrap">
+                              <span className="font-mono text-[9.5px] px-2 py-0.5 rounded capitalize bg-[#FAF7EF] border border-[#E3DCC8] whitespace-nowrap">
                                 {s.status.replace('_', ' ')}
                               </span>
                             </td>
@@ -1121,28 +1125,28 @@ export const AdminUsersPage: React.FC = () => {
                   </div>
                 ) : (
                   <div className="rounded-2xl border border-[#E3DCC8] overflow-x-auto max-h-48 overflow-y-auto">
-                    <table className="w-full text-left font-sans">
+                    <table className="w-full min-w-[550px] text-left font-sans">
                       <thead className="bg-[#FAF7EF] border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] sticky top-0">
                         <tr>
-                          <th className="p-2.5">Teammate</th>
-                          <th className="p-2.5">Rank Level</th>
-                          <th className="p-2.5">Status</th>
-                          <th className="p-2.5 text-right">Joined Date</th>
+                          <th className="p-2.5 whitespace-nowrap">Teammate</th>
+                          <th className="p-2.5 whitespace-nowrap">Rank Level</th>
+                          <th className="p-2.5 whitespace-nowrap">Status</th>
+                          <th className="p-2.5 text-right whitespace-nowrap">Joined Date</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50]">
                         {userDownline.map((r) => (
                           <tr key={r.id} className="hover:bg-[#FAF7EF]/60">
-                            <td className="p-2.5">
+                            <td className="p-2.5 whitespace-nowrap">
                               <p className="font-medium text-[#1E241F]">{r.referredUserName}</p>
                               <p className="text-[10px] font-mono text-[#7C7D70]">{r.referredUserEmail || 'No email'}</p>
                             </td>
-                            <td className="p-2.5 font-mono uppercase text-[10px] font-bold">
+                            <td className="p-2.5 font-mono uppercase text-[10px] font-bold whitespace-nowrap">
                               {r.referredUserRank || 'unranked'}
                             </td>
-                            <td className="p-2.5">
+                            <td className="p-2.5 whitespace-nowrap">
                               <span
-                                className={`inline-block text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full border ${
+                                className={`inline-block text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap ${
                                   r.isQualifying
                                     ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                                     : 'bg-amber-50 text-amber-700 border-amber-200'
@@ -1151,7 +1155,7 @@ export const AdminUsersPage: React.FC = () => {
                                 {r.isQualifying ? 'Qualifying Active' : 'Pending Activation'}
                               </span>
                             </td>
-                            <td className="p-2.5 text-right font-mono text-[10px] text-[#7C7D70]">
+                            <td className="p-2.5 text-right font-mono text-[10px] text-[#7C7D70] whitespace-nowrap">
                               {new Date(r.createdAt).toLocaleDateString()}
                             </td>
                           </tr>

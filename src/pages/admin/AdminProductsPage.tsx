@@ -488,23 +488,23 @@ export const AdminProductsPage: React.FC = () => {
         ))}
       </div>
 
-      <div className="hidden sm:block rounded-xl bg-white border border-[#E3DCC8] overflow-x-auto shadow-xs">
-        <table className="w-full text-left text-xs border-collapse font-sans">
+      <div className="hidden sm:block rounded-xl bg-white border border-[#E3DCC8] overflow-x-auto shadow-xs w-full">
+        <table className="w-full min-w-[950px] text-left text-xs border-collapse font-sans">
           <thead>
             <tr className="border-b border-[#E3DCC8] bg-[#F1ECDD] text-[#5B5C50] font-mono text-[11px]">
-              <th className="p-3.5">Product</th>
-              <th className="p-3.5">SKU &amp; Category</th>
-              <th className="p-3.5">Stock</th>
-              <th className="p-3.5 text-right">Retail Price</th>
-              <th className="p-3.5 text-right">Wholesale Cost</th>
-              <th className="p-3.5 text-right">Partner Margin</th>
-              <th className="p-3.5 text-center">Actions</th>
+              <th className="p-3.5 min-w-[240px]">Product</th>
+              <th className="p-3.5 min-w-[150px] whitespace-nowrap">SKU &amp; Category</th>
+              <th className="p-3.5 min-w-[110px] whitespace-nowrap">Stock</th>
+              <th className="p-3.5 text-right min-w-[120px] whitespace-nowrap">Retail Price</th>
+              <th className="p-3.5 text-right min-w-[120px] whitespace-nowrap">Wholesale Cost</th>
+              <th className="p-3.5 text-right min-w-[130px] whitespace-nowrap">Partner Margin</th>
+              <th className="p-3.5 text-center min-w-[100px] whitespace-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#E3DCC8]">
             {filteredList.map((prod) => (
               <tr key={prod.id} className="hover:bg-[#FAF7EF] transition-colors">
-                <td className="p-3.5">
+                <td className="p-3.5 min-w-[240px]">
                   <div className="flex items-center space-x-3">
                     <img
                       src={prod.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
@@ -520,13 +520,13 @@ export const AdminProductsPage: React.FC = () => {
                     </div>
                   </div>
                 </td>
-                <td className="p-3.5 font-mono text-[#5B5C50]">
-                  <span className="block text-[#1E241F] font-medium">{prod.sku}</span>
-                  <span className="text-[10px] text-[#7C7D70]">{prod.category}</span>
+                <td className="p-3.5 font-mono text-[#5B5C50] min-w-[150px] whitespace-nowrap">
+                  <span className="block text-[#1E241F] font-medium whitespace-nowrap">{prod.sku}</span>
+                  <span className="text-[10px] text-[#7C7D70] whitespace-nowrap">{prod.category}</span>
                 </td>
-                <td className="p-3.5">
+                <td className="p-3.5 min-w-[110px] whitespace-nowrap">
                   <span
-                    className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded ${
+                    className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded whitespace-nowrap ${
                       prod.inStock
                         ? 'bg-[#F1ECDD] text-[#1F4D3E] border border-[#E3DCC8]'
                         : 'bg-rose-50 text-rose-700 border border-rose-200'
@@ -535,30 +535,30 @@ export const AdminProductsPage: React.FC = () => {
                     {prod.inStock ? 'In Stock' : 'Out of Stock'}
                   </span>
                 </td>
-                <td className="p-3.5 text-right font-mono text-[#1E241F]">
+                <td className="p-3.5 text-right font-mono text-[#1E241F] min-w-[120px] whitespace-nowrap">
                   PKR {prod.retailPrice.toLocaleString()}
                 </td>
-                <td className="p-3.5 text-right font-mono text-[#1F4D3E] font-medium">
+                <td className="p-3.5 text-right font-mono text-[#1F4D3E] font-medium min-w-[120px] whitespace-nowrap">
                   PKR {prod.partnerPrice.toLocaleString()}
                 </td>
-                <td className="p-3.5 text-right font-mono text-[#B8862E] font-bold">
+                <td className="p-3.5 text-right font-mono text-[#B8862E] font-bold min-w-[130px] whitespace-nowrap">
                   +PKR {prod.grossMargin.toLocaleString()}
                 </td>
-                <td className="p-3.5 text-center">
-                  <div className="flex items-center justify-center space-x-1.5">
+                <td className="p-3.5 text-center min-w-[100px] whitespace-nowrap">
+                  <div className="flex items-center justify-center space-x-1.5 whitespace-nowrap">
                     <button
                       onClick={() => handleOpenEdit(prod)}
-                      className="p-1.5 rounded-lg bg-[#FAF7EF] hover:bg-[#F1ECDD] text-[#1E241F] border border-[#E3DCC8] transition-colors"
+                      className="p-1.5 rounded-lg bg-[#FAF7EF] hover:bg-[#F1ECDD] text-[#1E241F] border border-[#E3DCC8] transition-colors shrink-0 cursor-pointer"
                       title="Edit Product"
                     >
-                      <PencilSimple size={14} />
+                      <PencilSimple size={14} className="shrink-0" />
                     </button>
                     <button
                       onClick={() => handleDelete(prod)}
-                      className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors"
+                      className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors shrink-0 cursor-pointer"
                       title="Delete Product"
                     >
-                      <Trash size={14} />
+                      <Trash size={14} className="shrink-0" />
                     </button>
                   </div>
                 </td>

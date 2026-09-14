@@ -254,17 +254,17 @@ export const AdminRewardsPage: React.FC = () => {
               <p className="font-serif font-medium text-base text-[#1E241F]">No profit withdrawal requests</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[900px] text-left font-sans">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full min-w-[1000px] text-left font-sans border-collapse">
                 <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                   <tr>
-                    <th className="p-3.5 font-medium">Claim ID</th>
-                    <th className="p-3.5 font-medium">Seller Partner</th>
-                    <th className="p-3.5 font-medium">Payout Method / Bank</th>
-                    <th className="p-3.5 font-medium text-right">Amount (PKR)</th>
-                    <th className="p-3.5 font-medium text-center">Status</th>
-                    <th className="p-3.5 font-medium">Disbursement Ref</th>
-                    <th className="p-3.5 font-medium text-center">Actions</th>
+                    <th className="p-3.5 font-medium min-w-[100px] whitespace-nowrap">Claim ID</th>
+                    <th className="p-3.5 font-medium min-w-[180px]">Seller Partner</th>
+                    <th className="p-3.5 font-medium min-w-[200px]">Payout Method / Bank</th>
+                    <th className="p-3.5 font-medium text-right min-w-[130px] whitespace-nowrap">Amount (PKR)</th>
+                    <th className="p-3.5 font-medium text-center min-w-[110px] whitespace-nowrap">Status</th>
+                    <th className="p-3.5 font-medium min-w-[130px] whitespace-nowrap">Disbursement Ref</th>
+                    <th className="p-3.5 font-medium text-center min-w-[180px] whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50]">
@@ -273,42 +273,42 @@ export const AdminRewardsPage: React.FC = () => {
 
                     return (
                       <tr key={w.id} className="hover:bg-[#FAF7EF] transition-colors">
-                        <td className="p-3.5 font-mono text-[#7C7D70]">{w.id}</td>
-                        <td className="p-3.5">
+                        <td className="p-3.5 font-mono text-[#7C7D70] min-w-[100px] whitespace-nowrap">{w.id}</td>
+                        <td className="p-3.5 min-w-[180px]">
                           <p className="font-serif font-semibold text-[#1E241F]">{w.userName || u?.fullName}</p>
-                          <div className="flex items-center space-x-2 text-[10px] text-[#7C7D70] font-mono">
+                          <div className="flex items-center space-x-2 text-[10px] text-[#7C7D70] font-mono whitespace-nowrap">
                             {w.userPhone && (
                               <a
                                 href={`https://wa.me/${w.userPhone.replace(/[^0-9]/g, '')}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="text-[#1F4D3E] flex items-center space-x-0.5 hover:underline"
+                                className="text-[#1F4D3E] flex items-center space-x-0.5 hover:underline whitespace-nowrap"
                               >
-                                <WhatsappLogo size={11} weight="fill" />
+                                <WhatsappLogo size={11} weight="fill" className="shrink-0" />
                                 <span>{w.userPhone}</span>
                               </a>
                             )}
-                            <span>{w.userEmail || u?.email}</span>
+                            <span className="truncate">{w.userEmail || u?.email}</span>
                           </div>
                         </td>
-                        <td className="p-3.5">
+                        <td className="p-3.5 min-w-[200px]">
                           <div className="p-2 rounded-lg bg-[#FAF7EF] border border-[#E3DCC8] space-y-0.5 font-mono text-[11px]">
-                            <span className="font-bold text-[#1E241F] block">{w.payoutMethod.bankName}</span>
-                            <span className="text-[#5B5C50] block">Title: {w.payoutMethod.accountTitle}</span>
-                            <span className="text-[#1F4D3E] font-bold block select-all">
+                            <span className="font-bold text-[#1E241F] block whitespace-nowrap">{w.payoutMethod.bankName}</span>
+                            <span className="text-[#5B5C50] block whitespace-nowrap">Title: {w.payoutMethod.accountTitle}</span>
+                            <span className="text-[#1F4D3E] font-bold block select-all whitespace-nowrap">
                               No: {w.payoutMethod.accountNumber}
                             </span>
                             {w.payoutMethod.branchCity && (
-                              <span className="text-[10px] text-[#7C7D70] block">City: {w.payoutMethod.branchCity}</span>
+                              <span className="text-[10px] text-[#7C7D70] block whitespace-nowrap">City: {w.payoutMethod.branchCity}</span>
                             )}
                           </div>
                         </td>
-                        <td className="p-3.5 text-right font-mono font-bold text-[#1F4D3E] text-sm">
+                        <td className="p-3.5 text-right font-mono font-bold text-[#1F4D3E] text-sm min-w-[130px] whitespace-nowrap">
                           PKR {w.amount.toLocaleString()}
                         </td>
-                        <td className="p-3.5 text-center">
+                        <td className="p-3.5 text-center min-w-[110px] whitespace-nowrap">
                           <span
-                            className={`inline-block text-[10px] font-mono font-semibold capitalize px-2 py-0.5 rounded border ${
+                            className={`inline-block text-[10px] font-mono font-semibold capitalize px-2 py-0.5 rounded border whitespace-nowrap ${
                               w.status === 'paid'
                                 ? 'bg-[#F1ECDD] text-[#1F4D3E] border-[#E3DCC8]'
                                 : w.status === 'approved'
@@ -321,15 +321,15 @@ export const AdminRewardsPage: React.FC = () => {
                             {w.status}
                           </span>
                         </td>
-                        <td className="p-3.5 text-[11px] font-mono text-[#5B5C50]">
+                        <td className="p-3.5 text-[11px] font-mono text-[#5B5C50] min-w-[130px]">
                           {w.transactionReference || w.adminNote || 'Pending'}
                         </td>
-                        <td className="p-3.5 text-center">
-                          <div className="flex items-center justify-center space-x-1.5">
+                        <td className="p-3.5 text-center min-w-[180px] whitespace-nowrap">
+                          <div className="flex items-center justify-center space-x-1.5 whitespace-nowrap">
                             {w.status === 'pending' && (
                               <button
                                 onClick={() => handleApproveWithdrawal(w)}
-                                className="px-2 py-1 rounded bg-[#F1ECDD] text-[#1F4D3E] hover:bg-[#EAE4D2] border border-[#E3DCC8] text-[11px] font-mono"
+                                className="px-2 py-1 rounded bg-[#F1ECDD] text-[#1F4D3E] hover:bg-[#EAE4D2] border border-[#E3DCC8] text-[11px] font-mono whitespace-nowrap shrink-0 cursor-pointer"
                               >
                                 Approve
                               </button>
@@ -337,7 +337,7 @@ export const AdminRewardsPage: React.FC = () => {
                             {(w.status === 'pending' || w.status === 'approved') && (
                               <button
                                 onClick={() => setSelectedWithdrawal(w)}
-                                className="px-2 py-1 rounded bg-[#1F4D3E] text-white hover:bg-[#153A2E] text-[11px] font-mono font-medium"
+                                className="px-2 py-1 rounded bg-[#1F4D3E] text-white hover:bg-[#153A2E] text-[11px] font-mono font-medium whitespace-nowrap shrink-0 cursor-pointer"
                               >
                                 Mark Paid
                               </button>
@@ -345,7 +345,7 @@ export const AdminRewardsPage: React.FC = () => {
                             {w.status !== 'rejected' && w.status !== 'paid' && (
                               <button
                                 onClick={() => setRejectingWithdrawal(w)}
-                                className="px-2 py-1 rounded bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-[11px] font-mono cursor-pointer"
+                                className="px-2 py-1 rounded bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-[11px] font-mono whitespace-nowrap shrink-0 cursor-pointer"
                               >
                                 Reject
                               </button>
@@ -366,8 +366,8 @@ export const AdminRewardsPage: React.FC = () => {
       {activeTab === 'rewards' && (
         <div className="rounded-xl border border-[#E3DCC8] bg-white overflow-hidden text-xs shadow-xs">
           <div className="p-3.5 bg-[#F1ECDD] border-b border-[#E3DCC8] flex items-center justify-between font-mono">
-            <span className="font-semibold text-[#1E241F]">Milestone Rewards Queue</span>
-            <span className="text-[10px] text-[#5B5C50]">{rewards.length} Total Claims</span>
+            <span className="font-semibold text-[#1E241F]">Partner Rank Milestone Claims</span>
+            <span className="text-[#5B5C50] text-[11px]">{rewards.length} Submitted</span>
           </div>
 
           {rewards.length === 0 ? (
@@ -376,17 +376,17 @@ export const AdminRewardsPage: React.FC = () => {
               <p className="font-serif font-medium text-base text-[#1E241F]">No milestone rewards submitted</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[900px] text-left font-sans">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full min-w-[1000px] text-left font-sans border-collapse">
                 <thead className="border-b border-[#E3DCC8] text-[#5B5C50] font-mono text-[10px] bg-[#FAF7EF]">
                   <tr>
-                    <th className="p-3.5 font-medium">Claim ID</th>
-                    <th className="p-3.5 font-medium">Partner</th>
-                    <th className="p-3.5 font-medium">Level</th>
-                    <th className="p-3.5 font-medium text-right">Bonus Amount</th>
-                    <th className="p-3.5 font-medium text-center">Status</th>
-                    <th className="p-3.5 font-medium">Payment Reference</th>
-                    <th className="p-3.5 font-medium text-center">Actions</th>
+                    <th className="p-3.5 font-medium min-w-[100px] whitespace-nowrap">Claim ID</th>
+                    <th className="p-3.5 font-medium min-w-[180px]">Partner</th>
+                    <th className="p-3.5 font-medium min-w-[120px] whitespace-nowrap">Level</th>
+                    <th className="p-3.5 font-medium text-right min-w-[130px] whitespace-nowrap">Bonus Amount</th>
+                    <th className="p-3.5 font-medium text-center min-w-[110px] whitespace-nowrap">Status</th>
+                    <th className="p-3.5 font-medium min-w-[130px] whitespace-nowrap">Payment Reference</th>
+                    <th className="p-3.5 font-medium text-center min-w-[180px] whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E3DCC8] text-[#5B5C50]">
@@ -395,18 +395,18 @@ export const AdminRewardsPage: React.FC = () => {
 
                     return (
                       <tr key={rew.id} className="hover:bg-[#FAF7EF] transition-colors">
-                        <td className="p-3.5 font-mono text-[#7C7D70]">{rew.id}</td>
-                        <td className="p-3.5">
+                        <td className="p-3.5 font-mono text-[#7C7D70] min-w-[100px] whitespace-nowrap">{rew.id}</td>
+                        <td className="p-3.5 min-w-[180px]">
                           <p className="font-serif font-semibold text-[#1E241F]">{u?.fullName || rew.userId}</p>
-                          <p className="text-[10px] font-mono text-[#7C7D70]">{u?.email || ''}</p>
+                          <p className="text-[10px] font-mono text-[#7C7D70] truncate">{u?.email || ''}</p>
                         </td>
-                        <td className="p-3.5 font-serif font-medium text-[#1E241F]">{rew.rankName}</td>
-                        <td className="p-3.5 text-right font-mono font-bold text-[#B8862E]">
+                        <td className="p-3.5 font-serif font-medium text-[#1E241F] min-w-[120px] whitespace-nowrap">{rew.rankName}</td>
+                        <td className="p-3.5 text-right font-mono font-bold text-[#B8862E] min-w-[130px] whitespace-nowrap">
                           PKR {rew.amount.toLocaleString()}
                         </td>
-                        <td className="p-3.5 text-center">
+                        <td className="p-3.5 text-center min-w-[110px] whitespace-nowrap">
                           <span
-                            className={`inline-block text-[10px] font-mono font-semibold capitalize px-2 py-0.5 rounded border ${
+                            className={`inline-block text-[10px] font-mono font-semibold capitalize px-2 py-0.5 rounded border whitespace-nowrap ${
                               rew.status === 'paid'
                                 ? 'bg-[#F1ECDD] text-[#1F4D3E] border-[#E3DCC8]'
                                 : rew.status === 'pending_review'
@@ -417,23 +417,23 @@ export const AdminRewardsPage: React.FC = () => {
                             {rew.status.replace('_', ' ')}
                           </span>
                         </td>
-                        <td className="p-3.5 text-[11px] font-mono text-[#5B5C50]">
+                        <td className="p-3.5 text-[11px] font-mono text-[#5B5C50] min-w-[130px]">
                           {rew.transactionReference || rew.adminNote || 'Pending'}
                         </td>
-                        <td className="p-3.5 text-center">
-                          <div className="flex items-center justify-center space-x-1.5">
+                        <td className="p-3.5 text-center min-w-[180px] whitespace-nowrap">
+                          <div className="flex items-center justify-center space-x-1.5 whitespace-nowrap">
                             {rew.status === 'pending_review' && (
                               <button
                                 onClick={() => handleApproveReward(rew)}
-                                className="px-2 py-1 rounded bg-[#F1ECDD] text-[#1F4D3E] hover:bg-[#EAE4D2] border border-[#E3DCC8] text-[11px] font-mono"
+                                className="px-2 py-1 rounded bg-[#F1ECDD] text-[#1F4D3E] hover:bg-[#EAE4D2] border border-[#E3DCC8] text-[11px] font-mono whitespace-nowrap shrink-0 cursor-pointer"
                               >
                                 Approve
                               </button>
                             )}
-                            {rew.status === 'approved' && (
+                            {(rew.status === 'pending_review' || rew.status === 'approved') && (
                               <button
                                 onClick={() => setSelectedReward(rew)}
-                                className="px-2 py-1 rounded bg-[#1F4D3E] text-white hover:bg-[#153A2E] text-[11px] font-mono font-medium"
+                                className="px-2 py-1 rounded bg-[#1F4D3E] text-white hover:bg-[#153A2E] text-[11px] font-mono font-medium whitespace-nowrap shrink-0 cursor-pointer"
                               >
                                 Mark Paid
                               </button>
@@ -441,7 +441,7 @@ export const AdminRewardsPage: React.FC = () => {
                             {rew.status !== 'rejected' && rew.status !== 'paid' && (
                               <button
                                 onClick={() => handleRejectReward(rew)}
-                                className="px-2 py-1 rounded bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-[11px] font-mono"
+                                className="px-2 py-1 rounded bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-[11px] font-mono whitespace-nowrap shrink-0 cursor-pointer"
                               >
                                 Reject
                               </button>
