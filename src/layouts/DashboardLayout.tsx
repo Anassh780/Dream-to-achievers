@@ -120,7 +120,7 @@ export const DashboardLayout: React.FC = () => {
     { label: 'Wholesale Inventory', href: '/dashboard/products', icon: Package },
     {
       label: 'Rank Progress',
-      href: '/dashboard/rank-progress',
+      href: '/dashboard/ranks',
       icon: ChartLineUp,
       badge: rankProgress?.nextRank ? `${rankProgress.overallProgressPercent}%` : 'MAX',
     },

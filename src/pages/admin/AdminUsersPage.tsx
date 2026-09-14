@@ -180,7 +180,7 @@ export const AdminUsersPage: React.FC = () => {
 
   // Find Sponsor details for any user
   const getSponsorInfo = (referredByCode?: string) => {
-    if (!referredByCode) return null;
+    if (!referredByCode || referredByCode === 'undefined' || referredByCode.trim().toLowerCase() === 'undefined') return null;
     const clean = referredByCode.trim().toUpperCase();
     const norm = normalizeReferralCode(clean);
     const sponsor = users.find(
