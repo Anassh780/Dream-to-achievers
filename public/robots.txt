@@ -1,0 +1,15 @@
+# Official robots.txt for Dream to Achievers (https://dream-to-achievers.vercel.app)
+User-agent: *
+Allow: /
+Allow: /assets/
+Allow: /images/
+
+# Disallow private user dashboards and administrative portals
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+
+# Sitemap
+Sitemap: https://dream-to-achievers.vercel.app/sitemap.xml

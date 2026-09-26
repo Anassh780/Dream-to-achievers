@@ -1,0 +1,220 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/Button';
+import { SEOHead } from '@/components/common/SEOHead';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
+import {
+  ShieldCheck,
+  CheckCircle,
+  ChatsCircle,
+  EnvelopeSimple,
+} from '@phosphor-icons/react';
+
+export const About: React.FC = () => {
+  const siteConfig = useSiteSettings();
+  const whatsappChannelUrl = siteConfig.whatsappChannelUrl || 'https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N';
+  const supportEmail = siteConfig.supportEmail || 'dreamtoachievers@gmail.com';
+
+  const aboutPersonSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    '@id': 'https://dream-to-achievers.vercel.app/about#webpage',
+    url: 'https://dream-to-achievers.vercel.app/about',
+    name: 'About the Founder — Faria Imran | Dream to Achievers',
+    mainEntity: {
+      '@type': 'Person',
+      '@id': 'https://dream-to-achievers.vercel.app/founder/faria-imran#person',
+      name: 'Faria Imran',
+      alternateName: 'Faria Imran Dream to Achievers',
+      jobTitle: 'Founder & Executive Director',
+      worksFor: {
+        '@type': 'Organization',
+        name: 'Dream to Achievers',
+        url: 'https://dream-to-achievers.vercel.app/',
+      },
+      image: 'https://dream-to-achievers.vercel.app/images/faria-imran.webp',
+      description:
+        'Faria Imran is the founder and executive director of Dream to Achievers, a verified B2B wholesale product distribution network in Pakistan.',
+      sameAs: [
+        'https://whatsapp.com/channel/0029VbDN1jHDuMRkoPvoii0N',
+        'https://www.tiktok.com/@dream.to.achievers',
+        'https://linkedin.com/company/dream-to-achievers',
+        'https://youtube.com/@dreamtoachievers',
+        'https://x.com/dreamtoachiever',
+        'https://instagram.com/dreamtoachievers',
+        'https://facebook.com/dreamtoachievers',
+      ],
+    },
+  };
+
+  return (
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)] pb-24 font-sans selection:bg-[var(--accent)]/25">
+      <SEOHead
+        title="About the Founder — Faria Imran | Dream to Achievers"
+        description="Meet Faria Imran, the entrepreneur and executive director behind Dream to Achievers, empowering thousands of independent resellers across Pakistan."
+        canonicalPath="/about"
+        ogType="profile"
+        ogImage="/images/faria-imran.webp"
+        ogImageAlt="Faria Imran — Founder & Executive Director of Dream to Achievers"
+        structuredData={aboutPersonSchema}
+      />
+      
+      {/* 1. Clean Page Header */}
+      <section className="px-6 sm:px-8 pt-16 pb-12 border-b border-white/10 bg-gradient-to-b from-[#0D1512] to-[#070B09] relative overflow-hidden text-center">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#D9C08A]/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="max-w-[1180px] mx-auto max-w-2xl space-y-4 relative z-10">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#D9C08A]/10 border border-[#D9C08A]/30 text-[#D9C08A] text-xs font-mono">
+            <ShieldCheck size={13} weight="bold" />
+            <span>Executive Leadership &amp; Vision</span>
+          </div>
+          <h1 className="font-serif font-normal text-3xl sm:text-5xl text-[#F4F7F5] tracking-tight leading-[1.1]">
+            About the Founder
+          </h1>
+          <p className="text-xs sm:text-sm text-[#9EABA2] leading-relaxed max-w-md mx-auto">
+            Meet Faria Imran, the entrepreneur and executive director behind Dream to Achievers.
+          </p>
+        </div>
+      </section>
+
+      {/* 2. Main Owner Profile & Narrative Card */}
+      <div className="max-w-[1000px] mx-auto px-6 sm:px-8 pt-12">
+        <div className="rounded-3xl bg-[#0D1512]/85 backdrop-blur-xl border border-white/10 p-6 sm:p-10 shadow-xl space-y-10">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 items-center">
+            
+            {/* Left Column: Authentic Portrait Frame */}
+            <div className="lg:col-span-5">
+              <div className="rounded-2xl overflow-hidden bg-[#070B09] border border-[#D9C08A]/30 relative shadow-xl group">
+                <div className="aspect-[4/5] relative w-full overflow-hidden">
+                  <img
+                    src="/images/faria-imran.webp"
+                    alt="Faria Imran — Founder & Executive Director"
+                    loading="lazy"
+                    className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700 opacity-95 group-hover:opacity-100"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/images/faria-imran.jpg';
+                    }}
+                  />
+                </div>
+
+                <div className="absolute bottom-3 inset-x-3 p-3.5 rounded-xl bg-[#070B09]/90 backdrop-blur-md border border-white/10 flex items-center justify-between shadow-lg">
+                  <div>
+                    <h3 className="font-serif font-medium text-[#F4F7F5] text-base">Faria Imran</h3>
+                    <p className="text-[11px] text-[#9EABA2]">Founder &amp; Executive Director</p>
+                  </div>
+                  <span className="font-mono text-[10px] uppercase font-semibold text-[#34D399] bg-[#34D399]/15 border border-[#34D399]/30 px-2.5 py-1 rounded-full">
+                    Verified
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Founder Narrative & Vision */}
+            <div className="lg:col-span-7 space-y-5">
+              <div className="space-y-2">
+                <h2 className="font-serif text-2xl sm:text-3xl font-normal text-[#F4F7F5] tracking-tight leading-snug">
+                  "Empowering every individual in Pakistan to build a profitable reselling business."
+                </h2>
+                <p className="text-xs font-mono uppercase tracking-wider text-[#D9C08A] font-semibold">
+                  — Faria Imran
+                </p>
+              </div>
+
+              <div className="space-y-3 text-xs sm:text-sm text-[#9EABA2] leading-relaxed">
+                <p>
+                  Faria Imran is an entrepreneur and digital commerce strategist who founded <strong className="text-[#F4F7F5]">Dream to Achievers</strong> with a clear mission: eliminate the traditional barriers of online selling in Pakistan.
+                </p>
+                <p>
+                  Recognizing that most aspiring resellers struggle with upfront bulk capital, warehouse space, and courier delivery management, she built Dream to Achievers to handle full product sourcing, packaging, and nationwide Cash on Delivery (COD) logistics — enabling independent partners to earn reliable profit margins directly from their phones.
+                </p>
+              </div>
+
+              {/* Verified Achievements Strip */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1 text-center font-mono">
+                <div className="p-3.5 rounded-xl bg-[#070B09]/90 border border-white/8">
+                  <p className="text-base sm:text-lg font-bold text-[#F4F7F5]">25M+</p>
+                  <p className="text-[10px] text-[#9EABA2] font-sans">Organic Views</p>
+                </div>
+                <div className="p-3.5 rounded-xl bg-[#070B09]/90 border border-white/8">
+                  <p className="text-base sm:text-lg font-bold text-[#34D399]">150+</p>
+                  <p className="text-[10px] text-[#9EABA2] font-sans">Cities Delivered</p>
+                </div>
+                <div className="p-3.5 rounded-xl bg-[#070B09]/90 border border-[#D9C08A]/25 col-span-2 sm:col-span-1">
+                  <p className="text-base sm:text-lg font-bold text-[#D9C08A]">100%</p>
+                  <p className="text-[10px] text-[#9EABA2] font-sans">Profit Transparency</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* 3. Three Core Commitments */}
+          <div className="pt-6 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/8 space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#F4F7F5]">
+                <CheckCircle size={15} weight="bold" className="text-[#34D399]" />
+                <span>Zero Inventory Risk</span>
+              </div>
+              <p className="text-[11.5px] text-[#9EABA2]">
+                Partners never buy dead stock. Only sell what your customers order.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/8 space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#F4F7F5]">
+                <CheckCircle size={15} weight="bold" className="text-[#34D399]" />
+                <span>Automated COD Logistics</span>
+              </div>
+              <p className="text-[11.5px] text-[#9EABA2]">
+                Centralized courier dispatch handles delivery and cash collection.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/8 space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#F4F7F5]">
+                <CheckCircle size={15} weight="bold" className="text-[#34D399]" />
+                <span>Guaranteed Payouts</span>
+              </div>
+              <p className="text-[11.5px] text-[#9EABA2]">
+                Unit margins and rank bonuses are deposited directly to your wallet.
+              </p>
+            </div>
+          </div>
+
+          {/* 4. Connect Channels */}
+          <div className="pt-6 border-t border-white/10 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href={whatsappChannelUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Button variant="champagne" size="md" iconLeft={<ChatsCircle size={16} />}>
+                  Join Official WhatsApp Channel
+                </Button>
+              </a>
+
+              <a
+                href={`mailto:${supportEmail}?subject=Inquiry%20for%20Faria%20Imran%20-%20Dream%20To%20Achievers`}
+              >
+                <Button variant="outline" size="md" className="border-white/15 hover:border-[#D9C08A]/40 text-[#F4F7F5]" iconLeft={<EnvelopeSimple size={16} />}>
+                  Send Email Query
+                </Button>
+              </a>
+            </div>
+
+            <Link to="/signup">
+              <span className="text-xs font-medium text-[#D9C08A] hover:underline flex items-center gap-1 font-mono">
+                Become a Partner &rarr;
+              </span>
+            </Link>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  );
+};
+
+export default About;

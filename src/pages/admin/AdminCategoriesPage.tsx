@@ -1,0 +1,467 @@
+import React, { useState, useMemo } from 'react';
+import { categoryService } from '@/services/categoryService';
+import { productService } from '@/services/productService';
+import { useAuth } from '@/context/AuthContext';
+import { Category, CategoryStatus } from '@/types';
+import { CategoryIcon, AVAILABLE_ICONS } from '@/components/categories/CategoryIcon';
+import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/context/ToastContext';
+import {
+  Plus,
+  PencilSimple,
+  Trash,
+  CaretDown,
+  Check,
+  X,
+} from '@phosphor-icons/react';
+
+export const AdminCategoriesPage: React.FC = () => {
+  const { user } = useAuth();
+  const { success: toastSuccess, error: toastError } = useToast();
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [isDeletingCategory, setIsDeletingCategory] = useState(false);
+
+  const allProducts = useMemo(() => productService.getAllAdminProducts(), [refreshKey]);
+  const rawCategories = useMemo(() => categoryService.getAllCategories(), [refreshKey]);
+  const aggregatedCategories = useMemo(
+    () => categoryService.getAggregatedCategories(allProducts),
+    [allProducts, refreshKey]
+  );
+  const categoryTree = useMemo(
+    () => categoryService.buildCategoryTree(aggregatedCategories),
+    [aggregatedCategories]
+  );
+
+  // Drawer / Form state
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+
+  const [formName, setFormName] = useState('');
+  const [formSlug, setFormSlug] = useState('');
+  const [formDescription, setFormDescription] = useState('');
+  const [formIcon, setFormIcon] = useState('Package');
+  const [formParentId, setFormParentId] = useState<string | null>(null);
+  const [formBannerUrl, setFormBannerUrl] = useState('');
+  const [formThumbnailUrl, setFormThumbnailUrl] = useState('');
+  const [formFeatured, setFormFeatured] = useState(false);
+  const [formStatus, setFormStatus] = useState<CategoryStatus>('active');
+
+  const [iconPickerOpen, setIconPickerOpen] = useState(false);
+  const [iconSearch, setIconSearch] = useState('');
+
+  const showToast = (text: string, type: 'success' | 'error' = 'success') => {
+    if (type === 'error') toastError(text);
+    else toastSuccess(text);
+  };
+
+  // Open Create Drawer
+  const handleOpenCreate = (parentId: string | null = null) => {
+    setEditingCategory(null);
+    setFormName('');
+    setFormSlug('');
+    setFormDescription('');
+    setFormIcon('Package');
+    setFormParentId(parentId);
+    setFormBannerUrl('');
+    setFormThumbnailUrl('');
+    setFormFeatured(false);
+    setFormStatus('active');
+    setIsDrawerOpen(true);
+  };
+
+  // Open Edit Drawer
+  const handleOpenEdit = (cat: Category) => {
+    setEditingCategory(cat);
+    setFormName(cat.name);
+    setFormSlug(cat.slug);
+    setFormDescription(cat.description || '');
+    setFormIcon(cat.icon || 'Package');
+    setFormParentId(cat.parentId);
+    setFormBannerUrl(cat.bannerUrl || '');
+    setFormThumbnailUrl(cat.thumbnailUrl || '');
+    setFormFeatured(cat.featured);
+    setFormStatus(cat.status);
+    setIsDrawerOpen(true);
+  };
+
+  // Auto-slug generator on name change
+  const handleNameChange = (val: string) => {
+    setFormName(val);
+    if (!editingCategory) {
+      setFormSlug(
+        val
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '')
+      );
+    }
+  };
+
+  // Save Category Form Submit
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formName.trim() || !user) {
+      showToast('Category name is required.', 'error');
+      return;
+    }
+
+    const result = await categoryService.saveCategory(
+      {
+        id: editingCategory?.id,
+        name: formName.trim(),
+        slug: formSlug.trim() || undefined,
+        description: formDescription.trim(),
+        icon: formIcon,
+        parentId: formParentId,
+        bannerUrl: formBannerUrl.trim(),
+        thumbnailUrl: formThumbnailUrl.trim(),
+        featured: formFeatured,
+        status: formStatus,
+      },
+      user.email
+    );
+
+    if (result.success) {
+      showToast(`Category "${formName}" saved successfully.`);
+      setIsDrawerOpen(false);
+      setRefreshKey((k) => k + 1);
+    } else {
+      showToast(result.error || 'Failed to save category.', 'error');
+    }
+  };
+
+  // Delete Category Protection Check
+  const handleDelete = (cat: Category) => {
+    if (!user) return;
+    setCategoryToDelete(cat);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!categoryToDelete || !user) return;
+    setIsDeletingCategory(true);
+    const result = await categoryService.deleteCategory(categoryToDelete.id, allProducts, user.email);
+    setIsDeletingCategory(false);
+    if (result.success) {
+      toastSuccess(`Category "${categoryToDelete.name}" deleted successfully.`);
+      setCategoryToDelete(null);
+      setRefreshKey((k) => k + 1);
+    } else {
+      toastError(result.error || 'Failed to delete category.');
+    }
+  };
+
+  const filteredIcons = AVAILABLE_ICONS.filter((ic) =>
+    ic.toLowerCase().includes(iconSearch.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-6 font-sans max-w-7xl">
+      
+      {/* 1. Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[var(--line)]">
+        <div className="space-y-1">
+          <div className="flex items-center space-x-2 text-xs font-mono text-[var(--ink-soft)]">
+            <span>Store Admin</span>
+            <span>/</span>
+            <span>Product Categories</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-[var(--ink)] tracking-tight">
+            Product Categories &amp; Collections
+          </h1>
+          <p className="text-xs text-[var(--ink-soft)]">
+            Organize catalog categories and sub-collections so partners and buyers can easily explore products.
+          </p>
+        </div>
+
+        <Button
+          onClick={() => handleOpenCreate(null)}
+          variant="primary"
+          size="sm"
+          className="w-full sm:w-auto text-xs font-medium shrink-0"
+          iconLeft={<Plus size={14} />}
+        >
+          Add category
+        </Button>
+      </div>
+
+      {/* KPI Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-4 rounded-xl bg-[var(--surface)] border border-[var(--line)] space-y-1 shadow-xs">
+          <span className="text-xs text-[var(--ink-soft)] font-mono block">Main Categories</span>
+          <span className="text-2xl font-bold font-mono text-[var(--ink)]">{categoryTree.length}</span>
+        </div>
+        <div className="p-4 rounded-xl bg-[var(--surface)] border border-[var(--line)] space-y-1 shadow-xs">
+          <span className="text-xs text-[var(--ink-soft)] font-mono block">Total Sub-Collections</span>
+          <span className="text-2xl font-bold font-mono text-[var(--primary-dark)]">
+            {rawCategories.length - categoryTree.length}
+          </span>
+        </div>
+        <div className="p-4 rounded-xl bg-[var(--surface)] border border-[var(--line)] space-y-1 shadow-xs">
+          <span className="text-xs text-[var(--ink-soft)] font-mono block">Total Products Mapped</span>
+          <span className="text-2xl font-bold font-mono text-[var(--accent)]">{allProducts.length}</span>
+        </div>
+      </div>
+
+      {/* 2. Categories Hierarchy Cards */}
+      <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] overflow-hidden text-xs shadow-xs">
+        <div className="p-4 bg-[var(--surface-alt)] border-b border-[var(--line)] flex items-center justify-between">
+          <div>
+            <span className="font-serif font-bold text-[var(--ink)] text-sm block">Catalog Categories</span>
+            <span className="text-[11px] text-[var(--ink-soft)]">Organized in parent categories and sub-items</span>
+          </div>
+          <span className="text-xs font-mono font-bold text-[var(--primary-dark)] px-2.5 py-1 rounded bg-[var(--surface)] border border-[var(--line)]">
+            {rawCategories.length} Total
+          </span>
+        </div>
+
+        <div className="divide-y divide-[var(--line)]">
+          {categoryTree.map((parent) => (
+            <div key={parent.id} className="p-5 hover:bg-[var(--surface-alt)]/50 transition-colors space-y-3">
+              {/* Parent Level Row */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center space-x-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--surface)] border border-[var(--line)] flex items-center justify-center text-[var(--primary-dark)] shrink-0 shadow-2xs">
+                    <CategoryIcon name={parent.icon} size={20} />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-serif font-semibold text-base text-[var(--ink)]">{parent.name}</h3>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--surface-alt)] text-[var(--primary-dark)] border border-[var(--line)] font-medium">
+                        Main Category
+                      </span>
+                    </div>
+                    <p className="text-xs text-[var(--ink-soft)] mt-0.5">
+                      {parent.description || `Collection path: /${parent.slug}`} • <span className="font-semibold text-[var(--ink)] font-mono">{parent.productCount || 0} Products</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2 shrink-0">
+                  <button
+                    onClick={() => handleOpenCreate(parent.id)}
+                    className="px-3 py-1.5 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface)] text-[var(--primary-dark)] border border-[var(--line)] text-xs font-medium flex items-center gap-1.5 shadow-2xs transition-colors"
+                  >
+                    <Plus size={13} weight="bold" /> Add Subcategory
+                  </button>
+                  <button
+                    onClick={() => handleOpenEdit(parent)}
+                    className="p-2 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface)] text-[var(--ink-soft)] hover:text-[var(--ink)] border border-[var(--line)] shadow-2xs transition-colors"
+                    title="Edit Category"
+                  >
+                    <PencilSimple size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(parent)}
+                    className="p-2 rounded-lg bg-[var(--surface)] hover:bg-rose-500/10 text-[var(--ink-soft)] hover:text-rose-600 border border-[var(--line)] hover:border-rose-500/30 shadow-2xs transition-colors"
+                    title="Delete Category"
+                  >
+                    <Trash size={14} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Subcategories Level */}
+              {parent.children && parent.children.length > 0 && (
+                <div className="pl-6 ml-5 border-l-2 border-[var(--line)] space-y-2 pt-1">
+                  {parent.children.map((sub) => (
+                    <div
+                      key={sub.id}
+                      className="p-3 rounded-xl bg-[var(--surface)] border border-[var(--line)] flex items-center justify-between hover:bg-[var(--surface)] transition-colors"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-6 h-6 rounded-md bg-[var(--surface)] border border-[var(--line)] flex items-center justify-center text-[var(--ink-soft)]">
+                          <CategoryIcon name={sub.icon} size={13} />
+                        </div>
+                        <div>
+                          <span className="font-serif font-medium text-[var(--ink)] text-xs block">{sub.name}</span>
+                          <span className="text-[10px] font-mono text-[var(--ink-soft)]">
+                            {sub.productCount || 0} products in sub-collection
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-1.5">
+                        <button
+                          onClick={() => handleOpenEdit(sub)}
+                          className="p-1.5 rounded-lg text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--surface)]"
+                          title="Edit Subcategory"
+                        >
+                          <PencilSimple size={13} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(sub)}
+                          className="p-1.5 rounded-lg text-[var(--ink-soft)] hover:text-rose-600 hover:bg-rose-500/10"
+                          title="Delete Subcategory"
+                        >
+                          <Trash size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 3. Category Drawer / Modal */}
+      {isDrawerOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overscroll-contain">
+          <div className="rounded-t-3xl sm:rounded-2xl bg-[var(--surface)] border border-[var(--line)] p-5 sm:p-6 max-w-lg w-full max-h-[calc(100dvh-1.5rem)] sm:max-h-[90vh] overflow-y-auto space-y-4 shadow-xl pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:pb-6 overscroll-contain animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 ease-out">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
+              <div>
+                <h3 className="font-serif font-medium text-lg text-[var(--ink)]">
+                  {editingCategory ? 'Edit Category' : 'Create New Category'}
+                </h3>
+                <p className="text-xs text-[var(--ink-soft)]">
+                  Configure category name, icon, collection banner, and hierarchy placement.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsDrawerOpen(false)}
+                className="min-h-[44px] min-w-[44px] -m-2 p-2 inline-flex items-center justify-center rounded-lg text-[var(--ink-soft)] hover:text-[var(--ink)] active:scale-[0.96] transition-transform"
+                aria-label="Close drawer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[var(--ink-soft)] mb-1 font-medium">Category Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formName}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    placeholder="e.g. Cleansers & Toners"
+                    className="w-full px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] focus:outline-none focus:border-[var(--primary)]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[var(--ink-soft)] mb-1 font-medium">URL Slug</label>
+                  <input
+                    type="text"
+                    value={formSlug}
+                    onChange={(e) => setFormSlug(e.target.value)}
+                    placeholder="cleansers-toners"
+                    className="w-full px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] font-mono focus:outline-none focus:border-[var(--primary)]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[var(--ink-soft)] mb-1 font-medium">Parent Category</label>
+                  <select
+                    value={formParentId || ''}
+                    onChange={(e) => setFormParentId(e.target.value || null)}
+                    className="w-full px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] focus:outline-none focus:border-[var(--primary)] cursor-pointer"
+                  >
+                    <option value="">None (Root Category Tier 1)</option>
+                    {rawCategories
+                      .filter((c) => !editingCategory || c.id !== editingCategory.id)
+                      .map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[var(--ink-soft)] mb-1 font-medium">Icon Selection</label>
+                  <button
+                    type="button"
+                    onClick={() => setIconPickerOpen(!iconPickerOpen)}
+                    className="w-full px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] flex items-center justify-between cursor-pointer"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <CategoryIcon name={formIcon} size={15} />
+                      <span className="font-mono text-[11px]">{formIcon}</span>
+                    </div>
+                    <CaretDown size={12} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Icon Picker Popover */}
+              {iconPickerOpen && (
+                <div className="p-3 rounded-xl bg-[var(--surface)] border border-[var(--line)] space-y-2">
+                  <input
+                    type="text"
+                    value={iconSearch}
+                    onChange={(e) => setIconSearch(e.target.value)}
+                    placeholder="Search icons..."
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-xs focus:outline-none focus:border-[var(--primary)]"
+                  />
+                  <div className="grid grid-cols-6 gap-2 max-h-36 overflow-y-auto pr-1">
+                    {filteredIcons.map((ic) => (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormIcon(ic);
+                          setIconPickerOpen(false);
+                        }}
+                        className={`p-2 rounded-lg border flex items-center justify-center transition-colors ${
+                          formIcon === ic
+                            ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
+                            : 'bg-[var(--surface)] text-[var(--ink)] border-[var(--line)] hover:bg-[var(--surface-alt)]'
+                        }`}
+                        title={ic}
+                      >
+                        <CategoryIcon name={ic} size={16} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-[var(--ink-soft)] mb-1 font-medium">Description</label>
+                <textarea
+                  rows={2}
+                  value={formDescription}
+                  onChange={(e) => setFormDescription(e.target.value)}
+                  placeholder="Editorial category overview..."
+                  className="w-full px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] focus:outline-none focus:border-[var(--primary)]"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-[var(--line)] flex items-center justify-end space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsDrawerOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" variant="primary" size="sm" className="font-medium">
+                  {editingCategory ? 'Save Category' : 'Create Category'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Dialog for Category Deletion */}
+      <ConfirmDialog
+        isOpen={!!categoryToDelete}
+        title={`Delete Category "${categoryToDelete?.name || ''}"`}
+        description={`Are you sure you want to permanently delete this category? Categories assigned to active catalog products cannot be deleted until those products are reassigned.`}
+        confirmLabel="Delete Category"
+        cancelLabel="Keep Category"
+        variant="danger"
+        isLoading={isDeletingCategory}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setCategoryToDelete(null)}
+      />
+
+    </div>
+  );
+};
