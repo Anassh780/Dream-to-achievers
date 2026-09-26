@@ -10,6 +10,7 @@ tsconfig.tsbuildinfo
 .claude/
 skills-lock.json
 .freebuff/
+push-to-github.bat
 
 # Android build outputs & local properties
 android/.gradle/
