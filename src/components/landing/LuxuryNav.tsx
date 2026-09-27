@@ -38,6 +38,8 @@ export const LuxuryNav: React.FC = () => {
     };
   }, [mobileMenuOpen]);
 
+  const [roleMode, setRoleMode] = useState<'reseller' | 'wholesale'>('reseller');
+
   const navLinks = [
     { label: 'Home', href: '/' },
     { label: 'Products', href: '/products' },
@@ -46,6 +48,35 @@ export const LuxuryNav: React.FC = () => {
     { label: 'Services', href: '/services' },
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
+  ];
+
+  const primaryLinks = [
+    { label: 'Home', href: '/' },
+    { label: 'Wholesale Catalog', href: '/products' },
+    { label: 'Tiers & Ranks', href: '/ranks' },
+    { label: 'Services & Logistics', href: '/services' },
+    { label: 'How It Works', href: '/how-it-works' },
+  ];
+
+  const featureLinks =
+    roleMode === 'reseller'
+      ? [
+          { label: 'Zero-Capital COD Dispatch', href: '/how-it-works' },
+          { label: 'Trade Margin Calculator', href: '/products' },
+          { label: 'Cash Bonus Roadmap', href: '/ranks' },
+          { label: 'Automated Courier Tracking', href: '/services' },
+        ]
+      : [
+          { label: 'Bulk Lot Procurement', href: '/products' },
+          { label: 'Verified Trade Rates', href: '/products' },
+          { label: 'Nationwide Courier Network', href: '/services' },
+          { label: 'Direct Reseller Channel', href: '/about' },
+        ];
+
+  const secondaryLinks = [
+    { label: 'About & Leadership', href: '/about' },
+    { label: 'Support & FAQ', href: '/faq' },
+    { label: 'Executive Contact', href: '/contact' },
   ];
 
   return (
@@ -150,79 +181,199 @@ export const LuxuryNav: React.FC = () => {
         </div>
       </header>
 
-      {/* Full-Screen Glass Sheet for Mobile */}
+      {/* Floating Luxury Mobile Drawer */}
       {mobileMenuOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-40 bg-[var(--bg-base)]/95 backdrop-blur-[20px] saturate-[130%] flex flex-col justify-between pt-24 px-6 pb-[max(2rem,env(safe-area-inset-bottom))] overflow-y-auto overscroll-contain animate-in fade-in duration-200"
+          className="lg:hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200"
           role="dialog"
           aria-modal="true"
           aria-label="Mobile Navigation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setMobileMenuOpen(false);
+          }}
         >
-          <div className="space-y-6">
-            <div className="flex items-center justify-between pb-3 border-b border-[var(--champagne-hairline)]">
-              <span className="luxury-eyebrow">Platform Navigation</span>
-              <span className="text-[10px] font-mono text-[var(--champagne)]">Pakistan COD</span>
-            </div>
-
-            <div className="flex flex-col space-y-2">
-              {navLinks.map((item) => (
-                <NavLink
-                  key={item.label}
-                  to={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={({ isActive }) =>
-                    `px-4 py-3 rounded-2xl text-base font-serif transition-colors flex items-center justify-between ${
-                      isActive
-                        ? 'bg-white/[0.08] text-[var(--champagne)] border border-[var(--champagne-border)] font-semibold'
-                        : 'text-[var(--text-primary)] hover:bg-white/[0.04]'
-                    }`
-                  }
-                >
-                  <span>{item.label}</span>
-                  <ArrowRight size={15} className="opacity-40" />
-                </NavLink>
-              ))}
-            </div>
-          </div>
-
-          <div className="pt-8 border-t border-[var(--champagne-hairline)] space-y-3">
-            {isAuthenticated ? (
+          <div className="relative w-full max-w-[420px] max-h-[calc(100dvh-24px)] flex flex-col rounded-[32px] overflow-hidden bg-gradient-to-b from-[#0F1714] via-[#09100D] to-[#050806] border border-[#D9C08A]/35 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95),0_0_50px_rgba(217,192,138,0.12)] animate-in zoom-in-95 duration-200">
+            {/* Top Section: Logo at Left, White Close Pill at Right */}
+            <div className="shrink-0 px-6 pt-5 pb-3 flex items-center justify-between border-b border-white/[0.06]">
               <Link
-                to="/dashboard"
+                to="/"
                 onClick={() => setMobileMenuOpen(false)}
-                className="funding-sheen-btn w-full py-3 text-center text-xs uppercase tracking-wider font-semibold block"
+                className="flex items-center gap-2.5 focus:outline-none"
               >
-                Open Partner Dashboard
+                <DreamLogo size={28} showText={false} />
+                <span className="font-serif text-[15px] font-semibold tracking-tight text-[#F4F7F5]">
+                  DreamToAchievers
+                </span>
               </Link>
-            ) : (
-              <div className="grid grid-cols-2 gap-3">
-                <Link
-                  to="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="funding-ghost-pill py-2.5 text-center text-xs font-medium block"
+
+              {/* White rounded Close pill button with dark text */}
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(false)}
+                className="bg-white hover:bg-neutral-100 text-[#070B09] font-bold text-xs px-4 py-1.5 rounded-full shadow-md active:scale-95 transition-transform cursor-pointer inline-flex items-center gap-1.5 touch-manipulation"
+                aria-label="Close navigation"
+              >
+                <span>Close</span>
+                <X size={13} weight="bold" />
+              </button>
+            </div>
+
+            {/* Role Switcher: Large segmented pill toggle with thin luxury outline */}
+            <div className="shrink-0 px-6 pt-4 pb-2">
+              <div className="p-1 rounded-full border border-[#D9C08A]/40 bg-[#070B09]/80 backdrop-blur-md flex items-center shadow-inner">
+                <button
+                  type="button"
+                  onClick={() => setRoleMode('reseller')}
+                  className={`flex-1 py-2 px-3 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer touch-manipulation ${
+                    roleMode === 'reseller'
+                      ? 'bg-gradient-to-r from-[#FFF8E7] via-[#D9C08A] to-[#B8862E] text-[#070B09] shadow-[0_3px_12px_rgba(217,192,138,0.35)]'
+                      : 'text-[#9EABA2] hover:text-white'
+                  }`}
                 >
-                  Sign in
-                </Link>
-                <Link
-                  to="/signup"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="funding-sheen-btn py-2.5 text-center text-xs uppercase tracking-wider font-semibold block"
+                  Reseller Partner
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRoleMode('wholesale')}
+                  className={`flex-1 py-2 px-3 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer touch-manipulation ${
+                    roleMode === 'wholesale'
+                      ? 'bg-gradient-to-r from-[#FFF8E7] via-[#D9C08A] to-[#B8862E] text-[#070B09] shadow-[0_3px_12px_rgba(217,192,138,0.35)]'
+                      : 'text-[#9EABA2] hover:text-white'
+                  }`}
                 >
-                  Join Free
-                </Link>
+                  Wholesale Buyer
+                </button>
               </div>
-            )}
+            </div>
 
-            <div className="flex items-center justify-between pt-3 text-xs font-mono text-[var(--text-muted)]">
-              <Link
-                to="/admin"
-                onClick={() => setMobileMenuOpen(false)}
-                className="hover:text-[var(--champagne)] flex items-center gap-1"
-              >
-                <ShieldCheck size={14} />
-                <span>Admin Gateway</span>
-              </Link>
-              <span>150+ Cities COD</span>
+            {/* Navigation Links Body (Scrollable with no scrollbar) */}
+            <div className="flex-1 overflow-y-auto px-6 py-3 space-y-4 [scrollbar-width:none] overscroll-contain">
+              {/* Main Navigation Stack (Large bold typography) */}
+              <div className="space-y-1.5">
+                {primaryLinks.map((item) => (
+                  <NavLink
+                    key={item.label}
+                    to={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `block text-2xl sm:text-[26px] font-serif font-bold tracking-tight transition-colors py-1 ${
+                        isActive
+                          ? 'text-white flex items-center justify-between'
+                          : 'text-[#D9C08A] hover:text-white'
+                      }`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <span>{item.label}</span>
+                        {isActive && (
+                          <span className="w-2 h-2 rounded-full bg-[#D9C08A] shadow-[0_0_10px_rgba(217,192,138,0.9)] shrink-0" />
+                        )}
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+
+              {/* Features Section Heading & Indented Submenu */}
+              <div className="pt-2 border-t border-white/[0.06]">
+                <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-[var(--champagne)] font-semibold mb-2 flex items-center gap-1.5">
+                  <Sparkle size={12} weight="fill" />
+                  <span>Wholesale Features</span>
+                </div>
+                <div className="pl-4 space-y-2.5 border-l-2 border-[#D9C08A]/30 ml-1.5 my-2">
+                  {featureLinks.map((sub) => (
+                    <NavLink
+                      key={sub.label}
+                      to={sub.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={({ isActive }) =>
+                        `block text-sm font-medium transition-colors py-0.5 ${
+                          isActive
+                            ? 'text-white font-semibold'
+                            : 'text-[#C4D0C8] hover:text-white'
+                        }`
+                      }
+                    >
+                      <span>{sub.label}</span>
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
+
+              {/* Additional Pages Stack */}
+              <div className="pt-2 border-t border-white/[0.06] space-y-2">
+                {secondaryLinks.map((item) => (
+                  <NavLink
+                    key={item.label}
+                    to={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `block text-lg font-serif font-medium transition-colors py-1 ${
+                        isActive
+                          ? 'text-white font-bold flex items-center justify-between'
+                          : 'text-[#A1B2A8] hover:text-white'
+                      }`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <span>{item.label}</span>
+                        {isActive && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] shadow-[0_0_8px_rgba(52,211,153,0.8)] shrink-0" />
+                        )}
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+
+            {/* Bottom Footer Section (Flex pinned) */}
+            <div className="shrink-0 px-6 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] border-t border-white/[0.08] bg-[#070B09]/80 backdrop-blur-md space-y-3">
+              {isAuthenticated ? (
+                <Link
+                  to="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="funding-sheen-btn w-full py-2.5 text-center text-xs uppercase tracking-wider font-semibold block"
+                >
+                  Open Partner Dashboard
+                </Link>
+              ) : (
+                <div className="grid grid-cols-2 gap-2.5">
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="funding-ghost-pill py-2.5 text-center text-xs font-medium block"
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="funding-sheen-btn py-2.5 text-center text-xs uppercase tracking-wider font-semibold block"
+                  >
+                    Join Free
+                  </Link>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between text-xs font-mono text-[var(--text-muted)]">
+                <Link
+                  to="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="hover:text-[var(--champagne)] flex items-center gap-1.5 transition-colors"
+                >
+                  <ShieldCheck size={14} className="text-[#D9C08A]" />
+                  <span>Admin Gateway</span>
+                </Link>
+                <span>150+ Cities COD</span>
+              </div>
+
+              {/* Copyright */}
+              <div className="text-[10px] font-mono text-center text-[var(--text-muted)] pt-1">
+                © 2026 Dream to Achievers. All rights reserved.
+              </div>
             </div>
           </div>
         </div>
