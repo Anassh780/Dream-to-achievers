@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
+import { LiquidGlassButton } from '@/components/ui/LiquidGlassButton';
 import {
   House,
   ChartLineUp,
@@ -514,10 +515,14 @@ export const DashboardLayout: React.FC = () => {
               <span className="text-xs font-mono text-[#9EABA2]">· Pakistan COD Logistics Node</span>
             </div>
             <div className="flex items-center gap-3">
-              <Link to="/products" className="funding-ghost-pill px-3.5 py-1.5 text-xs font-medium text-[#F4F7F5] hover:border-[#D9C08A]/40 flex items-center gap-1.5">
-                <Package size={14} className="text-[#D9C08A]" />
+              <LiquidGlassButton
+                to="/products"
+                size="sm"
+                iconLeft={<Package size={14} className="text-[#D9C08A]" />}
+                className="px-3.5 py-1.5 text-xs font-medium text-[#F4F7F5]"
+              >
                 <span>Wholesale Catalog</span>
-              </Link>
+              </LiquidGlassButton>
               <Link to="/dashboard/sales" className="funding-sheen-btn px-4 py-1.5 text-xs uppercase tracking-wider font-semibold inline-flex items-center gap-1.5 shadow-md">
                 <ShoppingCart size={13} weight="bold" />
                 <span>Record Sale</span>

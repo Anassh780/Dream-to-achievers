@@ -6,6 +6,7 @@ import { salesService } from '@/services/salesService';
 import { payoutService } from '@/services/payoutService';
 import { badgeTrackerService } from '@/services/badgeTrackerService';
 import { Button } from '@/components/ui/Button';
+import { LiquidGlassButton } from '@/components/ui/LiquidGlassButton';
 import { DreamLogo } from '@/components/ui/DreamLogo';
 import {
   ShieldCheck,
@@ -527,10 +528,14 @@ export const AdminLayout: React.FC = () => {
               <span className="text-xs font-mono text-[#9EABA2]">· Central Administrative Core Node</span>
             </div>
             <div className="flex items-center gap-3">
-              <Link to="/admin/rewards" className="funding-ghost-pill px-3.5 py-1.5 text-xs font-medium text-[#F4F7F5] hover:border-[#D9C08A]/40 flex items-center gap-1.5">
-                <HandCoins size={14} className="text-[#D9C08A]" />
+              <LiquidGlassButton
+                to="/admin/rewards"
+                size="sm"
+                iconLeft={<HandCoins size={14} className="text-[#D9C08A]" />}
+                className="px-3.5 py-1.5 text-xs font-medium text-[#F4F7F5]"
+              >
                 <span>Pending Payouts ({pendingPayoutsCount})</span>
-              </Link>
+              </LiquidGlassButton>
               <Link to="/admin/sales" className="funding-champagne-sheen-btn px-4 py-1.5 text-xs uppercase tracking-wider font-semibold inline-flex items-center gap-1.5 shadow-md">
                 <ShoppingCart size={13} weight="bold" />
                 <span>Orders Queue ({pendingOrdersCount})</span>

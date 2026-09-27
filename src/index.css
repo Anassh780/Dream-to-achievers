@@ -1,5 +1,45 @@
 @import "tailwindcss";
 
+/* ========================================================
+   REGISTERED CSS PROPERTIES FOR LIQUID GLASS BUTTONS
+   Enables 60fps/120fps hardware-accelerated tilt, lights & press without per-frame JS
+   ======================================================== */
+@property --liquid-x {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 50%;
+}
+
+@property --liquid-y {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 50%;
+}
+
+@property --liquid-tilt-x {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+
+@property --liquid-tilt-y {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+
+@property --liquid-press {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --liquid-glow {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
 @layer base {
   :root {
     /* 1. Core Luxury System (Obsidian & Champagne/Emerald) */
@@ -754,6 +794,130 @@ textarea:focus-visible {
   border-color: var(--champagne-border);
   color: var(--text-primary);
   transform: translateY(-1px);
+}
+
+/* ========================================================
+   LIQUID GLASS PILL BUTTON (Thick Lens Refraction + Pointer Chase)
+   Bends light at the bevel rim like a thick convex optical lens.
+   Highlights, tilt and tactile press all run on registered CSS properties without per-frame JS.
+   ======================================================== */
+.liquid-glass-pill,
+.liquid-glass-btn {
+  --liquid-x: 50%;
+  --liquid-y: 50%;
+  --liquid-tilt-x: 0deg;
+  --liquid-tilt-y: 0deg;
+  --liquid-press: 1;
+  --liquid-glow: 0;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  
+  /* Thick Optical Lens Volume: High blur, saturated refraction through obsidian base */
+  background: radial-gradient(
+    120% 120% at var(--liquid-x) var(--liquid-y),
+    rgba(255, 255, 255, 0.10) 0%,
+    rgba(13, 21, 18, 0.52) 55%,
+    rgba(7, 11, 9, 0.72) 100%
+  );
+  backdrop-filter: blur(20px) saturate(190%) contrast(108%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%) contrast(108%);
+
+  /* Thick Lens Bevel: Bends light at the rim with specular highlights + refraction shadow */
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    /* Specular top rim highlight (refracted sunlight/ambient) */
+    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.55),
+    /* Deep bevel bottom rim refraction (light bends away at steep edge) */
+    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.8),
+    /* Lateral internal caustic prism rims */
+    inset 1.5px 0 2.5px 0 rgba(255, 255, 255, 0.2),
+    inset -1.5px 0 2.5px 0 rgba(0, 0, 0, 0.5),
+    /* Reactive champagne/emerald internal refraction glow */
+    inset 0 0 16px 2px rgba(217, 192, 138, calc(var(--liquid-glow) * 0.16)),
+    /* Volumetric ambient drop shadow */
+    0 12px 32px -8px rgba(0, 0, 0, 0.75),
+    /* Cursor-chasing external light halo */
+    0 0 24px -2px rgba(52, 211, 153, calc(var(--liquid-glow) * 0.3));
+
+  /* 3D Perspective Tilt and Press (hardware accelerated) */
+  transform: perspective(600px) rotateX(var(--liquid-tilt-x)) rotateY(var(--liquid-tilt-y)) scale(var(--liquid-press));
+  transform-style: preserve-3d;
+  transition:
+    --liquid-tilt-x 0.25s cubic-bezier(0.2, 0, 0, 1),
+    --liquid-tilt-y 0.25s cubic-bezier(0.2, 0, 0, 1),
+    --liquid-glow 0.25s cubic-bezier(0.2, 0, 0, 1),
+    --liquid-press 0.15s cubic-bezier(0.2, 0, 0, 1),
+    transform 0.22s cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 0.3s cubic-bezier(0.2, 0, 0, 1),
+    border-color 0.3s ease;
+  overflow: hidden;
+  cursor: pointer;
+  touch-action: manipulation;
+  color: #F4F7F5;
+  font-family: var(--font-sans);
+  text-decoration: none;
+  user-select: none;
+}
+
+/* Dynamic Caustic Highlight chasing the pointer across the lens */
+.liquid-glass-pill::before,
+.liquid-glass-btn::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: radial-gradient(
+    140px circle at var(--liquid-x) var(--liquid-y),
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(217, 192, 138, 0.22) 30%,
+    rgba(52, 211, 153, 0.1) 55%,
+    transparent 80%
+  );
+  opacity: var(--liquid-glow);
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.2, 0, 0, 1);
+  mix-blend-mode: overlay;
+  z-index: 1;
+}
+
+/* Prismatic Bevel Rim Specular Glint */
+.liquid-glass-pill::after,
+.liquid-glass-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    160px circle at var(--liquid-x) var(--liquid-y),
+    rgba(255, 255, 255, 0.28) 0%,
+    transparent 65%
+  );
+  opacity: var(--liquid-glow);
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+  z-index: 2;
+}
+
+.liquid-glass-pill:hover,
+.liquid-glass-btn:hover {
+  border-color: rgba(217, 192, 138, 0.45);
+}
+
+.liquid-glass-pill:active,
+.liquid-glass-btn:active {
+  --liquid-press: 0.96;
+}
+
+/* Floating content elements above refractive lens highlights */
+.liquid-glass-pill > *,
+.liquid-glass-btn > * {
+  position: relative;
+  z-index: 3;
+  transform: translateZ(8px);
 }
 
 .funding-pulse-dot {

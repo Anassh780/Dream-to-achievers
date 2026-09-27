@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ParallaxImage } from '@/components/ui/luxury/ParallaxImage';
 import { GlassCard } from '@/components/ui/luxury/GlassCard';
+import { LiquidGlassButton } from '@/components/ui/LiquidGlassButton';
 import {
   ShieldCheck,
   ArrowRight,
@@ -156,12 +157,13 @@ export const HeroSection: React.FC = () => {
               className="transition-transform duration-300 group-hover:translate-x-1"
             />
           </Link>
-          <Link
+          <LiquidGlassButton
             to="/products"
-            className="funding-ghost-pill px-7 py-3.5 text-xs font-medium uppercase tracking-[0.14em] inline-flex items-center gap-2"
+            size="lg"
+            className="px-7 py-3.5 text-xs font-medium uppercase tracking-[0.14em]"
           >
             <span>Explore Wholesale Catalog</span>
-          </Link>
+          </LiquidGlassButton>
         </div>
 
         {/* Floating Desktop Luxury Badges */}

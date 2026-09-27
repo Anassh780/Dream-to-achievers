@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { DreamLogo } from '@/components/ui/DreamLogo';
+import { LiquidGlassButton } from '@/components/ui/LiquidGlassButton';
 import { List, X, ShieldCheck, ArrowRight, Sparkle } from '@phosphor-icons/react';
 
 export const LuxuryNav: React.FC = () => {
@@ -98,12 +99,14 @@ export const LuxuryNav: React.FC = () => {
 
           {/* Controls Right */}
           <div className="hidden lg:flex items-center gap-2.5 shrink-0">
-            {/* Admin (Pill Ghost) */}
-            <Link to="/admin">
-              <span className="funding-ghost-pill px-3 py-1.5 text-[11.5px] font-mono text-[var(--text-muted)] hover:text-[var(--champagne)] block">
-                Admin
-              </span>
-            </Link>
+            {/* Admin (Liquid Glass Pill) */}
+            <LiquidGlassButton
+              to="/admin"
+              size="sm"
+              className="px-3 py-1.5 text-[11.5px] font-mono text-[var(--text-muted)] hover:text-[var(--champagne)]"
+            >
+              Admin
+            </LiquidGlassButton>
 
             {/* Auth / Dashboard Controls (FundingPips Sheen Button) */}
             {isAuthenticated ? (

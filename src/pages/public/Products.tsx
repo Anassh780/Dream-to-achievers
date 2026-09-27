@@ -386,9 +386,9 @@ export const Products: React.FC = () => {
                       {/* Detail CTA Button */}
                       <Link to={`/products/${product.slug}`} className="block">
                         <Button
-                          variant="outline"
+                          variant="liquid-glass"
                           size="sm"
-                          className="w-full justify-between text-xs font-medium group/btn border-white/15 hover:border-[#D9C08A]/50 hover:bg-[#D9C08A]/10 text-[#F4F7F5] transition-all"
+                          className="w-full justify-between text-xs font-medium group/btn text-[#F4F7F5]"
                         >
                           <span>View Economics &amp; Details</span>
                           <ArrowRight

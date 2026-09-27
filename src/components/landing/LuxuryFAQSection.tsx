@@ -3,6 +3,7 @@ import { GlassCard } from '@/components/ui/luxury/GlassCard';
 import { ScrollReveal } from '@/components/ui/luxury/ScrollReveal';
 import { CaretDown, Sparkle, ChatCircleDots, ArrowUpRight } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
+import { LiquidGlassButton } from '@/components/ui/LiquidGlassButton';
 
 interface FAQItem {
   id: string;
@@ -165,12 +166,13 @@ export const LuxuryFAQSection: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3 shrink-0 w-full sm:w-auto">
-              <Link
+              <LiquidGlassButton
                 to="/contact"
-                className="champagne-glass-btn px-5 py-2.5 text-xs font-mono w-full sm:w-auto text-center"
+                size="md"
+                className="px-5 py-2.5 text-xs font-mono w-full sm:w-auto text-center"
               >
                 Help Desk
-              </Link>
+              </LiquidGlassButton>
               <a
                 href="https://wa.me/923054511395?text=Hi%20Dream%20to%20Achievers%20team,%20I%20have%20an%20inquiry%20about%20partner%20onboarding."
                 target="_blank"
