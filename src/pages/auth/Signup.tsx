@@ -7,6 +7,7 @@ import { DreamLogo } from '@/components/ui/DreamLogo';
 import { Loader } from '@/components/ui/Loader';
 import { storage } from '@/services/storage';
 import { User as UserType } from '@/types';
+import { authService } from '@/services/authService';
 import {
   User,
   EnvelopeSimple,
@@ -20,6 +21,7 @@ import {
   ArrowLeft,
   Check,
   WarningCircle,
+  Key,
 } from '@phosphor-icons/react';
 
 export const Signup: React.FC = () => {
@@ -37,11 +39,33 @@ export const Signup: React.FC = () => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [emailAlreadyInUse, setEmailAlreadyInUse] = useState(false);
+  const [inUseEmail, setInUseEmail] = useState('');
+  const [sendingReset, setSendingReset] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loaderSubtitle, setLoaderSubtitle] = useState('Registering partner identity & allocating tracking code...');
 
   const { signup } = useAuth();
   const navigate = useNavigate();
+
+  const handleSendReset = async () => {
+    const targetEmail = inUseEmail || email.trim();
+    if (!targetEmail) return;
+    setSendingReset(true);
+    try {
+      const res = await authService.sendPasswordReset(targetEmail);
+      if (res.success) {
+        setResetSent(true);
+      } else {
+        setError(res.error || 'Failed to send password reset email.');
+      }
+    } catch {
+      setError('Could not dispatch password reset link. Please check your network.');
+    } finally {
+      setSendingReset(false);
+    }
+  };
 
   useEffect(() => {
     const urlRef = searchParams.get('ref') || searchParams.get('r') || searchParams.get('referral');
@@ -132,6 +156,8 @@ export const Signup: React.FC = () => {
     }
 
     setError('');
+    setEmailAlreadyInUse(false);
+    setResetSent(false);
     setLoading(true);
     setLoaderSubtitle('Registering partner account & allocating unique referral code...');
 
@@ -154,6 +180,10 @@ export const Signup: React.FC = () => {
         navigate('/dashboard');
       }
     } else {
+      if (res.emailAlreadyInUse) {
+        setEmailAlreadyInUse(true);
+        setInUseEmail(res.existingEmail || email.trim());
+      }
       setError(res.error || 'Failed to create partner account. Please try again.');
     }
   };
@@ -233,11 +263,60 @@ export const Signup: React.FC = () => {
               <p className="text-xs text-[#9EABA2]">Unlock wholesale catalog rates and start earning today.</p>
             </div>
 
-            {error && (
+            {emailAlreadyInUse ? (
+              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-3 animate-in fade-in">
+                <div className="flex items-start gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-300 shrink-0 mt-0.5 shadow-sm">
+                    <Key size={17} weight="bold" />
+                  </div>
+                  <div className="space-y-1 flex-1">
+                    <h4 className="font-semibold text-amber-200 text-xs tracking-wide">Account Already Registered</h4>
+                    <p className="text-[#9EABA2] text-[11px] leading-relaxed">
+                      An account for <span className="text-[#F4F7F5] font-mono font-medium underline decoration-amber-500/40">{inUseEmail || email.trim()}</span> is already registered in the system. If you forgot your password or had an interrupted registration, send a secure password reset link below to activate your account and sign in immediately.
+                    </p>
+                  </div>
+                </div>
+
+                {resetSent ? (
+                  <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] flex items-center gap-2 animate-in fade-in">
+                    <CheckCircle size={17} weight="bold" className="shrink-0 text-emerald-400" />
+                    <span>Password reset link sent to <strong>{inUseEmail || email.trim()}</strong>! Check your inbox (or spam folder) to set your password and access your dashboard.</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      disabled={sendingReset}
+                      onClick={handleSendReset}
+                      className="px-3.5 py-2 rounded-xl bg-[#D9C08A] hover:bg-[#c4ab75] text-[#070B09] font-bold text-[11px] transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer active:scale-95"
+                    >
+                      {sendingReset ? (
+                        <>
+                          <div className="w-3 h-3 rounded-full border-2 border-black border-t-transparent animate-spin" />
+                          <span>Sending Reset Link...</span>
+                        </>
+                      ) : (
+                        <>
+                          <EnvelopeSimple size={14} weight="bold" />
+                          <span>Send Password Reset Link</span>
+                        </>
+                      )}
+                    </button>
+                    <Link
+                      to={`/login?email=${encodeURIComponent(inUseEmail || email.trim())}`}
+                      className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[#F4F7F5] font-medium text-[11px] transition-colors inline-flex items-center gap-1"
+                    >
+                      <span>Sign In with Password</span>
+                      <ArrowRight size={12} />
+                    </Link>
+                  </div>
+                )}
+              </div>
+            ) : error ? (
               <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium animate-in fade-in">
                 {error}
               </div>
-            )}
+            ) : null}
 
             <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
               <div className="space-y-1">

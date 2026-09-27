@@ -30,6 +30,8 @@ interface AuthContextType {
     success: boolean;
     user?: User;
     error?: string;
+    emailAlreadyInUse?: boolean;
+    existingEmail?: string;
   }>;
   logout: () => Promise<void>;
   refreshUserData: () => void;
@@ -112,7 +114,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       calculateUserMetrics(res.user);
       return { success: true, user: res.user };
     }
-    return { success: false, error: res.error };
+    return {
+      success: false,
+      error: res.error,
+      emailAlreadyInUse: res.emailAlreadyInUse,
+      existingEmail: res.existingEmail,
+    };
   };
 
   const logout = async () => {

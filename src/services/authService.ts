@@ -325,7 +325,7 @@ export const authService = {
     email: string;
     password?: string;
     referralCode?: string;
-  }): Promise<{ success: boolean; user?: User; error?: string }> {
+  }): Promise<{ success: boolean; user?: User; error?: string; emailAlreadyInUse?: boolean; existingEmail?: string }> {
     const cleanEmail = email.toLowerCase().trim();
     const cleanName = fullName.trim() || cleanEmail.split('@')[0] || 'Partner';
 
@@ -367,17 +367,22 @@ export const authService = {
           const loginCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
           fbUser = loginCredential.user;
         } catch (signInErr: any) {
-          console.warn('Auth email exists and signIn failed:', signInErr);
-          if (signInErr?.code === 'auth/wrong-password' || signInErr?.code === 'auth/invalid-credential') {
+          // If password had extra whitespace or was trimmed during previous attempt, try trimmed password
+          if (password.trim() !== password) {
+            try {
+              const retryCred = await signInWithEmailAndPassword(auth, cleanEmail, password.trim());
+              fbUser = retryCred.user;
+            } catch {}
+          }
+          if (!fbUser) {
+            console.warn('Auth email exists and signIn failed:', signInErr);
             return {
               success: false,
+              emailAlreadyInUse: true,
+              existingEmail: cleanEmail,
               error: 'This email is already registered, but the password entered does not match. Please sign in with your existing password or reset your password.',
             };
           }
-          return {
-            success: false,
-            error: 'An account with this email address already exists. Please sign in to access your dashboard.',
-          };
         }
       } else if (createErr?.code === 'auth/weak-password') {
         return { success: false, error: 'Password should be at least 6 characters long.' };

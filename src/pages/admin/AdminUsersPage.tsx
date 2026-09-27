@@ -27,6 +27,8 @@ import {
   ShieldPlus,
   ShieldSlash,
   LockKey,
+  Key,
+  EnvelopeSimple,
 } from '@phosphor-icons/react';
 
 export const AdminUsersPage: React.FC = () => {
@@ -62,6 +64,11 @@ export const AdminUsersPage: React.FC = () => {
   const [sales, setSales] = useState<Sale[]>(() => storage.get<Sale[]>('SALES', []));
   const [isSyncing, setIsSyncing] = useState(false);
   const [isStandardizing, setIsStandardizing] = useState(false);
+  const [showRescueModal, setShowRescueModal] = useState(false);
+  const [rescueEmail, setRescueEmail] = useState('');
+  const [rescueName, setRescueName] = useState('');
+  const [rescueSponsor, setRescueSponsor] = useState('DTA-6267');
+  const [isRescuing, setIsRescuing] = useState(false);
 
   // Search, Filters & Sorting state
   const [searchQuery, setSearchQuery] = useState('');
@@ -338,6 +345,63 @@ export const AdminUsersPage: React.FC = () => {
     showToast(`Exported ${processedUsers.length} partner records to CSV successfully.`);
   };
 
+  const handleRescuePasswordReset = async (targetEmail?: string) => {
+    const clean = (targetEmail || rescueEmail).toLowerCase().trim();
+    if (!clean) {
+      showToast('Please enter an email address to send a password reset.', 'error');
+      return;
+    }
+    setIsRescuing(true);
+    try {
+      const res = await authService.sendPasswordReset(clean);
+      if (res.success) {
+        showToast(`Password reset email successfully sent to ${clean}!`, 'success');
+      } else {
+        showToast(res.error || 'Failed to dispatch reset email.', 'error');
+      }
+    } catch {
+      showToast('Network error while dispatching reset email.', 'error');
+    } finally {
+      setIsRescuing(false);
+    }
+  };
+
+  const handleRescueProvisionProfile = async () => {
+    const clean = rescueEmail.toLowerCase().trim();
+    if (!clean) {
+      showToast('Please enter an email address.', 'error');
+      return;
+    }
+    setIsRescuing(true);
+    try {
+      const existingUser = users.find((u) => u.email.toLowerCase() === clean);
+      const randCode = Math.floor(1000 + Math.random() * 9000);
+      const userToSave: User = {
+        id: existingUser?.id || `user-rescue-${Date.now()}`,
+        fullName: rescueName.trim() || existingUser?.fullName || clean.split('@')[0],
+        email: clean,
+        role: existingUser?.role || 'user',
+        referralCode: existingUser?.referralCode || `DTA-${randCode}`,
+        referredByCode: rescueSponsor.trim().toUpperCase() || existingUser?.referredByCode || 'DTA-6267',
+        currentRankSlug: existingUser?.currentRankSlug || 'unranked',
+        isActive: true,
+        createdAt: existingUser?.createdAt || new Date().toISOString(),
+      };
+
+      await authService.saveUserProfile(userToSave);
+      await handleManualSync();
+      showToast(`User profile for ${clean} provisioned and synchronized!`, 'success');
+      setShowRescueModal(false);
+      setRescueEmail('');
+      setRescueName('');
+      setRescueSponsor('DTA-6267');
+    } catch {
+      showToast('Failed to provision user profile.', 'error');
+    } finally {
+      setIsRescuing(false);
+    }
+  };
+
   const handleRankOverride = (newRank: RankSlug) => {
     if (!selectedUser) return;
     const updated = users.map((u) => (u.id === selectedUser.id ? { ...u, currentRankSlug: newRank } : u));
@@ -525,6 +589,17 @@ export const AdminUsersPage: React.FC = () => {
             title="Fetch all registered users from Cloud Firestore & RTDB"
           >
             {isSyncing ? 'Syncing...' : 'Sync Cloud'}
+          </Button>
+
+          <Button
+            onClick={() => setShowRescueModal(true)}
+            variant="outline"
+            size="sm"
+            className="w-full sm:w-auto text-xs font-semibold shrink-0 border-amber-500/40 text-amber-300 hover:bg-amber-500/10"
+            iconLeft={<Key size={14} className="text-amber-400" />}
+            title="Send password reset link or rescue an unlinked user account"
+          >
+            Rescue Account
           </Button>
         </div>
       </div>
@@ -1691,6 +1766,93 @@ export const AdminUsersPage: React.FC = () => {
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Account Rescue & Password Reset Modal */}
+      {showRescueModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
+          <div className="relative w-full max-w-lg rounded-3xl bg-[#0D1512] border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_40px_rgba(217,192,138,0.1)] p-6 sm:p-7 space-y-5">
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-300 shadow-sm">
+                  <Key size={20} weight="bold" />
+                </div>
+                <div>
+                  <h3 className="text-base font-serif font-bold text-[#F4F7F5]">Partner Account Rescue Desk</h3>
+                  <p className="text-xs text-[#9EABA2]">Resolve registration conflicts, recover passwords, and heal orphaned accounts.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowRescueModal(false)}
+                className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-[#9EABA2] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="space-y-3.5 text-xs">
+              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[#D9C08A] text-[11px] leading-relaxed">
+                <strong>How this works:</strong> If a partner receives an &quot;already registered&quot; error or is missing from the database, enter their email below to send them an official password reset link or provision their profile.
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[#9EABA2] font-medium">Partner Email Address *</label>
+                <input
+                  type="email"
+                  value={rescueEmail}
+                  onChange={(e) => setRescueEmail(e.target.value)}
+                  placeholder="e.g. zs3207432@gmail.com"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#070B09] border border-white/10 text-[#F4F7F5] placeholder:text-[#9EABA2]/40 text-xs focus:outline-none focus:border-[#D9C08A]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="block text-[#9EABA2] font-medium">Full Name (Optional)</label>
+                  <input
+                    type="text"
+                    value={rescueName}
+                    onChange={(e) => setRescueName(e.target.value)}
+                    placeholder="e.g. Tehreem Fatima"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#070B09] border border-white/10 text-[#F4F7F5] placeholder:text-[#9EABA2]/40 text-xs focus:outline-none focus:border-[#D9C08A]"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-[#9EABA2] font-medium">Sponsor Code (Optional)</label>
+                  <input
+                    type="text"
+                    value={rescueSponsor}
+                    onChange={(e) => setRescueSponsor(e.target.value)}
+                    placeholder="e.g. DTA-6267"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#070B09] border border-white/10 text-[#F4F7F5] placeholder:text-[#9EABA2]/40 text-xs focus:outline-none focus:border-[#D9C08A]"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center gap-2.5">
+                <button
+                  type="button"
+                  disabled={isRescuing || !rescueEmail.trim()}
+                  onClick={() => handleRescuePasswordReset()}
+                  className="w-full sm:flex-1 py-2.5 px-4 rounded-xl bg-[#D9C08A] hover:bg-[#c4ab75] text-[#070B09] font-bold text-xs uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                >
+                  <EnvelopeSimple size={15} weight="bold" />
+                  <span>Send Reset Email</span>
+                </button>
+                <button
+                  type="button"
+                  disabled={isRescuing || !rescueEmail.trim()}
+                  onClick={handleRescueProvisionProfile}
+                  className="w-full sm:flex-1 py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-[#F4F7F5] font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                >
+                  <Sparkle size={15} className="text-[#D9C08A]" />
+                  <span>Heal & Sync Profile</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
