@@ -106,7 +106,7 @@ export const authService = {
    * Get user profile from Firestore / RTDB / Local Storage fallback
    */
   async getUserProfile(uid: string, fallbackEmail = ''): Promise<User | null> {
-    const cleanEmail = fallbackEmail.toLowerCase().trim();
+    const cleanEmail = (fallbackEmail || (auth.currentUser?.uid === uid ? auth.currentUser?.email : '') || '').toLowerCase().trim();
 
     try {
       // 1. Try Firestore
@@ -146,7 +146,7 @@ export const authService = {
 
     // 3. Check local users cache
     const localUsers = storage.get<User[]>('USERS', []);
-    const foundLocal = localUsers.find((u) => u.id === uid || u.email.toLowerCase() === cleanEmail);
+    const foundLocal = localUsers.find((u) => u.id === uid || (cleanEmail && u.email && u.email.toLowerCase() === cleanEmail));
     if (foundLocal) {
       if (isSuperAdminEmail(foundLocal.email)) {
         foundLocal.role = 'superadmin';
@@ -158,7 +158,8 @@ export const authService = {
     }
 
     // 4. Create default profile if user exists in Firebase Auth but no profile yet
-    if (cleanEmail) {
+    const effectiveEmail = cleanEmail || (auth.currentUser?.uid === uid ? auth.currentUser?.email?.toLowerCase().trim() : '');
+    if (effectiveEmail) {
       const capturedRef = storage.getRaw('CAPTURED_REF') || undefined;
       let validReferrer: User | undefined;
       if (capturedRef) {
@@ -170,9 +171,9 @@ export const authService = {
 
       const defaultUser: User = {
         id: uid,
-        fullName: formatDisplayName(auth.currentUser?.displayName || '', cleanEmail),
-        email: cleanEmail,
-        role: isSuperAdminEmail(cleanEmail) ? 'superadmin' : 'user',
+        fullName: formatDisplayName(auth.currentUser?.displayName || '', effectiveEmail),
+        email: effectiveEmail,
+        role: isSuperAdminEmail(effectiveEmail) ? 'superadmin' : 'user',
         referralCode: `DTA-${Math.floor(1000 + Math.random() * 9000)}`,
         referredByCode: validReferrer ? validReferrer.referralCode : (capturedRef || ''),
         currentRankSlug: 'unranked',
@@ -235,8 +236,13 @@ export const authService = {
       console.warn('Firestore setDoc failed:', err);
     }
 
-    // Realtime Database
+    // Realtime Database (Multi-layer persistent write)
     try {
+      await set(ref(rtdb, `users/${clean.id}`), clean);
+      if (clean.email) {
+        const safeEmailKey = clean.email.replace(/[.#$[\]]/g, '_');
+        await set(ref(rtdb, `email_to_uid/${safeEmailKey}`), clean.id).catch(() => {});
+      }
     } catch (err) {
       console.warn('RTDB set failed:', err);
     }
@@ -273,18 +279,42 @@ export const authService = {
   },
 
   /**
-   * Real Firebase Login by Email and Password.
+   * Real Firebase Login by Email and Password with mobile keyboard resilience and self-healing.
    */
   async login(email: string, password = 'password123'): Promise<{ success: boolean; user?: User; error?: string }> {
     const cleanEmail = email.toLowerCase().trim();
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
+      let userCredential;
+      try {
+        userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
+      } catch (signInErr: any) {
+        // If password contained whitespace or mobile keyboard autocorrect, attempt retry with trimmed password
+        if (password.trim() !== password) {
+          userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password.trim());
+        } else {
+          throw signInErr;
+        }
+      }
       const fbUser = userCredential.user;
-      const userProfile = await authService.getUserProfile(fbUser.uid, fbUser.email || cleanEmail);
+      let userProfile = await authService.getUserProfile(fbUser.uid, fbUser.email || cleanEmail);
 
+      // Auto-heal missing profile for authenticated user - NEVER lock out a valid Firebase Auth user!
       if (!userProfile) {
-        return { success: false, error: 'User profile could not be loaded.' };
+        console.warn('Auto-healing profile for authenticated user:', fbUser.uid, cleanEmail);
+        const autoHealedUser: User = {
+          id: fbUser.uid,
+          fullName: formatDisplayName(fbUser.displayName || '', cleanEmail),
+          email: cleanEmail,
+          role: isSuperAdminEmail(cleanEmail) ? 'superadmin' : 'user',
+          referralCode: `DTA-${Math.floor(1000 + Math.random() * 9000)}`,
+          referredByCode: storage.getRaw('CAPTURED_REF') || '',
+          currentRankSlug: 'unranked',
+          isActive: true,
+          createdAt: new Date().toISOString(),
+        };
+        await authService.saveUserProfile(autoHealedUser);
+        userProfile = autoHealedUser;
       }
 
       if (!userProfile.isActive) {
@@ -298,14 +328,14 @@ export const authService = {
       console.warn('Firebase signIn failed, evaluating error:', firebaseErr);
 
       let errorMessage = 'Failed to sign in. Please verify your credentials.';
-      if (firebaseErr?.code === 'auth/user-not-found' || firebaseErr?.code === 'auth/invalid-credential') {
-        errorMessage = 'Invalid email or password. If you are new, please create an account.';
-      } else if (firebaseErr?.code === 'auth/wrong-password') {
-        errorMessage = 'Incorrect password. Please try again or reset your password.';
+      if (firebaseErr?.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email. Please check your spelling or register a new account.';
+      } else if (firebaseErr?.code === 'auth/invalid-credential' || firebaseErr?.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect email or password. Please verify your credentials or use "Forgot password?" to reset it.';
       } else if (firebaseErr?.code === 'auth/invalid-email') {
         errorMessage = 'Please enter a valid email address.';
       } else if (firebaseErr?.code === 'auth/too-many-requests') {
-        errorMessage = 'Too many failed attempts. Please wait a moment and try again.';
+        errorMessage = 'Too many failed login attempts. Please wait a moment or reset your password.';
       }
 
       return { success: false, error: errorMessage };

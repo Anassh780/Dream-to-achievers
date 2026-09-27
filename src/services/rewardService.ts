@@ -48,9 +48,15 @@ export const rewardService = {
       try {
         await setDoc(doc(db, 'rewards', rewardId), rewards[index], { merge: true });
         await setDoc(doc(db, `users/${rewards[index].userId}/rewards`, rewardId), rewards[index], { merge: true });
-      } catch {}
+      } catch (err) {
+        console.warn('Firestore reward save warning:', err);
+      }
       try {
-      } catch {}
+        await set(ref(rtdb, `rewards/${rewardId}`), rewards[index]);
+        await set(ref(rtdb, `user_rewards/${rewards[index].userId}/${rewardId}`), rewards[index]);
+      } catch (err) {
+        console.warn('RTDB reward save warning:', err);
+      }
 
       // Create notification for user
       const targetUserId = rewards[index].userId;

@@ -75,10 +75,10 @@ service cloud.firestore {
     }
 
     match /users/{uid} {
-      allow create: if own(uid)
+      allow create: if admin() || (own(uid)
         && request.resource.data.id == uid
         && request.resource.data.role == 'user'
-        && request.resource.data.isActive == true;
+        && request.resource.data.isActive == true);
       allow read: if own(uid) || admin();
       allow update: if admin() || (own(uid)
         && request.resource.data.id == resource.data.id

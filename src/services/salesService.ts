@@ -148,9 +148,15 @@ export const salesService = {
     try {
       await setDoc(doc(db, 'sales', newSale.id), newSale, { merge: true });
       await setDoc(doc(db, `users/${userId}/sales`, newSale.id), newSale, { merge: true });
-    } catch {}
+    } catch (err) {
+      console.warn('Firestore recordSale sync warning:', err);
+    }
     try {
-    } catch {}
+      await set(ref(rtdb, `sales/${newSale.id}`), newSale);
+      await set(ref(rtdb, `user_sales/${userId}/${newSale.id}`), newSale);
+    } catch (err) {
+      console.warn('RTDB recordSale sync warning:', err);
+    }
 
     // Create confirmation notification for seller
     const notifs = storage.get<any[]>('NOTIFICATIONS', []);
@@ -218,9 +224,15 @@ export const salesService = {
     try {
       await setDoc(doc(db, 'sales', saleId), sales[idx], { merge: true });
       await setDoc(doc(db, `users/${sales[idx].userId}/sales`, saleId), sales[idx], { merge: true });
-    } catch {}
+    } catch (err) {
+      console.warn('Firestore updateSaleStatus sync warning:', err);
+    }
     try {
-    } catch {}
+      await set(ref(rtdb, `sales/${saleId}`), sales[idx]);
+      await set(ref(rtdb, `user_sales/${sales[idx].userId}/${saleId}`), sales[idx]);
+    } catch (err) {
+      console.warn('RTDB updateSaleStatus sync warning:', err);
+    }
 
     // Check rank promotion if delivered
     if (isDeliveredOrConfirmed) {

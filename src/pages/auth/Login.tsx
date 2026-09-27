@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { authService } from '@/services/authService';
 import { Button } from '@/components/ui/Button';
 import { DreamLogo } from '@/components/ui/DreamLogo';
 import { Loader } from '@/components/ui/Loader';
@@ -21,10 +22,28 @@ export const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [resetSentSuccess, setResetSentSuccess] = useState(false);
+  const [isSendingReset, setIsSendingReset] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loaderSubtitle, setLoaderSubtitle] = useState('Verifying partner credentials & ledger access...');
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  const handleSendResetLink = async () => {
+    if (!email) {
+      setError('Please enter your email above first to receive the reset link.');
+      return;
+    }
+    setIsSendingReset(true);
+    const res = await authService.sendPasswordReset(email.trim());
+    setIsSendingReset(false);
+    if (res.success) {
+      setResetSentSuccess(true);
+      setError('');
+    } else {
+      setError(res.error || 'Failed to dispatch reset email.');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +56,7 @@ export const Login: React.FC = () => {
       return;
     }
     setError('');
+    setResetSentSuccess(false);
     setLoading(true);
     setLoaderSubtitle('Verifying partner credentials & terminal permissions...');
 
@@ -132,9 +152,34 @@ export const Login: React.FC = () => {
               <p className="text-xs text-[#9EABA2]">Enter your credentials to enter your workspace.</p>
             </div>
 
-            {error && (
-              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium animate-in fade-in">
-                {error}
+            {resetSentSuccess && (
+              <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-medium space-y-1 animate-in fade-in">
+                <div className="flex items-center gap-1.5 font-semibold text-emerald-200">
+                  <CheckCircle size={15} weight="bold" />
+                  <span>Password Reset Link Dispatched</span>
+                </div>
+                <p className="text-[11px] text-emerald-300/90 leading-relaxed">
+                  We sent a recovery link to <strong>{email}</strong>. Please check your inbox and spam folder to create a new password.
+                </p>
+              </div>
+            )}
+
+            {error && !resetSentSuccess && (
+              <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-medium space-y-2 animate-in fade-in">
+                <p>{error}</p>
+                {email && (
+                  <div className="pt-2 border-t border-rose-500/20 flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-[11px] text-rose-300/80">Forgot your password?</span>
+                    <button
+                      type="button"
+                      onClick={handleSendResetLink}
+                      disabled={isSendingReset}
+                      className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 text-[11px] font-mono transition-colors cursor-pointer"
+                    >
+                      {isSendingReset ? 'Sending Link...' : 'Send Password Reset Link'}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

@@ -64,9 +64,14 @@ export const payoutService = {
     // Sync to Cloud
     try {
       await setDoc(doc(db, `users/${userId}/payment_methods`, newMethod.id), newMethod, { merge: true });
-    } catch {}
+    } catch (err) {
+      console.warn('Firestore payment method sync warning:', err);
+    }
     try {
-    } catch {}
+      await set(ref(rtdb, `user_payment_methods/${userId}/${newMethod.id}`), newMethod);
+    } catch (err) {
+      console.warn('RTDB payment method sync warning:', err);
+    }
 
     return newMethod;
   },
@@ -159,9 +164,15 @@ export const payoutService = {
     try {
       await setDoc(doc(db, 'withdrawals', newRequest.id), newRequest, { merge: true });
       await setDoc(doc(db, `users/${user.id}/withdrawals`, newRequest.id), newRequest, { merge: true });
-    } catch {}
+    } catch (err) {
+      console.warn('Firestore withdrawal sync warning:', err);
+    }
     try {
-    } catch {}
+      await set(ref(rtdb, `withdrawals/${newRequest.id}`), newRequest);
+      await set(ref(rtdb, `user_withdrawals/${user.id}/${newRequest.id}`), newRequest);
+    } catch (err) {
+      console.warn('RTDB withdrawal sync warning:', err);
+    }
 
     // Create user confirmation notification
     const notifs = storage.get<any[]>('NOTIFICATIONS', []);
@@ -211,9 +222,15 @@ export const payoutService = {
     // Sync to Cloud
     try {
       await setDoc(doc(db, 'withdrawals', requestId), withdrawals[idx], { merge: true });
-    } catch {}
+    } catch (err) {
+      console.warn('Firestore withdrawal status sync warning:', err);
+    }
     try {
-    } catch {}
+      await set(ref(rtdb, `withdrawals/${requestId}`), withdrawals[idx]);
+      await set(ref(rtdb, `user_withdrawals/${withdrawals[idx].userId}/${requestId}`), withdrawals[idx]);
+    } catch (err) {
+      console.warn('RTDB withdrawal status sync warning:', err);
+    }
 
     // Dispatch notification to user
     const targetUserId = withdrawals[idx].userId;
