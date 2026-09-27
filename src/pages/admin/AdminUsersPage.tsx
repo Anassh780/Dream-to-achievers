@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { storage } from '@/services/storage';
-import { authService } from '@/services/authService';
+import { authService, SUPERADMIN_EMAIL, isSuperAdminEmail } from '@/services/authService';
 import { referralService, normalizeReferralCode } from '@/services/referralService';
 import { auditService } from '@/services/auditService';
 import { useAuth } from '@/context/AuthContext';
@@ -23,10 +23,15 @@ import {
   Sparkle,
   Fire,
   Clock,
+  ShieldCheck,
+  ShieldPlus,
+  ShieldSlash,
+  LockKey,
 } from '@phosphor-icons/react';
 
 export const AdminUsersPage: React.FC = () => {
-  const { user: currentAdmin } = useAuth();
+  const { user: currentAdmin, isSuperAdmin } = useAuth();
+  const isSuperAdminAuthorized = isSuperAdmin || isSuperAdminEmail(currentAdmin?.email);
   const [users, setUsers] = useState<User[]>(() => storage.get<User[]>('USERS', []));
 
   const formatTimeAgo = (dateStr?: string) => {
@@ -60,7 +65,7 @@ export const AdminUsersPage: React.FC = () => {
 
   // Search, Filters & Sorting state
   const [searchQuery, setSearchQuery] = useState('');
-  const [quickTab, setQuickTab] = useState<'all' | 'active' | 'top_sellers' | 'top_recruiters' | 'high_ranks' | 'suspended'>('all');
+  const [quickTab, setQuickTab] = useState<'all' | 'admins' | 'active' | 'top_sellers' | 'top_recruiters' | 'high_ranks' | 'suspended'>('all');
   const [rankFilter, setRankFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [referralFilter, setReferralFilter] = useState<string>('all');
@@ -72,6 +77,8 @@ export const AdminUsersPage: React.FC = () => {
   const [inspectingUser, setInspectingUser] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [roleModalUser, setRoleModalUser] = useState<{ user: User; targetRole: 'admin' | 'reseller' } | null>(null);
+  const [isUpdatingRole, setIsUpdatingRole] = useState(false);
   const { success: toastSuccess, error: toastError } = useToast();
 
   const showToast = (text: string, type: 'success' | 'error' = 'success') => {
@@ -219,6 +226,7 @@ export const AdminUsersPage: React.FC = () => {
         }
 
         // 2. Quick Tab Preset
+        if (quickTab === 'admins' && u.role !== 'admin' && u.role !== 'superadmin' && !isSuperAdminEmail(u.email)) return false;
         if (quickTab === 'active' && u.isActive === false) return false;
         if (quickTab === 'suspended' && u.isActive !== false) return false;
         if (quickTab === 'top_sellers' && metrics.unitsSold === 0) return false;
@@ -227,7 +235,7 @@ export const AdminUsersPage: React.FC = () => {
 
         // 3. Rank Filter
         if (rankFilter !== 'all') {
-          if (rankFilter === 'admin' && u.role !== 'admin') return false;
+          if (rankFilter === 'admin' && u.role !== 'admin' && u.role !== 'superadmin' && !isSuperAdminEmail(u.email)) return false;
           if (rankFilter !== 'admin' && u.currentRankSlug !== rankFilter) return false;
         }
 
@@ -340,14 +348,60 @@ export const AdminUsersPage: React.FC = () => {
   };
 
   const handleToggleStatus = (u: User) => {
+    if (isSuperAdminEmail(u.email)) {
+      showToast('Master Security Constraint: The root Superadmin account cannot be suspended.', 'error');
+      return;
+    }
     const updated = users.map((item) => (item.id === u.id ? { ...item, isActive: !item.isActive } : item));
     storage.set('USERS', updated);
     setUsers(updated);
     showToast(`Account ${u.fullName} is now ${!u.isActive ? 'Active' : 'Suspended'}.`);
   };
 
+  const handleConfirmRoleChange = async () => {
+    if (!roleModalUser) return;
+
+    if (!isSuperAdminAuthorized) {
+      showToast(`Unauthorized: Only the Master Superadmin (${SUPERADMIN_EMAIL}) can grant or revoke administrator clearance.`, 'error');
+      setRoleModalUser(null);
+      return;
+    }
+
+    setIsUpdatingRole(true);
+    try {
+      const res = await authService.updateUserRole(
+        roleModalUser.user.id,
+        roleModalUser.targetRole,
+        currentAdmin?.email || SUPERADMIN_EMAIL
+      );
+
+      if (res.success && res.user) {
+        const updatedTarget = res.user;
+        setUsers((prev) => prev.map((u) => (u.id === updatedTarget.id ? updatedTarget : u)));
+        showToast(
+          roleModalUser.targetRole === 'admin'
+            ? `Granted full Administrator clearance to ${roleModalUser.user.fullName}.`
+            : `Revoked Administrator clearance from ${roleModalUser.user.fullName}.`
+        );
+      } else {
+        showToast(res.error || 'Failed to update administrative clearance.', 'error');
+      }
+    } catch (err: any) {
+      showToast(err?.message || 'Error occurred while updating role clearance.', 'error');
+    } finally {
+      setIsUpdatingRole(false);
+      setRoleModalUser(null);
+    }
+  };
+
   const handleDeleteUserConfirm = async () => {
     if (!deletingUser) return;
+
+    if (isSuperAdminEmail(deletingUser.email)) {
+      showToast('Master Security Constraint: The root Superadmin account cannot be deleted.', 'error');
+      setDeletingUser(null);
+      return;
+    }
 
     if (deletingUser.id === currentAdmin?.id) {
       showToast('You cannot delete your own active administrator account.', 'error');
@@ -411,6 +465,7 @@ export const AdminUsersPage: React.FC = () => {
   };
 
   // Stats Counters
+  const totalAdmins = users.filter((u) => u.role === 'admin' || u.role === 'superadmin' || isSuperAdminEmail(u.email)).length;
   const totalTopSellers = users.filter((u) => (userMetricsMap.get(u.id)?.unitsSold || 0) > 0).length;
   const totalTopRecruiters = users.filter((u) => (userMetricsMap.get(u.id)?.downlineCount || 0) > 0).length;
   const totalHighRanks = users.filter((u) => ['silver', 'gold', 'platinum', 'diamond'].includes(u.currentRankSlug || '')).length;
@@ -474,6 +529,49 @@ export const AdminUsersPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Superadmin Authority Status Bar */}
+      <div className={`p-4 rounded-2xl border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs transition-colors ${
+        isSuperAdminAuthorized
+          ? 'bg-amber-500/[0.04] border-amber-500/25'
+          : 'bg-[var(--surface)] border-[var(--line)]'
+      }`}>
+        <div className="flex items-center gap-3">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
+            isSuperAdminAuthorized
+              ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+              : 'bg-[var(--surface-alt)] text-[var(--ink-soft)] border-[var(--line)]'
+          }`}>
+            <Crown size={18} weight="fill" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-[var(--ink)]">Superadmin Security Node</span>
+              {isSuperAdminAuthorized ? (
+                <span className="px-2 py-0.5 rounded-full text-[9.5px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  AUTHORITY ACTIVE
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded-full text-[9.5px] font-mono font-medium bg-white/5 text-[var(--ink-soft)] border border-[var(--line)]">
+                  READ ONLY PRIVILEGES
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] font-mono text-[var(--ink-soft)] mt-0.5">
+              Root Authority: <span className="font-bold text-[var(--ink)]">{SUPERADMIN_EMAIL}</span>
+              {isSuperAdminAuthorized
+                ? ' — You have exclusive unilateral clearance to grant or revoke Administrator access.'
+                : ' — Clearance restricted: Only the Master Superadmin can grant or revoke Administrator access.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 font-mono text-[11px] self-start sm:self-auto">
+          <span className="px-3 py-1.5 rounded-xl bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] flex items-center gap-1.5">
+            <ShieldCheck size={14} className="text-emerald-500" weight="bold" />
+            <span>Active Administrators: <strong className="text-[var(--primary-dark)]">{totalAdmins}</strong></span>
+          </span>
+        </div>
+      </div>
 
       {/* 1. Quick Metric Filter Chips */}
       <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -487,6 +585,18 @@ export const AdminUsersPage: React.FC = () => {
         >
           <Users size={14} />
           <span>All Partners ({users.length})</span>
+        </button>
+
+        <button
+          onClick={() => { setQuickTab('admins'); }}
+          className={`px-3.5 py-2 rounded-xl border font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+            quickTab === 'admins'
+              ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-xs'
+              : 'bg-[var(--surface)] text-[var(--ink-soft)] border-[var(--line)] hover:bg-[var(--surface)]'
+          }`}
+        >
+          <ShieldCheck size={14} className={quickTab === 'admins' ? 'text-white' : 'text-emerald-500'} weight="bold" />
+          <span>Administrators ({totalAdmins})</span>
         </button>
 
         <button
@@ -595,7 +705,7 @@ export const AdminUsersPage: React.FC = () => {
               <option value="platinum">Platinum · Level 02</option>
               <option value="silver">Silver · Level 01</option>
               <option value="unranked">Unranked (Starter)</option>
-              <option value="admin">Administrators</option>
+              <option value="admin">Administrators ({totalAdmins})</option>
             </select>
           </div>
 
@@ -698,13 +808,13 @@ export const AdminUsersPage: React.FC = () => {
                 <thead className="border-b border-[var(--line)] text-[var(--ink-soft)] font-mono text-[10.5px] bg-[var(--surface)]">
                   <tr>
                     <th className="p-3.5 font-semibold min-w-[240px] whitespace-nowrap">Partner Profile</th>
-                    <th className="p-3.5 font-semibold min-w-[190px] whitespace-nowrap">Referral &amp; Sponsor</th>
-                    <th className="p-3.5 font-semibold min-w-[140px] text-center whitespace-nowrap">Rank Level</th>
-                    <th className="p-3.5 font-semibold text-right min-w-[190px] whitespace-nowrap">Delivered Sales</th>
-                    <th className="p-3.5 font-semibold text-center min-w-[160px] whitespace-nowrap">Downline Team</th>
-                    <th className="p-3.5 font-semibold text-center min-w-[110px] whitespace-nowrap">Status</th>
-                    <th className="p-3.5 font-semibold text-center min-w-[120px] whitespace-nowrap">Registered</th>
-                    <th className="p-3.5 font-semibold text-center min-w-[170px] whitespace-nowrap">Actions</th>
+                    <th className="p-3.5 font-semibold min-w-[180px] whitespace-nowrap">Referral &amp; Sponsor</th>
+                    <th className="p-3.5 font-semibold min-w-[130px] text-center whitespace-nowrap">Rank Level</th>
+                    <th className="p-3.5 font-semibold min-w-[150px] text-center whitespace-nowrap">Role &amp; Status</th>
+                    <th className="p-3.5 font-semibold text-right min-w-[180px] whitespace-nowrap">Delivered Sales</th>
+                    <th className="p-3.5 font-semibold text-center min-w-[150px] whitespace-nowrap">Downline Team</th>
+                    <th className="p-3.5 font-semibold text-center min-w-[110px] whitespace-nowrap">Registered</th>
+                    <th className="p-3.5 font-semibold text-center min-w-[270px] whitespace-nowrap">Clearance &amp; Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--line)] text-[var(--ink-soft)]">
@@ -739,19 +849,19 @@ export const AdminUsersPage: React.FC = () => {
                         </td>
 
                         {/* 2. Referral & Sponsor */}
-                        <td className="p-3.5 min-w-[190px] whitespace-nowrap">
+                        <td className="p-3.5 min-w-[180px] whitespace-nowrap">
                           <div className="space-y-0.5">
                             <span className="font-mono font-bold text-[var(--primary-dark)] bg-[var(--surface)] px-2 py-0.5 rounded border border-[var(--line)] text-xs inline-block whitespace-nowrap">
                               {u.referralCode || 'NO-CODE'}
                             </span>
-                            <p className="text-[10px] text-[var(--ink-soft)] font-mono truncate max-w-[180px]" title={sponsor ? `Invited by: ${sponsor.name}` : 'Direct / Organic'}>
+                            <p className="text-[10px] text-[var(--ink-soft)] font-mono truncate max-w-[170px]" title={sponsor ? `Invited by: ${sponsor.name}` : 'Direct / Organic'}>
                               {sponsor ? `Invited by: ${sponsor.name}` : 'Direct / Organic'}
                             </p>
                           </div>
                         </td>
 
                         {/* 3. Rank Level */}
-                        <td className="p-3.5 min-w-[140px] text-center whitespace-nowrap">
+                        <td className="p-3.5 min-w-[130px] text-center whitespace-nowrap">
                           <span className="font-mono uppercase text-[10.5px] font-bold text-[var(--ink)] px-2.5 py-1 rounded-lg bg-[var(--surface)] border border-[var(--line)] inline-flex items-center gap-1 whitespace-nowrap">
                             {u.currentRankSlug === 'diamond' && <Crown size={12} weight="fill" className="text-[var(--accent)]" />}
                             {u.currentRankSlug === 'gold' && <Sparkle size={12} weight="fill" className="text-[var(--accent)]" />}
@@ -761,8 +871,38 @@ export const AdminUsersPage: React.FC = () => {
                           </span>
                         </td>
 
-                        {/* 4. Delivered Sales & Profit */}
-                        <td className="p-3.5 min-w-[190px] text-right whitespace-nowrap">
+                        {/* 4. Role Clearance & Status */}
+                        <td className="p-3.5 min-w-[150px] text-center whitespace-nowrap">
+                          <div className="flex flex-col items-center gap-1">
+                            {isSuperAdminEmail(u.email) ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-amber-500/10 text-amber-300 border border-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.12)] whitespace-nowrap">
+                                <Crown size={12} weight="fill" className="text-amber-400 shrink-0" />
+                                SUPERADMIN
+                              </span>
+                            ) : u.role === 'admin' ? (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-emerald-500/10 text-emerald-300 border border-emerald-500/25 shadow-[0_0_10px_rgba(16,185,129,0.1)] whitespace-nowrap">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                                ADMIN
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9.5px] font-mono font-medium tracking-wide uppercase bg-[var(--surface-alt)] text-[var(--ink-soft)] border border-[var(--line)] whitespace-nowrap">
+                                RESELLER
+                              </span>
+                            )}
+                            <span
+                              className={`inline-block text-[10px] font-mono font-bold capitalize px-2 py-0.2 rounded-full border whitespace-nowrap ${
+                                u.isActive !== false
+                                  ? 'bg-[var(--primary)]/10 text-[var(--primary-dark)] border-[var(--primary)]/20'
+                                  : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                              }`}
+                            >
+                              {u.isActive !== false ? 'Active' : 'Suspended'}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* 5. Delivered Sales & Profit */}
+                        <td className="p-3.5 min-w-[180px] text-right whitespace-nowrap">
                           <div className="space-y-0.5 whitespace-nowrap">
                             <span className="font-mono font-bold text-[var(--primary-dark)] text-xs block whitespace-nowrap">
                               {metrics.unitsSold} units delivered
@@ -778,8 +918,8 @@ export const AdminUsersPage: React.FC = () => {
                           </div>
                         </td>
 
-                        {/* 5. Downline Team */}
-                        <td className="p-3.5 min-w-[160px] text-center whitespace-nowrap">
+                        {/* 6. Downline Team */}
+                        <td className="p-3.5 min-w-[150px] text-center whitespace-nowrap">
                           <button
                             onClick={() => setInspectingUser(u)}
                             className="inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--ink)] border border-[var(--line)] font-mono text-xs transition-colors cursor-pointer whitespace-nowrap shrink-0"
@@ -791,26 +931,8 @@ export const AdminUsersPage: React.FC = () => {
                           </button>
                         </td>
 
-                        {/* 6. Status */}
-                        <td className="p-3.5 min-w-[110px] text-center whitespace-nowrap">
-                          <span
-                            className={`inline-block text-[10.5px] font-mono font-bold capitalize px-2.5 py-0.5 rounded-full border whitespace-nowrap ${
-                              u.isActive !== false
-                                ? 'bg-[var(--primary)]/10 text-[var(--primary-dark)] border-[var(--primary)]/20'
-                                : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
-                            }`}
-                          >
-                            {u.isActive !== false ? 'Active' : 'Suspended'}
-                          </span>
-                          {u.role === 'admin' && (
-                            <span className="block mt-1 font-mono text-[9px] text-white bg-[var(--primary)] px-1.5 py-0.2 rounded mx-auto w-fit whitespace-nowrap">
-                              ADMIN
-                            </span>
-                          )}
-                        </td>
-
                         {/* 7. Registered Time Ago */}
-                        <td className="p-3.5 min-w-[120px] text-center whitespace-nowrap">
+                        <td className="p-3.5 min-w-[110px] text-center whitespace-nowrap">
                           <span
                             className="font-mono text-[10.5px] text-[var(--ink)] bg-[var(--surface)] px-2.5 py-1 rounded-lg border border-[var(--line)] inline-flex items-center gap-1 font-medium shadow-2xs whitespace-nowrap"
                             title={u.createdAt ? new Date(u.createdAt).toLocaleString() : ''}
@@ -820,32 +942,95 @@ export const AdminUsersPage: React.FC = () => {
                           </span>
                         </td>
 
-                        {/* 8. Actions */}
-                        <td className="p-3.5 min-w-[170px] text-center whitespace-nowrap">
+                        {/* 8. Clearance & Actions */}
+                        <td className="p-3.5 min-w-[270px] text-center whitespace-nowrap">
                           <div className="flex items-center justify-center space-x-1.5 whitespace-nowrap">
+                            {/* Role Clearance Button */}
+                            {isSuperAdminEmail(u.email) ? (
+                              <span
+                                className="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-300 text-[10px] font-mono font-semibold inline-flex items-center gap-1 cursor-default select-none shadow-2xs whitespace-nowrap"
+                                title="Root Superadmin Account (Protected)"
+                              >
+                                <LockKey size={11} weight="bold" className="shrink-0" />
+                                Master Root
+                              </span>
+                            ) : u.role === 'admin' ? (
+                              <button
+                                onClick={() => setRoleModalUser({ user: u, targetRole: 'reseller' })}
+                                disabled={!isSuperAdminAuthorized}
+                                className={`px-2.5 py-1 rounded-lg border text-[11px] font-mono font-semibold transition-all inline-flex items-center gap-1 shrink-0 ${
+                                  isSuperAdminAuthorized
+                                    ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 border-rose-500/30 cursor-pointer active:scale-95'
+                                    : 'opacity-40 cursor-not-allowed text-[var(--ink-soft)] border-[var(--line)]'
+                                }`}
+                                title={
+                                  isSuperAdminAuthorized
+                                    ? `Revoke Admin access from ${u.fullName}`
+                                    : `Clearance restricted: Only Superadmin (${SUPERADMIN_EMAIL}) can modify roles`
+                                }
+                              >
+                                <ShieldSlash size={13} weight="bold" className="shrink-0" />
+                                <span>Revoke Admin</span>
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => setRoleModalUser({ user: u, targetRole: 'admin' })}
+                                disabled={!isSuperAdminAuthorized}
+                                className={`px-2.5 py-1 rounded-lg border text-[11px] font-mono font-semibold transition-all inline-flex items-center gap-1 shrink-0 ${
+                                  isSuperAdminAuthorized
+                                    ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 border-emerald-500/30 cursor-pointer active:scale-95'
+                                    : 'opacity-40 cursor-not-allowed text-[var(--ink-soft)] border-[var(--line)]'
+                                }`}
+                                title={
+                                  isSuperAdminAuthorized
+                                    ? `Grant full Administrator access to ${u.fullName}`
+                                    : `Clearance restricted: Only Superadmin (${SUPERADMIN_EMAIL}) can modify roles`
+                                }
+                              >
+                                <ShieldPlus size={13} weight="bold" className="shrink-0" />
+                                <span>Grant Admin</span>
+                              </button>
+                            )}
+
+                            {/* Milestone rank override */}
                             <button
                               onClick={() => setSelectedUser(u)}
-                              className="px-2.5 py-1 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--ink)] border border-[var(--line)] text-[11px] font-mono font-medium cursor-pointer whitespace-nowrap shrink-0"
+                              className="px-2 py-1 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--ink)] border border-[var(--line)] text-[11px] font-mono font-medium cursor-pointer whitespace-nowrap shrink-0"
                               title="Override Milestone Rank Level"
                             >
                               Rank
                             </button>
+
+                            {/* Suspend / Activate */}
                             <button
                               onClick={() => handleToggleStatus(u)}
-                              className="px-2.5 py-1 rounded-lg bg-[var(--surface)] hover:bg-rose-500/10 text-[var(--ink-soft)] hover:text-rose-600 border border-[var(--line)] text-[11px] font-mono font-medium cursor-pointer whitespace-nowrap shrink-0"
-                              title={u.isActive !== false ? 'Suspend User' : 'Activate User'}
+                              disabled={isSuperAdminEmail(u.email)}
+                              className={`px-2 py-1 rounded-lg border text-[11px] font-mono font-medium whitespace-nowrap shrink-0 transition-colors ${
+                                isSuperAdminEmail(u.email)
+                                  ? 'opacity-30 cursor-not-allowed text-[var(--ink-soft)] border-[var(--line)]'
+                                  : 'bg-[var(--surface)] hover:bg-rose-500/10 text-[var(--ink-soft)] hover:text-rose-600 border-[var(--line)] cursor-pointer'
+                              }`}
+                              title={isSuperAdminEmail(u.email) ? 'Root Superadmin cannot be suspended' : u.isActive !== false ? 'Suspend User' : 'Activate User'}
                             >
                               {u.isActive !== false ? 'Suspend' : 'Activate'}
                             </button>
+
+                            {/* Permanent deletion */}
                             <button
                               onClick={() => setDeletingUser(u)}
-                              disabled={u.id === currentAdmin?.id}
+                              disabled={u.id === currentAdmin?.id || isSuperAdminEmail(u.email)}
                               className={`p-1.5 rounded-lg border text-[11px] transition-colors shrink-0 ${
-                                u.id === currentAdmin?.id
+                                u.id === currentAdmin?.id || isSuperAdminEmail(u.email)
                                   ? 'opacity-30 cursor-not-allowed text-[var(--ink-soft)] border-[var(--line)]'
                                   : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 border-rose-500/20 cursor-pointer'
                               }`}
-                              title={u.id === currentAdmin?.id ? 'Cannot delete current logged in admin' : 'Permanently Delete User'}
+                              title={
+                                isSuperAdminEmail(u.email)
+                                  ? 'Root Superadmin account cannot be deleted'
+                                  : u.id === currentAdmin?.id
+                                  ? 'Cannot delete currently logged in admin'
+                                  : 'Permanently Delete User'
+                              }
                             >
                               <Trash size={14} className="shrink-0" />
                             </button>
@@ -879,27 +1064,37 @@ export const AdminUsersPage: React.FC = () => {
                           {(u.fullName || 'U').charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <p className="font-bold text-[var(--ink)] text-sm truncate">{u.fullName || 'Unnamed User'}</p>
-                            {u.role === 'admin' && (
-                              <span className="font-mono text-[9px] text-white bg-[var(--primary)] px-1.5 py-0.5 rounded shrink-0">
-                                ADMIN
-                              </span>
-                            )}
-                          </div>
+                          <p className="font-bold text-[var(--ink)] text-sm truncate">{u.fullName || 'Unnamed User'}</p>
                           <p className="text-[11px] font-mono text-[var(--ink-soft)] truncate">{u.email || 'No email'}</p>
                         </div>
                       </div>
 
-                      <span
-                        className={`inline-block text-[10px] font-mono font-bold capitalize px-2 py-0.5 rounded-full border shrink-0 ${
-                          u.isActive !== false
-                            ? 'bg-[var(--primary)]/10 text-[var(--primary-dark)] border-[var(--primary)]/20'
-                            : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
-                        }`}
-                      >
-                        {u.isActive !== false ? 'Active' : 'Suspended'}
-                      </span>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        {isSuperAdminEmail(u.email) ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-mono font-bold uppercase bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                            <Crown size={11} weight="fill" className="text-amber-400" />
+                            SUPERADMIN
+                          </span>
+                        ) : u.role === 'admin' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-mono font-bold uppercase bg-emerald-500/10 text-emerald-300 border border-emerald-500/25">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            ADMIN
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-mono uppercase bg-[var(--surface-alt)] text-[var(--ink-soft)] border border-[var(--line)]">
+                            RESELLER
+                          </span>
+                        )}
+                        <span
+                          className={`inline-block text-[10px] font-mono font-bold capitalize px-2 py-0.5 rounded-full border shrink-0 ${
+                            u.isActive !== false
+                              ? 'bg-[var(--primary)]/10 text-[var(--primary-dark)] border-[var(--primary)]/20'
+                              : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                          }`}
+                        >
+                          {u.isActive !== false ? 'Active' : 'Suspended'}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
@@ -945,30 +1140,73 @@ export const AdminUsersPage: React.FC = () => {
                     </div>
 
                     {/* Mobile Action Buttons */}
-                    <div className="flex items-center justify-end gap-2 pt-1">
+                    <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-[var(--line)]">
+                      {/* Role Clearance Button */}
+                      {isSuperAdminEmail(u.email) ? (
+                        <span
+                          className="min-h-[40px] px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs font-mono font-semibold inline-flex items-center gap-1 cursor-default select-none shadow-2xs"
+                        >
+                          <LockKey size={12} weight="bold" />
+                          Master Root
+                        </span>
+                      ) : u.role === 'admin' ? (
+                        <button
+                          onClick={() => setRoleModalUser({ user: u, targetRole: 'reseller' })}
+                          disabled={!isSuperAdminAuthorized}
+                          className={`min-h-[40px] px-3 py-1.5 rounded-xl border text-xs font-mono font-semibold transition-all inline-flex items-center gap-1.5 ${
+                            isSuperAdminAuthorized
+                              ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border-rose-500/30 cursor-pointer active:scale-95'
+                              : 'opacity-40 cursor-not-allowed text-[var(--ink-soft)] border-[var(--line)]'
+                          }`}
+                          title={isSuperAdminAuthorized ? 'Revoke Admin' : 'Superadmin Required'}
+                        >
+                          <ShieldSlash size={14} weight="bold" />
+                          <span>Revoke Admin</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setRoleModalUser({ user: u, targetRole: 'admin' })}
+                          disabled={!isSuperAdminAuthorized}
+                          className={`min-h-[40px] px-3 py-1.5 rounded-xl border text-xs font-mono font-semibold transition-all inline-flex items-center gap-1.5 ${
+                            isSuperAdminAuthorized
+                              ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30 cursor-pointer active:scale-95'
+                              : 'opacity-40 cursor-not-allowed text-[var(--ink-soft)] border-[var(--line)]'
+                          }`}
+                          title={isSuperAdminAuthorized ? 'Grant Admin' : 'Superadmin Required'}
+                        >
+                          <ShieldPlus size={14} weight="bold" />
+                          <span>Grant Admin</span>
+                        </button>
+                      )}
+
                       <button
                         onClick={() => setSelectedUser(u)}
-                        className="px-3 py-1.5 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--ink)] border border-[var(--line)] text-xs font-mono font-medium cursor-pointer"
+                        className="min-h-[40px] px-3 py-1.5 rounded-xl bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--ink)] border border-[var(--line)] text-xs font-mono font-medium cursor-pointer"
                       >
                         Rank Level
                       </button>
                       <button
                         onClick={() => handleToggleStatus(u)}
-                        className="px-3 py-1.5 rounded-lg bg-[var(--surface)] hover:bg-rose-500/10 text-[var(--ink-soft)] hover:text-rose-600 border border-[var(--line)] text-xs font-mono font-medium cursor-pointer"
+                        disabled={isSuperAdminEmail(u.email)}
+                        className={`min-h-[40px] px-3 py-1.5 rounded-xl border text-xs font-mono font-medium transition-colors ${
+                          isSuperAdminEmail(u.email)
+                            ? 'opacity-30 cursor-not-allowed text-[var(--ink-soft)] border-[var(--line)]'
+                            : 'bg-[var(--surface)] hover:bg-rose-500/10 text-[var(--ink-soft)] hover:text-rose-600 border-[var(--line)] cursor-pointer'
+                        }`}
                       >
                         {u.isActive !== false ? 'Suspend' : 'Activate'}
                       </button>
                       <button
                         onClick={() => setDeletingUser(u)}
-                        disabled={u.id === currentAdmin?.id}
-                        className={`p-2 rounded-lg border text-xs transition-colors ${
-                          u.id === currentAdmin?.id
+                        disabled={u.id === currentAdmin?.id || isSuperAdminEmail(u.email)}
+                        className={`min-h-[40px] min-w-[40px] p-2 rounded-xl border text-xs transition-colors flex items-center justify-center ${
+                          u.id === currentAdmin?.id || isSuperAdminEmail(u.email)
                             ? 'opacity-30 cursor-not-allowed text-[var(--ink-soft)] border-[var(--line)]'
                             : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 border-rose-500/20 cursor-pointer'
                         }`}
                         title="Delete User"
                       >
-                        <Trash size={14} />
+                        <Trash size={15} />
                       </button>
                     </div>
                   </div>
@@ -1279,6 +1517,180 @@ export const AdminUsersPage: React.FC = () => {
                   {selectedUser.currentRankSlug === r && <span className="text-xs">Current Level</span>}
                 </button>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 4: Executive Admin Role Clearance Authorization Modal */}
+      {roleModalUser && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 overscroll-contain">
+          <div className="w-full max-w-lg max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto p-5 sm:p-7 rounded-t-3xl sm:rounded-3xl bg-[#0C120E] border border-white/10 shadow-2xl space-y-5 text-xs text-[#F4F7F5] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:pb-7 overscroll-contain animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 ease-out">
+            
+            {/* Modal Header */}
+            <div className="flex items-start justify-between pb-4 border-b border-white/10">
+              <div className="flex items-center space-x-3.5">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
+                  roleModalUser.targetRole === 'admin'
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)]'
+                    : 'bg-rose-500/10 text-rose-400 border-rose-500/30 shadow-[0_0_20px_rgba(244,63,94,0.15)]'
+                }`}>
+                  {roleModalUser.targetRole === 'admin' ? (
+                    <ShieldPlus size={24} weight="bold" />
+                  ) : (
+                    <ShieldSlash size={24} weight="bold" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-[#F4F7F5]">
+                    {roleModalUser.targetRole === 'admin'
+                      ? 'Authorize Administrator Clearance'
+                      : 'Revoke Administrator Clearance'}
+                  </h3>
+                  <p className="text-[11px] font-mono text-[#9EABA2]">
+                    Master Superadmin Access Control Protocol
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setRoleModalUser(null)}
+                disabled={isUpdatingRole}
+                className="min-h-[44px] min-w-[44px] -m-2 p-2 inline-flex items-center justify-center text-[#9EABA2] hover:text-[#F4F7F5] active:scale-[0.96] transition-transform cursor-pointer"
+                aria-label="Close role authorization dialog"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Target Partner Identity Dossier */}
+            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[#D9C08A] font-bold block">
+                Target Account Dossier
+              </span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D9C08A] to-[#B8862E] text-[#070B09] flex items-center justify-center font-bold text-sm shrink-0">
+                    {(roleModalUser.user.fullName || 'U').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-sm text-[#F4F7F5] truncate">{roleModalUser.user.fullName}</h4>
+                    <p className="text-[11px] font-mono text-[#9EABA2] truncate">{roleModalUser.user.email}</p>
+                  </div>
+                </div>
+                <div className="text-right font-mono text-[10.5px] shrink-0 pl-2">
+                  <span className="text-[#9EABA2] block">Partner Code</span>
+                  <span className="font-bold text-[#D9C08A]">{roleModalUser.user.referralCode || 'NO-CODE'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Privilege Impact Matrix */}
+            <div className={`p-4 rounded-2xl border space-y-2.5 ${
+              roleModalUser.targetRole === 'admin'
+                ? 'bg-emerald-500/[0.05] border-emerald-500/25 text-[#E6F4EA]'
+                : 'bg-rose-500/[0.05] border-rose-500/25 text-[#FDE8E8]'
+            }`}>
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-xs font-mono uppercase tracking-wider">
+                  {roleModalUser.targetRole === 'admin'
+                    ? 'Granted Permissions Scope'
+                    : 'Revocation Impact'}
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border bg-black/30">
+                  {roleModalUser.targetRole === 'admin' ? 'Elevated to Administrator' : 'Restored to Partner Reseller'}
+                </span>
+              </div>
+
+              {roleModalUser.targetRole === 'admin' ? (
+                <ul className="space-y-1.5 text-[11.5px] leading-relaxed font-sans">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle size={15} weight="fill" className="text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong>Full Administrative Access:</strong> Unlocks complete clearance to the <code>/admin</code> control terminal.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle size={15} weight="fill" className="text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong>Commerce &amp; Shipping Management:</strong> Manage sales orders, wholesale prices, profit margins, and categories.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle size={15} weight="fill" className="text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong>Network Tree &amp; Bonuses:</strong> Review team downlines, rank elevations, and approve milestone bonus payouts.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle size={15} weight="fill" className="text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong>Instant Cloud Sync:</strong> Clearance updates propagate across Firestore, Realtime Database, and active client sessions.</span>
+                  </li>
+                </ul>
+              ) : (
+                <ul className="space-y-1.5 text-[11.5px] leading-relaxed font-sans">
+                  <li className="flex items-start gap-2">
+                    <Warning size={15} weight="fill" className="text-rose-400 shrink-0 mt-0.5" />
+                    <span><strong>Immediate Access Termination:</strong> Revokes access to <code>/admin</code> and all back-office operational consoles.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Warning size={15} weight="fill" className="text-rose-400 shrink-0 mt-0.5" />
+                    <span><strong>Restored to Partner Reseller:</strong> Account will be restricted solely to the standard Reseller Hub (<code>/dashboard</code>).</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Warning size={15} weight="fill" className="text-rose-400 shrink-0 mt-0.5" />
+                    <span><strong>Active Sessions Terminated:</strong> Any active administrative browser sessions for this user will redirect immediately.</span>
+                  </li>
+                </ul>
+              )}
+            </div>
+
+            {/* Superadmin Authorization Stamp */}
+            <div className="p-3 rounded-xl bg-amber-500/[0.04] border border-amber-500/20 flex items-center justify-between text-[11px] font-mono">
+              <div className="flex items-center gap-2 text-amber-300">
+                <Crown size={14} weight="fill" />
+                <span>Superadmin Authorization:</span>
+              </div>
+              <span className="font-bold text-[#F4F7F5]">{SUPERADMIN_EMAIL}</span>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end space-x-2.5 pt-3 border-t border-white/10">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setRoleModalUser(null)}
+                disabled={isUpdatingRole}
+                className="text-xs font-semibold px-4 min-h-[40px]"
+              >
+                Cancel
+              </Button>
+
+              <button
+                type="button"
+                onClick={handleConfirmRoleChange}
+                disabled={isUpdatingRole}
+                className={`min-h-[40px] px-5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all inline-flex items-center justify-center gap-2 cursor-pointer shadow-md ${
+                  roleModalUser.targetRole === 'admin'
+                    ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white shadow-emerald-950/40 active:scale-95'
+                    : 'bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white shadow-rose-950/40 active:scale-95'
+                } ${isUpdatingRole ? 'opacity-70 cursor-wait' : ''}`}
+              >
+                {isUpdatingRole ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Updating Clearance...</span>
+                  </>
+                ) : (
+                  <>
+                    {roleModalUser.targetRole === 'admin' ? (
+                      <ShieldPlus size={15} weight="bold" />
+                    ) : (
+                      <ShieldSlash size={15} weight="bold" />
+                    )}
+                    <span>
+                      {roleModalUser.targetRole === 'admin'
+                        ? 'Confirm Administrator Clearance'
+                        : 'Confirm Revocation of Access'}
+                    </span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

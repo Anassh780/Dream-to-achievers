@@ -23,6 +23,13 @@ import { ref, get, set, child, remove, onValue } from 'firebase/database';
 import { storage } from './storage';
 import { rankEngine } from './rankEngine';
 import { referralService, normalizeReferralCode } from './referralService';
+import { auditService } from './auditService';
+
+export const SUPERADMIN_EMAIL = 'ghhhbbbhjn3@gmail.com';
+
+export function isSuperAdminEmail(email?: string | null): boolean {
+  return String(email || '').toLowerCase().trim() === SUPERADMIN_EMAIL.toLowerCase();
+}
 
 export function formatDisplayName(fullName?: string, email?: string, displayName?: string): string {
   // Always preserve the exact name or username entered by the user
@@ -38,6 +45,7 @@ export function formatDisplayName(fullName?: string, email?: string, displayName
 
 export function cleanUserForCloud(u: User): User {
   const finalName = formatDisplayName(u.fullName, u.email);
+  const isSuper = isSuperAdminEmail(u.email);
   let refCode = String(u.referralCode || '').trim().toUpperCase();
   if (refCode && !refCode.startsWith('DTA')) {
     refCode = `DTA-${refCode.replace(/[^A-Z0-9]/g, '')}`;
@@ -51,7 +59,7 @@ export function cleanUserForCloud(u: User): User {
     id: String(u.id || '').trim(),
     fullName: finalName,
     email: String(u.email || '').toLowerCase().trim(),
-    role: u.role || 'user',
+    role: isSuper ? 'superadmin' : (u.role || 'user'),
     referralCode: refCode,
     referredByCode: sponsorCode,
     currentRankSlug: u.currentRankSlug || 'unranked',
@@ -104,6 +112,9 @@ export const authService = {
       const userDoc = await getDoc(userDocRef);
       if (userDoc.exists()) {
         const data = userDoc.data() as User;
+        if (isSuperAdminEmail(data.email)) {
+          data.role = 'superadmin';
+        }
         data.fullName = formatDisplayName(data.fullName, data.email, (auth.currentUser?.uid === uid ? auth.currentUser?.displayName : undefined) || undefined);
         storage.setRaw('CURRENT_USER_ID', data.id);
         return data;
@@ -118,6 +129,9 @@ export const authService = {
       const snapshot = await get(child(rtdbRef, `users/${uid}`));
       if (snapshot.exists()) {
         const data = snapshot.val() as User;
+        if (isSuperAdminEmail(data.email)) {
+          data.role = 'superadmin';
+        }
         data.fullName = formatDisplayName(data.fullName, data.email, (auth.currentUser?.uid === uid ? auth.currentUser?.displayName : undefined) || undefined);
         storage.setRaw('CURRENT_USER_ID', data.id);
         return data;
@@ -130,6 +144,9 @@ export const authService = {
     const localUsers = storage.get<User[]>('USERS', []);
     const foundLocal = localUsers.find((u) => u.id === uid || u.email.toLowerCase() === cleanEmail);
     if (foundLocal) {
+      if (isSuperAdminEmail(foundLocal.email)) {
+        foundLocal.role = 'superadmin';
+      }
       foundLocal.fullName = formatDisplayName(foundLocal.fullName, foundLocal.email, (auth.currentUser?.uid === uid ? auth.currentUser?.displayName : undefined) || undefined);
       storage.setRaw('CURRENT_USER_ID', foundLocal.id);
       return foundLocal;
@@ -150,7 +167,7 @@ export const authService = {
         id: uid,
         fullName: formatDisplayName(auth.currentUser?.displayName || '', cleanEmail),
         email: cleanEmail,
-        role: 'user',
+        role: isSuperAdminEmail(cleanEmail) ? 'superadmin' : 'user',
         referralCode: `DTA-${Math.floor(1000 + Math.random() * 9000)}`,
         referredByCode: validReferrer ? validReferrer.referralCode : (capturedRef || ''),
         currentRankSlug: 'unranked',
@@ -230,6 +247,9 @@ export const authService = {
     storage.init();
     const cachedData = storage.get<User | null>('CURRENT_USER_DATA', null);
     if (cachedData && cachedData.isActive) {
+      if (isSuperAdminEmail(cachedData.email)) {
+        cachedData.role = 'superadmin';
+      }
       return cachedData;
     }
 
@@ -238,6 +258,9 @@ export const authService = {
     const users = storage.get<User[]>('USERS', []);
     const found = users.find((u) => u.id === currentId && u.isActive) || null;
     if (found) {
+      if (isSuperAdminEmail(found.email)) {
+        found.role = 'superadmin';
+      }
       storage.set('CURRENT_USER_DATA', found);
       return found;
     }
@@ -611,6 +634,118 @@ export const authService = {
   },
 
   /**
+   * Update user administrative clearance (Grant Admin / Revoke Admin).
+   * Strictly authorized and executed by Superadmin (ghhhbbbhjn3@gmail.com).
+   */
+  async updateUserRole(
+    targetUserId: string,
+    newRole: 'admin' | 'reseller' | 'user',
+    authorizedByEmail: string
+  ): Promise<{ success: boolean; error?: string; user?: User }> {
+    if (!targetUserId) {
+      return { success: false, error: 'User ID is required.' };
+    }
+
+    const cleanAuthEmail = String(authorizedByEmail || '').toLowerCase().trim();
+    if (cleanAuthEmail !== SUPERADMIN_EMAIL.toLowerCase()) {
+      return {
+        success: false,
+        error: `Security Authorization Denied: Only the platform Superadmin (${SUPERADMIN_EMAIL}) has clearance to modify administrative roles.`,
+      };
+    }
+
+    // 1. Locate user in local storage
+    const localUsers = storage.get<User[]>('USERS', []);
+    const userIndex = localUsers.findIndex((u) => u.id === targetUserId);
+    if (userIndex === -1) {
+      return { success: false, error: 'Target user could not be located in registry.' };
+    }
+
+    const targetUser = localUsers[userIndex];
+
+    // 2. Protect root Superadmin from demotion
+    if (isSuperAdminEmail(targetUser.email)) {
+      return {
+        success: false,
+        error: 'Master Security Constraint: Cannot demote or revoke administrative clearance from the root Superadmin account.',
+      };
+    }
+
+    // 3. Update local user record
+    const updatedUser: User = {
+      ...targetUser,
+      role: newRole,
+    };
+    localUsers[userIndex] = updatedUser;
+    storage.set('USERS', localUsers);
+
+    // 4. If current active session is the target, update session user profile
+    const currentSessionId = storage.getRaw('CURRENT_USER_ID');
+    if (currentSessionId === targetUserId) {
+      storage.set('CURRENT_USER_DATA', updatedUser);
+    }
+
+    // 5. Sync to Firestore
+    try {
+      await setDoc(doc(db, 'users', targetUserId), { role: newRole, updatedAt: new Date().toISOString() }, { merge: true });
+    } catch (err) {
+      console.warn('Firestore role update warning:', err);
+    }
+
+    // 6. Sync to Realtime Database
+    try {
+      await set(ref(rtdb, `users/${targetUserId}/role`), newRole);
+    } catch (err) {
+      console.warn('RTDB role update warning:', err);
+    }
+
+    // 7. Audit Trail Logging
+    try {
+      auditService.logAction({
+        adminId: 'superadmin',
+        adminEmail: authorizedByEmail,
+        action: newRole === 'admin' ? 'GRANT_ADMIN_CLEARANCE' : 'REVOKE_ADMIN_CLEARANCE',
+        entityType: 'user',
+        entityId: targetUserId,
+        details: `Superadmin (${authorizedByEmail}) ${
+          newRole === 'admin' ? 'granted full Administrator privileges' : 'revoked Administrator privileges to ' + newRole
+        } for "${targetUser.fullName}" (${targetUser.email || 'No email'}, ID: ${targetUserId})`,
+      });
+    } catch (err) {
+      console.warn('Audit logging warning:', err);
+    }
+
+    // 8. Create in-app system notification for the user
+    try {
+      const userNotifs = storage.get<any[]>('NOTIFICATIONS', []);
+      userNotifs.unshift({
+        id: `notif-clearance-${Date.now()}`,
+        userId: targetUserId,
+        type: 'welcome',
+        title: newRole === 'admin' ? '🛡️ Administrator Access Granted' : '🛡️ Administrative Clearance Updated',
+        message:
+          newRole === 'admin'
+            ? `You have been granted full platform Administrator clearance by Master Superadmin (${SUPERADMIN_EMAIL}). You now have unrestricted access to the Admin Portal (/admin).`
+            : `Your Administrator clearance has been revoked to Partner Reseller by Master Superadmin (${SUPERADMIN_EMAIL}).`,
+        isRead: false,
+        linkUrl: newRole === 'admin' ? '/admin' : '/dashboard',
+        createdAt: new Date().toISOString(),
+      });
+      storage.set('NOTIFICATIONS', userNotifs);
+    } catch (err) {
+      console.warn('Notification logging warning:', err);
+    }
+
+    // 9. Dispatch events for instantaneous multi-tab & component synchronization
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key: 'USERS', value: localUsers } }));
+      window.dispatchEvent(new CustomEvent('dta_users_update', { detail: localUsers }));
+    }
+
+    return { success: true, user: updatedUser };
+  },
+
+  /**
    * Fetch all registered users from Firestore, RTDB, and Local Storage, merging and deduplicating.
    * All active users are 100% visible, with deleted users permanently filtered and purged.
    */
@@ -734,8 +869,10 @@ export const authService = {
         code = `DTA-${code.replace(/[^A-Z0-9]/g, '')}`;
       }
 
+      const isSuper = isSuperAdminEmail(u.email);
       const formattedUser: User = {
         ...u,
+        role: isSuper ? 'superadmin' : (u.role || 'user'),
         fullName: formatDisplayName(u.fullName, u.email),
         referralCode: code || u.referralCode,
       };
@@ -801,8 +938,10 @@ export const authService = {
                   code = `DTA-${code.replace(/[^A-Z0-9]/g, '')}`;
                 }
 
+                const isCloudSuper = isSuperAdminEmail(data.email);
                 const userObj: User = {
                   ...data,
+                  role: isCloudSuper ? 'superadmin' : (data.role || 'user'),
                   fullName: formatDisplayName(data.fullName, data.email),
                   referralCode: code || data.referralCode,
                 };

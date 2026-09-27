@@ -7,10 +7,17 @@ import { referralService } from '@/services/referralService';
 import { notificationService } from '@/services/notificationService';
 import { storage } from '@/services/storage';
 
+export const SUPERADMIN_EMAIL = 'ghhhbbbhjn3@gmail.com';
+
+export const isSuperAdminEmail = (email?: string | null): boolean => {
+  return String(email || '').toLowerCase().trim() === SUPERADMIN_EMAIL.toLowerCase();
+};
+
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   rankProgress: UserRankProgress | null;
   unreadNotifsCount: number;
   login: (email: string, password?: string) => Promise<{ success: boolean; error?: string }>;
@@ -112,12 +119,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUnreadNotifsCount(0);
   };
 
+  const isSuperAdmin = isSuperAdminEmail(user?.email);
+  const isAdmin = isSuperAdmin || user?.role === 'admin' || user?.role === 'superadmin' || user?.id === 'oi8O5XbNHZOtnXaV10BRXdOATgi2';
+
   return (
     <AuthContext.Provider
       value={{
         user,
         isAuthenticated: !!user,
-        isAdmin: user?.role === 'admin' || user?.role === 'superadmin' || user?.id === 'oi8O5XbNHZOtnXaV10BRXdOATgi2',
+        isAdmin,
+        isSuperAdmin,
         rankProgress,
         unreadNotifsCount,
         login,
