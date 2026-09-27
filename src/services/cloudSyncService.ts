@@ -24,9 +24,7 @@ class CloudSyncService {
   private async bindProtectedListeners(user: any | null) {
     const revision = ++this.authRevision;
     this.clearPrivateListeners();
-    const protectedKeys: CacheKey[] = ['SALES', 'USERS', 'WITHDRAWALS', 'REWARDS', 'NOTIFICATIONS', 'AUDIT_LOGS', 'REFERRALS', 'DELETED_PRODUCTS'];
     if (!user) {
-      protectedKeys.forEach((key) => storage.set(key, []));
       return;
     }
 
@@ -40,9 +38,9 @@ class CloudSyncService {
         return;
       }
 
-      storage.set('USERS', profile.exists() ? [{ id: profile.id, ...profile.data() }] : []);
-      storage.set('AUDIT_LOGS', []);
-      storage.set('DELETED_PRODUCTS', []);
+      if (profile.exists()) {
+        storage.set('USERS', [{ id: profile.id, ...profile.data() }]);
+      }
       this.listenQuery(query(collection(db, 'sales'), where('userId', '==', user.uid)), 'sales', 'SALES');
       this.listenQuery(query(collection(db, 'withdrawals'), where('userId', '==', user.uid)), 'withdrawals', 'WITHDRAWALS');
       this.listenQuery(query(collection(db, 'rewards'), where('userId', '==', user.uid)), 'rewards', 'REWARDS');

@@ -1,3 +1,5 @@
+import { storage } from './storage';
+
 // Badge Tracker Service - Tracks unseen counts per dashboard section and auto-decrements on view
 
 class BadgeTrackerService {
@@ -21,7 +23,7 @@ class BadgeTrackerService {
   public markReferralsSeen(userId: string, currentTotal: number): void {
     if (typeof window === 'undefined' || !userId) return;
     localStorage.setItem(this.getStorageKey('referrals', userId), String(currentTotal));
-    window.dispatchEvent(new Event('dta_badge_update'));
+    storage.broadcastBadgeUpdate();
   }
 
   // --- SALES / ORDERS BADGE ---
@@ -39,7 +41,7 @@ class BadgeTrackerService {
   public markSalesSeen(userId: string, currentTotal: number): void {
     if (typeof window === 'undefined' || !userId) return;
     localStorage.setItem(this.getStorageKey('sales', userId), String(currentTotal));
-    window.dispatchEvent(new Event('dta_badge_update'));
+    storage.broadcastBadgeUpdate();
   }
 
   // --- REWARDS BADGE ---
@@ -57,7 +59,7 @@ class BadgeTrackerService {
   public markRewardsSeen(userId: string, currentTotal: number): void {
     if (typeof window === 'undefined' || !userId) return;
     localStorage.setItem(this.getStorageKey('rewards', userId), String(currentTotal));
-    window.dispatchEvent(new Event('dta_badge_update'));
+    storage.broadcastBadgeUpdate();
   }
 
   // --- ADMIN ORDERS BADGE ---
@@ -75,7 +77,7 @@ class BadgeTrackerService {
   public markAdminOrdersSeen(currentPending: number): void {
     if (typeof window === 'undefined') return;
     localStorage.setItem('dta_badge_admin_orders_seen', String(currentPending));
-    window.dispatchEvent(new Event('dta_badge_update'));
+    storage.broadcastBadgeUpdate();
   }
 
   // --- ADMIN PAYOUTS BADGE ---
@@ -93,7 +95,7 @@ class BadgeTrackerService {
   public markAdminPayoutsSeen(currentPending: number): void {
     if (typeof window === 'undefined') return;
     localStorage.setItem('dta_badge_admin_payouts_seen', String(currentPending));
-    window.dispatchEvent(new Event('dta_badge_update'));
+    storage.broadcastBadgeUpdate();
   }
 
   // --- ADMIN USERS BADGE ---
@@ -111,7 +113,7 @@ class BadgeTrackerService {
   public markAdminUsersSeen(currentTotal: number): void {
     if (typeof window === 'undefined') return;
     localStorage.setItem('dta_badge_admin_users_seen', String(currentTotal));
-    window.dispatchEvent(new Event('dta_badge_update'));
+    storage.broadcastBadgeUpdate();
   }
 }
 

@@ -123,7 +123,10 @@ export const AdminLayout: React.FC = () => {
       calculatePendingUpdates();
       setBadgeTrigger((prev) => prev + 1);
     };
-    const handleBadgeUpdate = () => setBadgeTrigger((prev) => prev + 1);
+    const handleBadgeUpdate = () => {
+      calculatePendingUpdates();
+      setBadgeTrigger((prev) => prev + 1);
+    };
 
     window.addEventListener('dta_storage_change', handleStorageChange);
     window.addEventListener('dta_badge_update', handleBadgeUpdate);

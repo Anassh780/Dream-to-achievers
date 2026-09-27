@@ -80,7 +80,11 @@ export const DashboardLayout: React.FC = () => {
 
     const handleBadgeUpdate = () => setBadgeTrigger((prev) => prev + 1);
     window.addEventListener('dta_badge_update', handleBadgeUpdate);
-    return () => window.removeEventListener('dta_badge_update', handleBadgeUpdate);
+    window.addEventListener('dta_storage_change', handleBadgeUpdate);
+    return () => {
+      window.removeEventListener('dta_badge_update', handleBadgeUpdate);
+      window.removeEventListener('dta_storage_change', handleBadgeUpdate);
+    };
   }, [location.pathname, user?.id, rankProgress?.qualifyingCommunity, rankProgress?.qualifyingSales]);
 
   if (!isAuthenticated || !user) {

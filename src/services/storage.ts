@@ -41,6 +41,63 @@ const cloudDataKeys = new Set<keyof typeof STORAGE_KEYS>([
 ]);
 const memoryData = new Map<keyof typeof STORAGE_KEYS, unknown>();
 
+const syncChannel: BroadcastChannel | null =
+  typeof window !== 'undefined' && 'BroadcastChannel' in window
+    ? new BroadcastChannel('dta_cross_tab_sync')
+    : null;
+
+if (syncChannel) {
+  syncChannel.onmessage = (event) => {
+    const data = event.data;
+    if (!data) return;
+    if (data.type === 'storage_change' && data.key) {
+      if (cloudDataKeys.has(data.key)) {
+        memoryData.set(data.key, data.value);
+      }
+      window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key: data.key, value: data.value } }));
+      window.dispatchEvent(new CustomEvent('dta_badge_update'));
+    } else if (data.type === 'storage_remove' && data.key) {
+      memoryData.delete(data.key);
+      window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key: data.key } }));
+      window.dispatchEvent(new CustomEvent('dta_badge_update'));
+    } else if (data.type === 'badge_update') {
+      window.dispatchEvent(new CustomEvent('dta_badge_update'));
+    }
+  };
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (!event.key) {
+      memoryData.clear();
+      window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: {} }));
+      window.dispatchEvent(new CustomEvent('dta_badge_update'));
+      return;
+    }
+    const matched = Object.entries(STORAGE_KEYS).find(([, rawVal]) => rawVal === event.key);
+    if (matched) {
+      const storageKey = matched[0] as keyof typeof STORAGE_KEYS;
+      if (event.newValue === null) {
+        memoryData.delete(storageKey);
+      } else {
+        try {
+          const parsed = JSON.parse(event.newValue);
+          if (cloudDataKeys.has(storageKey)) {
+            memoryData.set(storageKey, parsed);
+          }
+        } catch {
+          memoryData.delete(storageKey);
+        }
+      }
+      window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key: storageKey } }));
+      window.dispatchEvent(new CustomEvent('dta_badge_update'));
+    }
+    if (event.key.startsWith('dta_badge_')) {
+      window.dispatchEvent(new CustomEvent('dta_badge_update'));
+    }
+  });
+}
+
 export const storage = {
   init() {
     if (typeof window === 'undefined') return;
@@ -85,6 +142,8 @@ export const storage = {
       if (cloudDataKeys.has(key)) memoryData.set(key, value);
       localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(value));
       window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key, value } }));
+      window.dispatchEvent(new CustomEvent('dta_badge_update'));
+      syncChannel?.postMessage({ type: 'storage_change', key, value });
     } catch (err) {
       console.error(`Error saving to storage key ${key}:`, err);
     }
@@ -98,12 +157,22 @@ export const storage = {
   setRaw(key: keyof typeof STORAGE_KEYS, val: string): void {
     if (typeof window === 'undefined') return;
     localStorage.setItem(STORAGE_KEYS[key], val);
+    syncChannel?.postMessage({ type: 'storage_change', key, value: val });
   },
 
   remove(key: keyof typeof STORAGE_KEYS): void {
     if (typeof window === 'undefined') return;
     memoryData.delete(key);
     localStorage.removeItem(STORAGE_KEYS[key]);
+    window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key } }));
+    window.dispatchEvent(new CustomEvent('dta_badge_update'));
+    syncChannel?.postMessage({ type: 'storage_remove', key });
+  },
+
+  broadcastBadgeUpdate(): void {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('dta_badge_update'));
+    syncChannel?.postMessage({ type: 'badge_update' });
   },
 
   clearAllData(): void {
@@ -111,5 +180,6 @@ export const storage = {
     Object.values(STORAGE_KEYS).forEach((k) => localStorage.removeItem(k));
     memoryData.clear();
     this.init();
+    syncChannel?.postMessage({ type: 'badge_update' });
   }
 };

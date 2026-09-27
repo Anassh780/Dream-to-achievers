@@ -37,20 +37,20 @@ export const Login: React.FC = () => {
     }
     setError('');
     setLoading(true);
-    setLoaderSubtitle('Verifying partner credentials...');
-
-    setTimeout(() => {
-      setLoaderSubtitle('Synchronizing wholesale catalog & margin ledger...');
-    }, 600);
-
-    // Smooth interactive pause for real feel
-    await new Promise((r) => setTimeout(r, 1200));
+    setLoaderSubtitle('Verifying partner credentials & terminal permissions...');
 
     const res = await login(email, password);
     setLoading(false);
 
     if (res.success) {
-      navigate('/dashboard');
+      const cleanEmail = (res.user?.email || email).toLowerCase().trim();
+      const isSuper = cleanEmail === 'ghhhbbbhjn3@gmail.com';
+      const isAdmin = isSuper || res.user?.role === 'admin' || res.user?.role === 'superadmin' || res.user?.id === 'oi8O5XbNHZOtnXaV10BRXdOATgi2';
+      if (isAdmin) {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } else {
       setError(res.error || 'Failed to sign in. Please verify your email and password.');
     }

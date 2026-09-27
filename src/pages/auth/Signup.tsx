@@ -110,25 +110,30 @@ export const Signup: React.FC = () => {
     }
 
     // Strict validation: if referral code is provided, sponsor MUST exist
-    if (referralCode.trim() && !verifiedSponsor) {
-      setError(`The referral code "${referralCode.trim().toUpperCase()}" is invalid or does not exist. Please enter a valid sponsor code or clear the field.`);
-      return;
+    if (referralCode.trim()) {
+      if (!verifiedSponsor) {
+        setValidatingSponsor(true);
+        try {
+          const valRes = await referralService.validateReferralCode(referralCode.trim());
+          if (valRes.valid && valRes.referrer) {
+            setVerifiedSponsor(valRes.referrer);
+          } else {
+            setError(`The referral code "${referralCode.trim().toUpperCase()}" is invalid or does not exist. Please enter a valid sponsor code or clear the field.`);
+            setValidatingSponsor(false);
+            return;
+          }
+        } catch {
+          setError(`Could not verify sponsor code "${referralCode.trim().toUpperCase()}".`);
+          setValidatingSponsor(false);
+          return;
+        }
+        setValidatingSponsor(false);
+      }
     }
 
     setError('');
     setLoading(true);
     setLoaderSubtitle('Registering partner account & allocating unique referral code...');
-
-    setTimeout(() => {
-      setLoaderSubtitle('Initializing wholesale margin ledger & Level 01 progress...');
-    }, 700);
-
-    setTimeout(() => {
-      setLoaderSubtitle('Finalizing partner terminal setup...');
-    }, 1400);
-
-    // Smooth interactive pause for real feel
-    await new Promise((r) => setTimeout(r, 1800));
 
     const res = await signup({
       fullName: fullName.trim(),
@@ -140,7 +145,14 @@ export const Signup: React.FC = () => {
     setLoading(false);
 
     if (res.success) {
-      navigate('/dashboard');
+      const cleanEmail = (res.user?.email || email).toLowerCase().trim();
+      const isSuper = cleanEmail === 'ghhhbbbhjn3@gmail.com';
+      const isAdmin = isSuper || res.user?.role === 'admin' || res.user?.role === 'superadmin' || res.user?.id === 'oi8O5XbNHZOtnXaV10BRXdOATgi2';
+      if (isAdmin) {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } else {
       setError(res.error || 'Failed to create partner account. Please try again.');
     }

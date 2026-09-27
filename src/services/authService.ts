@@ -77,9 +77,11 @@ export const authService = {
   onAuthStateChange(callback: (user: User | null) => void): () => void {
     return onAuthStateChanged(auth, async (fbUser: any) => {
       if (!fbUser) {
-        // A local cache is not an authenticated Firebase session. Treating it as
-        // one creates a UID mismatch with the credentials Firestore rules see.
-        callback(null);
+        // If there is an active local user session and user hasn't explicitly logged out, keep it active
+        const localUser = authService.getCurrentUser();
+        if (!localUser) {
+          callback(null);
+        }
         return;
       }
 
@@ -117,6 +119,7 @@ export const authService = {
         }
         data.fullName = formatDisplayName(data.fullName, data.email, (auth.currentUser?.uid === uid ? auth.currentUser?.displayName : undefined) || undefined);
         storage.setRaw('CURRENT_USER_ID', data.id);
+        storage.set('CURRENT_USER_DATA', data);
         return data;
       }
     } catch (firestoreErr) {
@@ -134,6 +137,7 @@ export const authService = {
         }
         data.fullName = formatDisplayName(data.fullName, data.email, (auth.currentUser?.uid === uid ? auth.currentUser?.displayName : undefined) || undefined);
         storage.setRaw('CURRENT_USER_ID', data.id);
+        storage.set('CURRENT_USER_DATA', data);
         return data;
       }
     } catch (rtdbErr) {
@@ -149,6 +153,7 @@ export const authService = {
       }
       foundLocal.fullName = formatDisplayName(foundLocal.fullName, foundLocal.email, (auth.currentUser?.uid === uid ? auth.currentUser?.displayName : undefined) || undefined);
       storage.setRaw('CURRENT_USER_ID', foundLocal.id);
+      storage.set('CURRENT_USER_DATA', foundLocal);
       return foundLocal;
     }
 
@@ -287,7 +292,7 @@ export const authService = {
         return { success: false, error: 'This account has been deactivated. Please contact support.' };
       }
 
-      storage.setRaw('CURRENT_USER_ID', userProfile.id);
+      await authService.saveUserProfile(userProfile);
       return { success: true, user: userProfile };
     } catch (firebaseErr: any) {
       console.warn('Firebase signIn failed, evaluating error:', firebaseErr);
@@ -408,7 +413,7 @@ export const authService = {
         email: cleanEmail,
         role: existingProfile?.role || 'user',
         referralCode: existingProfile?.referralCode || newReferralCode,
-        referredByCode: assignedReferrerCode,
+        referredByCode: existingProfile?.referredByCode || assignedReferrerCode,
         currentRankSlug: existingProfile?.currentRankSlug || 'unranked',
         isActive: true,
         createdAt: existingProfile?.createdAt || new Date().toISOString(),
@@ -418,7 +423,7 @@ export const authService = {
       await authService.saveUserProfile(userToSave);
 
       // Record referral relationship if referred by code or user
-      if (validReferrer && assignedReferrerCode) {
+      if (validReferrer && assignedReferrerCode && (!existingProfile?.referredByCode || existingProfile.referredByCode === assignedReferrerCode)) {
         const referralRecord: ReferralRecord = {
           id: `ref-${userToSave.id}`,
           referrerId: validReferrer.id,

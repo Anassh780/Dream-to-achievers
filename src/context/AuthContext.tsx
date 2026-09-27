@@ -20,7 +20,7 @@ interface AuthContextType {
   isSuperAdmin: boolean;
   rankProgress: UserRankProgress | null;
   unreadNotifsCount: number;
-  login: (email: string, password?: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password?: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   signup: (data: {
     fullName: string;
     email: string;
@@ -28,6 +28,7 @@ interface AuthContextType {
     referralCode?: string;
   }) => Promise<{
     success: boolean;
+    user?: User;
     error?: string;
   }>;
   logout: () => Promise<void>;
@@ -73,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       calculateUserMetrics(firebaseUser);
     });
 
-    // 3. Storage event listener for cross-tab and local state updates (pure read-only)
+    // 3. Storage & Badge event listener for cross-tab and local state updates (pure read-only)
     const handleStorageChange = () => {
       const currentUser = authService.getCurrentUser();
       setUser(currentUser);
@@ -81,9 +82,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     window.addEventListener('dta_storage_change', handleStorageChange);
+    window.addEventListener('dta_badge_update', handleStorageChange);
     return () => {
       unsubscribe();
       window.removeEventListener('dta_storage_change', handleStorageChange);
+      window.removeEventListener('dta_badge_update', handleStorageChange);
     };
   }, [refreshUserData, calculateUserMetrics]);
 
@@ -92,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (res.success && res.user) {
       setUser(res.user);
       calculateUserMetrics(res.user);
-      return { success: true };
+      return { success: true, user: res.user };
     }
     return { success: false, error: res.error };
   };
@@ -107,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (res.success && res.user) {
       setUser(res.user);
       calculateUserMetrics(res.user);
-      return { success: true };
+      return { success: true, user: res.user };
     }
     return { success: false, error: res.error };
   };
