@@ -38,8 +38,6 @@ export const LuxuryNav: React.FC = () => {
     };
   }, [mobileMenuOpen]);
 
-  const [roleMode, setRoleMode] = useState<'reseller' | 'wholesale'>('reseller');
-
   const navLinks = [
     { label: 'Home', href: '/' },
     { label: 'Products', href: '/products' },
@@ -50,33 +48,15 @@ export const LuxuryNav: React.FC = () => {
     { label: 'Contact', href: '/contact' },
   ];
 
-  const primaryLinks = [
+  const realNavLinks = [
     { label: 'Home', href: '/' },
     { label: 'Wholesale Catalog', href: '/products' },
+    { label: 'How It Works', href: '/how-it-works' },
     { label: 'Tiers & Ranks', href: '/ranks' },
     { label: 'Services & Logistics', href: '/services' },
-    { label: 'How It Works', href: '/how-it-works' },
-  ];
-
-  const featureLinks =
-    roleMode === 'reseller'
-      ? [
-          { label: 'Zero-Capital COD Dispatch', href: '/how-it-works' },
-          { label: 'Trade Margin Calculator', href: '/products' },
-          { label: 'Cash Bonus Roadmap', href: '/ranks' },
-          { label: 'Automated Courier Tracking', href: '/services' },
-        ]
-      : [
-          { label: 'Bulk Lot Procurement', href: '/products' },
-          { label: 'Verified Trade Rates', href: '/products' },
-          { label: 'Nationwide Courier Network', href: '/services' },
-          { label: 'Direct Reseller Channel', href: '/about' },
-        ];
-
-  const secondaryLinks = [
-    { label: 'About & Leadership', href: '/about' },
-    { label: 'Support & FAQ', href: '/faq' },
-    { label: 'Executive Contact', href: '/contact' },
+    { label: 'About Us', href: '/about' },
+    { label: 'FAQ', href: '/faq' },
+    { label: 'Contact VIP', href: '/contact' },
   ];
 
   return (
@@ -218,115 +198,31 @@ export const LuxuryNav: React.FC = () => {
               </button>
             </div>
 
-            {/* Role Switcher: Large segmented pill toggle with thin luxury outline */}
-            <div className="shrink-0 px-6 pt-4 pb-2">
-              <div className="p-1 rounded-full border border-[#D9C08A]/40 bg-[#070B09]/80 backdrop-blur-md flex items-center shadow-inner">
-                <button
-                  type="button"
-                  onClick={() => setRoleMode('reseller')}
-                  className={`flex-1 py-2 px-3 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer touch-manipulation ${
-                    roleMode === 'reseller'
-                      ? 'bg-gradient-to-r from-[#FFF8E7] via-[#D9C08A] to-[#B8862E] text-[#070B09] shadow-[0_3px_12px_rgba(217,192,138,0.35)]'
-                      : 'text-[#9EABA2] hover:text-white'
-                  }`}
+            {/* Real Web Navigation Links Body (Scrollable with no scrollbar) */}
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-1.5 [scrollbar-width:none] overscroll-contain">
+              {realNavLinks.map((item) => (
+                <NavLink
+                  key={item.label}
+                  to={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `block text-2xl sm:text-[26px] font-serif font-bold tracking-tight transition-colors py-2 ${
+                      isActive
+                        ? 'text-white flex items-center justify-between font-extrabold'
+                        : 'text-[#D9C08A] hover:text-white'
+                    }`
+                  }
                 >
-                  Reseller Partner
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRoleMode('wholesale')}
-                  className={`flex-1 py-2 px-3 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer touch-manipulation ${
-                    roleMode === 'wholesale'
-                      ? 'bg-gradient-to-r from-[#FFF8E7] via-[#D9C08A] to-[#B8862E] text-[#070B09] shadow-[0_3px_12px_rgba(217,192,138,0.35)]'
-                      : 'text-[#9EABA2] hover:text-white'
-                  }`}
-                >
-                  Wholesale Buyer
-                </button>
-              </div>
-            </div>
-
-            {/* Navigation Links Body (Scrollable with no scrollbar) */}
-            <div className="flex-1 overflow-y-auto px-6 py-3 space-y-4 [scrollbar-width:none] overscroll-contain">
-              {/* Main Navigation Stack (Large bold typography) */}
-              <div className="space-y-1.5">
-                {primaryLinks.map((item) => (
-                  <NavLink
-                    key={item.label}
-                    to={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={({ isActive }) =>
-                      `block text-2xl sm:text-[26px] font-serif font-bold tracking-tight transition-colors py-1 ${
-                        isActive
-                          ? 'text-white flex items-center justify-between'
-                          : 'text-[#D9C08A] hover:text-white'
-                      }`
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <span>{item.label}</span>
-                        {isActive && (
-                          <span className="w-2 h-2 rounded-full bg-[#D9C08A] shadow-[0_0_10px_rgba(217,192,138,0.9)] shrink-0" />
-                        )}
-                      </>
-                    )}
-                  </NavLink>
-                ))}
-              </div>
-
-              {/* Features Section Heading & Indented Submenu */}
-              <div className="pt-2 border-t border-white/[0.06]">
-                <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-[var(--champagne)] font-semibold mb-2 flex items-center gap-1.5">
-                  <Sparkle size={12} weight="fill" />
-                  <span>Wholesale Features</span>
-                </div>
-                <div className="pl-4 space-y-2.5 border-l-2 border-[#D9C08A]/30 ml-1.5 my-2">
-                  {featureLinks.map((sub) => (
-                    <NavLink
-                      key={sub.label}
-                      to={sub.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={({ isActive }) =>
-                        `block text-sm font-medium transition-colors py-0.5 ${
-                          isActive
-                            ? 'text-white font-semibold'
-                            : 'text-[#C4D0C8] hover:text-white'
-                        }`
-                      }
-                    >
-                      <span>{sub.label}</span>
-                    </NavLink>
-                  ))}
-                </div>
-              </div>
-
-              {/* Additional Pages Stack */}
-              <div className="pt-2 border-t border-white/[0.06] space-y-2">
-                {secondaryLinks.map((item) => (
-                  <NavLink
-                    key={item.label}
-                    to={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={({ isActive }) =>
-                      `block text-lg font-serif font-medium transition-colors py-1 ${
-                        isActive
-                          ? 'text-white font-bold flex items-center justify-between'
-                          : 'text-[#A1B2A8] hover:text-white'
-                      }`
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <span>{item.label}</span>
-                        {isActive && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] shadow-[0_0_8px_rgba(52,211,153,0.8)] shrink-0" />
-                        )}
-                      </>
-                    )}
-                  </NavLink>
-                ))}
-              </div>
+                  {({ isActive }) => (
+                    <>
+                      <span>{item.label}</span>
+                      {isActive && (
+                        <span className="w-2 h-2 rounded-full bg-[#D9C08A] shadow-[0_0_10px_rgba(217,192,138,0.9)] shrink-0" />
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              ))}
             </div>
 
             {/* Bottom Footer Section (Flex pinned) */}
