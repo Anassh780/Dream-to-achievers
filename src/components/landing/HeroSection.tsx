@@ -167,7 +167,7 @@ export const HeroSection: React.FC = () => {
         {/* Floating Desktop Luxury Badges */}
         <div className="hidden xl:block pointer-events-none">
           {/* Badge Left */}
-          <div className="absolute top-1/2 -left-6 -translate-y-12">
+          <div className="absolute top-1/2 left-0 2xl:-left-6 -translate-y-12">
             <GlassCard className="px-4 py-3 flex items-center gap-3 border-[var(--champagne-border)] shadow-2xl animate-pulse duration-1000">
               <div className="w-8 h-8 rounded-full bg-[var(--emerald)]/20 text-[var(--emerald)] flex items-center justify-center">
                 <TrendUp size={16} weight="bold" />
@@ -180,7 +180,7 @@ export const HeroSection: React.FC = () => {
           </div>
 
           {/* Badge Right */}
-          <div className="absolute top-1/2 -right-6 translate-y-8">
+          <div className="absolute top-1/2 right-0 2xl:-right-6 translate-y-8">
             <GlassCard className="px-4 py-3 flex items-center gap-3 border-white/10 shadow-2xl">
               <div className="w-8 h-8 rounded-full bg-[var(--champagne)]/20 text-[var(--champagne)] flex items-center justify-center">
                 <Truck size={16} weight="bold" />

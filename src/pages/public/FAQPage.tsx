@@ -211,9 +211,11 @@ export const FAQPage: React.FC = () => {
                 >
                   <button
                     type="button"
+                    id={`faq-page-trigger-${idx}`}
                     onClick={() => setOpenIndex(isOpen ? null : idx)}
                     className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 cursor-pointer select-none focus:outline-none"
                     aria-expanded={isOpen}
+                    aria-controls={`faq-page-panel-${idx}`}
                   >
                     <div className="space-y-1">
                       <span className="text-[10px] font-mono text-[#34D399] uppercase tracking-wider block font-semibold">
@@ -232,11 +234,20 @@ export const FAQPage: React.FC = () => {
                     </div>
                   </button>
 
-                  {isOpen && (
-                    <div className="px-5 sm:px-6 pb-6 pt-2 text-xs sm:text-sm text-[#9EABA2] leading-relaxed border-t border-white/8 bg-[#070B09]/40 animate-in fade-in duration-200">
-                      <p>{faq.answer}</p>
+                  <div
+                    id={`faq-page-panel-${idx}`}
+                    role="region"
+                    aria-labelledby={`faq-page-trigger-${idx}`}
+                    className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                      isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="px-5 sm:px-6 pb-6 pt-2 text-xs sm:text-sm text-[#9EABA2] leading-relaxed border-t border-white/[0.08] bg-[#070B09]/40">
+                        <p>{faq.answer}</p>
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })

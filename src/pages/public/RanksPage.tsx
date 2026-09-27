@@ -159,7 +159,7 @@ export const RanksPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            <div className="p-5 rounded-2xl bg-[#070B09]/90 border border-white/8 space-y-2.5 text-center">
+            <div className="p-5 rounded-2xl bg-[#070B09]/90 border border-white/[0.08] space-y-2.5 text-center">
               <div className="w-9 h-9 rounded-full bg-[#131E1A] text-[#D9C08A] border border-[#D9C08A]/30 flex items-center justify-center font-bold text-xs mx-auto shadow-md">
                 1
               </div>
@@ -169,7 +169,7 @@ export const RanksPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#070B09]/90 border border-white/8 space-y-2.5 text-center">
+            <div className="p-5 rounded-2xl bg-[#070B09]/90 border border-white/[0.08] space-y-2.5 text-center">
               <div className="w-9 h-9 rounded-full bg-[#131E1A] text-[#D9C08A] border border-[#D9C08A]/30 flex items-center justify-center font-bold text-xs mx-auto shadow-md">
                 2
               </div>

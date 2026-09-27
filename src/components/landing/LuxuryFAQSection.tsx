@@ -96,9 +96,11 @@ export const LuxuryFAQSection: React.FC = () => {
                   }`}
                 >
                   <button
+                    id={`faq-trigger-${faq.id}`}
                     onClick={() => toggle(faq.id)}
-                    className="w-full p-5 sm:p-6 text-left flex items-start justify-between gap-4 focus-visible:outline-none"
+                    className="w-full p-5 sm:p-6 text-left flex items-start justify-between gap-4 focus-visible:outline-none cursor-pointer select-none"
                     aria-expanded={isOpen}
+                    aria-controls={`faq-panel-${faq.id}`}
                   >
                     <div className="space-y-1.5">
                       <span className="luxury-eyebrow text-[10px] text-[var(--champagne)]">
@@ -112,7 +114,7 @@ export const LuxuryFAQSection: React.FC = () => {
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-transform duration-300 ${
                         isOpen
-                          ? 'bg-[var(--champagne)] text-[var(--bg-base)] rotate-180'
+                          ? 'bg-[var(--champagne)] text-[var(--bg-base)] rotate-180 shadow-[0_0_12px_rgba(217,192,138,0.4)]'
                           : 'bg-white/[0.05] text-[var(--text-muted)] border border-white/[0.1]'
                       }`}
                     >
@@ -120,11 +122,20 @@ export const LuxuryFAQSection: React.FC = () => {
                     </div>
                   </button>
 
-                  {isOpen && (
-                    <div className="px-5 sm:px-6 pb-6 pt-1 text-sm text-[var(--text-muted)] leading-[1.7] border-t border-white/[0.05] animate-in fade-in duration-200">
-                      {faq.answer}
+                  <div
+                    id={`faq-panel-${faq.id}`}
+                    role="region"
+                    aria-labelledby={`faq-trigger-${faq.id}`}
+                    className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                      isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="px-5 sm:px-6 pb-6 pt-1 text-sm text-[var(--text-muted)] leading-[1.7] border-t border-white/[0.06]">
+                        {faq.answer}
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </GlassCard>
               </ScrollReveal>
             );

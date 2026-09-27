@@ -207,13 +207,13 @@ export const ProductDetail: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center">
-                <div className="p-3 rounded-xl bg-[#070B09]/90 border border-white/8">
+                <div className="p-3 rounded-xl bg-[#070B09]/90 border border-white/[0.08]">
                   <span className="text-[10px] text-[#9EABA2] block font-mono truncate">Retail Price</span>
                   <span className="font-mono font-medium text-[#C4D0C8] text-xs sm:text-base block truncate mt-0.5">
                     PKR {product.retailPrice.toLocaleString()}
                   </span>
                 </div>
-                <div className="p-3 rounded-xl bg-[#070B09]/90 border border-white/8">
+                <div className="p-3 rounded-xl bg-[#070B09]/90 border border-white/[0.08]">
                   <span className="text-[10px] text-[#9EABA2] block font-mono truncate">Wholesale Cost</span>
                   <span className="font-mono font-medium text-[#34D399] text-xs sm:text-base block truncate mt-0.5">
                     PKR {product.partnerPrice.toLocaleString()}

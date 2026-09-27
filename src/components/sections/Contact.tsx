@@ -61,7 +61,7 @@ export const Contact: React.FC = () => {
                 href={whatsappChannelUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-4 rounded-2xl bg-[#070B09]/90 hover:bg-[#131E1A] border border-white/8 hover:border-[#D9C08A]/40 flex items-center justify-between text-xs transition-all duration-300 group shadow-md"
+                className="p-4 rounded-2xl bg-[#070B09]/90 hover:bg-[#131E1A] border border-white/[0.08] hover:border-[#D9C08A]/40 flex items-center justify-between text-xs transition-all duration-300 group shadow-md"
               >
                 <div className="flex items-center space-x-3.5">
                   <div className="w-10 h-10 rounded-xl bg-[#131E1A] text-[#34D399] border border-[#34D399]/25 flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -80,7 +80,7 @@ export const Contact: React.FC = () => {
               {/* Email Inquiries */}
               <a
                 href={`mailto:${supportEmail}?subject=Partner%20Inquiry%20-%20Dream%20To%20Achievers`}
-                className="p-4 rounded-2xl bg-[#070B09]/90 hover:bg-[#131E1A] border border-white/8 hover:border-[#D9C08A]/40 flex items-center justify-between text-xs transition-all duration-300 group shadow-md"
+                className="p-4 rounded-2xl bg-[#070B09]/90 hover:bg-[#131E1A] border border-white/[0.08] hover:border-[#D9C08A]/40 flex items-center justify-between text-xs transition-all duration-300 group shadow-md"
               >
                 <div className="flex items-center space-x-3.5">
                   <div className="w-10 h-10 rounded-xl bg-[#131E1A] border border-white/10 text-[#D9C08A] flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -103,7 +103,7 @@ export const Contact: React.FC = () => {
                 <span>Fast response turnaround from dedicated staff</span>
               </div>
               
-              <div className="pt-3 border-t border-white/8 space-y-2">
+              <div className="pt-3 border-t border-white/[0.08] space-y-2">
                 <span className="text-[11px] font-mono text-[#F4F7F5] font-semibold block uppercase tracking-wider">
                   Follow Official Social Handles:
                 </span>
@@ -153,7 +153,7 @@ export const Contact: React.FC = () => {
                         className={`p-3 rounded-xl text-left text-xs transition-all duration-200 cursor-pointer ${
                           selectedService === srv
                             ? 'bg-[#D9C08A] text-[#070B09] font-semibold shadow-md border border-[#D9C08A]'
-                            : 'bg-[#070B09]/90 text-[#9EABA2] hover:text-[#F4F7F5] border border-white/8 hover:border-[#D9C08A]/40'
+                            : 'bg-[#070B09]/90 text-[#9EABA2] hover:text-[#F4F7F5] border border-white/[0.08] hover:border-[#D9C08A]/40'
                         }`}
                       >
                         {srv}

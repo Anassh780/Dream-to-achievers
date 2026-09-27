@@ -96,9 +96,11 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
                       <button
                         type="button"
                         onClick={(e) => toggleExpand(cat.id, e)}
-                        className="p-0.5 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+                        className="p-1 -ml-1 rounded hover:bg-white/10 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer transition-colors"
+                        aria-label={isExpanded ? `Collapse ${cat.name}` : `Expand ${cat.name}`}
+                        aria-expanded={isExpanded}
                       >
-                        {isExpanded ? <CaretDown size={12} /> : <CaretRight size={12} />}
+                        {isExpanded ? <CaretDown size={13} /> : <CaretRight size={13} />}
                       </button>
                     )}
                     <CategoryIcon name={cat.icon} size={14} className="shrink-0" />
@@ -112,37 +114,45 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
                 </div>
 
                 {/* Subcategory Tier 2 */}
-                {hasChildren && isExpanded && (
-                  <div className="pl-4 space-y-0.5 border-l border-white/10 ml-3 mt-1">
-                    {cat.children.map((sub) => {
-                      const isSubSelected = selectedSubSlug === sub.slug || selectedSubSlug === sub.id;
+                {hasChildren && (
+                  <div
+                    className={`grid transition-[grid-template-rows,opacity] duration-200 ease-out ${
+                      isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="pl-4 space-y-0.5 border-l border-white/10 ml-3 mt-1">
+                        {cat.children.map((sub) => {
+                          const isSubSelected = selectedSubSlug === sub.slug || selectedSubSlug === sub.id;
 
-                      return (
-                        <button
-                          key={sub.id}
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onSelectCategory(cat.slug, sub.slug);
-                          }}
-                          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11.5px] transition-colors cursor-pointer ${
-                            isSubSelected
-                              ? 'bg-[var(--champagne)]/20 text-[var(--champagne)] font-medium'
-                              : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.04]'
-                          }`}
-                        >
-                          <div className="flex items-center space-x-2 truncate">
-                            <span className="text-white/30">└──</span>
-                            <span className="truncate">{sub.name}</span>
-                          </div>
-                          {sub.productCount !== undefined && sub.productCount > 0 && (
-                            <span className="text-[9.5px] font-mono text-[var(--text-muted)]">
-                              {sub.productCount}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
+                          return (
+                            <button
+                              key={sub.id}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onSelectCategory(cat.slug, sub.slug);
+                              }}
+                              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11.5px] transition-colors cursor-pointer ${
+                                isSubSelected
+                                  ? 'bg-[var(--champagne)]/20 text-[var(--champagne)] font-medium'
+                                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.04]'
+                              }`}
+                            >
+                              <div className="flex items-center space-x-2 truncate">
+                                <span className="text-white/30">└──</span>
+                                <span className="truncate">{sub.name}</span>
+                              </div>
+                              {sub.productCount !== undefined && sub.productCount > 0 && (
+                                <span className="text-[9.5px] font-mono text-[var(--text-muted)]">
+                                  {sub.productCount}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

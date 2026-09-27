@@ -131,11 +131,11 @@ export const About: React.FC = () => {
 
               {/* Verified Achievements Strip */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1 text-center font-mono">
-                <div className="p-3.5 rounded-xl bg-[#070B09]/90 border border-white/8">
+                <div className="p-3.5 rounded-xl bg-[#070B09]/90 border border-white/[0.08]">
                   <p className="text-base sm:text-lg font-bold text-[#F4F7F5]">25M+</p>
                   <p className="text-[10px] text-[#9EABA2] font-sans">Organic Views</p>
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#070B09]/90 border border-white/8">
+                <div className="p-3.5 rounded-xl bg-[#070B09]/90 border border-white/[0.08]">
                   <p className="text-base sm:text-lg font-bold text-[#34D399]">150+</p>
                   <p className="text-[10px] text-[#9EABA2] font-sans">Cities Delivered</p>
                 </div>
@@ -150,7 +150,7 @@ export const About: React.FC = () => {
 
           {/* 3. Three Core Commitments */}
           <div className="pt-6 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/8 space-y-1.5">
+            <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/[0.08] space-y-1.5">
               <div className="flex items-center gap-2 text-xs font-semibold text-[#F4F7F5]">
                 <CheckCircle size={15} weight="bold" className="text-[#34D399]" />
                 <span>Zero Inventory Risk</span>
@@ -160,7 +160,7 @@ export const About: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/8 space-y-1.5">
+            <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/[0.08] space-y-1.5">
               <div className="flex items-center gap-2 text-xs font-semibold text-[#F4F7F5]">
                 <CheckCircle size={15} weight="bold" className="text-[#34D399]" />
                 <span>Automated COD Logistics</span>
@@ -170,7 +170,7 @@ export const About: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/8 space-y-1.5">
+            <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/[0.08] space-y-1.5">
               <div className="flex items-center gap-2 text-xs font-semibold text-[#F4F7F5]">
                 <CheckCircle size={15} weight="bold" className="text-[#34D399]" />
                 <span>Guaranteed Payouts</span>

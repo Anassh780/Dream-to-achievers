@@ -265,7 +265,8 @@ export const Signup: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="text-[10px] font-mono text-[#D9C08A] hover:underline"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      className="text-[10px] font-mono text-[#D9C08A] hover:underline cursor-pointer"
                     >
                       {showPassword ? 'Hide' : 'Show'}
                     </button>

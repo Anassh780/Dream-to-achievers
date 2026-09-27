@@ -137,11 +137,11 @@ export const LuxuryNav: React.FC = () => {
           <div className="lg:hidden flex items-center gap-2">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="w-9 h-9 inline-flex items-center justify-center rounded-full bg-white/[0.06] border border-white/[0.12] text-[var(--text-primary)] focus-visible:outline-none active:scale-95 transition-transform"
+              className="min-w-[44px] min-h-[44px] w-11 h-11 inline-flex items-center justify-center rounded-full bg-white/[0.06] border border-white/[0.12] text-[var(--text-primary)] focus-visible:outline-none active:scale-95 transition-transform touch-manipulation cursor-pointer"
               aria-label="Toggle navigation menu"
               aria-expanded={mobileMenuOpen}
             >
-              {mobileMenuOpen ? <X size={18} /> : <List size={18} />}
+              {mobileMenuOpen ? <X size={20} /> : <List size={20} />}
             </button>
           </div>
         </div>
@@ -150,7 +150,7 @@ export const LuxuryNav: React.FC = () => {
       {/* Full-Screen Glass Sheet for Mobile */}
       {mobileMenuOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-40 bg-[var(--bg-base)]/95 backdrop-blur-[20px] saturate-[130%] flex flex-col justify-between pt-24 px-6 pb-8 overflow-y-auto animate-in fade-in duration-200"
+          className="lg:hidden fixed inset-0 z-40 bg-[var(--bg-base)]/95 backdrop-blur-[20px] saturate-[130%] flex flex-col justify-between pt-24 px-6 pb-[max(2rem,env(safe-area-inset-bottom))] overflow-y-auto overscroll-contain animate-in fade-in duration-200"
           role="dialog"
           aria-modal="true"
           aria-label="Mobile Navigation"

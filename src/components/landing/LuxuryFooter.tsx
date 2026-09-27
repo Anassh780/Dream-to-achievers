@@ -59,6 +59,11 @@ export const LuxuryFooter: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/products?category=fragrances" className="hover:text-[var(--text-primary)] transition-colors">
+                  Luxury Fragrances &amp; Attars
+                </Link>
+              </li>
+              <li>
                 <Link to="/products?category=electronics" className="hover:text-[var(--text-primary)] transition-colors">
                   Lifestyle Electronics
                 </Link>

@@ -29,7 +29,7 @@ const CATEGORIES: CategoryTileData[] = [
   {
     id: 'cat-perfume',
     title: 'Luxury Fragrances & Attars',
-    categorySlug: 'skincare',
+    categorySlug: 'fragrances',
     eyebrow: 'HAUTE PARFUMERIE',
     image: '/images/landing/cat-perfume.webp',
     marginText: 'PKR 800 – 1,600 margin',

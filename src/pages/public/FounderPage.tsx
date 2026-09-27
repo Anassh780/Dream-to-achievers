@@ -116,7 +116,7 @@ export const FounderPage: React.FC = () => {
               </div>
 
               {/* Direct Leadership Contact Card */}
-              <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/8 space-y-3 text-xs">
+              <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/[0.08] space-y-3 text-xs">
                 <span className="font-serif font-medium text-xs text-[#F4F7F5] block">
                   Official Founder Desks
                 </span>
@@ -182,7 +182,7 @@ export const FounderPage: React.FC = () => {
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                  <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/8 space-y-1">
+                  <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/[0.08] space-y-1">
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-[#F4F7F5]">
                       <Package size={15} className="text-[#34D399]" weight="bold" />
                       <span>Zero Inventory Risk</span>
@@ -192,7 +192,7 @@ export const FounderPage: React.FC = () => {
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/8 space-y-1">
+                  <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/[0.08] space-y-1">
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-[#F4F7F5]">
                       <Truck size={15} className="text-[#34D399]" weight="bold" />
                       <span>150+ Cities COD</span>
@@ -202,7 +202,7 @@ export const FounderPage: React.FC = () => {
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/8 space-y-1">
+                  <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/[0.08] space-y-1">
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-[#F4F7F5]">
                       <Wallet size={15} className="text-[#D9C08A]" weight="bold" />
                       <span>Direct Profit Ledgers</span>
@@ -247,22 +247,22 @@ export const FounderPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-            <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/8">
+            <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/[0.08]">
               <span className="text-[10.5px] text-[#9EABA2] font-mono block">Founder / Director</span>
               <strong className="text-[#F4F7F5] text-sm font-serif">Faria Imran</strong>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/8">
+            <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/[0.08]">
               <span className="text-[10.5px] text-[#9EABA2] font-mono block">Official Platform</span>
               <strong className="text-[#F4F7F5] text-sm font-serif">Dream to Achievers</strong>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/8">
+            <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/[0.08]">
               <span className="text-[10.5px] text-[#9EABA2] font-mono block">Business Category</span>
               <strong className="text-[#F4F7F5] text-sm font-serif">B2B Wholesale Platform</strong>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/8">
+            <div className="p-4 rounded-2xl bg-[#070B09]/90 border border-white/[0.08]">
               <span className="text-[10.5px] text-[#9EABA2] font-mono block">Production Domain</span>
               <strong className="text-[#D9C08A] text-xs font-mono truncate block mt-0.5">
                 dream-to-achievers.vercel.app

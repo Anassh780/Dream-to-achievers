@@ -173,7 +173,8 @@ export const Login: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9EABA2] hover:text-[#F4F7F5]"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.06] transition-colors cursor-pointer touch-manipulation"
                   >
                     {showPassword ? <EyeSlash size={16} /> : <Eye size={16} />}
                   </button>

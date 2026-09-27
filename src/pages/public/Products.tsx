@@ -362,7 +362,7 @@ export const Products: React.FC = () => {
                     {/* Economics & Action Footer */}
                     <div className="p-4 pt-0 space-y-3">
                       {/* Pricing Box */}
-                      <div className="p-3 rounded-xl bg-[#070B09]/90 border border-white/8 space-y-1.5 text-xs">
+                      <div className="p-3 rounded-xl bg-[#070B09]/90 border border-white/[0.08] space-y-1.5 text-xs">
                         <div className="flex items-center justify-between text-[#9EABA2]">
                           <span>Retail Price:</span>
                           <span className="text-[#C4D0C8] font-mono font-medium">
@@ -375,7 +375,7 @@ export const Products: React.FC = () => {
                             PKR {product.partnerPrice.toLocaleString()}
                           </span>
                         </div>
-                        <div className="pt-1.5 border-t border-white/8 flex items-center justify-between font-medium">
+                        <div className="pt-1.5 border-t border-white/[0.08] flex items-center justify-between font-medium">
                           <span className="text-[#F4F7F5]">Partner Margin:</span>
                           <span className="text-[#34D399] bg-[#34D399]/10 px-2 py-0.5 rounded border border-[#34D399]/25 font-mono font-bold">
                             +PKR {product.grossMargin.toLocaleString()}
