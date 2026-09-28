@@ -413,39 +413,25 @@ export const AdminLayout: React.FC = () => {
         </Link>
         <div className="flex items-center gap-2">
           {user && (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setNotifPopoverOpen(!notifPopoverOpen)}
-                className={`relative p-2 rounded-xl border transition-all cursor-pointer ${
-                  notifPopoverOpen
-                    ? 'bg-[#D9C08A]/15 border-[#D9C08A]/40 text-[#D9C08A]'
-                    : 'text-[#9EABA2] hover:text-[#F4F7F5] bg-white/[0.04] border-white/10'
-                }`}
-                title="Platform Notifications"
-                aria-label="Toggle notifications pop-up"
-                aria-expanded={notifPopoverOpen}
-              >
-                <Bell size={18} weight={notifPopoverOpen ? 'fill' : 'regular'} />
-                {unreadNotifsCount > 0 && (
-                  <span className="absolute top-1 right-1 flex items-center justify-center min-w-[16px] h-[16px] px-1 rounded-full bg-red-600 text-white font-mono font-bold text-[9px] animate-pulse">
-                    {unreadNotifsCount}
-                  </span>
-                )}
-              </button>
-
-              <NotificationQuickPopover
-                userId={user.id}
-                isOpen={notifPopoverOpen}
-                onClose={() => setNotifPopoverOpen(false)}
-                onSelectNotification={(notif) => {
-                  setSelectedNotif(notif);
-                  setNotifModalOpen(true);
-                }}
-                unreadCount={unreadNotifsCount}
-                onRefreshUserData={refreshUserData}
-              />
-            </div>
+            <button
+              type="button"
+              onClick={() => setNotifPopoverOpen(!notifPopoverOpen)}
+              className={`relative p-2 rounded-xl border transition-all cursor-pointer ${
+                notifPopoverOpen
+                  ? 'bg-[#D9C08A]/15 border-[#D9C08A]/40 text-[#D9C08A]'
+                  : 'text-[#9EABA2] hover:text-[#F4F7F5] bg-white/[0.04] border-white/10'
+              }`}
+              title="Platform Notifications"
+              aria-label="Toggle notifications pop-up"
+              aria-expanded={notifPopoverOpen}
+            >
+              <Bell size={18} weight={notifPopoverOpen ? 'fill' : 'regular'} />
+              {unreadNotifsCount > 0 && (
+                <span className="absolute top-1 right-1 flex items-center justify-center min-w-[16px] h-[16px] px-1 rounded-full bg-red-600 text-white font-mono font-bold text-[9px] animate-pulse">
+                  {unreadNotifsCount}
+                </span>
+              )}
+            </button>
           )}
 
           {totalAdminAlerts > 0 && (
@@ -576,39 +562,25 @@ export const AdminLayout: React.FC = () => {
             <div className="flex items-center gap-3">
               {/* Desktop Quick Notifications Button */}
               {user && (
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setNotifPopoverOpen(!notifPopoverOpen)}
-                    className={`relative p-2 rounded-xl border transition-all cursor-pointer ${
-                      notifPopoverOpen
-                        ? 'bg-[#D9C08A]/15 border-[#D9C08A]/40 text-[#D9C08A]'
-                        : 'text-[#9EABA2] hover:text-[#F4F7F5] bg-white/[0.04] hover:bg-white/[0.08] border-white/10'
-                    }`}
-                    title="Platform Notifications"
-                    aria-label="Toggle notifications pop-up"
-                    aria-expanded={notifPopoverOpen}
-                  >
-                    <Bell size={17} weight={notifPopoverOpen ? 'fill' : 'regular'} />
-                    {unreadNotifsCount > 0 && (
-                      <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[17px] h-[17px] px-1 rounded-full bg-red-600 text-white font-mono font-bold text-[9.5px] ring-2 ring-[#070B09] shadow-xs animate-pulse">
-                        {unreadNotifsCount}
-                      </span>
-                    )}
-                  </button>
-
-                  <NotificationQuickPopover
-                    userId={user.id}
-                    isOpen={notifPopoverOpen}
-                    onClose={() => setNotifPopoverOpen(false)}
-                    onSelectNotification={(notif) => {
-                      setSelectedNotif(notif);
-                      setNotifModalOpen(true);
-                    }}
-                    unreadCount={unreadNotifsCount}
-                    onRefreshUserData={refreshUserData}
-                  />
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setNotifPopoverOpen(!notifPopoverOpen)}
+                  className={`relative p-2 rounded-xl border transition-all cursor-pointer ${
+                    notifPopoverOpen
+                      ? 'bg-[#D9C08A]/15 border-[#D9C08A]/40 text-[#D9C08A]'
+                      : 'text-[#9EABA2] hover:text-[#F4F7F5] bg-white/[0.04] hover:bg-white/[0.08] border-white/10'
+                  }`}
+                  title="Platform Notifications"
+                  aria-label="Toggle notifications pop-up"
+                  aria-expanded={notifPopoverOpen}
+                >
+                  <Bell size={17} weight={notifPopoverOpen ? 'fill' : 'regular'} />
+                  {unreadNotifsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[17px] h-[17px] px-1 rounded-full bg-red-600 text-white font-mono font-bold text-[9.5px] ring-2 ring-[#070B09] shadow-xs animate-pulse">
+                      {unreadNotifsCount}
+                    </span>
+                  )}
+                </button>
               )}
 
               <LiquidGlassButton
@@ -629,6 +601,21 @@ export const AdminLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* Universal Floating Quick Notifications Popover */}
+      {user && (
+        <NotificationQuickPopover
+          userId={user.id}
+          isOpen={notifPopoverOpen}
+          onClose={() => setNotifPopoverOpen(false)}
+          onSelectNotification={(notif) => {
+            setSelectedNotif(notif);
+            setNotifModalOpen(true);
+          }}
+          unreadCount={unreadNotifsCount}
+          onRefreshUserData={refreshUserData}
+        />
+      )}
 
       {/* Universal Floating Detail Modal with Spring Motion Design */}
       <NotificationDetailModal

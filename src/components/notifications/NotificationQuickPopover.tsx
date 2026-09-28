@@ -71,9 +71,12 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
   useEffect(() => {
     if (!isOpen) return;
     const handleClickOutside = (e: MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
-        onClose();
-      }
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (popoverRef.current && popoverRef.current.contains(target)) return;
+      if (target.closest?.('[aria-label="Quick Notifications"]')) return;
+      if (target.closest?.('[aria-label="Toggle notifications pop-up"]')) return;
+      onClose();
     };
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -158,15 +161,19 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
 
   return (
     <>
-      {/* Mobile backdrop overlay for focus */}
-      <div className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-xs animate-notif-backdrop" />
+      {/* Mobile & Desktop backdrop overlay for focus & outside dismiss */}
+      <div
+        className="fixed inset-0 z-40 bg-black/60 md:bg-black/25 backdrop-blur-xs animate-notif-backdrop cursor-pointer"
+        onClick={onClose}
+      />
 
       {/* Floating Popover Container */}
       <div
         ref={popoverRef}
+        onMouseDown={(e) => e.stopPropagation()}
         role="dialog"
         aria-label="Quick Notifications"
-        className="fixed md:absolute right-3 sm:right-6 top-16 md:top-full md:mt-2 z-50 w-[calc(100vw-24px)] max-w-sm sm:max-w-md rounded-3xl bg-[#0D1512]/95 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.85),0_0_30px_rgba(217,192,138,0.06)] overflow-hidden flex flex-col max-h-[82vh] animate-notif-popover"
+        className="fixed right-3 sm:right-6 md:right-8 lg:right-12 top-16 md:top-20 z-50 w-[calc(100vw-24px)] max-w-sm sm:max-w-md rounded-3xl bg-[#0D1512]/95 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.85),0_0_30px_rgba(217,192,138,0.06)] overflow-hidden flex flex-col max-h-[82vh] animate-notif-popover"
       >
         {/* Top Header */}
         <div className="p-4 pb-3 border-b border-white/[0.08] flex items-center justify-between gap-3 bg-[#070B09]/60">
@@ -191,7 +198,11 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
             {unreadCount > 0 && (
               <button
                 type="button"
-                onClick={handleMarkAllRead}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMarkAllRead();
+                }}
                 className="px-2 py-1 rounded-lg text-[10px] font-mono text-[#34D399] hover:bg-[#34D399]/10 transition-colors cursor-pointer"
                 title="Mark all as read"
               >
@@ -200,7 +211,11 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
             )}
             <button
               type="button"
-              onClick={onClose}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
               className="p-1.5 rounded-lg text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.06] transition-colors cursor-pointer"
             >
               <X size={15} weight="bold" />
@@ -218,7 +233,13 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setFilter(tab.id as any)}
+              type="button"
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setFilter(tab.id as any);
+              }}
               className={`px-2.5 py-1 rounded-full text-[10.5px] font-mono font-medium shrink-0 transition-all cursor-pointer ${
                 filter === tab.id
                   ? 'bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/30 font-semibold'
