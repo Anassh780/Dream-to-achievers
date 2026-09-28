@@ -233,6 +233,7 @@ export interface User {
 export type NotificationType =
   | 'welcome'
   | 'referral_joined'
+  | 'team_expansion'
   | 'sale_submitted'
   | 'sale_confirmed'
   | 'sale_dispatched'

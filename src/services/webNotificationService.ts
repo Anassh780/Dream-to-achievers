@@ -41,7 +41,7 @@ class WebNotificationService {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
         this.sendLocalNotification(
-          'Notifications Activated! ??',
+          'Notifications Activated! 🔔',
           'You will now receive real-time order verifications, bonus alerts, and team updates.',
           '/dashboard/notifications'
         );

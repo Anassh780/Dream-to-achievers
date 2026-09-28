@@ -161,14 +161,6 @@ export const AdminRewardsPage: React.FC = () => {
       adminNote: finalReason,
     });
 
-    notificationService.createNotification({
-      userId: rejectingWithdrawal.userId,
-      title: 'Withdrawal Request Rejected ❌',
-      message: `Your profit withdrawal of PKR ${rejectingWithdrawal.amount.toLocaleString()} was rejected: "${finalReason}". Please check your payout account details in Profile and re-submit.`,
-      type: 'system',
-      link: '/dashboard/rewards',
-    });
-
     refreshData();
     setIsRejectingPayout(false);
     setRejectingWithdrawal(null);

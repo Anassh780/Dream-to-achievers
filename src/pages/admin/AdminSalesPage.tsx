@@ -119,16 +119,6 @@ export const AdminSalesPage: React.FC = () => {
       adminProofNotes: adminProofNotes,
     });
 
-    if (targetStatus === 'delivered' || targetStatus === 'confirmed') {
-      notificationService.createNotification({
-        userId: selectedSale.userId,
-        title: 'Order Delivered & Margin Released! 💰',
-        message: `Your client order #${selectedSale.id} (${selectedSale.productName}) was confirmed delivered. Profit margin of PKR ${(selectedSale.profitMargin * selectedSale.quantity).toLocaleString()} has been unlocked in your wallet.`,
-        type: 'sale_confirmed',
-        link: '/dashboard/sales',
-      });
-    }
-
     refreshData();
     setIsUpdating(false);
     toastSuccess(`Order #${selectedSale.id} updated to ${targetStatus.replace('_', ' ')}.`);
@@ -152,15 +142,6 @@ export const AdminSalesPage: React.FC = () => {
       saleId: rejectingSale.id,
       status: 'rejected',
       adminReviewNote: finalReason,
-    });
-
-    // Notify Partner with actionable feedback
-    notificationService.createNotification({
-      userId: rejectingSale.userId,
-      title: 'Order Payment Rejected ❌',
-      message: `Your order #${rejectingSale.id} (${rejectingSale.productName}) was rejected: "${finalReason}". Please upload a valid payment receipt or contact admin.`,
-      type: 'system',
-      link: '/dashboard/sales',
     });
 
     refreshData();

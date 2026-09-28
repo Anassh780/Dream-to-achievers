@@ -1,5 +1,6 @@
 import { Reward, RewardStatus } from '@/types';
 import { storage } from './storage';
+import { notificationService } from './notificationService';
 import { db, rtdb } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { ref, set } from 'firebase/database';
@@ -58,11 +59,9 @@ export const rewardService = {
         console.warn('RTDB reward save warning:', err);
       }
 
-      // Create notification for user
+      // Create notification for user with Cloud Firestore & RTDB sync
       const targetUserId = rewards[index].userId;
-      const notifs = storage.get<any[]>('NOTIFICATIONS', []);
-      notifs.unshift({
-        id: `notif-${Date.now()}`,
+      notificationService.createNotification({
         userId: targetUserId,
         type: status === 'paid' ? 'reward_paid' : 'reward_approved',
         title: status === 'paid' ? '💰 Milestone Reward Paid!' : '✅ Milestone Reward Approved',
@@ -70,11 +69,8 @@ export const rewardService = {
           status === 'paid'
             ? `Your PKR ${rewards[index].amount.toLocaleString()} reward for ${rewards[index].rankName} has been disbursed (${transactionReference || 'Direct Transfer'}).`
             : `Your PKR ${rewards[index].amount.toLocaleString()} reward for ${rewards[index].rankName} has been approved.`,
-        isRead: false,
         linkUrl: '/dashboard/rewards',
-        createdAt: new Date().toISOString(),
       });
-      storage.set('NOTIFICATIONS', notifs);
     }
   },
 };

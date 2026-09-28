@@ -53,13 +53,37 @@ class CloudSyncService {
 
   private listenCollection(collectionName: string, cacheKey: CacheKey, bucket: Array<() => void>) {
     bucket.push(onSnapshot(collection(db, collectionName), (snapshot: any) => {
-      storage.set(cacheKey, snapshot.docs.map((item: any) => ({ id: item.id, ...item.data() })));
+      const docs = snapshot.docs.map((item: any) => ({ id: item.id, ...item.data() }));
+      if (cacheKey === 'NOTIFICATIONS') {
+        const existing = storage.get<AppNotification[]>('NOTIFICATIONS', []);
+        const map = new Map<string, any>();
+        existing.forEach((n) => { if (n?.id) map.set(n.id, n); });
+        docs.forEach((n: any) => { if (n?.id) map.set(n.id, n); });
+        const merged = Array.from(map.values()).sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        storage.set(cacheKey, merged);
+      } else {
+        storage.set(cacheKey, docs);
+      }
     }, (error: any) => console.warn(`[Firestore] ${collectionName} listener failed:`, error.code)));
   }
 
   private listenQuery(source: any, label: string, cacheKey: CacheKey) {
     this.privateUnsubscribers.push(onSnapshot(source, (snapshot: any) => {
-      storage.set(cacheKey, snapshot.docs.map((item: any) => ({ id: item.id, ...item.data() })));
+      const docs = snapshot.docs.map((item: any) => ({ id: item.id, ...item.data() }));
+      if (cacheKey === 'NOTIFICATIONS') {
+        const existing = storage.get<AppNotification[]>('NOTIFICATIONS', []);
+        const map = new Map<string, any>();
+        existing.forEach((n) => { if (n?.id) map.set(n.id, n); });
+        docs.forEach((n: any) => { if (n?.id) map.set(n.id, n); });
+        const merged = Array.from(map.values()).sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        storage.set(cacheKey, merged);
+      } else {
+        storage.set(cacheKey, docs);
+      }
     }, (error: any) => console.warn(`[Firestore] ${label} listener failed:`, error.code)));
   }
 
@@ -95,7 +119,12 @@ class CloudSyncService {
   async restoreProduct(product: Product) { await this.syncProductToCloud(product); await deleteDoc(doc(db, 'deleted_products', product.id)); }
   async syncCategoryToCloud(category: Category) { await setDoc(doc(db, 'categories', category.id), category, { merge: true }); }
   async deleteCategoryFromCloud(categoryId: string) { await deleteDoc(doc(db, 'categories', categoryId)); }
-  async syncNotificationToCloud(notification: AppNotification) { await setDoc(doc(db, 'notifications', notification.id), notification, { merge: true }); }
+  async syncNotificationToCloud(notification: AppNotification) {
+    await setDoc(doc(db, 'notifications', notification.id), notification, { merge: true });
+    if (notification.userId) {
+      await setDoc(doc(db, `users/${notification.userId}/notifications`, notification.id), notification, { merge: true });
+    }
+  }
 
   destroy() {
     this.authRevision++;

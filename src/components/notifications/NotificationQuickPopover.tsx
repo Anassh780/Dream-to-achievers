@@ -47,9 +47,24 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
   };
 
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen || !userId) return;
+    refreshList();
+
+    // Pull real-time cloud updates
+    notificationService.syncUserNotificationsFromCloud(userId).then((cloudNotifs) => {
+      setNotifications(cloudNotifs);
+    }).catch(() => {});
+
+    const handleUpdate = () => {
       refreshList();
-    }
+    };
+
+    window.addEventListener('dta_storage_change', handleUpdate);
+    window.addEventListener('dta_badge_update', handleUpdate);
+    return () => {
+      window.removeEventListener('dta_storage_change', handleUpdate);
+      window.removeEventListener('dta_badge_update', handleUpdate);
+    };
   }, [isOpen, userId]);
 
   // Click outside listener
@@ -113,11 +128,17 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
       case 'reward_approved':
       case 'reward_earned':
         return <Gift size={15} weight="fill" className="text-[#34D399]" />;
+      case 'withdrawal_requested':
+      case 'withdrawal_approved':
+      case 'withdrawal_paid':
+        return <Sparkle size={15} weight="fill" className="text-[#34D399]" />;
       case 'sale_submitted':
       case 'sale_confirmed':
+      case 'sale_dispatched':
       case 'sale_delivered':
         return <ShoppingCart size={15} weight="fill" className="text-sky-400" />;
       case 'referral_joined':
+      case 'team_expansion':
         return <Users size={15} weight="fill" className="text-purple-400" />;
       default:
         return <Bell size={15} weight="fill" className="text-[#D9C08A]" />;

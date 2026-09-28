@@ -3,6 +3,7 @@ import { CANONICAL_RANKS, UNRANKED_DEFINITION } from '@/config/ranks';
 import { storage } from './storage';
 import { referralService } from './referralService';
 import { salesService } from './salesService';
+import { notificationService } from './notificationService';
 
 export const rankEngine = {
   /**
@@ -153,19 +154,22 @@ export const rankEngine = {
         history.push(historyEntry);
         storage.set('RANK_HISTORY', history);
 
-        // Create Notification
-        const notifs = storage.get<any[]>('NOTIFICATIONS', []);
-        notifs.unshift({
-          id: `notif-${Date.now()}`,
+        // Create Notification with Cloud Firestore & RTDB sync
+        notificationService.createNotification({
           userId,
           type: 'rank_achieved',
           title: `🎉 ${achievedRank.name} Achieved!`,
           message: `Congratulations! You unlocked ${achievedRank.name} and earned a PKR ${achievedRank.rewardAmount.toLocaleString()} Milestone Reward.`,
-          isRead: false,
           linkUrl: '/dashboard/rewards',
-          createdAt: new Date().toISOString(),
         });
-        storage.set('NOTIFICATIONS', notifs);
+
+        // Notify administrators about partner milestone unlock
+        notificationService.notifyAdmins({
+          title: `🌟 Partner Achieved ${achievedRank.name}!`,
+          message: `Partner "${user.fullName}" unlocked ${achievedRank.name} Rank (Reward: PKR ${achievedRank.rewardAmount.toLocaleString()}).`,
+          linkUrl: '/admin/rewards',
+          type: 'rank_achieved',
+        }).catch(() => {});
       }
 
       return { promoted: true, newRank: achievedRank };

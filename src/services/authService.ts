@@ -24,6 +24,7 @@ import { storage } from './storage';
 import { rankEngine } from './rankEngine';
 import { referralService, normalizeReferralCode } from './referralService';
 import { auditService } from './auditService';
+import { notificationService } from './notificationService';
 
 export const SUPERADMIN_EMAIL = 'ghhhbbbhjn3@gmail.com';
 
@@ -474,23 +475,34 @@ export const authService = {
 
         // Save locally and to Cloud Firestore / RTDB
         await referralService.saveReferralRecord(referralRecord);
+
+        // Notify sponsor in real-time across Firestore & RTDB
+        notificationService.createNotification({
+          userId: validReferrer.id,
+          type: 'referral_joined',
+          title: '🎉 New Team Member Joined!',
+          message: `${userToSave.fullName} (${userToSave.email}) registered using your referral code (${assignedReferrerCode}). Help them place their first wholesale order!`,
+          linkUrl: '/dashboard/referrals',
+        });
       }
 
-      // Welcome notification
-      const userNotifs = storage.get<any[]>('NOTIFICATIONS', []);
-      userNotifs.unshift({
-        id: `notif-welcome-${Date.now()}`,
+      // Welcome notification with full dual-database persistence
+      notificationService.createNotification({
         userId: userToSave.id,
         type: 'welcome',
         title: '🌟 Welcome to Dream to Achievers!',
         message: userToSave.role === 'admin' || userToSave.role === 'superadmin'
           ? 'Administrator account activated with full platform access.'
           : 'Your partner account is active. Explore products, share your referral link, and work toward Silver Rank!',
-        isRead: false,
-        linkUrl: userToSave.role === 'admin' || userToSave.role === 'superadmin' ? '/admin' : '/dashboard/rank-progress',
-        createdAt: new Date().toISOString(),
+        linkUrl: userToSave.role === 'admin' || userToSave.role === 'superadmin' ? '/admin' : '/dashboard/ranks',
       });
-      storage.set('NOTIFICATIONS', userNotifs);
+
+      // Notify platform administrators about new partner registration
+      notificationService.notifyAdmins({
+        title: '👤 New Partner Registered',
+        message: `${userToSave.fullName} (${userToSave.email}) just registered on Dream to Achievers.`,
+        linkUrl: '/admin/users',
+      }).catch(() => {});
 
       // Clear captured referral URL storage after successful signup
       storage.remove('CAPTURED_REF');
@@ -755,11 +767,9 @@ export const authService = {
       console.warn('Audit logging warning:', err);
     }
 
-    // 8. Create in-app system notification for the user
+    // 8. Create in-app system notification for the user with Cloud Sync
     try {
-      const userNotifs = storage.get<any[]>('NOTIFICATIONS', []);
-      userNotifs.unshift({
-        id: `notif-clearance-${Date.now()}`,
+      notificationService.createNotification({
         userId: targetUserId,
         type: 'welcome',
         title: newRole === 'admin' ? '🛡️ Administrator Access Granted' : '🛡️ Administrative Clearance Updated',
@@ -767,11 +777,8 @@ export const authService = {
           newRole === 'admin'
             ? `You have been granted full platform Administrator clearance by Master Superadmin (${SUPERADMIN_EMAIL}). You now have unrestricted access to the Admin Portal (/admin).`
             : `Your Administrator clearance has been revoked to Partner Reseller by Master Superadmin (${SUPERADMIN_EMAIL}).`,
-        isRead: false,
         linkUrl: newRole === 'admin' ? '/admin' : '/dashboard',
-        createdAt: new Date().toISOString(),
       });
-      storage.set('NOTIFICATIONS', userNotifs);
     } catch (err) {
       console.warn('Notification logging warning:', err);
     }

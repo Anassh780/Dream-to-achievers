@@ -125,6 +125,7 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
         };
       case 'sale_submitted':
       case 'sale_confirmed':
+      case 'sale_dispatched':
       case 'sale_delivered':
         return {
           icon: ShoppingCart,
@@ -145,7 +146,9 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
           ringColor: 'rgba(168, 85, 247, 0.3)',
         };
       case 'withdrawal_requested':
+      case 'withdrawal_approved':
       case 'withdrawal_paid':
+      case 'withdrawal_rejected':
         return {
           icon: Sparkle,
           label: 'Payout Disbursement',
@@ -153,6 +156,15 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
           glowClass: 'from-emerald-500/20 via-emerald-500/5 to-transparent',
           iconBg: 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400',
           ringColor: 'rgba(52, 211, 153, 0.3)',
+        };
+      case 'welcome':
+        return {
+          icon: Sparkle,
+          label: 'Partner Clearance & Welcome',
+          badgeClass: 'bg-champagne/15 text-[#D9C08A] border-[#D9C08A]/30',
+          glowClass: 'from-[#D9C08A]/20 via-[#D9C08A]/5 to-transparent',
+          iconBg: 'bg-[#D9C08A]/20 border-[#D9C08A]/30 text-[#D9C08A]',
+          ringColor: 'rgba(217, 192, 138, 0.3)',
         };
       default:
         return {

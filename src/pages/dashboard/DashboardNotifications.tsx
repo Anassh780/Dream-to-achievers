@@ -49,10 +49,29 @@ export const DashboardNotifications: React.FC = () => {
   };
 
   useEffect(() => {
+    if (!user) return;
     refreshList();
+
+    // Pull latest notifications from Cloud Firestore & RTDB immediately
+    notificationService.syncUserNotificationsFromCloud(user.id).then((cloudNotifs) => {
+      setNotifications(cloudNotifs);
+    }).catch(() => {});
+
     if (typeof Notification !== 'undefined') {
       setPushStatus(Notification.permission);
     }
+
+    // Real-time cross-tab and storage listener
+    const handleUpdate = () => {
+      refreshList();
+    };
+
+    window.addEventListener('dta_storage_change', handleUpdate);
+    window.addEventListener('dta_badge_update', handleUpdate);
+    return () => {
+      window.removeEventListener('dta_storage_change', handleUpdate);
+      window.removeEventListener('dta_badge_update', handleUpdate);
+    };
   }, [user?.id]);
 
   const handleMarkRead = (id: string) => {
@@ -83,7 +102,7 @@ export const DashboardNotifications: React.FC = () => {
     setIsEnablingPush(false);
     if (granted) {
       webNotificationService.showNotification({
-        title: 'Notifications Activated!',
+        title: 'Notifications Activated! 🔔',
         body: 'You will now receive instant push alerts for orders, milestone bonuses, and referral joinings on this device.',
         tag: 'welcome-push',
       });
@@ -114,30 +133,45 @@ export const DashboardNotifications: React.FC = () => {
   const getNotifIcon = (type: string) => {
     switch (type) {
       case 'rank_achieved':
-        return <Trophy size={18} weight="fill" className="text-[var(--accent)]" />;
+        return <Trophy size={18} weight="fill" className="text-amber-400" />;
       case 'reward_paid':
+      case 'reward_approved':
       case 'reward_earned':
-        return <Gift size={18} weight="fill" className="text-[var(--primary)]" />;
+        return <Gift size={18} weight="fill" className="text-[#34D399]" />;
+      case 'withdrawal_requested':
+      case 'withdrawal_approved':
+      case 'withdrawal_paid':
+        return <Sparkle size={18} weight="fill" className="text-[#34D399]" />;
+      case 'sale_submitted':
       case 'sale_confirmed':
-        return <ShoppingCart size={18} weight="fill" className="text-[var(--primary)]" />;
+      case 'sale_dispatched':
+      case 'sale_delivered':
+        return <ShoppingCart size={18} weight="fill" className="text-sky-400" />;
       case 'referral_joined':
-        return <Users size={18} weight="fill" className="text-[var(--primary)]" />;
+      case 'team_expansion':
+        return <Users size={18} weight="fill" className="text-purple-400" />;
       default:
-        return <Info size={18} weight="bold" className="text-[var(--ink-soft)]" />;
+        return <Bell size={18} weight="fill" className="text-[#D9C08A]" />;
     }
   };
 
   const getNotifBadgeColor = (type: string) => {
     switch (type) {
       case 'rank_achieved':
-        return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
+        return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
       case 'reward_paid':
+      case 'reward_approved':
       case 'reward_earned':
-        return 'bg-[var(--primary)]/10 text-[var(--primary)] border-[var(--primary)]/20';
+      case 'withdrawal_paid':
+      case 'withdrawal_approved':
+        return 'bg-[#34D399]/10 text-[#34D399] border-[#34D399]/20';
+      case 'sale_submitted':
       case 'sale_confirmed':
-        return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
+      case 'sale_dispatched':
+      case 'sale_delivered':
+        return 'bg-sky-500/10 text-sky-400 border-sky-500/20';
       case 'referral_joined':
-        return 'bg-purple-500/10 text-purple-600 border-purple-500/20';
+        return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
       default:
         return 'bg-[var(--surface-alt)] text-[var(--ink-soft)] border-[var(--line)]';
     }
@@ -149,10 +183,10 @@ export const DashboardNotifications: React.FC = () => {
     return notifications.filter((n) => {
       if (activeTab === 'all') return true;
       if (activeTab === 'unread') return !n.isRead;
-      if (activeTab === 'sales') return n.type === 'sale_confirmed';
-      if (activeTab === 'rewards') return n.type === 'reward_paid' || n.type === 'reward_earned' || n.type === 'rank_achieved';
-      if (activeTab === 'team') return n.type === 'referral_joined';
-      if (activeTab === 'system') return n.type === 'system' || n.type === 'info';
+      if (activeTab === 'sales') return n.type.includes('sale') || n.type.includes('order');
+      if (activeTab === 'rewards') return n.type.includes('reward') || n.type.includes('rank') || n.type.includes('withdrawal');
+      if (activeTab === 'team') return n.type === 'referral_joined' || n.type === 'team_expansion';
+      if (activeTab === 'system') return n.type === 'system' || n.type === 'info' || n.type === 'welcome' || n.type === 'system_announcement';
       return true;
     });
   }, [notifications, activeTab]);

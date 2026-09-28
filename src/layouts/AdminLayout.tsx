@@ -8,6 +8,10 @@ import { badgeTrackerService } from '@/services/badgeTrackerService';
 import { Button } from '@/components/ui/Button';
 import { LiquidGlassButton } from '@/components/ui/LiquidGlassButton';
 import { DreamLogo } from '@/components/ui/DreamLogo';
+import { AppNotification } from '@/types';
+import { notificationService } from '@/services/notificationService';
+import { NotificationQuickPopover } from '@/components/notifications/NotificationQuickPopover';
+import { NotificationDetailModal } from '@/components/modals/NotificationDetailModal';
 import {
   ShieldCheck,
   House,
@@ -46,8 +50,11 @@ interface NavGroup {
 }
 
 export const AdminLayout: React.FC = () => {
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, unreadNotifsCount, logout, refreshUserData } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notifPopoverOpen, setNotifPopoverOpen] = useState(false);
+  const [selectedNotif, setSelectedNotif] = useState<AppNotification | null>(null);
+  const [notifModalOpen, setNotifModalOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem('dta_admin_sidebar_collapsed') === 'true';
@@ -405,6 +412,42 @@ export const AdminLayout: React.FC = () => {
           </div>
         </Link>
         <div className="flex items-center gap-2">
+          {user && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setNotifPopoverOpen(!notifPopoverOpen)}
+                className={`relative p-2 rounded-xl border transition-all cursor-pointer ${
+                  notifPopoverOpen
+                    ? 'bg-[#D9C08A]/15 border-[#D9C08A]/40 text-[#D9C08A]'
+                    : 'text-[#9EABA2] hover:text-[#F4F7F5] bg-white/[0.04] border-white/10'
+                }`}
+                title="Platform Notifications"
+                aria-label="Toggle notifications pop-up"
+                aria-expanded={notifPopoverOpen}
+              >
+                <Bell size={18} weight={notifPopoverOpen ? 'fill' : 'regular'} />
+                {unreadNotifsCount > 0 && (
+                  <span className="absolute top-1 right-1 flex items-center justify-center min-w-[16px] h-[16px] px-1 rounded-full bg-red-600 text-white font-mono font-bold text-[9px] animate-pulse">
+                    {unreadNotifsCount}
+                  </span>
+                )}
+              </button>
+
+              <NotificationQuickPopover
+                userId={user.id}
+                isOpen={notifPopoverOpen}
+                onClose={() => setNotifPopoverOpen(false)}
+                onSelectNotification={(notif) => {
+                  setSelectedNotif(notif);
+                  setNotifModalOpen(true);
+                }}
+                unreadCount={unreadNotifsCount}
+                onRefreshUserData={refreshUserData}
+              />
+            </div>
+          )}
+
           {totalAdminAlerts > 0 && (
             <span className="inline-flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-full bg-red-600 text-white font-mono font-bold text-[10px] animate-pulse">
               {totalAdminAlerts}
@@ -531,6 +574,43 @@ export const AdminLayout: React.FC = () => {
               <span className="text-xs font-mono text-[#9EABA2]">· Central Administrative Core Node</span>
             </div>
             <div className="flex items-center gap-3">
+              {/* Desktop Quick Notifications Button */}
+              {user && (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setNotifPopoverOpen(!notifPopoverOpen)}
+                    className={`relative p-2 rounded-xl border transition-all cursor-pointer ${
+                      notifPopoverOpen
+                        ? 'bg-[#D9C08A]/15 border-[#D9C08A]/40 text-[#D9C08A]'
+                        : 'text-[#9EABA2] hover:text-[#F4F7F5] bg-white/[0.04] hover:bg-white/[0.08] border-white/10'
+                    }`}
+                    title="Platform Notifications"
+                    aria-label="Toggle notifications pop-up"
+                    aria-expanded={notifPopoverOpen}
+                  >
+                    <Bell size={17} weight={notifPopoverOpen ? 'fill' : 'regular'} />
+                    {unreadNotifsCount > 0 && (
+                      <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[17px] h-[17px] px-1 rounded-full bg-red-600 text-white font-mono font-bold text-[9.5px] ring-2 ring-[#070B09] shadow-xs animate-pulse">
+                        {unreadNotifsCount}
+                      </span>
+                    )}
+                  </button>
+
+                  <NotificationQuickPopover
+                    userId={user.id}
+                    isOpen={notifPopoverOpen}
+                    onClose={() => setNotifPopoverOpen(false)}
+                    onSelectNotification={(notif) => {
+                      setSelectedNotif(notif);
+                      setNotifModalOpen(true);
+                    }}
+                    unreadCount={unreadNotifsCount}
+                    onRefreshUserData={refreshUserData}
+                  />
+                </div>
+              )}
+
               <LiquidGlassButton
                 to="/admin/rewards"
                 size="sm"
@@ -549,6 +629,36 @@ export const AdminLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* Universal Floating Detail Modal with Spring Motion Design */}
+      <NotificationDetailModal
+        notification={selectedNotif}
+        isOpen={notifModalOpen && Boolean(selectedNotif)}
+        onClose={() => {
+          setNotifModalOpen(false);
+          setSelectedNotif(null);
+        }}
+        onToggleRead={(id, currentlyRead) => {
+          if (currentlyRead) {
+            const notifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
+            const idx = notifs.findIndex((n) => n.id === id);
+            if (idx >= 0) {
+              notifs[idx].isRead = false;
+              storage.set('NOTIFICATIONS', notifs);
+              refreshUserData();
+              if (selectedNotif && selectedNotif.id === id) {
+                setSelectedNotif({ ...selectedNotif, isRead: false });
+              }
+            }
+          } else {
+            notificationService.markAsRead(id);
+            refreshUserData();
+            if (selectedNotif && selectedNotif.id === id) {
+              setSelectedNotif({ ...selectedNotif, isRead: true });
+            }
+          }
+        }}
+      />
     </div>
   );
 };

@@ -103,6 +103,13 @@ service cloud.firestore {
         allow create: if signedIn() && request.resource.data.referrerId == uid;
         allow update, delete: if admin();
       }
+      match /notifications/{id} {
+        allow read: if own(uid) || admin();
+        allow create: if admin() || (signedIn() && request.resource.data.isRead == false);
+        allow update: if admin() || (own(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']));
+        allow delete: if admin();
+      }
       match /rewards/{id} {
         allow read: if own(uid) || admin();
         allow write: if admin();
@@ -134,11 +141,15 @@ service cloud.firestore {
     match /notifications/{id} {
       allow read: if admin() || (signedIn() && resource.data.userId == request.auth.uid);
       allow create: if admin() || (signedIn()
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.isRead == false);
-      allow delete: if admin();
-      allow update: if admin() || (signedIn() && resource.data.userId == request.auth.uid
+        && request.resource.data.isRead == false
+        && (
+          request.resource.data.userId == request.auth.uid
+          || request.resource.data.type in ['referral_joined', 'sale_submitted', 'team_expansion', 'system']
+        ));
+      allow update: if admin() || (signedIn()
+        && resource.data.userId == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']));
+      allow delete: if admin();
     }
     match /rewards/{id} {
       allow read: if admin() || (signedIn() && resource.data.userId == request.auth.uid);

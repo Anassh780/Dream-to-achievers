@@ -1,5 +1,6 @@
 import { PaymentMethod, PaymentMethodType, WithdrawalRequest, WithdrawalStatus, User } from '@/types';
 import { storage } from './storage';
+import { notificationService } from './notificationService';
 import { db, rtdb } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { ref, set } from 'firebase/database';
@@ -174,19 +175,22 @@ export const payoutService = {
       console.warn('RTDB withdrawal sync warning:', err);
     }
 
-    // Create user confirmation notification
-    const notifs = storage.get<any[]>('NOTIFICATIONS', []);
-    notifs.unshift({
-      id: `notif-${Date.now()}`,
+    // Create user confirmation notification with multi-cloud persistence
+    notificationService.createNotification({
       userId: user.id,
       type: 'withdrawal_requested',
       title: '💸 Withdrawal Request Submitted',
       message: `Your payout request for PKR ${amount.toLocaleString()} via ${payoutMethod.bankName} (${payoutMethod.accountNumber}) has been submitted for manual processing.`,
-      isRead: false,
       linkUrl: '/dashboard/sales',
-      createdAt: new Date().toISOString(),
     });
-    storage.set('NOTIFICATIONS', notifs);
+
+    // Notify administrators about incoming payout request
+    notificationService.notifyAdmins({
+      title: '💸 New Withdrawal Request',
+      message: `Partner "${user.fullName}" requested PKR ${amount.toLocaleString()} payout to ${payoutMethod.bankName} (${payoutMethod.accountNumber}).`,
+      linkUrl: '/admin/payouts',
+      type: 'withdrawal_requested',
+    }).catch(() => {});
 
     return { success: true, request: newRequest };
   },
@@ -232,9 +236,8 @@ export const payoutService = {
       console.warn('RTDB withdrawal status sync warning:', err);
     }
 
-    // Dispatch notification to user
+    // Dispatch notification to user with Cloud Firestore & RTDB sync
     const targetUserId = withdrawals[idx].userId;
-    const notifs = storage.get<any[]>('NOTIFICATIONS', []);
     const statusTitles: Record<WithdrawalStatus, string> = {
       approved: '✅ Payout Approved for Processing',
       paid: '💵 Payout Disbursed Successfully!',
@@ -242,8 +245,7 @@ export const payoutService = {
       pending: '⏳ Payout Pending',
     };
 
-    notifs.unshift({
-      id: `notif-${Date.now()}`,
+    notificationService.createNotification({
       userId: targetUserId,
       type: status === 'paid' ? 'withdrawal_paid' : status === 'approved' ? 'withdrawal_approved' : 'withdrawal_rejected',
       title: statusTitles[status] || 'Payout Status Update',
@@ -253,10 +255,7 @@ export const payoutService = {
           : status === 'rejected'
           ? `Withdrawal request for PKR ${withdrawals[idx].amount.toLocaleString()} was rejected. Note: ${adminNote || 'Contact support'}.`
           : `Withdrawal request for PKR ${withdrawals[idx].amount.toLocaleString()} was approved and is in processing.`,
-      isRead: false,
       linkUrl: '/dashboard/sales',
-      createdAt: new Date().toISOString(),
     });
-    storage.set('NOTIFICATIONS', notifs);
   },
 };

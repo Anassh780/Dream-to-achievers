@@ -49,6 +49,12 @@ export const DashboardLayout: React.FC = () => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
+  // Initial cloud notification sync
+  useEffect(() => {
+    if (!user?.id) return;
+    notificationService.syncUserNotificationsFromCloud(user.id).catch(() => {});
+  }, [user?.id]);
+
   useEffect(() => {
     if (!mobileMenuOpen) return;
     const previousOverflow = document.body.style.overflow;

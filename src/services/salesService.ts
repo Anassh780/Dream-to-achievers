@@ -1,6 +1,7 @@
 import { Sale, Product, SaleStatus } from '@/types';
 import { storage } from './storage';
 import { rankEngine } from './rankEngine';
+import { notificationService } from './notificationService';
 import { db, rtdb } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { ref, set } from 'firebase/database';
@@ -158,19 +159,22 @@ export const salesService = {
       console.warn('RTDB recordSale sync warning:', err);
     }
 
-    // Create confirmation notification for seller
-    const notifs = storage.get<any[]>('NOTIFICATIONS', []);
-    notifs.unshift({
-      id: `notif-${Date.now()}`,
+    // Create confirmation notification for seller with multi-cloud persistence
+    notificationService.createNotification({
       userId,
       type: 'sale_submitted',
       title: '📦 Order Submitted for Verification',
       message: `Sale recorded for ${product.name} (Client: ${customerName}). Verification & dispatch in progress.`,
-      isRead: false,
       linkUrl: '/dashboard/sales',
-      createdAt: new Date().toISOString(),
     });
-    storage.set('NOTIFICATIONS', notifs);
+
+    // Notify administrators about incoming client order
+    notificationService.notifyAdmins({
+      title: '📦 New Wholesale Order Recorded',
+      message: `Order #${newSale.id} submitted for "${product.name}" (Qty: ${quantity}, Value: PKR ${(product.partnerPrice * quantity).toLocaleString()}). Client: ${customerName}.`,
+      linkUrl: '/admin/sales',
+      type: 'sale_submitted',
+    }).catch(() => {});
 
     return { success: true, sale: newSale };
   },
@@ -239,9 +243,8 @@ export const salesService = {
       rankEngine.checkAndPromoteUser(sales[idx].userId);
     }
 
-    // Create notification for seller
+    // Create notification for seller with cloud Firestore & RTDB sync
     const targetUserId = sales[idx].userId;
-    const notifs = storage.get<any[]>('NOTIFICATIONS', []);
     const notifTitles: Record<string, string> = {
       payment_verified: '✅ Client Payment Verified',
       processing: '📦 Order Processing in Warehouse',
@@ -252,22 +255,20 @@ export const salesService = {
       cancelled: '⚠️ Order Cancelled',
     };
 
-    notifs.unshift({
-      id: `notif-${Date.now()}`,
+    notificationService.createNotification({
       userId: targetUserId,
       type: status === 'delivered' ? 'sale_delivered' : status === 'dispatched' ? 'sale_dispatched' : 'sale_confirmed',
       title: notifTitles[status] || 'Order Status Updated',
       message:
         status === 'delivered'
-          ? `Order for ${sales[idx].productName} was marked as Delivered! PKR ${(sales[idx].profitMargin * sales[idx].quantity).toLocaleString()} profit margin has been released to your Available Balance.`
+          ? `Order #${sales[idx].id} for ${sales[idx].productName} was marked as Delivered! PKR ${(sales[idx].profitMargin * sales[idx].quantity).toLocaleString()} profit margin has been released to your Available Balance.`
           : status === 'dispatched'
-          ? `Order for ${sales[idx].productName} has been dispatched via ${shippingCourier || 'Courier'} (Tracking: ${trackingNumber || 'Available in ledger'}).`
-          : `Order for ${sales[idx].productName} status updated to ${status.replace('_', ' ')}.`,
-      isRead: false,
+          ? `Order #${sales[idx].id} for ${sales[idx].productName} has been dispatched via ${shippingCourier || 'Courier'} (Tracking: ${trackingNumber || 'Available in ledger'}).`
+          : status === 'rejected'
+          ? `Order #${sales[idx].id} for ${sales[idx].productName} was rejected: ${adminReviewNote || 'Payment receipt could not be verified'}. Please upload a valid payment receipt or contact support.`
+          : `Order #${sales[idx].id} for ${sales[idx].productName} status updated to ${status.replace('_', ' ')}.`,
       linkUrl: '/dashboard/sales',
-      createdAt: new Date().toISOString(),
     });
-    storage.set('NOTIFICATIONS', notifs);
 
     return { success: true };
   },
