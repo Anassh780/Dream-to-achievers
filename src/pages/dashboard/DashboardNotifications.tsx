@@ -2,7 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { notificationService } from '@/services/notificationService';
 import { webNotificationService } from '@/services/webNotificationService';
+import { storage } from '@/services/storage';
 import { AppNotification } from '@/types';
+import { NotificationDetailModal } from '@/components/modals/NotificationDetailModal';
 import { Button } from '@/components/ui/Button';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -322,86 +324,32 @@ export const DashboardNotifications: React.FC = () => {
         )}
       </div>
 
-      {/* 5. Notification Detail Modal Popup */}
-      {selectedNotif && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-          <div className="w-full max-w-lg rounded-3xl bg-[var(--surface)] border border-[var(--line)] shadow-2xl p-6 space-y-4 text-xs">
-            {/* Modal Header */}
-            <div className="flex items-start justify-between pb-3 border-b border-[var(--line)]">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-2xl bg-[var(--surface-alt)] border border-[var(--line)] flex items-center justify-center shrink-0">
-                  {getNotifIcon(selectedNotif.type)}
-                </div>
-                <div>
-                  <span
-                    className={`inline-block text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full border mb-1 ${getNotifBadgeColor(
-                      selectedNotif.type
-                    )}`}
-                  >
-                    {selectedNotif.type.replace('_', ' ')}
-                  </span>
-                  <h3 className="font-bold text-sm sm:text-base text-[var(--ink)]">
-                    {selectedNotif.title}
-                  </h3>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setSelectedNotif(null)}
-                className="p-1.5 rounded-xl text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--surface-alt)] cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Notification Content Body */}
-            <div className="p-4 rounded-2xl bg-[var(--surface-alt)] border border-[var(--line)] space-y-2">
-              <p className="text-xs sm:text-sm text-[var(--ink)] leading-relaxed font-sans">
-                {selectedNotif.message}
-              </p>
-              <div className="pt-2 border-t border-[var(--line)]/70 flex items-center justify-between text-[10.5px] font-mono text-[var(--ink-soft)]/70">
-                <span>Logged: {new Date(selectedNotif.createdAt).toLocaleString()}</span>
-                <span>{formatTimeAgo(selectedNotif.createdAt)}</span>
-              </div>
-            </div>
-
-            {/* Modal Action Buttons */}
-            <div className="flex items-center justify-between pt-2">
-              <span className="text-[10px] font-mono text-[var(--ink-soft)]/70">
-                Notification ID: {selectedNotif.id}
-              </span>
-
-              <div className="flex items-center space-x-2">
-                {selectedNotif.link && (
-                  <Button
-                    type="button"
-                    variant="primary"
-                    size="sm"
-                    onClick={() => {
-                      const link = selectedNotif.link!;
-                      setSelectedNotif(null);
-                      navigate(link);
-                    }}
-                    className="text-xs font-semibold"
-                    iconRight={<ArrowRight size={13} />}
-                  >
-                    View in Section
-                  </Button>
-                )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedNotif(null)}
-                  className="text-xs"
-                >
-                  Close
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 5. Notification Detail Modal Popup with Spring Motion Design */}
+      <NotificationDetailModal
+        notification={selectedNotif}
+        isOpen={Boolean(selectedNotif)}
+        onClose={() => setSelectedNotif(null)}
+        onToggleRead={(id, currentlyRead) => {
+          if (currentlyRead) {
+            const notifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
+            const idx = notifs.findIndex((n) => n.id === id);
+            if (idx >= 0) {
+              notifs[idx].isRead = false;
+              storage.set('NOTIFICATIONS', notifs);
+              refreshList();
+              if (selectedNotif && selectedNotif.id === id) {
+                setSelectedNotif({ ...selectedNotif, isRead: false });
+              }
+            }
+          } else {
+            notificationService.markAsRead(id);
+            refreshList();
+            if (selectedNotif && selectedNotif.id === id) {
+              setSelectedNotif({ ...selectedNotif, isRead: true });
+            }
+          }
+        }}
+      />
 
     </div>
   );
