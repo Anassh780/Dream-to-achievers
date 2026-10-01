@@ -76,6 +76,9 @@ export const AdminTutorialsPage: React.FC = () => {
   };
 
   useEffect(() => {
+    tutorialService.fetchFromCloud().then(() => {
+      setTutorials(tutorialService.getAll());
+    });
     window.addEventListener('dta_storage_change', refreshList);
     return () => window.removeEventListener('dta_storage_change', refreshList);
   }, []);

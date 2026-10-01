@@ -21,13 +21,36 @@ export const TutorialsPage: React.FC = () => {
   const [tutorials, setTutorials] = useState<VideoTutorial[]>(() =>
     tutorialService.getActive()
   );
+  const [isLoading, setIsLoading] = useState<boolean>(tutorials.length === 0);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [activeVideoModal, setActiveVideoModal] = useState<VideoTutorial | null>(null);
 
   useEffect(() => {
-    const refresh = () => setTutorials(tutorialService.getActive());
+    let isMounted = true;
+    const fetchLatest = async () => {
+      try {
+        const cloudData = await tutorialService.fetchFromCloud();
+        if (isMounted) {
+          setTutorials(cloudData.filter((t) => t.isActive));
+          setIsLoading(false);
+        }
+      } catch {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    fetchLatest();
+
+    const refresh = () => {
+      if (isMounted) {
+        setTutorials(tutorialService.getActive());
+        setIsLoading(false);
+      }
+    };
     window.addEventListener('dta_storage_change', refresh);
-    return () => window.removeEventListener('dta_storage_change', refresh);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('dta_storage_change', refresh);
+    };
   }, []);
 
   const categories = useMemo(() => {
@@ -162,8 +185,13 @@ export const TutorialsPage: React.FC = () => {
           </div>
         )}
 
-        {/* 2. Content: Either Videos Grid or Welcoming Placeholder */}
-        {tutorials.length === 0 ? (
+        {/* 2. Content: Loading Spinner, Empty State, or Videos Grid */}
+        {isLoading ? (
+          <div className="p-12 text-center rounded-3xl bg-[#0D1512]/60 border border-white/10 space-y-4 max-w-md mx-auto my-8">
+            <div className="w-8 h-8 border-2 border-[#D9C08A]/30 border-t-[#D9C08A] rounded-full animate-spin mx-auto" />
+            <p className="text-xs font-mono text-[#9EABA2]">Loading video masterclasses...</p>
+          </div>
+        ) : tutorials.length === 0 ? (
           <div className="p-10 sm:p-16 text-center rounded-3xl bg-[#0D1512]/80 backdrop-blur-xl border border-white/10 shadow-2xl space-y-6 max-w-2xl mx-auto my-8">
             <div className="w-16 h-16 rounded-2xl bg-[#D9C08A]/10 border border-[#D9C08A]/25 flex items-center justify-center text-[#D9C08A] mx-auto shadow-[0_0_30px_rgba(217,192,138,0.15)]">
               <VideoCamera size={32} weight="fill" />

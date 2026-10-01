@@ -4,6 +4,8 @@ import { cloudSyncService } from './cloudSyncService';
 import { auditService } from './auditService';
 import { parseVideoEmbed } from '@/lib/videoEmbed';
 import { INITIAL_TUTORIALS } from '@/config/tutorials';
+import { rtdb } from '@/lib/firebase';
+import { ref, get, set } from 'firebase/database';
 
 class TutorialService {
   /**
@@ -14,6 +16,8 @@ class TutorialService {
     // Filter out any legacy demo/mock tutorials
     const tutorials = rawTutorials.filter(
       (t) =>
+        t &&
+        t.id &&
         !['tut-1', 'tut-2', 'tut-3'].includes(t.id) &&
         !t.rawInput?.includes('dQw4w9WgXcQ') &&
         !t.rawInput?.includes('L_LUpnjgPso') &&
@@ -48,6 +52,61 @@ class TutorialService {
    */
   getById(id: string): VideoTutorial | undefined {
     return this.getAll().find((t) => t.id === id);
+  }
+
+  /**
+   * Fetches latest tutorials from RTDB and Firestore, updates local storage, and returns clean list.
+   * If local storage contains un-synced real tutorials (e.g. newly created by admin), it automatically pushes them to RTDB.
+   */
+  async fetchFromCloud(): Promise<VideoTutorial[]> {
+    try {
+      const snap = await get(ref(rtdb, 'tutorials'));
+      if (snap.exists()) {
+        const val = snap.val() || {};
+        const remoteItems = Object.values(val) as VideoTutorial[];
+        const cleaned = remoteItems.filter(
+          (t) =>
+            t &&
+            t.id &&
+            !['tut-1', 'tut-2', 'tut-3'].includes(t.id) &&
+            !t.rawInput?.includes('dQw4w9WgXcQ')
+        );
+
+        // Merge with any local tutorials not yet in RTDB
+        const local = this.getAll();
+        const map = new Map<string, VideoTutorial>();
+        cleaned.forEach((t) => map.set(t.id, t));
+        local.forEach((t) => {
+          if (!map.has(t.id)) {
+            map.set(t.id, t);
+            // Push missing local tutorial to RTDB so other users immediately receive it!
+            set(ref(rtdb, `tutorials/${t.id}`), t).catch(() => {});
+          }
+        });
+
+        const merged = Array.from(map.values()).sort((a, b) => {
+          if ((a.sortOrder ?? 0) !== (b.sortOrder ?? 0)) {
+            return (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
+          }
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+
+        storage.set('TUTORIALS', merged);
+        return merged;
+      } else {
+        // If RTDB is empty but local storage has tutorials created by admin, sync them to RTDB now!
+        const local = this.getAll();
+        if (local.length > 0) {
+          for (const t of local) {
+            await set(ref(rtdb, `tutorials/${t.id}`), t).catch(() => {});
+          }
+        }
+        return local;
+      }
+    } catch (err) {
+      console.warn('[TutorialService] fetchFromCloud error:', err);
+      return this.getAll();
+    }
   }
 
   /**

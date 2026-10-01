@@ -1,6 +1,7 @@
-import { auth, db } from '@/lib/firebase';
+import { auth, db, rtdb } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, deleteDoc, doc, getDoc, onSnapshot, query, setDoc, where } from 'firebase/firestore';
+import { ref, set, remove, onValue, get } from 'firebase/database';
 import { storage } from './storage';
 import type { AppNotification, Category, Product, VideoTutorial } from '@/types';
 
@@ -18,6 +19,53 @@ class CloudSyncService {
     this.isInitialized = true;
     this.listenCollection('products', 'PRODUCTS', this.publicUnsubscribers);
     this.listenCollection('categories', 'CATEGORIES', this.publicUnsubscribers);
+
+    // Realtime Database listener for tutorials (public real-time broadcast across all users)
+    try {
+      const tutorialsRef = ref(rtdb, 'tutorials');
+      const unsubRtdbTutorials = onValue(
+        tutorialsRef,
+        (snapshot: any) => {
+          if (snapshot.exists()) {
+            const val = snapshot.val() || {};
+            const items = Object.values(val) as VideoTutorial[];
+            const cleaned = items.filter(
+              (t) =>
+                t &&
+                t.id &&
+                !['tut-1', 'tut-2', 'tut-3'].includes(t.id) &&
+                !t.rawInput?.includes('dQw4w9WgXcQ') &&
+                !t.rawInput?.includes('L_LUpnjgPso') &&
+                !t.rawInput?.includes('kJQP7kiw5Fk')
+            );
+            storage.set('TUTORIALS', cleaned);
+          } else {
+            // If RTDB tutorials node is empty, push any real local tutorials up to cloud
+            const local = storage.get<VideoTutorial[]>('TUTORIALS', []);
+            const realLocal = local.filter(
+              (t) =>
+                t &&
+                t.id &&
+                !['tut-1', 'tut-2', 'tut-3'].includes(t.id) &&
+                !t.rawInput?.includes('dQw4w9WgXcQ')
+            );
+            if (realLocal.length > 0) {
+              realLocal.forEach((tut) => {
+                set(ref(rtdb, `tutorials/${tut.id}`), tut).catch(() => {});
+              });
+            }
+          }
+        },
+        (error: any) => {
+          console.warn('[RTDB] tutorials listener error:', error);
+        }
+      );
+      this.publicUnsubscribers.push(() => unsubRtdbTutorials());
+    } catch (rtdbErr) {
+      console.warn('[RTDB] tutorials listener setup failed:', rtdbErr);
+    }
+
+    // Also listen to Firestore collection
     this.listenCollection('tutorials', 'TUTORIALS', this.publicUnsubscribers);
     this.authUnsubscribe = onAuthStateChanged(auth, (user: any) => void this.bindProtectedListeners(user));
   }
@@ -127,10 +175,32 @@ class CloudSyncService {
     }
   }
   async syncTutorialToCloud(tutorial: VideoTutorial) {
-    await setDoc(doc(db, 'tutorials', tutorial.id), tutorial, { merge: true });
+    // 1. Dual-sync to Realtime Database (guaranteed high-availability & instant cross-device broadcast)
+    try {
+      await set(ref(rtdb, `tutorials/${tutorial.id}`), tutorial);
+    } catch (rtdbErr) {
+      console.warn('[RTDB] syncTutorialToCloud warning:', rtdbErr);
+    }
+    // 2. Also attempt Cloud Firestore
+    try {
+      await setDoc(doc(db, 'tutorials', tutorial.id), tutorial, { merge: true });
+    } catch (fsErr) {
+      console.warn('[Firestore] syncTutorialToCloud warning:', fsErr);
+    }
   }
   async deleteTutorialFromCloud(tutorialId: string) {
-    await deleteDoc(doc(db, 'tutorials', tutorialId));
+    // 1. Remove from RTDB
+    try {
+      await remove(ref(rtdb, `tutorials/${tutorialId}`));
+    } catch (rtdbErr) {
+      console.warn('[RTDB] deleteTutorialFromCloud warning:', rtdbErr);
+    }
+    // 2. Remove from Firestore
+    try {
+      await deleteDoc(doc(db, 'tutorials', tutorialId));
+    } catch (fsErr) {
+      console.warn('[Firestore] deleteTutorialFromCloud warning:', fsErr);
+    }
   }
 
   destroy() {
