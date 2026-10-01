@@ -1,14 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { DreamLogo } from '@/components/ui/DreamLogo';
 import { LiquidGlassButton } from '@/components/ui/LiquidGlassButton';
-import { List, X, ShieldCheck, ArrowRight, Sparkle } from '@phosphor-icons/react';
+import {
+  List,
+  X,
+  ShieldCheck,
+  ArrowRight,
+  Sparkle,
+  CaretDown,
+  VideoCamera,
+  ShoppingBag,
+} from '@phosphor-icons/react';
 
 export const LuxuryNav: React.FC = () => {
   const { isAuthenticated, isAdmin } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileHowItWorksOpen, setMobileHowItWorksOpen] = useState(true);
+  const [desktopDropdownOpen, setDesktopDropdownOpen] = useState(false);
+  const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -22,7 +35,27 @@ export const LuxuryNav: React.FC = () => {
 
   useEffect(() => {
     setMobileMenuOpen(false);
+    setDesktopDropdownOpen(false);
   }, [location.pathname, location.search]);
+
+  // Click outside listener for desktop dropdown
+  useEffect(() => {
+    if (!desktopDropdownOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDesktopDropdownOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setDesktopDropdownOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [desktopDropdownOpen]);
 
   useEffect(() => {
     if (!mobileMenuOpen) return;
@@ -38,26 +71,11 @@ export const LuxuryNav: React.FC = () => {
     };
   }, [mobileMenuOpen]);
 
-  const navLinks = [
-    { label: 'Home', href: '/' },
-    { label: 'Products', href: '/products' },
-    { label: 'How It Works', href: '/how-it-works' },
-    { label: 'Ranks', href: '/ranks' },
-    { label: 'Services', href: '/services' },
-    { label: 'About', href: '/about' },
-    { label: 'Contact', href: '/contact' },
-  ];
-
-  const realNavLinks = [
-    { label: 'Home', href: '/' },
-    { label: 'Wholesale Catalog', href: '/products' },
-    { label: 'How It Works', href: '/how-it-works' },
-    { label: 'Tiers & Ranks', href: '/ranks' },
-    { label: 'Services & Logistics', href: '/services' },
-    { label: 'About Us', href: '/about' },
-    { label: 'FAQ', href: '/faq' },
-    { label: 'Contact VIP', href: '/contact' },
-  ];
+  const isHowItWorksActive =
+    location.pathname === '/how-it-works' ||
+    location.pathname === '/how-it-works/selling' ||
+    location.pathname === '/tutorials' ||
+    location.pathname === '/how-it-works/tutorials';
 
   return (
     <>
@@ -91,21 +109,173 @@ export const LuxuryNav: React.FC = () => {
             aria-label="Main Navigation"
             className="hidden lg:flex items-center gap-0.5 px-2 py-1 rounded-full bg-white/[0.03] border border-white/[0.06] shrink-0"
           >
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.label}
-                to={link.href}
-                className={({ isActive }) =>
-                  `px-2.5 xl:px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap ${
-                    isActive
-                      ? 'text-[var(--champagne)] bg-white/[0.08] shadow-2xs font-semibold'
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.04]'
-                  }`
-                }
+            <NavLink
+              to="/"
+              className={({ isActive }) =>
+                `px-2.5 xl:px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap ${
+                  isActive
+                    ? 'text-[var(--champagne)] bg-white/[0.08] shadow-2xs font-semibold'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.04]'
+                }`
+              }
+            >
+              Home
+            </NavLink>
+
+            <NavLink
+              to="/products"
+              className={({ isActive }) =>
+                `px-2.5 xl:px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap ${
+                  isActive
+                    ? 'text-[var(--champagne)] bg-white/[0.08] shadow-2xs font-semibold'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.04]'
+                }`
+              }
+            >
+              Products
+            </NavLink>
+
+            {/* How It Works Dropdown (Tutorials & How Selling Works) */}
+            <div
+              ref={dropdownRef}
+              className="relative"
+              onMouseEnter={() => {
+                if (dropdownTimeoutRef.current) clearTimeout(dropdownTimeoutRef.current);
+                setDesktopDropdownOpen(true);
+              }}
+              onMouseLeave={() => {
+                dropdownTimeoutRef.current = setTimeout(() => setDesktopDropdownOpen(false), 200);
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setDesktopDropdownOpen((prev) => !prev)}
+                className={`px-2.5 xl:px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap inline-flex items-center gap-1 cursor-pointer ${
+                  isHowItWorksActive
+                    ? 'text-[var(--champagne)] bg-white/[0.08] shadow-2xs font-semibold'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.04]'
+                }`}
+                aria-expanded={desktopDropdownOpen}
+                aria-haspopup="true"
               >
-                {link.label}
-              </NavLink>
-            ))}
+                <span>How It Works</span>
+                <CaretDown
+                  size={12}
+                  weight="bold"
+                  className={`transition-transform duration-200 ${
+                    desktopDropdownOpen ? 'rotate-180 text-[var(--champagne)]' : ''
+                  }`}
+                />
+              </button>
+
+              {/* Floating Obsidian Glass Dropdown Menu */}
+              {desktopDropdownOpen && (
+                <div
+                  role="menu"
+                  className="absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 min-w-[270px] pointer-events-auto"
+                >
+                  <div className="p-2 rounded-2xl bg-[#0D1512]/95 backdrop-blur-2xl border border-white/12 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.85),0_0_30px_rgba(217,192,138,0.08)] space-y-1 animate-in fade-in zoom-in-95 duration-150">
+                    <Link
+                      to="/tutorials"
+                      role="menuitem"
+                      onClick={() => setDesktopDropdownOpen(false)}
+                      className={`flex items-start gap-3 p-2.5 rounded-xl transition-all group ${
+                        location.pathname === '/tutorials'
+                          ? 'bg-white/[0.08] text-[#D9C08A]'
+                          : 'hover:bg-white/[0.05] text-[#F4F7F5]'
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-[#D9C08A]/10 border border-[#D9C08A]/25 flex items-center justify-center text-[#D9C08A] shrink-0 group-hover:scale-105 transition-transform mt-0.5">
+                        <VideoCamera size={16} weight="fill" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-serif text-xs font-semibold tracking-tight text-[#F4F7F5] group-hover:text-[#D9C08A] transition-colors">
+                          Tutorials
+                        </div>
+                        <p className="text-[10px] font-mono text-[#9EABA2] leading-relaxed line-clamp-1 mt-0.5">
+                          Watch video guides & masterclasses
+                        </p>
+                      </div>
+                    </Link>
+
+                    <Link
+                      to="/how-it-works"
+                      role="menuitem"
+                      onClick={() => setDesktopDropdownOpen(false)}
+                      className={`flex items-start gap-3 p-2.5 rounded-xl transition-all group ${
+                        location.pathname === '/how-it-works'
+                          ? 'bg-white/[0.08] text-[#D9C08A]'
+                          : 'hover:bg-white/[0.05] text-[#F4F7F5]'
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-[#34D399] shrink-0 group-hover:scale-105 transition-transform mt-0.5">
+                        <ShoppingBag size={16} weight="fill" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-serif text-xs font-semibold tracking-tight text-[#F4F7F5] group-hover:text-[#34D399] transition-colors">
+                          How Selling Works
+                        </div>
+                        <p className="text-[10px] font-mono text-[#9EABA2] leading-relaxed line-clamp-1 mt-0.5">
+                          4-step wholesale reselling & COD process
+                        </p>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <NavLink
+              to="/ranks"
+              className={({ isActive }) =>
+                `px-2.5 xl:px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap ${
+                  isActive
+                    ? 'text-[var(--champagne)] bg-white/[0.08] shadow-2xs font-semibold'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.04]'
+                }`
+              }
+            >
+              Ranks
+            </NavLink>
+
+            <NavLink
+              to="/services"
+              className={({ isActive }) =>
+                `px-2.5 xl:px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap ${
+                  isActive
+                    ? 'text-[var(--champagne)] bg-white/[0.08] shadow-2xs font-semibold'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.04]'
+                }`
+              }
+            >
+              Services
+            </NavLink>
+
+            <NavLink
+              to="/about"
+              className={({ isActive }) =>
+                `px-2.5 xl:px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap ${
+                  isActive
+                    ? 'text-[var(--champagne)] bg-white/[0.08] shadow-2xs font-semibold'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.04]'
+                }`
+              }
+            >
+              About
+            </NavLink>
+
+            <NavLink
+              to="/contact"
+              className={({ isActive }) =>
+                `px-2.5 xl:px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap ${
+                  isActive
+                    ? 'text-[var(--champagne)] bg-white/[0.08] shadow-2xs font-semibold'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.04]'
+                }`
+              }
+            >
+              Contact
+            </NavLink>
           </nav>
 
           {/* Controls Right */}
@@ -199,14 +369,128 @@ export const LuxuryNav: React.FC = () => {
             </div>
 
             {/* Real Web Navigation Links Body (Scrollable with no scrollbar) */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-1.5 [scrollbar-width:none] overscroll-contain">
-              {realNavLinks.map((item) => (
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2 [scrollbar-width:none] overscroll-contain">
+              <NavLink
+                to="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  `block text-2xl sm:text-[26px] font-serif font-bold tracking-tight transition-colors py-1.5 ${
+                    isActive
+                      ? 'text-white flex items-center justify-between font-extrabold'
+                      : 'text-[#D9C08A] hover:text-white'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <span>Home</span>
+                    {isActive && (
+                      <span className="w-2 h-2 rounded-full bg-[#D9C08A] shadow-[0_0_10px_rgba(217,192,138,0.9)] shrink-0" />
+                    )}
+                  </>
+                )}
+              </NavLink>
+
+              <NavLink
+                to="/products"
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  `block text-2xl sm:text-[26px] font-serif font-bold tracking-tight transition-colors py-1.5 ${
+                    isActive
+                      ? 'text-white flex items-center justify-between font-extrabold'
+                      : 'text-[#D9C08A] hover:text-white'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <span>Wholesale Catalog</span>
+                    {isActive && (
+                      <span className="w-2 h-2 rounded-full bg-[#D9C08A] shadow-[0_0_10px_rgba(217,192,138,0.9)] shrink-0" />
+                    )}
+                  </>
+                )}
+              </NavLink>
+
+              {/* How It Works Mobile Accordion Sub-Menu */}
+              <div className="py-1">
+                <button
+                  type="button"
+                  onClick={() => setMobileHowItWorksOpen((prev) => !prev)}
+                  className={`w-full flex items-center justify-between text-2xl sm:text-[26px] font-serif font-bold tracking-tight transition-colors py-1.5 cursor-pointer touch-manipulation min-h-[44px] ${
+                    isHowItWorksActive ? 'text-white' : 'text-[#D9C08A] hover:text-white'
+                  }`}
+                  aria-expanded={mobileHowItWorksOpen}
+                >
+                  <span className="flex items-center gap-2">
+                    <span>How It Works</span>
+                  </span>
+                  <CaretDown
+                    size={20}
+                    className={`transition-transform duration-200 ${
+                      mobileHowItWorksOpen ? 'rotate-180 text-white' : 'text-[#D9C08A]'
+                    }`}
+                  />
+                </button>
+
+                {mobileHowItWorksOpen && (
+                  <div className="pl-3 py-1 space-y-1.5 border-l-2 border-[#D9C08A]/35 ml-2 mt-1 animate-in fade-in duration-150">
+                    <NavLink
+                      to="/how-it-works"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium min-h-[44px] transition-all ${
+                          isActive
+                            ? 'bg-[#D9C08A]/15 text-[#D9C08A] font-bold border border-[#D9C08A]/30'
+                            : 'text-[#F4F7F5] hover:bg-white/[0.04]'
+                        }`
+                      }
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <ShoppingBag size={18} className="text-[#34D399] shrink-0" />
+                        <span>How Selling Works (4-Step)</span>
+                      </div>
+                      {location.pathname === '/how-it-works' && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#D9C08A]" />
+                      )}
+                    </NavLink>
+
+                    <NavLink
+                      to="/tutorials"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium min-h-[44px] transition-all ${
+                          isActive
+                            ? 'bg-[#D9C08A]/15 text-[#D9C08A] font-bold border border-[#D9C08A]/30'
+                            : 'text-[#F4F7F5] hover:bg-white/[0.04]'
+                        }`
+                      }
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <VideoCamera size={18} className="text-[#D9C08A] shrink-0" />
+                        <span>Tutorials (Video Guides)</span>
+                      </div>
+                      {location.pathname === '/tutorials' && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#D9C08A]" />
+                      )}
+                    </NavLink>
+                  </div>
+                )}
+              </div>
+
+              {[
+                { label: 'Tiers & Ranks', href: '/ranks' },
+                { label: 'Services & Logistics', href: '/services' },
+                { label: 'About Us', href: '/about' },
+                { label: 'FAQ', href: '/faq' },
+                { label: 'Contact VIP', href: '/contact' },
+              ].map((item) => (
                 <NavLink
                   key={item.label}
                   to={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={({ isActive }) =>
-                    `block text-2xl sm:text-[26px] font-serif font-bold tracking-tight transition-colors py-2 ${
+                    `block text-2xl sm:text-[26px] font-serif font-bold tracking-tight transition-colors py-1.5 ${
                       isActive
                         ? 'text-white flex items-center justify-between font-extrabold'
                         : 'text-[#D9C08A] hover:text-white'

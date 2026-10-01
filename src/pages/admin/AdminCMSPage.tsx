@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { storage } from '@/services/storage';
 import { auditService } from '@/services/auditService';
 import { useAuth } from '@/context/AuthContext';
@@ -25,6 +26,8 @@ import {
   FloppyDisk,
   ArrowCounterClockwise,
   ShareNetwork,
+  VideoCamera,
+  ArrowRight,
 } from '@phosphor-icons/react';
 
 export const AdminCMSPage: React.FC = () => {
@@ -167,6 +170,28 @@ export const AdminCMSPage: React.FC = () => {
           <span className="font-semibold">Platform settings saved and applied to entire website in real time.</span>
         </div>
       )}
+
+      {/* Quick Link Card to Video Tutorials Management */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#D9C08A]/10 via-white/[0.02] to-transparent border border-[#D9C08A]/25 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#D9C08A]/15 border border-[#D9C08A]/30 flex items-center justify-center text-[#D9C08A] shrink-0">
+            <VideoCamera size={20} weight="fill" />
+          </div>
+          <div>
+            <h3 className="font-serif font-bold text-sm text-[#F4F7F5]">
+              Video Tutorials &amp; Academy Library
+            </h3>
+            <p className="text-xs text-[#9EABA2]">
+              Add, embed, and manage video guides (YouTube, Vimeo, Loom, Drive, Direct MP4, or iframe codes).
+            </p>
+          </div>
+        </div>
+        <Link to="/admin/tutorials" className="shrink-0">
+          <Button variant="champagne" size="sm" className="text-xs font-medium shadow-sm w-full sm:w-auto" iconRight={<ArrowRight size={13} />}>
+            Manage Video Tutorials
+          </Button>
+        </Link>
+      </div>
 
       {/* Main CMS Form */}
       <form id="cms-form" onSubmit={handleSave} className="space-y-6 text-xs">

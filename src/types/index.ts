@@ -267,7 +267,7 @@ export interface AdminAuditLog {
   adminId: string;
   adminEmail: string;
   action: string;
-  entityType: 'rank' | 'user' | 'product' | 'sale' | 'reward' | 'settings' | 'category';
+  entityType: 'rank' | 'user' | 'product' | 'sale' | 'reward' | 'settings' | 'category' | 'tutorial';
   entityId: string;
   details: string;
   timestamp: string;
@@ -290,5 +290,32 @@ export interface SiteSettings {
   disclaimerText: string;
   communityRuleDescription: string;
   isReferralSignupEnabled: boolean;
+}
+
+export type VideoSourceType =
+  | 'youtube'
+  | 'vimeo'
+  | 'dailymotion'
+  | 'loom'
+  | 'drive'
+  | 'direct_video'
+  | 'iframe_custom'
+  | 'generic_embed';
+
+export interface VideoTutorial {
+  id: string;
+  title: string;
+  description?: string;
+  embedUrl: string; // Sanitized player URL
+  rawInput: string; // Original URL or iframe snippet pasted by admin
+  sourceType: VideoSourceType;
+  category: string; // e.g. 'Getting Started' | 'Product Sourcing' | 'Social Selling' | 'COD & Logistics'
+  duration?: string; // e.g. '4:15'
+  thumbnailUrl?: string;
+  sortOrder: number;
+  isActive: boolean;
+  featured?: boolean;
+  createdAt: string;
+  updatedAt?: string;
 }
 

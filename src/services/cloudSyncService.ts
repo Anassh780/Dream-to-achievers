@@ -2,7 +2,7 @@ import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, deleteDoc, doc, getDoc, onSnapshot, query, setDoc, where } from 'firebase/firestore';
 import { storage } from './storage';
-import type { AppNotification, Category, Product } from '@/types';
+import type { AppNotification, Category, Product, VideoTutorial } from '@/types';
 
 type CacheKey = Parameters<typeof storage.set>[0];
 
@@ -18,6 +18,7 @@ class CloudSyncService {
     this.isInitialized = true;
     this.listenCollection('products', 'PRODUCTS', this.publicUnsubscribers);
     this.listenCollection('categories', 'CATEGORIES', this.publicUnsubscribers);
+    this.listenCollection('tutorials', 'TUTORIALS', this.publicUnsubscribers);
     this.authUnsubscribe = onAuthStateChanged(auth, (user: any) => void this.bindProtectedListeners(user));
   }
 
@@ -124,6 +125,12 @@ class CloudSyncService {
     if (notification.userId) {
       await setDoc(doc(db, `users/${notification.userId}/notifications`, notification.id), notification, { merge: true });
     }
+  }
+  async syncTutorialToCloud(tutorial: VideoTutorial) {
+    await setDoc(doc(db, 'tutorials', tutorial.id), tutorial, { merge: true });
+  }
+  async deleteTutorialFromCloud(tutorialId: string) {
+    await deleteDoc(doc(db, 'tutorials', tutorialId));
   }
 
   destroy() {

@@ -156,6 +156,22 @@ const PAGES = [
     }
   },
   {
+    path: '/tutorials',
+    title: 'Video Tutorials & Masterclasses | Dream to Achievers',
+    description: 'Watch step-by-step video tutorials on online reselling, wholesale product sourcing, WhatsApp marketing, and Cash on Delivery logistics in Pakistan.',
+    canonical: `${DOMAIN}/tutorials`,
+    ogType: 'website',
+    ogImage: `${DOMAIN}/images/brand-logo.png`,
+    h1: 'Partner Video Tutorials & Masterclasses — Dream to Achievers',
+    contentSummary: 'Practical video guides and masterclasses for independent resellers. Master wholesale sourcing, viral social selling, courier COD fulfillment, and rank bonuses.',
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: 'Video Tutorials & Masterclasses — Dream to Achievers',
+      description: 'Step-by-step video tutorials and practical masterclasses on wholesale reselling, social commerce, and COD logistics in Pakistan.'
+    }
+  },
+  {
     path: '/products',
     title: 'Wholesale Products Catalog | Dream to Achievers',
     description: 'Browse verified wholesale products at direct trade rates with transparent unit margins (+PKR 500–1,300) and nationwide COD fulfillment on Dream to Achievers.',

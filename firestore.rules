@@ -60,6 +60,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if admin();
     }
+    match /tutorials/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
     match /banners/{id} {
       allow read: if resource.data.active == true || admin();
       allow write: if admin();

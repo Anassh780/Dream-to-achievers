@@ -10,6 +10,8 @@ import {
   ArrowRight,
   ShieldCheck,
   CheckCircle,
+  ShoppingBag,
+  VideoCamera,
 } from '@phosphor-icons/react';
 
 export const HowItWorks: React.FC = () => {
@@ -68,9 +70,24 @@ export const HowItWorks: React.FC = () => {
       />
       
       {/* 1. Header Banner */}
-      <section className="px-6 sm:px-8 pt-16 pb-12 border-b border-white/10 bg-gradient-to-b from-[#0D1512] to-[#070B09] relative overflow-hidden text-center">
+      <section className="px-6 sm:px-8 pt-12 sm:pt-16 pb-12 border-b border-white/10 bg-gradient-to-b from-[#0D1512] to-[#070B09] relative overflow-hidden text-center">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#D9C08A]/5 rounded-full blur-3xl pointer-events-none" />
         <div className="max-w-[1180px] mx-auto max-w-2xl space-y-4 relative z-10">
+          {/* Sub-nav switcher between How Selling Works & Video Tutorials */}
+          <div className="inline-flex p-1 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md mb-2">
+            <span className="px-4 py-1.5 rounded-full text-xs font-mono font-semibold bg-[#D9C08A] text-[#070B09] shadow-sm flex items-center gap-1.5">
+              <ShoppingBag size={14} weight="bold" />
+              <span>How Selling Works (4-Step)</span>
+            </span>
+            <Link
+              to="/tutorials"
+              className="px-4 py-1.5 rounded-full text-xs font-mono font-medium text-[#9EABA2] hover:text-[#F4F7F5] transition-colors flex items-center gap-1.5"
+            >
+              <VideoCamera size={14} />
+              <span>Video Tutorials</span>
+            </Link>
+          </div>
+
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D9C08A]/10 border border-[#D9C08A]/30 text-[#D9C08A] text-xs font-mono">
             <ShieldCheck size={13} weight="bold" />
             <span>Turnkey Distribution Protocol</span>
@@ -138,8 +155,13 @@ export const HowItWorks: React.FC = () => {
                 Create Free Partner Account
               </Button>
             </Link>
+            <Link to="/tutorials">
+              <Button variant="outline" size="md" className="border-[#D9C08A]/30 text-[#D9C08A] hover:bg-[#D9C08A]/10 font-medium" iconLeft={<VideoCamera size={14} />}>
+                Watch Video Tutorials
+              </Button>
+            </Link>
             <Link to="/products">
-              <Button variant="outline" size="md" className="border-white/20 text-[#F4F7F5] hover:bg-[#D9C08A]/10 hover:border-[#D9C08A]/40 font-medium">
+              <Button variant="outline" size="md" className="border-white/20 text-[#F4F7F5] hover:bg-white/[0.04] font-medium">
                 Browse Catalog
               </Button>
             </Link>

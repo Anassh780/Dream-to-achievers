@@ -9,9 +9,11 @@ import {
   AppNotification,
   AdminAuditLog,
   SiteSettings,
+  VideoTutorial,
 } from '@/types';
 import { CANONICAL_RANKS } from '@/config/ranks';
 import { SITE_CONFIG } from '@/config/site';
+import { INITIAL_TUTORIALS } from '@/config/tutorials';
 
 const STORAGE_KEYS = {
   USERS: 'dta_users',
@@ -32,12 +34,13 @@ const STORAGE_KEYS = {
   CAPTURED_REF: 'dta_captured_ref',
   DELETED_PRODUCTS: 'dta_deleted_products',
   DELETED_USERS_SET: 'dta_deleted_users_set',
+  TUTORIALS: 'dta_tutorials',
 };
 
 const cloudDataKeys = new Set<keyof typeof STORAGE_KEYS>([
   'USERS', 'PRODUCTS', 'CATEGORIES', 'SALES', 'REFERRALS', 'REWARDS',
   'WITHDRAWALS', 'PAYMENT_METHODS', 'RANK_HISTORY', 'NOTIFICATIONS', 'AUDIT_LOGS',
-  'DELETED_PRODUCTS',
+  'DELETED_PRODUCTS', 'TUTORIALS',
 ]);
 const memoryData = new Map<keyof typeof STORAGE_KEYS, unknown>();
 
@@ -106,6 +109,9 @@ export const storage = {
     }
     if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(SITE_CONFIG));
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.TUTORIALS)) {
+      localStorage.setItem(STORAGE_KEYS.TUTORIALS, JSON.stringify(INITIAL_TUTORIALS));
     }
     // Cloud-backed data is also cached locally. Firestore remains the source of
     // truth, while the cache prevents a blank UI during startup/offline periods.

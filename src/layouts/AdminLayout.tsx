@@ -36,6 +36,7 @@ import {
   Bell,
   CaretLeft,
   CaretRight,
+  VideoCamera,
 } from '@phosphor-icons/react';
 
 interface NavGroup {
@@ -209,6 +210,7 @@ export const AdminLayout: React.FC = () => {
     {
       title: 'SYSTEM & SETTINGS',
       items: [
+        { label: 'Video Tutorials', href: '/admin/tutorials', icon: VideoCamera },
         { label: 'Website CMS & Config', href: '/admin/cms', icon: GearSix },
         { label: 'Activity Logs', href: '/admin/audit-logs', icon: Scroll },
       ],

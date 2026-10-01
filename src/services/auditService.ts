@@ -20,7 +20,7 @@ export const auditService = {
     adminId: string;
     adminEmail: string;
     action: string;
-    entityType: 'rank' | 'user' | 'product' | 'sale' | 'reward' | 'settings' | 'category';
+    entityType: 'rank' | 'user' | 'product' | 'sale' | 'reward' | 'settings' | 'category' | 'tutorial';
     entityId: string;
     details: string;
   }): void {

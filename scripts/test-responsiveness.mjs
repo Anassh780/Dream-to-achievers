@@ -41,6 +41,7 @@ if (!fs.existsSync(distDir)) {
     'about/index.html',
     'founder/faria-imran/index.html',
     'how-it-works/index.html',
+    'tutorials/index.html',
     'products/index.html',
     'products/libas-e-yousaf/index.html',
     'products/max-1150/index.html',

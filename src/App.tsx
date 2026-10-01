@@ -27,6 +27,7 @@ import { Home } from '@/pages/public/Home';
 import { About } from '@/pages/public/About';
 import { FounderPage } from '@/pages/public/FounderPage';
 import { HowItWorks } from '@/pages/public/HowItWorks';
+import { TutorialsPage } from '@/pages/public/TutorialsPage';
 import { Products } from '@/pages/public/Products';
 import { ProductDetail } from '@/pages/public/ProductDetail';
 import { RanksPage } from '@/pages/public/RanksPage';
@@ -61,6 +62,7 @@ const AdminRewardsPage = lazy(() => import('@/pages/admin/AdminRewardsPage').the
 const AdminCMSPage = lazy(() => import('@/pages/admin/AdminCMSPage').then((m) => ({ default: m.AdminCMSPage })));
 const AdminAuditLogsPage = lazy(() => import('@/pages/admin/AdminAuditLogsPage').then((m) => ({ default: m.AdminAuditLogsPage })));
 const AdminCategoriesPage = lazy(() => import('@/pages/admin/AdminCategoriesPage').then((m) => ({ default: m.AdminCategoriesPage })));
+const AdminTutorialsPage = lazy(() => import('@/pages/admin/AdminTutorialsPage').then((m) => ({ default: m.AdminTutorialsPage })));
 
 // Common / 404
 import { NotFound } from '@/pages/NotFound';
@@ -94,6 +96,9 @@ export const App: React.FC = () => {
                 <Route path="founder/faria-imran" element={<FounderPage />} />
                 <Route path="about/faria-imran" element={<Navigate to="/founder/faria-imran" replace />} />
                 <Route path="how-it-works" element={<HowItWorks />} />
+                <Route path="how-it-works/selling" element={<Navigate to="/how-it-works" replace />} />
+                <Route path="tutorials" element={<TutorialsPage />} />
+                <Route path="how-it-works/tutorials" element={<Navigate to="/tutorials" replace />} />
                 <Route path="products" element={<Products />} />
                 <Route path="products/:slug" element={<ProductDetail />} />
                 <Route path="ranks" element={<RanksPage />} />
@@ -179,6 +184,7 @@ export const App: React.FC = () => {
                 <Route path="ranks" element={<AdminRanksPage />} />
                 <Route path="rewards" element={<AdminRewardsPage />} />
                 <Route path="cms" element={<AdminCMSPage />} />
+                <Route path="tutorials" element={<AdminTutorialsPage />} />
                 <Route path="audit-logs" element={<AdminAuditLogsPage />} />
               </Route>
 
