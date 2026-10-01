@@ -112,6 +112,28 @@ export const storage = {
     }
     if (!localStorage.getItem(STORAGE_KEYS.TUTORIALS)) {
       localStorage.setItem(STORAGE_KEYS.TUTORIALS, JSON.stringify(INITIAL_TUTORIALS));
+    } else {
+      // Purge any legacy demo/mock tutorials from previous sessions
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.TUTORIALS);
+        if (raw) {
+          const list = JSON.parse(raw);
+          if (Array.isArray(list)) {
+            const sanitized = list.filter(
+              (item: any) =>
+                !['tut-1', 'tut-2', 'tut-3'].includes(item.id) &&
+                !item.rawInput?.includes('dQw4w9WgXcQ') &&
+                !item.rawInput?.includes('L_LUpnjgPso') &&
+                !item.rawInput?.includes('kJQP7kiw5Fk')
+            );
+            if (sanitized.length !== list.length) {
+              localStorage.setItem(STORAGE_KEYS.TUTORIALS, JSON.stringify(sanitized));
+            }
+          }
+        }
+      } catch {
+        // ignore parse error
+      }
     }
     // Cloud-backed data is also cached locally. Firestore remains the source of
     // truth, while the cache prevents a blank UI during startup/offline periods.

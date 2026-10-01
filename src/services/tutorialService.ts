@@ -10,7 +10,24 @@ class TutorialService {
    * Retrieves all video tutorials, sorted by sortOrder asc, then createdAt desc.
    */
   getAll(): VideoTutorial[] {
-    const tutorials = storage.get<VideoTutorial[]>('TUTORIALS', INITIAL_TUTORIALS);
+    const rawTutorials = storage.get<VideoTutorial[]>('TUTORIALS', INITIAL_TUTORIALS);
+    // Filter out any legacy demo/mock tutorials
+    const tutorials = rawTutorials.filter(
+      (t) =>
+        !['tut-1', 'tut-2', 'tut-3'].includes(t.id) &&
+        !t.rawInput?.includes('dQw4w9WgXcQ') &&
+        !t.rawInput?.includes('L_LUpnjgPso') &&
+        !t.rawInput?.includes('kJQP7kiw5Fk')
+    );
+
+    // If demo items were purged, synchronize storage & cloud
+    if (tutorials.length !== rawTutorials.length) {
+      storage.set('TUTORIALS', tutorials);
+      ['tut-1', 'tut-2', 'tut-3'].forEach((id) => {
+        cloudSyncService.deleteTutorialFromCloud(id).catch(() => {});
+      });
+    }
+
     return [...tutorials].sort((a, b) => {
       if ((a.sortOrder ?? 0) !== (b.sortOrder ?? 0)) {
         return (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
