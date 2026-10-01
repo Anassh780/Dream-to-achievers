@@ -312,10 +312,12 @@ export interface VideoTutorial {
   category: string; // e.g. 'Getting Started' | 'Product Sourcing' | 'Social Selling' | 'COD & Logistics'
   duration?: string; // e.g. '4:15'
   thumbnailUrl?: string;
+  sourceDirectUrl?: string; // Direct link to open in native viewer (e.g. YouTube watch URL, Drive file view URL)
   sortOrder: number;
   isActive: boolean;
   featured?: boolean;
   createdAt: string;
   updatedAt?: string;
 }
+
 

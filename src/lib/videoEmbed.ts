@@ -4,6 +4,7 @@ export interface ParsedVideoEmbed {
   embedUrl: string;
   sourceType: VideoSourceType;
   thumbnailUrl?: string;
+  sourceDirectUrl?: string;
   isDirectVideo: boolean;
   isValid: boolean;
   error?: string;
@@ -17,7 +18,7 @@ export interface ParsedVideoEmbed {
  * - YouTube (watch, share, shorts, embed, mobile) -> privacy-enhanced youtube-nocookie embed
  * - Vimeo (standard video, player, showcase)
  * - Loom (share, embed)
- * - Google Drive (view, preview)
+ * - Google Drive (view, preview, open?id, uc?id)
  * - Dailymotion (video, dai.ly shortlink)
  * - Direct video files (.mp4, .webm, .ogg, .mov)
  * - Any valid HTTPS embeddable iframe URL (Wistia, BunnyCDN, TikTok, Facebook player, etc.)
@@ -74,6 +75,7 @@ export function parseVideoEmbed(rawInput: string): ParsedVideoEmbed {
     return {
       embedUrl: targetUrl,
       sourceType: 'direct_video',
+      sourceDirectUrl: targetUrl,
       isDirectVideo: true,
       isValid: true,
       extractedTitle,
@@ -90,6 +92,7 @@ export function parseVideoEmbed(rawInput: string): ParsedVideoEmbed {
       embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1`,
       sourceType: 'youtube',
       thumbnailUrl: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+      sourceDirectUrl: `https://www.youtube.com/watch?v=${videoId}`,
       isDirectVideo: false,
       isValid: true,
       extractedTitle,
@@ -105,6 +108,7 @@ export function parseVideoEmbed(rawInput: string): ParsedVideoEmbed {
     return {
       embedUrl: `https://player.vimeo.com/video/${vimeoId}?badge=0&autopause=0&player_id=0`,
       sourceType: 'vimeo',
+      sourceDirectUrl: `https://vimeo.com/${vimeoId}`,
       isDirectVideo: false,
       isValid: true,
       extractedTitle,
@@ -119,20 +123,25 @@ export function parseVideoEmbed(rawInput: string): ParsedVideoEmbed {
     return {
       embedUrl: `https://www.loom.com/embed/${loomId}`,
       sourceType: 'loom',
+      thumbnailUrl: `https://cdn.loom.com/sessions/thumbnails/${loomId}-with-play.gif`,
+      sourceDirectUrl: `https://www.loom.com/share/${loomId}`,
       isDirectVideo: false,
       isValid: true,
       extractedTitle,
     };
   }
 
-  // 6. Google Drive Video Preview
-  const driveRegex = /(?:https?:)?\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i;
+  // 6. Google Drive Video Preview (supports /file/d/..., open?id=..., uc?id=..., and docs.google.com)
+  const driveRegex =
+    /(?:https?:)?\/\/(?:drive|docs)\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:[^&]+&)*id=)([a-zA-Z0-9_-]+)/i;
   const driveMatch = targetUrl.match(driveRegex);
   if (driveMatch && driveMatch[1]) {
     const driveId = driveMatch[1];
     return {
       embedUrl: `https://drive.google.com/file/d/${driveId}/preview`,
       sourceType: 'drive',
+      thumbnailUrl: `https://drive.google.com/thumbnail?id=${driveId}&sz=w1200`,
+      sourceDirectUrl: `https://drive.google.com/file/d/${driveId}/view`,
       isDirectVideo: false,
       isValid: true,
       extractedTitle,
@@ -148,6 +157,8 @@ export function parseVideoEmbed(rawInput: string): ParsedVideoEmbed {
     return {
       embedUrl: `https://www.dailymotion.com/embed/video/${dmId}`,
       sourceType: 'dailymotion',
+      thumbnailUrl: `https://www.dailymotion.com/thumbnail/video/${dmId}`,
+      sourceDirectUrl: `https://www.dailymotion.com/video/${dmId}`,
       isDirectVideo: false,
       isValid: true,
       extractedTitle,
@@ -159,6 +170,7 @@ export function parseVideoEmbed(rawInput: string): ParsedVideoEmbed {
     return {
       embedUrl: targetUrl,
       sourceType: 'generic_embed',
+      sourceDirectUrl: targetUrl,
       isDirectVideo: false,
       isValid: true,
       extractedTitle,
@@ -168,6 +180,7 @@ export function parseVideoEmbed(rawInput: string): ParsedVideoEmbed {
   return {
     embedUrl: targetUrl,
     sourceType: 'generic_embed',
+    sourceDirectUrl: targetUrl,
     isDirectVideo: false,
     isValid: false,
     error: 'Invalid video URL. Please provide a full link starting with http:// or https://',

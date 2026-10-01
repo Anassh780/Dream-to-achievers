@@ -106,6 +106,8 @@ export const TutorialsPage: React.FC = () => {
                 sourceType={featuredTutorial.sourceType}
                 title={featuredTutorial.title}
                 thumbnailUrl={featuredTutorial.thumbnailUrl}
+                sourceDirectUrl={featuredTutorial.sourceDirectUrl}
+                description={featuredTutorial.description}
                 isDirectVideo={featuredTutorial.sourceType === 'direct_video'}
               />
             </div>
@@ -201,13 +203,15 @@ export const TutorialsPage: React.FC = () => {
                   key={tut.id}
                   className="rounded-3xl bg-[#0D1512]/80 backdrop-blur-xl border border-white/10 hover:border-[#D9C08A]/40 transition-all duration-300 shadow-xl overflow-hidden flex flex-col group hover:shadow-[0_20px_45px_rgba(0,0,0,0.85),0_0_25px_rgba(217,192,138,0.06)]"
                 >
-                  {/* Embedded Player */}
+                  {/* Embedded Player with all Video Player Modes */}
                   <div className="relative">
                     <EmbedVideoPlayer
                       embedUrl={tut.embedUrl}
                       sourceType={tut.sourceType}
                       title={tut.title}
                       thumbnailUrl={tut.thumbnailUrl}
+                      sourceDirectUrl={tut.sourceDirectUrl}
+                      description={tut.description}
                       isDirectVideo={tut.sourceType === 'direct_video'}
                     />
                   </div>
@@ -246,10 +250,24 @@ export const TutorialsPage: React.FC = () => {
                           year: 'numeric',
                         })}
                       </span>
-                      <span className="text-[10.5px] font-mono text-[#D9C08A] font-semibold flex items-center gap-1">
-                        <span>Verified Guide</span>
-                        <Sparkle size={11} weight="fill" />
-                      </span>
+                      <div className="flex items-center gap-2.5">
+                        {tut.sourceDirectUrl && (
+                          <a
+                            href={tut.sourceDirectUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] font-mono text-[#9EABA2] hover:text-[#34D399] transition-colors flex items-center gap-1"
+                            title={`Open in ${meta.label}`}
+                          >
+                            <span>{meta.label}</span>
+                            <ArrowRight size={10} />
+                          </a>
+                        )}
+                        <span className="text-[10.5px] font-mono text-[#D9C08A] font-semibold flex items-center gap-1">
+                          <span>Verified</span>
+                          <Sparkle size={11} weight="fill" />
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>

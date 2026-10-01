@@ -357,6 +357,8 @@ export const AdminTutorialsPage: React.FC = () => {
                     sourceType={item.sourceType}
                     title={item.title}
                     thumbnailUrl={item.thumbnailUrl}
+                    sourceDirectUrl={item.sourceDirectUrl}
+                    description={item.description}
                     isDirectVideo={item.sourceType === 'direct_video'}
                   />
                   {item.featured && (
@@ -534,7 +536,7 @@ export const AdminTutorialsPage: React.FC = () => {
                   className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-mono text-[#F4F7F5] placeholder-[#9EABA2]/60 focus:outline-none focus:border-[#D9C08A]/60"
                 />
                 <p className="text-[10.5px] font-mono text-[#9EABA2]/80 mt-1">
-                  Works with any embedded source: YouTube (watch, share, shorts), Vimeo, Loom, Dailymotion, Google Drive, direct MP4, or custom &lt;iframe&gt;.
+                  Works with any embedded source: YouTube (watch, share, shorts), Google Drive (drive.google.com/file/d/..., open?id=..., uc?id=...), Vimeo, Loom, Dailymotion, direct MP4, or &lt;iframe&gt;. Google Drive thumbnails are automatically extracted.
                 </p>
               </div>
 
@@ -544,9 +546,19 @@ export const AdminTutorialsPage: React.FC = () => {
                   <div className="flex items-center justify-between text-[11px] font-mono text-[#34D399]">
                     <span className="flex items-center gap-1.5">
                       <CheckCircle size={14} weight="bold" />
-                      <span>Live Embed Stream Preview</span>
+                      <span>Live Embed Stream Preview ({liveParsed.sourceType})</span>
                     </span>
-                    <span className="text-[10px] text-[#9EABA2]">{liveParsed.sourceType}</span>
+                    {liveParsed.sourceDirectUrl && (
+                      <a
+                        href={liveParsed.sourceDirectUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] text-[#D9C08A] hover:underline flex items-center gap-1"
+                      >
+                        <span>Test Direct Link</span>
+                        <ArrowSquareOut size={11} />
+                      </a>
+                    )}
                   </div>
                   <div className="max-w-md mx-auto">
                     <EmbedVideoPlayer
@@ -554,6 +566,8 @@ export const AdminTutorialsPage: React.FC = () => {
                       sourceType={liveParsed.sourceType}
                       title={title || 'Tutorial Preview'}
                       thumbnailUrl={thumbnailUrl || liveParsed.thumbnailUrl}
+                      sourceDirectUrl={liveParsed.sourceDirectUrl}
+                      description={description}
                       isDirectVideo={liveParsed.isDirectVideo}
                       autoPlayOnClick={false}
                     />

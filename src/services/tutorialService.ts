@@ -48,6 +48,7 @@ class TutorialService {
       sortOrder?: number;
       isActive?: boolean;
       featured?: boolean;
+      sourceDirectUrl?: string;
     },
     admin?: User | null
   ): Promise<VideoTutorial> {
@@ -69,6 +70,7 @@ class TutorialService {
       category: data.category?.trim() || 'Getting Started',
       duration: data.duration?.trim() || '',
       thumbnailUrl: data.thumbnailUrl?.trim() || parsed.thumbnailUrl || '',
+      sourceDirectUrl: data.sourceDirectUrl?.trim() || parsed.sourceDirectUrl || '',
       sortOrder: typeof data.sortOrder === 'number' ? data.sortOrder : list.length + 1,
       isActive: data.isActive !== undefined ? data.isActive : true,
       featured: Boolean(data.featured),
