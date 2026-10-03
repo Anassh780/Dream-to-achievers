@@ -38,7 +38,7 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
   const [notifications, setNotifications] = useState<AppNotification[]>(() =>
     userId ? notificationService.getUserNotifications(userId) : []
   );
-  const [filter, setFilter] = useState<'all' | 'unread' | 'sales' | 'rewards'>('all');
+  const [filter, setFilter] = useState<'all' | 'unread' | 'sales' | 'rewards' | 'team'>('all');
 
   const refreshList = () => {
     if (!userId) return;
@@ -67,15 +67,18 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
     };
   }, [isOpen, userId]);
 
-  // Click outside listener
+  // Click outside listener with detached element immunity
   useEffect(() => {
     if (!isOpen) return;
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       if (!target) return;
+      // Critical: if clicked node was detached from DOM during react rerender, do not close!
+      if (!document.body.contains(target)) return;
       if (popoverRef.current && popoverRef.current.contains(target)) return;
       if (target.closest?.('[aria-label="Quick Notifications"]')) return;
       if (target.closest?.('[aria-label="Toggle notifications pop-up"]')) return;
+      if (target.closest?.('[aria-label="Platform Notifications"]')) return;
       onClose();
     };
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -153,6 +156,7 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
       if (filter === 'unread') return !n.isRead;
       if (filter === 'sales') return n.type.includes('sale') || n.type.includes('order');
       if (filter === 'rewards') return n.type.includes('reward') || n.type.includes('rank') || n.type.includes('withdrawal');
+      if (filter === 'team') return n.type === 'referral_joined' || n.type === 'team_expansion';
       return true;
     });
   }, [notifications, filter]);
@@ -171,6 +175,8 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
       <div
         ref={popoverRef}
         onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
         role="dialog"
         aria-label="Quick Notifications"
         className="fixed right-3 sm:right-6 md:right-8 lg:right-12 top-16 md:top-20 z-50 w-[calc(100vw-24px)] max-w-sm sm:max-w-md rounded-3xl bg-[#0D1512]/95 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.85),0_0_30px_rgba(217,192,138,0.06)] overflow-hidden flex flex-col max-h-[82vh] animate-notif-popover"
@@ -228,8 +234,9 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
           {[
             { id: 'all', label: `All (${notifications.length})` },
             { id: 'unread', label: `Unread (${unreadCount})` },
-            { id: 'sales', label: 'Sales' },
-            { id: 'rewards', label: 'Rewards' },
+            { id: 'sales', label: 'Orders & Sales' },
+            { id: 'rewards', label: 'Ranks & Rewards' },
+            { id: 'team', label: 'Referral Team' },
           ].map((tab) => (
             <button
               key={tab.id}

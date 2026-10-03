@@ -23,6 +23,9 @@ import {
   ShieldCheck,
   Sparkle,
   DeviceMobile,
+  Trash,
+  MagnifyingGlass,
+  ArrowsClockwise,
 } from '@phosphor-icons/react';
 
 export const DashboardNotifications: React.FC = () => {
@@ -34,7 +37,9 @@ export const DashboardNotifications: React.FC = () => {
   );
 
   const [activeTab, setActiveTab] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedNotif, setSelectedNotif] = useState<AppNotification | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Push Permission State
   const [pushStatus, setPushStatus] = useState<NotificationPermission>(() =>
@@ -46,6 +51,20 @@ export const DashboardNotifications: React.FC = () => {
     if (!user) return;
     setNotifications(notificationService.getUserNotifications(user.id));
     refreshUserData();
+  };
+
+  const handleManualRefresh = async () => {
+    if (!user) return;
+    setIsSyncing(true);
+    try {
+      const cloudNotifs = await notificationService.syncUserNotificationsFromCloud(user.id);
+      setNotifications(cloudNotifs);
+      refreshUserData();
+    } catch {
+      refreshList();
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   useEffect(() => {
@@ -74,14 +93,35 @@ export const DashboardNotifications: React.FC = () => {
     };
   }, [user?.id]);
 
-  const handleMarkRead = (id: string) => {
-    notificationService.markAsRead(id);
+  const handleMarkRead = async (id: string) => {
+    await notificationService.markAsRead(id);
     refreshList();
   };
 
-  const handleMarkAllRead = () => {
+  const handleMarkUnread = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    await notificationService.markAsUnread(id);
+    refreshList();
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    await notificationService.deleteNotification(id, user?.id);
+    refreshList();
+    if (selectedNotif && selectedNotif.id === id) {
+      setSelectedNotif(null);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
     if (!user) return;
-    notificationService.markAllAsRead(user.id);
+    await notificationService.markAllAsRead(user.id);
+    refreshList();
+  };
+
+  const handleDeleteRead = async () => {
+    if (!user) return;
+    await notificationService.deleteReadNotifications(user.id);
     refreshList();
   };
 
@@ -178,9 +218,14 @@ export const DashboardNotifications: React.FC = () => {
   };
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const readCount = notifications.filter((n) => n.isRead).length;
 
   const filteredNotifications = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
     return notifications.filter((n) => {
+      if (q && !n.title?.toLowerCase().includes(q) && !n.message?.toLowerCase().includes(q)) {
+        return false;
+      }
       if (activeTab === 'all') return true;
       if (activeTab === 'unread') return !n.isRead;
       if (activeTab === 'sales') return n.type.includes('sale') || n.type.includes('order');
@@ -189,7 +234,7 @@ export const DashboardNotifications: React.FC = () => {
       if (activeTab === 'system') return n.type === 'system' || n.type === 'info' || n.type === 'welcome' || n.type === 'system_announcement';
       return true;
     });
-  }, [notifications, activeTab]);
+  }, [notifications, activeTab, searchQuery]);
 
   return (
     <div className="space-y-6 font-sans max-w-4xl selection:bg-[var(--accent)]/25">
@@ -217,20 +262,69 @@ export const DashboardNotifications: React.FC = () => {
           </p>
         </div>
 
-        {unreadCount > 0 && (
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
           <Button
             variant="outline"
             size="sm"
-            onClick={handleMarkAllRead}
-            className="text-xs font-medium shrink-0"
-            iconLeft={<CheckCircle size={14} />}
+            onClick={handleManualRefresh}
+            isLoading={isSyncing}
+            className="text-xs font-medium"
+            iconLeft={<ArrowsClockwise size={14} className={isSyncing ? 'animate-spin' : ''} />}
           >
-            Mark All as Read ({unreadCount})
+            Sync Cloud
           </Button>
+
+          {unreadCount > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleMarkAllRead}
+              className="text-xs font-medium"
+              iconLeft={<CheckCircle size={14} />}
+            >
+              Mark All Read ({unreadCount})
+            </Button>
+          )}
+
+          {readCount > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDeleteRead}
+              className="text-xs font-medium text-rose-400 hover:text-rose-300 hover:border-rose-500/30"
+              iconLeft={<Trash size={14} />}
+            >
+              Clear Read ({readCount})
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* 2. Search & Filter Bar */}
+      <div className="relative">
+        <MagnifyingGlass
+          size={16}
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-soft)]"
+        />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search notifications by title, order ID, product, or keyword..."
+          className="w-full pl-10 pr-10 py-2 rounded-2xl bg-[var(--surface)] border border-[var(--line)] text-xs text-[var(--ink)] placeholder:text-[var(--ink-soft)]/60 focus:outline-hidden focus:border-[var(--primary)] transition-all font-sans shadow-xs"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--ink-soft)] hover:text-[var(--ink)] p-1 rounded-lg"
+          >
+            <X size={13} />
+          </button>
         )}
       </div>
 
-      {/* 2. Device Web Push Activation Banner */}
+      {/* 3. Device Web Push Activation Banner */}
       {pushStatus !== 'granted' && (
         <div className="p-4 rounded-2xl bg-[var(--surface-alt)] border border-[var(--line)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
           <div className="flex items-start space-x-3">
@@ -260,7 +354,7 @@ export const DashboardNotifications: React.FC = () => {
         </div>
       )}
 
-      {/* 3. Filter Navigation Tabs */}
+      {/* 4. Filter Navigation Tabs */}
       <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 text-xs font-mono">
         {[
           { id: 'all', label: `All (${notifications.length})` },
@@ -284,14 +378,16 @@ export const DashboardNotifications: React.FC = () => {
         ))}
       </div>
 
-      {/* 4. Notifications Feed List */}
+      {/* 5. Notifications Feed List */}
       <div className="space-y-2.5">
         {filteredNotifications.length === 0 ? (
           <div className="p-12 rounded-2xl bg-[var(--surface)] border border-[var(--line)] text-center text-[var(--ink-soft)] space-y-2 shadow-xs">
             <Bell size={36} className="text-[var(--ink-soft)]/70 mx-auto" />
             <p className="font-bold text-base text-[var(--ink)]">No notifications in this filter</p>
             <p className="text-xs text-[var(--ink-soft)]/70">
-              You&apos;re all caught up with your partner alerts and ledger logs.
+              {searchQuery
+                ? `No notifications found matching "${searchQuery}".`
+                : "You're all caught up with your partner alerts and ledger logs."}
             </p>
           </div>
         ) : (
@@ -336,19 +432,36 @@ export const DashboardNotifications: React.FC = () => {
               </div>
 
               <div className="flex items-center space-x-1 shrink-0 self-center">
-                {!notif.isRead && (
+                {!notif.isRead ? (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleMarkRead(notif.id);
                     }}
-                    className="p-1.5 rounded-lg text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--surface-alt)]"
+                    className="p-1.5 rounded-lg text-[var(--ink-soft)] hover:text-[#34D399] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
                     title="Mark as read"
                   >
                     <Check size={15} />
                   </button>
+                ) : (
+                  <button
+                    onClick={(e) => handleMarkUnread(e, notif.id)}
+                    className="p-1.5 rounded-lg text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                    title="Mark as unread"
+                  >
+                    <Clock size={14} />
+                  </button>
                 )}
-                <span className="text-[11px] font-mono text-[var(--primary)] font-semibold hidden sm:inline-flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+
+                <button
+                  onClick={(e) => handleDelete(e, notif.id)}
+                  className="p-1.5 rounded-lg text-[var(--ink-soft)] hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                  title="Delete notification"
+                >
+                  <Trash size={14} />
+                </button>
+
+                <span className="text-[11px] font-mono text-[var(--primary)] font-semibold hidden sm:inline-flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform ml-1">
                   <span>Details</span>
                   <ArrowRight size={12} />
                 </span>
@@ -358,30 +471,30 @@ export const DashboardNotifications: React.FC = () => {
         )}
       </div>
 
-      {/* 5. Notification Detail Modal Popup with Spring Motion Design */}
+      {/* 6. Notification Detail Modal Popup with Spring Motion Design */}
       <NotificationDetailModal
         notification={selectedNotif}
         isOpen={Boolean(selectedNotif)}
         onClose={() => setSelectedNotif(null)}
-        onToggleRead={(id, currentlyRead) => {
+        onToggleRead={async (id, currentlyRead) => {
           if (currentlyRead) {
-            const notifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
-            const idx = notifs.findIndex((n) => n.id === id);
-            if (idx >= 0) {
-              notifs[idx].isRead = false;
-              storage.set('NOTIFICATIONS', notifs);
-              refreshList();
-              if (selectedNotif && selectedNotif.id === id) {
-                setSelectedNotif({ ...selectedNotif, isRead: false });
-              }
+            await notificationService.markAsUnread(id);
+            refreshList();
+            if (selectedNotif && selectedNotif.id === id) {
+              setSelectedNotif({ ...selectedNotif, isRead: false });
             }
           } else {
-            notificationService.markAsRead(id);
+            await notificationService.markAsRead(id);
             refreshList();
             if (selectedNotif && selectedNotif.id === id) {
               setSelectedNotif({ ...selectedNotif, isRead: true });
             }
           }
+        }}
+        onDelete={async (id) => {
+          await notificationService.deleteNotification(id, user?.id);
+          refreshList();
+          setSelectedNotif(null);
         }}
       />
 

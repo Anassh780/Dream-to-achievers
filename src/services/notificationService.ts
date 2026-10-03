@@ -6,11 +6,12 @@ import {
   collection,
   doc,
   setDoc,
+  deleteDoc,
   getDocs,
   query,
   where,
 } from 'firebase/firestore';
-import { ref, set, get, child, update } from 'firebase/database';
+import { ref, set, get, child, update, remove } from 'firebase/database';
 
 export const notificationService = {
   /**
@@ -21,7 +22,7 @@ export const notificationService = {
     if (!userId) return [];
     const notifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
     return notifs
-      .filter((n) => n && n.userId === userId)
+      .filter((n) => n && (n.userId === userId || n.userId === 'all'))
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   },
 
@@ -84,6 +85,7 @@ export const notificationService = {
         notifs.unshift(newNotif);
       }
       storage.set('NOTIFICATIONS', notifs);
+      storage.broadcastBadgeUpdate();
 
       // Trigger Web Push notification if recipient is current user
       if (currentUserId === notif.userId) {
@@ -213,6 +215,7 @@ export const notificationService = {
       notifs[index].isRead = true;
       targetNotif = notifs[index];
       storage.set('NOTIFICATIONS', notifs);
+      storage.broadcastBadgeUpdate();
     }
 
     // Update in Firestore
@@ -237,6 +240,105 @@ export const notificationService = {
   },
 
   /**
+   * Marks a notification as unread locally, in Firestore, and in RTDB.
+   */
+  async markAsUnread(notificationId: string): Promise<void> {
+    const notifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
+    const index = notifs.findIndex((n) => n.id === notificationId);
+    let targetNotif: AppNotification | null = null;
+
+    if (index >= 0) {
+      notifs[index].isRead = false;
+      targetNotif = notifs[index];
+      storage.set('NOTIFICATIONS', notifs);
+      storage.broadcastBadgeUpdate();
+    }
+
+    // Update in Firestore
+    try {
+      await setDoc(doc(db, 'notifications', notificationId), { isRead: false }, { merge: true });
+      if (targetNotif?.userId) {
+        await setDoc(doc(db, `users/${targetNotif.userId}/notifications`, notificationId), { isRead: false }, { merge: true });
+      }
+    } catch (err) {
+      console.warn('[Firestore] markAsUnread sync warning:', err);
+    }
+
+    // Update in RTDB
+    try {
+      await update(ref(rtdb, `notifications/${notificationId}`), { isRead: false });
+      if (targetNotif?.userId) {
+        await update(ref(rtdb, `user_notifications/${targetNotif.userId}/${notificationId}`), { isRead: false });
+      }
+    } catch (rtdbErr) {
+      console.warn('[RTDB] markAsUnread sync warning:', rtdbErr);
+    }
+  },
+
+  /**
+   * Permanently deletes a single notification across local storage, Firestore, and RTDB.
+   */
+  async deleteNotification(notificationId: string, userId?: string): Promise<void> {
+    const notifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
+    const target = notifs.find((n) => n.id === notificationId);
+    const targetUserId = userId || target?.userId;
+    const remaining = notifs.filter((n) => n.id !== notificationId);
+    storage.set('NOTIFICATIONS', remaining);
+    storage.broadcastBadgeUpdate();
+
+    // Delete in Firestore
+    try {
+      await deleteDoc(doc(db, 'notifications', notificationId));
+      if (targetUserId) {
+        await deleteDoc(doc(db, `users/${targetUserId}/notifications`, notificationId));
+      }
+    } catch (err) {
+      console.warn('[Firestore] deleteNotification warning:', err);
+    }
+
+    // Delete in RTDB
+    try {
+      await remove(ref(rtdb, `notifications/${notificationId}`));
+      if (targetUserId) {
+        await remove(ref(rtdb, `user_notifications/${targetUserId}/${notificationId}`));
+      }
+    } catch (rtdbErr) {
+      console.warn('[RTDB] deleteNotification warning:', rtdbErr);
+    }
+  },
+
+  /**
+   * Deletes all read notifications for a specific user across local storage, Firestore, and RTDB.
+   */
+  async deleteReadNotifications(userId: string): Promise<void> {
+    if (!userId) return;
+    const notifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
+    const toDelete: string[] = [];
+    const remaining = notifs.filter((n) => {
+      if (n.userId === userId && n.isRead) {
+        toDelete.push(n.id);
+        return false;
+      }
+      return true;
+    });
+
+    storage.set('NOTIFICATIONS', remaining);
+    storage.broadcastBadgeUpdate();
+
+    // Delete in Firestore and RTDB in background
+    Promise.all(
+      toDelete.map(async (id) => {
+        try {
+          await deleteDoc(doc(db, 'notifications', id));
+          await deleteDoc(doc(db, `users/${userId}/notifications`, id));
+          await remove(ref(rtdb, `notifications/${id}`));
+          await remove(ref(rtdb, `user_notifications/${userId}/${id}`));
+        } catch {}
+      })
+    ).catch(() => {});
+  },
+
+  /**
    * Marks all notifications for a specific user as read across local, Firestore, and RTDB.
    */
   async markAllAsRead(userId: string): Promise<void> {
@@ -252,6 +354,7 @@ export const notificationService = {
     });
 
     storage.set('NOTIFICATIONS', updated);
+    storage.broadcastBadgeUpdate();
 
     // Sync changed notifications in background
     Promise.all(
@@ -281,6 +384,13 @@ export const notificationService = {
     // Known master administrator IDs
     adminIds.add('oi8O5XbNHZOtnXaV10BRXdOATgi2');
     adminIds.add('PN9MiF9b8ZP54utzL8fgDu1XU072');
+
+    // Add current session user if admin
+    const currentUserId = storage.get<string | null>('CURRENT_USER_ID', null);
+    const currentUserData = storage.get<User | null>('CURRENT_USER_DATA', null);
+    if (currentUserData?.role === 'admin' || currentUserData?.role === 'superadmin' || currentUserData?.email === 'ghhhbbbhjn3@gmail.com') {
+      if (currentUserId) adminIds.add(currentUserId);
+    }
 
     // Add local admins
     localUsers.forEach((u) => {

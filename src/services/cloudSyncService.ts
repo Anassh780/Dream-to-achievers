@@ -106,8 +106,20 @@ class CloudSyncService {
       if (cacheKey === 'NOTIFICATIONS') {
         const existing = storage.get<AppNotification[]>('NOTIFICATIONS', []);
         const map = new Map<string, any>();
-        existing.forEach((n) => { if (n?.id) map.set(n.id, n); });
-        docs.forEach((n: any) => { if (n?.id) map.set(n.id, n); });
+        const now = Date.now();
+        existing.forEach((n) => {
+          if (!n?.id) return;
+          const age = now - new Date(n.createdAt || 0).getTime();
+          if (age < 15000) map.set(n.id, n);
+        });
+        docs.forEach((n: any) => {
+          if (n?.id) {
+            map.set(n.id, {
+              ...n,
+              linkUrl: n.linkUrl || n.link || '/dashboard/notifications',
+            });
+          }
+        });
         const merged = Array.from(map.values()).sort(
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
@@ -124,8 +136,23 @@ class CloudSyncService {
       if (cacheKey === 'NOTIFICATIONS') {
         const existing = storage.get<AppNotification[]>('NOTIFICATIONS', []);
         const map = new Map<string, any>();
-        existing.forEach((n) => { if (n?.id) map.set(n.id, n); });
-        docs.forEach((n: any) => { if (n?.id) map.set(n.id, n); });
+        const now = Date.now();
+        const currentUserId = auth.currentUser?.uid;
+        existing.forEach((n) => {
+          if (!n?.id) return;
+          const age = now - new Date(n.createdAt || 0).getTime();
+          if (n.userId !== currentUserId || age < 15000) {
+            map.set(n.id, n);
+          }
+        });
+        docs.forEach((n: any) => {
+          if (n?.id) {
+            map.set(n.id, {
+              ...n,
+              linkUrl: n.linkUrl || n.link || '/dashboard/notifications',
+            });
+          }
+        });
         const merged = Array.from(map.values()).sort(
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );

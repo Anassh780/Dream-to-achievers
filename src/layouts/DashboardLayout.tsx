@@ -603,25 +603,24 @@ export const DashboardLayout: React.FC = () => {
           setNotifModalOpen(false);
           setSelectedNotif(null);
         }}
-        onToggleRead={(id, currentlyRead) => {
+        onToggleRead={async (id, currentlyRead) => {
           if (currentlyRead) {
-            const notifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
-            const idx = notifs.findIndex((n) => n.id === id);
-            if (idx >= 0) {
-              notifs[idx].isRead = false;
-              storage.set('NOTIFICATIONS', notifs);
-              refreshUserData();
-              if (selectedNotif && selectedNotif.id === id) {
-                setSelectedNotif({ ...selectedNotif, isRead: false });
-              }
+            await notificationService.markAsUnread(id);
+            refreshUserData();
+            if (selectedNotif && selectedNotif.id === id) {
+              setSelectedNotif({ ...selectedNotif, isRead: false });
             }
           } else {
-            notificationService.markAsRead(id);
+            await notificationService.markAsRead(id);
             refreshUserData();
             if (selectedNotif && selectedNotif.id === id) {
               setSelectedNotif({ ...selectedNotif, isRead: true });
             }
           }
+        }}
+        onDelete={async (id) => {
+          await notificationService.deleteNotification(id, user?.id);
+          refreshUserData();
         }}
       />
     </div>

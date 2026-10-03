@@ -112,7 +112,7 @@ service cloud.firestore {
         allow create: if admin() || (signedIn() && request.resource.data.isRead == false);
         allow update: if admin() || (own(uid)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']));
-        allow delete: if admin();
+        allow delete: if own(uid) || admin();
       }
       match /rewards/{id} {
         allow read: if own(uid) || admin();
@@ -153,7 +153,7 @@ service cloud.firestore {
       allow update: if admin() || (signedIn()
         && resource.data.userId == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']));
-      allow delete: if admin();
+      allow delete: if admin() || (signedIn() && resource.data.userId == request.auth.uid);
     }
     match /rewards/{id} {
       allow read: if admin() || (signedIn() && resource.data.userId == request.auth.uid);

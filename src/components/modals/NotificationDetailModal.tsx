@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppNotification } from '@/types';
 import { Button } from '@/components/ui/Button';
+import { notificationService } from '@/services/notificationService';
 import {
   Trophy,
   Gift,
@@ -20,6 +21,7 @@ import {
   CalendarBlank,
   Tag,
   CircleNotch,
+  Trash,
 } from '@phosphor-icons/react';
 
 interface NotificationDetailModalProps {
@@ -27,6 +29,7 @@ interface NotificationDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onToggleRead?: (id: string, currentlyRead: boolean) => void;
+  onDelete?: (id: string) => void;
 }
 
 export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = ({
@@ -34,6 +37,7 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
   isOpen,
   onClose,
   onToggleRead,
+  onDelete,
 }) => {
   const navigate = useNavigate();
   const [copiedId, setCopiedId] = useState(false);
@@ -343,6 +347,20 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
                 {notification.isRead ? 'Mark as Unread' : 'Mark as Read'}
               </button>
             )}
+            {onDelete && (
+              <button
+                type="button"
+                onClick={() => {
+                  onDelete(notification.id);
+                  onClose();
+                }}
+                className="px-3 py-1.5 rounded-xl text-xs font-mono text-rose-400/80 hover:text-rose-400 hover:bg-rose-500/10 border border-rose-500/20 transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                title="Delete this notification"
+              >
+                <Trash size={13} />
+                <span>Delete</span>
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-2.5">
@@ -352,6 +370,9 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
                 variant="champagne"
                 size="sm"
                 onClick={() => {
+                  if (!notification.isRead) {
+                    notificationService.markAsRead(notification.id);
+                  }
                   onClose();
                   navigate(targetLink);
                 }}
