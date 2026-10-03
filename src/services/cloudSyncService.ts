@@ -3,6 +3,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, deleteDoc, doc, getDoc, onSnapshot, query, setDoc, where } from 'firebase/firestore';
 import { ref, set, remove, onValue, get } from 'firebase/database';
 import { storage } from './storage';
+import { getReadNotificationIds, recordNotificationAsRead } from './notificationService';
 import type { AppNotification, Category, Product, VideoTutorial } from '@/types';
 
 type CacheKey = Parameters<typeof storage.set>[0];
@@ -105,19 +106,26 @@ class CloudSyncService {
       const docs = snapshot.docs.map((item: any) => ({ id: item.id, ...item.data() }));
       if (cacheKey === 'NOTIFICATIONS') {
         const existing = storage.get<AppNotification[]>('NOTIFICATIONS', []);
+        const readIds = getReadNotificationIds();
         const map = new Map<string, any>();
         const now = Date.now();
         existing.forEach((n) => {
           if (!n?.id) return;
           const age = now - new Date(n.createdAt || 0).getTime();
-          if (age < 15000) map.set(n.id, n);
+          if (age < 15000) map.set(n.id, { ...n, isRead: readIds.has(n.id) || n.isRead === true });
         });
         docs.forEach((n: any) => {
           if (n?.id) {
+            const existingItem = map.get(n.id);
+            const isAlreadyRead = readIds.has(n.id) || existingItem?.isRead === true || n.isRead === true;
             map.set(n.id, {
               ...n,
+              isRead: isAlreadyRead,
               linkUrl: n.linkUrl || n.link || '/dashboard/notifications',
             });
+            if (isAlreadyRead && !n.isRead) {
+              recordNotificationAsRead(n.id);
+            }
           }
         });
         const merged = Array.from(map.values()).sort(
@@ -135,6 +143,7 @@ class CloudSyncService {
       const docs = snapshot.docs.map((item: any) => ({ id: item.id, ...item.data() }));
       if (cacheKey === 'NOTIFICATIONS') {
         const existing = storage.get<AppNotification[]>('NOTIFICATIONS', []);
+        const readIds = getReadNotificationIds();
         const map = new Map<string, any>();
         const now = Date.now();
         const currentUserId = auth.currentUser?.uid;
@@ -142,15 +151,21 @@ class CloudSyncService {
           if (!n?.id) return;
           const age = now - new Date(n.createdAt || 0).getTime();
           if (n.userId !== currentUserId || age < 15000) {
-            map.set(n.id, n);
+            map.set(n.id, { ...n, isRead: readIds.has(n.id) || n.isRead === true });
           }
         });
         docs.forEach((n: any) => {
           if (n?.id) {
+            const existingItem = map.get(n.id);
+            const isAlreadyRead = readIds.has(n.id) || existingItem?.isRead === true || n.isRead === true;
             map.set(n.id, {
               ...n,
+              isRead: isAlreadyRead,
               linkUrl: n.linkUrl || n.link || '/dashboard/notifications',
             });
+            if (isAlreadyRead && !n.isRead) {
+              recordNotificationAsRead(n.id);
+            }
           }
         });
         const merged = Array.from(map.values()).sort(

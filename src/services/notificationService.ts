@@ -6,6 +6,7 @@ import {
   collection,
   doc,
   setDoc,
+  updateDoc,
   deleteDoc,
   getDocs,
   query,
@@ -13,16 +14,66 @@ import {
 } from 'firebase/firestore';
 import { ref, set, get, child, update, remove } from 'firebase/database';
 
+const READ_IDS_KEY = 'dta_read_notif_ids';
+
+export function getReadNotificationIds(): Set<string> {
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem(READ_IDS_KEY) : null;
+    return new Set<string>(raw ? JSON.parse(raw) : []);
+  } catch {
+    return new Set<string>();
+  }
+}
+
+export function recordNotificationAsRead(id: string): void {
+  try {
+    const set = getReadNotificationIds();
+    set.add(id);
+    localStorage.setItem(READ_IDS_KEY, JSON.stringify(Array.from(set)));
+  } catch {}
+}
+
+export function recordAllNotificationsAsRead(ids: string[]): void {
+  try {
+    const set = getReadNotificationIds();
+    ids.forEach((id) => set.add(id));
+    localStorage.setItem(READ_IDS_KEY, JSON.stringify(Array.from(set)));
+  } catch {}
+}
+
+export function recordNotificationAsUnread(id: string): void {
+  try {
+    const set = getReadNotificationIds();
+    set.delete(id);
+    localStorage.setItem(READ_IDS_KEY, JSON.stringify(Array.from(set)));
+  } catch {}
+}
+
+export function removeDeletedNotificationId(id: string): void {
+  try {
+    const set = getReadNotificationIds();
+    set.delete(id);
+    localStorage.setItem(READ_IDS_KEY, JSON.stringify(Array.from(set)));
+  } catch {}
+}
+
 export const notificationService = {
   /**
    * Retrieves all notifications for a specific user from local cache,
-   * sorted latest first.
+   * sorted latest first, strictly respecting the persistent read registry.
    */
   getUserNotifications(userId: string): AppNotification[] {
     if (!userId) return [];
     const notifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
+    const readIds = getReadNotificationIds();
     return notifs
       .filter((n) => n && (n.userId === userId || n.userId === 'all'))
+      .map((n) => {
+        if (readIds.has(n.id)) {
+          return { ...n, isRead: true };
+        }
+        return n;
+      })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   },
 
@@ -130,46 +181,55 @@ export const notificationService = {
 
   /**
    * Force syncs user notifications from Cloud Firestore & RTDB into local cache.
-   * Merges seamlessly without losing existing items.
+   * Strictly respects the persistent read registry so that read items NEVER revert to unread.
    */
   async syncUserNotificationsFromCloud(userId: string): Promise<AppNotification[]> {
     if (!userId) return [];
     const localNotifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
+    const readIds = getReadNotificationIds();
     const mergedMap = new Map<string, AppNotification>();
 
-    // Seed with existing local items
+    // Seed with existing local items, applying readIds enforcement
     localNotifs.forEach((n) => {
-      if (n && n.id) mergedMap.set(n.id, n);
+      if (n && n.id) {
+        mergedMap.set(n.id, {
+          ...n,
+          isRead: readIds.has(n.id) || n.isRead === true,
+        });
+      }
     });
+
+    const mergeDoc = (data: AppNotification) => {
+      if (!data || !data.id) return;
+      const existing = mergedMap.get(data.id);
+      // Once read locally or registered in readIds, a notification NEVER reverts to unread!
+      const isAlreadyRead = readIds.has(data.id) || existing?.isRead === true || data.isRead === true;
+      mergedMap.set(data.id, {
+        ...data,
+        isRead: isAlreadyRead,
+        linkUrl: data.linkUrl || data.link || '/dashboard/notifications',
+      });
+      if (isAlreadyRead && !data.isRead) {
+        recordNotificationAsRead(data.id);
+      }
+    };
 
     // 1. Fetch from Firestore global notifications (where userId == userId)
     try {
       const q = query(collection(db, 'notifications'), where('userId', '==', userId));
       const snap = await getDocs(q);
       snap.forEach((docSnap: any) => {
-        const data = docSnap.data() as AppNotification;
-        if (data && data.id) {
-          mergedMap.set(data.id, {
-            ...data,
-            linkUrl: data.linkUrl || data.link || '/dashboard/notifications',
-          });
-        }
+        mergeDoc(docSnap.data() as AppNotification);
       });
     } catch (fsErr: any) {
-      console.warn('[Firestore] syncUserNotifications query warning:', fsErr);
+      console.warn('[Firestore] syncUserNotifications global query warning:', fsErr);
     }
 
     // 2. Fetch from Firestore user subcollection (users/{userId}/notifications)
     try {
       const subSnap = await getDocs(collection(db, `users/${userId}/notifications`));
       subSnap.forEach((docSnap: any) => {
-        const data = docSnap.data() as AppNotification;
-        if (data && data.id) {
-          mergedMap.set(data.id, {
-            ...data,
-            linkUrl: data.linkUrl || data.link || '/dashboard/notifications',
-          });
-        }
+        mergeDoc(docSnap.data() as AppNotification);
       });
     } catch (subErr: any) {
       console.warn('[Firestore] user subcollection notification fetch warning:', subErr);
@@ -182,12 +242,7 @@ export const notificationService = {
         const val = rtdbSnap.val();
         if (val && typeof val === 'object') {
           Object.values(val).forEach((item: any) => {
-            if (item && item.id) {
-              mergedMap.set(item.id, {
-                ...item,
-                linkUrl: item.linkUrl || item.link || '/dashboard/notifications',
-              });
-            }
+            mergeDoc(item as AppNotification);
           });
         }
       }
@@ -200,13 +255,15 @@ export const notificationService = {
     );
 
     storage.set('NOTIFICATIONS', merged);
-    return merged.filter((n) => n.userId === userId);
+    return merged.filter((n) => n && (n.userId === userId || n.userId === 'all'));
   },
 
   /**
    * Marks a notification as read locally, in Firestore, and in RTDB.
    */
   async markAsRead(notificationId: string): Promise<void> {
+    recordNotificationAsRead(notificationId);
+
     const notifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
     const index = notifs.findIndex((n) => n.id === notificationId);
     let targetNotif: AppNotification | null = null;
@@ -214,28 +271,51 @@ export const notificationService = {
     if (index >= 0) {
       notifs[index].isRead = true;
       targetNotif = notifs[index];
-      storage.set('NOTIFICATIONS', notifs);
-      storage.broadcastBadgeUpdate();
     }
+    storage.set('NOTIFICATIONS', notifs);
+    storage.broadcastBadgeUpdate();
 
-    // Update in Firestore
+    const userId = targetNotif?.userId;
+
+    // Independent async cloud syncs so one network hiccup doesn't abort others
+    // 1. Root Firestore
     try {
-      await setDoc(doc(db, 'notifications', notificationId), { isRead: true }, { merge: true });
-      if (targetNotif?.userId) {
-        await setDoc(doc(db, `users/${targetNotif.userId}/notifications`, notificationId), { isRead: true }, { merge: true });
+      await updateDoc(doc(db, 'notifications', notificationId), { isRead: true });
+    } catch {
+      try {
+        await setDoc(doc(db, 'notifications', notificationId), { isRead: true }, { merge: true });
+      } catch (e) {
+        console.warn('[Firestore] markAsRead root sync warning:', e);
       }
-    } catch (err) {
-      console.warn('[Firestore] markAsRead sync warning:', err);
     }
 
-    // Update in RTDB
+    // 2. User Subcollection Firestore
+    if (userId) {
+      try {
+        await updateDoc(doc(db, `users/${userId}/notifications`, notificationId), { isRead: true });
+      } catch {
+        try {
+          await setDoc(doc(db, `users/${userId}/notifications`, notificationId), { isRead: true }, { merge: true });
+        } catch (e) {
+          console.warn('[Firestore] markAsRead user subcollection sync warning:', e);
+        }
+      }
+    }
+
+    // 3. Root RTDB
     try {
       await update(ref(rtdb, `notifications/${notificationId}`), { isRead: true });
-      if (targetNotif?.userId) {
-        await update(ref(rtdb, `user_notifications/${targetNotif.userId}/${notificationId}`), { isRead: true });
-      }
     } catch (rtdbErr) {
-      console.warn('[RTDB] markAsRead sync warning:', rtdbErr);
+      console.warn('[RTDB] markAsRead root sync warning:', rtdbErr);
+    }
+
+    // 4. User RTDB
+    if (userId) {
+      try {
+        await update(ref(rtdb, `user_notifications/${userId}/${notificationId}`), { isRead: true });
+      } catch (rtdbErr) {
+        console.warn('[RTDB] markAsRead user subnode sync warning:', rtdbErr);
+      }
     }
   },
 
@@ -243,6 +323,8 @@ export const notificationService = {
    * Marks a notification as unread locally, in Firestore, and in RTDB.
    */
   async markAsUnread(notificationId: string): Promise<void> {
+    recordNotificationAsUnread(notificationId);
+
     const notifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
     const index = notifs.findIndex((n) => n.id === notificationId);
     let targetNotif: AppNotification | null = null;
@@ -250,28 +332,46 @@ export const notificationService = {
     if (index >= 0) {
       notifs[index].isRead = false;
       targetNotif = notifs[index];
-      storage.set('NOTIFICATIONS', notifs);
-      storage.broadcastBadgeUpdate();
     }
+    storage.set('NOTIFICATIONS', notifs);
+    storage.broadcastBadgeUpdate();
 
-    // Update in Firestore
+    const userId = targetNotif?.userId;
+
     try {
-      await setDoc(doc(db, 'notifications', notificationId), { isRead: false }, { merge: true });
-      if (targetNotif?.userId) {
-        await setDoc(doc(db, `users/${targetNotif.userId}/notifications`, notificationId), { isRead: false }, { merge: true });
+      await updateDoc(doc(db, 'notifications', notificationId), { isRead: false });
+    } catch {
+      try {
+        await setDoc(doc(db, 'notifications', notificationId), { isRead: false }, { merge: true });
+      } catch (err) {
+        console.warn('[Firestore] markAsUnread sync warning:', err);
       }
-    } catch (err) {
-      console.warn('[Firestore] markAsUnread sync warning:', err);
     }
 
-    // Update in RTDB
+    if (userId) {
+      try {
+        await updateDoc(doc(db, `users/${userId}/notifications`, notificationId), { isRead: false });
+      } catch {
+        try {
+          await setDoc(doc(db, `users/${userId}/notifications`, notificationId), { isRead: false }, { merge: true });
+        } catch (err) {
+          console.warn('[Firestore] markAsUnread subcollection sync warning:', err);
+        }
+      }
+    }
+
     try {
       await update(ref(rtdb, `notifications/${notificationId}`), { isRead: false });
-      if (targetNotif?.userId) {
-        await update(ref(rtdb, `user_notifications/${targetNotif.userId}/${notificationId}`), { isRead: false });
-      }
     } catch (rtdbErr) {
-      console.warn('[RTDB] markAsUnread sync warning:', rtdbErr);
+      console.warn('[RTDB] markAsUnread root sync warning:', rtdbErr);
+    }
+
+    if (userId) {
+      try {
+        await update(ref(rtdb, `user_notifications/${userId}/${notificationId}`), { isRead: false });
+      } catch (rtdbErr) {
+        console.warn('[RTDB] markAsUnread user subnode sync warning:', rtdbErr);
+      }
     }
   },
 
@@ -279,6 +379,8 @@ export const notificationService = {
    * Permanently deletes a single notification across local storage, Firestore, and RTDB.
    */
   async deleteNotification(notificationId: string, userId?: string): Promise<void> {
+    removeDeletedNotificationId(notificationId);
+
     const notifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
     const target = notifs.find((n) => n.id === notificationId);
     const targetUserId = userId || target?.userId;
@@ -289,21 +391,31 @@ export const notificationService = {
     // Delete in Firestore
     try {
       await deleteDoc(doc(db, 'notifications', notificationId));
-      if (targetUserId) {
-        await deleteDoc(doc(db, `users/${targetUserId}/notifications`, notificationId));
-      }
     } catch (err) {
-      console.warn('[Firestore] deleteNotification warning:', err);
+      console.warn('[Firestore] deleteNotification root warning:', err);
+    }
+
+    if (targetUserId) {
+      try {
+        await deleteDoc(doc(db, `users/${targetUserId}/notifications`, notificationId));
+      } catch (err) {
+        console.warn('[Firestore] deleteNotification user subcollection warning:', err);
+      }
     }
 
     // Delete in RTDB
     try {
       await remove(ref(rtdb, `notifications/${notificationId}`));
-      if (targetUserId) {
-        await remove(ref(rtdb, `user_notifications/${targetUserId}/${notificationId}`));
-      }
     } catch (rtdbErr) {
-      console.warn('[RTDB] deleteNotification warning:', rtdbErr);
+      console.warn('[RTDB] deleteNotification root warning:', rtdbErr);
+    }
+
+    if (targetUserId) {
+      try {
+        await remove(ref(rtdb, `user_notifications/${targetUserId}/${notificationId}`));
+      } catch (rtdbErr) {
+        console.warn('[RTDB] deleteNotification user subnode warning:', rtdbErr);
+      }
     }
   },
 
@@ -315,8 +427,9 @@ export const notificationService = {
     const notifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
     const toDelete: string[] = [];
     const remaining = notifs.filter((n) => {
-      if (n.userId === userId && n.isRead) {
+      if ((n.userId === userId || n.userId === 'all') && n.isRead) {
         toDelete.push(n.id);
+        removeDeletedNotificationId(n.id);
         return false;
       }
       return true;
@@ -326,16 +439,20 @@ export const notificationService = {
     storage.broadcastBadgeUpdate();
 
     // Delete in Firestore and RTDB in background
-    Promise.all(
-      toDelete.map(async (id) => {
-        try {
-          await deleteDoc(doc(db, 'notifications', id));
-          await deleteDoc(doc(db, `users/${userId}/notifications`, id));
-          await remove(ref(rtdb, `notifications/${id}`));
-          await remove(ref(rtdb, `user_notifications/${userId}/${id}`));
-        } catch {}
-      })
-    ).catch(() => {});
+    toDelete.forEach(async (id) => {
+      try {
+        await deleteDoc(doc(db, 'notifications', id));
+      } catch {}
+      try {
+        await deleteDoc(doc(db, `users/${userId}/notifications`, id));
+      } catch {}
+      try {
+        await remove(ref(rtdb, `notifications/${id}`));
+      } catch {}
+      try {
+        await remove(ref(rtdb, `user_notifications/${userId}/${id}`));
+      } catch {}
+    });
   },
 
   /**
@@ -346,27 +463,47 @@ export const notificationService = {
     const changedIds: string[] = [];
 
     const updated = notifs.map((n) => {
-      if (n.userId === userId && !n.isRead) {
+      if ((n.userId === userId || n.userId === 'all' || n.userId === 'admin') && !n.isRead) {
         changedIds.push(n.id);
         return { ...n, isRead: true };
       }
       return n;
     });
 
+    recordAllNotificationsAsRead(changedIds);
     storage.set('NOTIFICATIONS', updated);
     storage.broadcastBadgeUpdate();
 
-    // Sync changed notifications in background
-    Promise.all(
-      changedIds.map(async (id) => {
+    // Sync changed notifications in background with independent operations
+    changedIds.forEach(async (id) => {
+      // 1. Root Firestore
+      try {
+        await updateDoc(doc(db, 'notifications', id), { isRead: true });
+      } catch {
         try {
           await setDoc(doc(db, 'notifications', id), { isRead: true }, { merge: true });
-          await setDoc(doc(db, `users/${userId}/notifications`, id), { isRead: true }, { merge: true });
-          await update(ref(rtdb, `notifications/${id}`), { isRead: true });
-          await update(ref(rtdb, `user_notifications/${userId}/${id}`), { isRead: true });
         } catch {}
-      })
-    ).catch(() => {});
+      }
+
+      // 2. User Subcollection Firestore
+      try {
+        await updateDoc(doc(db, `users/${userId}/notifications`, id), { isRead: true });
+      } catch {
+        try {
+          await setDoc(doc(db, `users/${userId}/notifications`, id), { isRead: true }, { merge: true });
+        } catch {}
+      }
+
+      // 3. RTDB Root
+      try {
+        await update(ref(rtdb, `notifications/${id}`), { isRead: true });
+      } catch {}
+
+      // 4. RTDB User
+      try {
+        await update(ref(rtdb, `user_notifications/${userId}/${id}`), { isRead: true });
+      } catch {}
+    });
   },
 
   /**

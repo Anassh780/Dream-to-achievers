@@ -93,15 +93,16 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
     };
   }, [isOpen, onClose]);
 
-  const handleMarkAllRead = () => {
+  const handleMarkAllRead = async () => {
     if (!userId) return;
-    notificationService.markAllAsRead(userId);
+    await notificationService.markAllAsRead(userId);
     refreshList();
   };
 
-  const handleMarkItemRead = (e: React.MouseEvent, notifId: string) => {
+  const handleMarkItemRead = async (e: React.MouseEvent, notifId: string) => {
+    e.preventDefault();
     e.stopPropagation();
-    notificationService.markAsRead(notifId);
+    await notificationService.markAsRead(notifId);
     refreshList();
   };
 
