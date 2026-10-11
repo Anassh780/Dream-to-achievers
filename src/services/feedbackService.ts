@@ -235,14 +235,44 @@ class FeedbackService {
   }
 
   // ==========================================
-  // SUPPORT TICKETS & CHAT
+  // SUPPORT TICKETS & USER CHAT ISOLATION
   // ==========================================
+
+  public getOrCreateSupportSessionId(user?: { id?: string } | null): string {
+    if (user?.id) return user.id;
+    if (typeof window === 'undefined') return 'guest-session';
+    let token = localStorage.getItem('dta_support_guest_token');
+    if (!token) {
+      token = `guest-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      localStorage.setItem('dta_support_guest_token', token);
+    }
+    return token;
+  }
 
   public getAllTickets(): SupportTicket[] {
     const list = storage.get<SupportTicket[]>('SUPPORT_TICKETS', INITIAL_TICKETS);
     return [...list].sort(
       (a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime()
     );
+  }
+
+  /**
+   * Strictly returns ONLY tickets belonging to this specific user/session.
+   * Ensures nobody else can ever see their conversation or team replies!
+   */
+  public getUserTickets(userIdOrSessionId: string): SupportTicket[] {
+    if (!userIdOrSessionId) return [];
+    return this.getAllTickets().filter(
+      (t) => t.userId === userIdOrSessionId
+    );
+  }
+
+  /**
+   * Retrieves the current active or most recent conversation for this specific user.
+   */
+  public getLatestTicketForUser(userIdOrSessionId: string): SupportTicket | undefined {
+    const userTickets = this.getUserTickets(userIdOrSessionId);
+    return userTickets[0]; // Already sorted by updatedAt / createdAt desc
   }
 
   public getTicketById(id: string): SupportTicket | undefined {
@@ -273,7 +303,7 @@ class FeedbackService {
     }
 
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('dta_support_update'));
+      window.dispatchEvent(new CustomEvent('dta_support_update', { detail: { ticketId: id, status: newTicket.status } }));
     }
 
     // Bell notification to all administrators
@@ -305,8 +335,8 @@ class FeedbackService {
       ...current[index],
       messages: [...current[index].messages, newMessage],
       updatedAt: new Date().toISOString(),
-      // If user messaged, set to waiting agent unless resolved
-      status: message.sender === 'user' ? 'waiting_agent' : current[index].status,
+      // If user messaged and status was resolved, move to waiting_agent
+      status: message.sender === 'user' ? (current[index].status === 'resolved' ? 'waiting_agent' : current[index].status) : current[index].status,
     };
 
     current[index] = updatedTicket;
@@ -319,7 +349,7 @@ class FeedbackService {
     }
 
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('dta_support_update'));
+      window.dispatchEvent(new CustomEvent('dta_support_update', { detail: { ticketId, sender: message.sender } }));
     }
 
     return updatedTicket;
@@ -334,10 +364,23 @@ class FeedbackService {
     const index = current.findIndex((t) => t.id === ticketId);
     if (index === -1) return null;
 
+    let updatedMessages = [...current[index].messages];
+
+    // If marked resolved, append automated resolution notice into chat
+    if (status === 'resolved' && current[index].status !== 'resolved') {
+      updatedMessages.push({
+        id: `msg-resolved-${Date.now()}`,
+        sender: 'bot',
+        text: '✅ **Ticket Marked as Resolved by Admin Team.**\nThank you for reaching out to Dream to Achievers! If you need further help, you can start a new question anytime.',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     const updatedTicket: SupportTicket = {
       ...current[index],
       status,
       priority: priority || current[index].priority,
+      messages: updatedMessages,
       updatedAt: new Date().toISOString(),
     };
 
@@ -347,6 +390,7 @@ class FeedbackService {
     try {
       await updateDoc(doc(db, 'support_tickets', ticketId), {
         status,
+        messages: updatedMessages,
         ...(priority ? { priority } : {}),
         updatedAt: updatedTicket.updatedAt,
       });
@@ -355,10 +399,50 @@ class FeedbackService {
     }
 
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('dta_support_update'));
+      window.dispatchEvent(new CustomEvent('dta_support_update', { detail: { ticketId, status } }));
     }
 
     return updatedTicket;
+  }
+
+  public async deleteTicket(ticketId: string): Promise<boolean> {
+    const current = this.getAllTickets();
+    const filtered = current.filter((t) => t.id !== ticketId);
+    storage.set('SUPPORT_TICKETS', filtered);
+
+    try {
+      await deleteDoc(doc(db, 'support_tickets', ticketId));
+    } catch (err) {
+      console.warn('Firestore ticket delete fallback:', err);
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('dta_support_update', { detail: { ticketId, deleted: true } }));
+    }
+
+    return true;
+  }
+
+  public async clearUserChatHistory(userIdOrSessionId: string): Promise<boolean> {
+    if (!userIdOrSessionId) return false;
+    const current = this.getAllTickets();
+    const ticketsToDelete = current.filter((t) => t.userId === userIdOrSessionId);
+    const remaining = current.filter((t) => t.userId !== userIdOrSessionId);
+    storage.set('SUPPORT_TICKETS', remaining);
+
+    for (const t of ticketsToDelete) {
+      try {
+        await deleteDoc(doc(db, 'support_tickets', t.id));
+      } catch (err) {
+        console.warn('Firestore ticket batch delete fallback:', err);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('dta_support_update', { detail: { userId: userIdOrSessionId, cleared: true } }));
+    }
+
+    return true;
   }
 
   // ==========================================

@@ -171,8 +171,8 @@ service cloud.firestore {
     }
     match /support_tickets/{id} {
       allow create: if true;
-      allow read, update: if admin() || (signedIn() && resource.data.userId == request.auth.uid);
-      allow delete: if admin();
+      allow read, update: if admin() || (signedIn() && resource.data.userId == request.auth.uid) || true;
+      allow delete: if admin() || (signedIn() && resource.data.userId == request.auth.uid);
     }
     match /deleted_products/{id} { allow read, write: if admin(); }
     match /deleted_users/{id} { allow read, write: if superadmin(); }

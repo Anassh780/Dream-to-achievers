@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { feedbackService } from '@/services/feedbackService';
-import type { FeedbackCategory, SupportChatMessage } from '@/types';
+import type { FeedbackCategory, SupportChatMessage, SupportTicket } from '@/types';
 import {
   ChatCircleDots,
   PaperPlaneRight,
@@ -19,7 +19,8 @@ import {
   Robot,
   LockKey,
   BellRinging,
-  User as UserIcon,
+  Trash,
+  ArrowCounterClockwise,
 } from '@phosphor-icons/react';
 
 export const SupportFeedbackWidget: React.FC = () => {
@@ -31,19 +32,28 @@ export const SupportFeedbackWidget: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'bot' | 'feedback'>('bot');
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Active Live Chat Ticket ID for continuous real-time admin sync
-  const [activeTicketId, setActiveTicketId] = useState<string | null>(null);
-  const [isLiveAgentRequested, setIsLiveAgentRequested] = useState(false);
+  // User session isolation identifier (Strictly isolated: no user can ever see another user's chat)
+  const sessionId = useMemo(
+    () => feedbackService.getOrCreateSupportSessionId(user),
+    [user]
+  );
 
-  // --- BOT CHAT STATE ---
-  const [messages, setMessages] = useState<SupportChatMessage[]>([
-    {
+  // Active Live Chat Ticket state
+  const [activeTicket, setActiveTicket] = useState<SupportTicket | null>(null);
+
+  // Default initial greeting
+  const initialGreeting: SupportChatMessage = useMemo(
+    () => ({
       id: 'init-1',
       sender: 'bot',
-      text: `Hello ${user?.fullName || 'there'}! Welcome to Dream to Achievers Live Desk. Ask me anything about Ranks, Payouts, COD Selling, or click "Live Agent" to call an admin.`,
+      text: `Hello ${user?.fullName || 'there'}! Welcome to Dream to Achievers Live Desk. Ask me anything about Ranks, Payouts, COD Selling, or click "Call Live Agent".`,
       timestamp: new Date().toISOString(),
-    },
-  ]);
+    }),
+    [user?.fullName]
+  );
+
+  // --- CHAT STATE ---
+  const [messages, setMessages] = useState<SupportChatMessage[]>([initialGreeting]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -57,27 +67,52 @@ export const SupportFeedbackWidget: React.FC = () => {
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [feedbackSuccess, setFeedbackSuccess] = useState(false);
 
+  // 1. Load & Restore User's Persistent Chat History on Mount or User Change
+  useEffect(() => {
+    const userTicket = feedbackService.getLatestTicketForUser(sessionId);
+    if (userTicket) {
+      setActiveTicket(userTicket);
+      if (userTicket.messages && userTicket.messages.length > 0) {
+        setMessages(userTicket.messages);
+      }
+    } else {
+      setActiveTicket(null);
+      setMessages([initialGreeting]);
+    }
+  }, [sessionId, initialGreeting]);
+
+  // 2. Real-time Synchronization when Admin Updates Progress or Sends a Reply
+  useEffect(() => {
+    const syncLiveTicket = () => {
+      if (activeTicket?.id) {
+        const updated = feedbackService.getTicketById(activeTicket.id);
+        if (updated) {
+          setActiveTicket(updated);
+          if (updated.messages && updated.messages.length > 0) {
+            setMessages(updated.messages);
+          }
+          return;
+        }
+      }
+
+      // Fallback check by session ID
+      const latest = feedbackService.getLatestTicketForUser(sessionId);
+      if (latest) {
+        setActiveTicket(latest);
+        setMessages(latest.messages);
+      }
+    };
+
+    window.addEventListener('dta_support_update', syncLiveTicket);
+    return () => window.removeEventListener('dta_support_update', syncLiveTicket);
+  }, [activeTicket?.id, sessionId]);
+
   // Auto-scroll chat to latest message
   useEffect(() => {
     if (activeTab === 'bot' && isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, isTyping, isOpen, activeTab]);
-
-  // Sync ticket messages from admin replies in real time
-  useEffect(() => {
-    if (!activeTicketId) return;
-
-    const syncLiveTicket = () => {
-      const ticket = feedbackService.getTicketById(activeTicketId);
-      if (ticket && ticket.messages && ticket.messages.length > 0) {
-        setMessages(ticket.messages);
-      }
-    };
-
-    window.addEventListener('dta_support_update', syncLiveTicket);
-    return () => window.removeEventListener('dta_support_update', syncLiveTicket);
-  }, [activeTicketId]);
 
   // Handle escape key and click outside
   useEffect(() => {
@@ -89,7 +124,6 @@ export const SupportFeedbackWidget: React.FC = () => {
 
     const handleClickOutside = (e: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-        // Only close if not clicking the toggle button
         const toggleBtn = document.getElementById('support-float-toggle');
         if (toggleBtn && toggleBtn.contains(e.target as Node)) return;
         setIsOpen(false);
@@ -108,13 +142,11 @@ export const SupportFeedbackWidget: React.FC = () => {
     };
   }, [isOpen]);
 
-  // Trigger Immediate Live Agent Escalation with Admin Bell Notification (NO EMAIL/WHATSAPP FORM NEEDED)
+  // Call Live Agent with Immediate Bell Notification (NO EMAIL/PHONE INPUT NEEDED)
   const handleConnectLiveAgent = async (userNote?: string) => {
-    setIsLiveAgentRequested(true);
-
     const userName = user?.fullName || 'Online User';
     const userEmail = user?.email || 'support@dreamtoachievers.com';
-    const initialText = userNote || inputText.trim() || 'User requested to chat with a live agent.';
+    const initialText = userNote || inputText.trim() || 'User requested to speak with a live agent.';
 
     const userMsg: SupportChatMessage = {
       id: `usr-${Date.now()}`,
@@ -128,9 +160,9 @@ export const SupportFeedbackWidget: React.FC = () => {
     setInputText('');
 
     try {
-      // Create ticket directly and dispatch Bell Notification to all admins
+      // Create ticket strictly bound to this user's sessionId
       const ticket = await feedbackService.createTicket({
-        userId: user?.id,
+        userId: sessionId,
         userName,
         userEmail,
         whatsapp: user?.phone || '',
@@ -140,14 +172,14 @@ export const SupportFeedbackWidget: React.FC = () => {
         messages: allMsgs,
       });
 
-      setActiveTicketId(ticket.id);
+      setActiveTicket(ticket);
 
-      // Post instant confirmation to user
+      // Post confirmation in chat stream
       setTimeout(() => {
         const botReply: SupportChatMessage = {
           id: `bot-${Date.now()}`,
           sender: 'bot',
-          text: `🔔 **Live Agent Alerted!**\nA high-priority bell notification has been dispatched to all platform administrators. An admin will join this live chat shortly.\n\nPlease type your question below — an agent will reply directly here!`,
+          text: `🔔 **Live Agent Alerted!**\nA high-priority bell notification was sent to administrators. An admin will join this live chat shortly.\n\nPlease type your question below — an agent will reply directly here!`,
           timestamp: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, botReply]);
@@ -155,13 +187,13 @@ export const SupportFeedbackWidget: React.FC = () => {
           sender: 'bot',
           text: botReply.text,
         });
-      }, 400);
+      }, 350);
     } catch (err) {
       console.error('Failed to connect live agent:', err);
     }
   };
 
-  // Send message to Bot or Active Live Chat Session
+  // Send message to Bot or Active Ticket
   const handleSendMessage = async (textToSend?: string) => {
     const text = (textToSend || inputText).trim();
     if (!text) return;
@@ -176,9 +208,9 @@ export const SupportFeedbackWidget: React.FC = () => {
     setMessages((prev) => [...prev, userMsg]);
     if (!textToSend) setInputText('');
 
-    // If active ticket exists, append to ticket so admin sees it in real time
-    if (activeTicketId) {
-      feedbackService.addMessageToTicket(activeTicketId, {
+    // If an active ticket exists, append directly so admins see it in real-time
+    if (activeTicket && activeTicket.status !== 'resolved') {
+      await feedbackService.addMessageToTicket(activeTicket.id, {
         sender: 'user',
         text,
       });
@@ -203,7 +235,7 @@ export const SupportFeedbackWidget: React.FC = () => {
       return;
     }
 
-    // Otherwise, generate intelligent bot answer
+    // Otherwise, generate intelligent bot response
     setIsTyping(true);
     setTimeout(() => {
       const response = feedbackService.getBotResponse(text, user?.fullName);
@@ -222,7 +254,35 @@ export const SupportFeedbackWidget: React.FC = () => {
     }, 450);
   };
 
-  // Submit Feedback Form (Automatically routed to official email without showing email input)
+  // Delete / Clear Chat History (User can clear their own chat history completely)
+  const handleClearHistory = async () => {
+    if (!window.confirm('Are you sure you want to delete and reset your chat history?')) return;
+    await feedbackService.clearUserChatHistory(sessionId);
+    setActiveTicket(null);
+    setMessages([
+      {
+        id: `init-${Date.now()}`,
+        sender: 'bot',
+        text: `Chat history cleared. Hello ${user?.fullName || 'there'}! Ask me anything or call a live agent anytime.`,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+  };
+
+  // Start New Chat Session (After a ticket has been marked resolved)
+  const handleStartNewSession = () => {
+    setActiveTicket(null);
+    setMessages([
+      {
+        id: `init-${Date.now()}`,
+        sender: 'bot',
+        text: `Hello ${user?.fullName || 'there'}! What would you like assistance with next?`,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+  };
+
+  // Submit Feedback Form (Automatically routes to official desk without asking for email)
   const handleSubmitFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!feedbackMessage.trim()) return;
@@ -231,9 +291,8 @@ export const SupportFeedbackWidget: React.FC = () => {
     try {
       const sentiment = rating >= 4 ? 'positive' : rating === 3 ? 'neutral' : 'negative';
       await feedbackService.submitFeedback({
-        userId: user?.id,
-        userName: user?.fullName || 'Anonymous Reseller',
-        // Auto-routed to official email without requiring user to fill email
+        userId: sessionId,
+        userName: user?.fullName || 'Reseller / Trader',
         userEmail: user?.email || 'support@dreamtoachievers.com',
         rating,
         category,
@@ -280,6 +339,8 @@ export const SupportFeedbackWidget: React.FC = () => {
     general: <ThumbsUp size={14} weight="bold" />,
   };
 
+  const isTicketResolved = activeTicket?.status === 'resolved';
+
   return (
     <>
       {/* Mobile Backdrop */}
@@ -293,15 +354,13 @@ export const SupportFeedbackWidget: React.FC = () => {
 
       {/* ========================================================
           FLOATING ACTION LAUNCHER & TOGGLE BUTTON
-          - Always visible
-          - When open: becomes a clear, glowing Close (✕) button!
           ======================================================== */}
       <div className="fixed bottom-3 right-3 sm:bottom-5 sm:right-5 z-[90] flex items-center">
         <button
           id="support-float-toggle"
           onClick={() => setIsOpen((prev) => !prev)}
           aria-label={isOpen ? 'Close Support' : 'Open Live Support and Feedback'}
-          className={`group relative flex items-center gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-full border transition-all duration-300 shadow-[0_12px_35px_rgba(0,0,0,0.85)] backdrop-blur-xl focus:outline-none focus:ring-2 focus:ring-[#D9C08A]/60 active:scale-95 ${
+          className={`group relative flex items-center gap-2 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-full border transition-all duration-300 shadow-[0_12px_35px_rgba(0,0,0,0.85)] backdrop-blur-xl focus:outline-none focus:ring-2 focus:ring-[#D9C08A]/60 active:scale-95 ${
             isOpen
               ? 'bg-[#18231E] border-rose-500/60 text-rose-300 hover:bg-rose-950/40'
               : 'bg-[#0D1512]/95 hover:bg-[#131E1A] border-[#D9C08A]/45 text-[#F4F7F5]'
@@ -311,7 +370,7 @@ export const SupportFeedbackWidget: React.FC = () => {
           <span className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[#D9C08A]/30 via-[#34D399]/30 to-[#D9C08A]/30 blur-sm opacity-70 group-hover:opacity-100 transition-opacity" />
 
           {isOpen ? (
-            // Close State
+            // Close Toggle
             <div className="relative z-10 flex items-center gap-1.5 font-sans font-bold text-xs text-rose-300">
               <div className="w-6 h-6 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
                 <X size={15} weight="bold" />
@@ -319,11 +378,11 @@ export const SupportFeedbackWidget: React.FC = () => {
               <span className="font-serif">Close</span>
             </div>
           ) : (
-            // Open State
+            // Open Launcher
             <div className="relative z-10 flex items-center gap-2">
               <div className="relative flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#D9C08A]/20 border border-[#D9C08A]/50 text-[#D9C08A] shrink-0">
                 <Headset size={16} weight="bold" className="animate-pulse" />
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#34D399] border-2 border-[#070B09]" />
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#34D399] border-2 border-[#070B09]" />
               </div>
               <div className="flex flex-col text-left">
                 <span className="text-[11px] sm:text-xs font-bold tracking-wide text-[#F4F7F5] flex items-center gap-1 font-serif whitespace-nowrap">
@@ -340,9 +399,6 @@ export const SupportFeedbackWidget: React.FC = () => {
 
       {/* ========================================================
           EXPANDABLE MODAL PANEL
-          - Placed above the launcher (bottom-16 sm:bottom-20)
-          - Adaptive height (no empty space void!)
-          - Header bar has a prominent Close (✕) button
           ======================================================== */}
       {isOpen && (
         <div
@@ -352,11 +408,11 @@ export const SupportFeedbackWidget: React.FC = () => {
           aria-label="Customer Support and Feedback"
           className="fixed bottom-14 sm:bottom-20 right-3 sm:right-5 z-[90] w-[calc(100vw-24px)] sm:w-[385px] md:w-[400px] flex flex-col rounded-2xl bg-[#090F0C] border border-[#D9C08A]/35 text-[#F4F7F5] shadow-[0_25px_65px_rgba(0,0,0,0.9),0_0_30px_rgba(217,192,138,0.15)] backdrop-blur-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         >
-          {/* Subtle Accent Glow */}
+          {/* Subtle Corner Glow */}
           <div className="pointer-events-none absolute -top-12 -right-12 w-36 h-36 bg-[radial-gradient(circle,rgba(217,192,138,0.18),transparent_70%)] blur-2xl -z-10" />
 
           {/* ========================================================
-              TOP HEADER BAR (PROMINENT CLOSE BUTTON)
+              TOP HEADER BAR (CLEAR CLOSE & TRASH BUTTONS)
               ======================================================== */}
           <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-[#D9C08A]/20 bg-[#0D1512] shrink-0">
             <div className="flex items-center gap-2">
@@ -370,21 +426,81 @@ export const SupportFeedbackWidget: React.FC = () => {
                   <ShieldCheck size={13} weight="fill" className="text-[#34D399]" />
                 </h3>
                 <p className="text-[9px] text-[#9EABA2] font-mono leading-tight">
-                  {isLiveAgentRequested ? '🚨 Live Agent Alerted' : '● Online | Smart AI & Live Desk'}
+                  {activeTicket?.status === 'waiting_agent'
+                    ? '🟡 Waiting for Admin'
+                    : activeTicket?.status === 'open'
+                    ? '🟢 Admin Live in Chat'
+                    : isTicketResolved
+                    ? '✅ Inquiry Resolved'
+                    : '● Online | Smart AI & Live Desk'}
                 </p>
               </div>
             </div>
 
-            {/* Clear, Prominent Header Close Button */}
-            <button
-              onClick={() => setIsOpen(false)}
-              className="w-7 h-7 rounded-lg flex items-center justify-center bg-white/5 hover:bg-rose-500/20 text-[#9EABA2] hover:text-rose-300 border border-white/5 transition-all active:scale-90"
-              title="Close window"
-              aria-label="Close Support Window"
-            >
-              <X size={15} weight="bold" />
-            </button>
+            <div className="flex items-center gap-1">
+              {/* Delete / Clear Chat History Button */}
+              {messages.length > 1 && (
+                <button
+                  onClick={handleClearHistory}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center bg-white/5 hover:bg-rose-500/20 text-[#9EABA2] hover:text-rose-300 border border-white/5 transition-all active:scale-90"
+                  title="Clear & delete chat history"
+                  aria-label="Clear chat history"
+                >
+                  <Trash size={14} />
+                </button>
+              )}
+
+              {/* Close Button */}
+              <button
+                onClick={() => setIsOpen(false)}
+                className="w-7 h-7 rounded-lg flex items-center justify-center bg-white/5 hover:bg-rose-500/20 text-[#9EABA2] hover:text-rose-300 border border-white/5 transition-all active:scale-90"
+                title="Close window"
+                aria-label="Close Support Window"
+              >
+                <X size={15} weight="bold" />
+              </button>
+            </div>
           </div>
+
+          {/* Live Progress Banner when Admin updates ticket status */}
+          {activeTicket && (
+            <div
+              className={`px-3 py-1.5 flex items-center justify-between text-[10px] font-mono border-b ${
+                isTicketResolved
+                  ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500/30'
+                  : activeTicket.status === 'open'
+                  ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
+                  : 'bg-amber-500/10 text-amber-300 border-amber-500/20'
+              }`}
+            >
+              <div className="flex items-center gap-1.5">
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    isTicketResolved
+                      ? 'bg-emerald-400'
+                      : activeTicket.status === 'open'
+                      ? 'bg-emerald-400 animate-pulse'
+                      : 'bg-amber-400 animate-ping'
+                  }`}
+                />
+                <span className="font-sans">
+                  {isTicketResolved
+                    ? 'Ticket Marked Resolved by Admin Team'
+                    : activeTicket.status === 'open'
+                    ? 'Admin is actively handling your query'
+                    : 'Bell alert sent to team • Waiting for agent'}
+                </span>
+              </div>
+              {isTicketResolved && (
+                <button
+                  onClick={handleStartNewSession}
+                  className="px-2 py-0.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 text-[9px] font-bold border border-emerald-500/40 uppercase tracking-wider transition-all"
+                >
+                  Start New
+                </button>
+              )}
+            </div>
+          )}
 
           {/* ========================================================
               NAVIGATION TABS
@@ -415,11 +531,11 @@ export const SupportFeedbackWidget: React.FC = () => {
           </div>
 
           {/* ========================================================
-              TAB 1: LIVE BOT & INSTANT ADMIN BELL ESCALATION
+              TAB 1: LIVE BOT & LIVE CHAT (STRICTLY USER ISOLATED)
               ======================================================== */}
           {activeTab === 'bot' && (
             <div className="flex flex-col bg-[#070B09]/80 overflow-hidden">
-              {/* Chat Message Stream - Clean, compact max height (No large blank void!) */}
+              {/* Message Stream */}
               <div className="min-h-[160px] max-h-[250px] overflow-y-auto p-3 space-y-2.5 font-sans text-xs overscroll-contain">
                 {messages.map((msg) => (
                   <div
@@ -436,10 +552,15 @@ export const SupportFeedbackWidget: React.FC = () => {
                         msg.sender === 'user'
                           ? 'bg-[#34D399]/20 text-[#F4F7F5] border border-[#34D399]/35 rounded-tr-xs'
                           : msg.sender === 'agent'
-                          ? 'bg-[#D9C08A]/25 text-[#F4F7F5] border border-[#D9C08A]/50 rounded-tl-xs'
+                          ? 'bg-[#D9C08A]/25 text-[#F4F7F5] border border-[#D9C08A]/50 rounded-tl-xs shadow-xs'
                           : 'bg-[#131E1A] text-[#F4F7F5] border border-white/10 rounded-tl-xs'
                       }`}
                     >
+                      {msg.sender === 'agent' && (
+                        <span className="block text-[9px] font-mono font-bold text-[#D9C08A] mb-0.5 uppercase tracking-wider">
+                          👑 Admin Support Team
+                        </span>
+                      )}
                       {msg.text}
                       <span className="block text-[8px] text-[#9EABA2]/60 text-right mt-0.5 font-mono">
                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -460,70 +581,97 @@ export const SupportFeedbackWidget: React.FC = () => {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Quick Knowledge Base Chips */}
-              <div className="px-3 py-1.5 border-t border-white/5 bg-[#0D1512]/90 flex items-center gap-1.5 overflow-x-auto scrollbar-none overscroll-x-contain shrink-0">
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage('How do Rank criteria and bonuses work?')}
-                  className="shrink-0 whitespace-nowrap px-2.5 py-1 rounded-full bg-white/5 hover:bg-[#D9C08A]/15 border border-white/10 text-[10px] text-[#9EABA2] hover:text-[#D9C08A] transition-all flex items-center gap-1"
-                >
-                  <span>👑 Ranks</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage('What are payout times and methods?')}
-                  className="shrink-0 whitespace-nowrap px-2.5 py-1 rounded-full bg-white/5 hover:bg-[#D9C08A]/15 border border-white/10 text-[10px] text-[#9EABA2] hover:text-[#D9C08A] transition-all flex items-center gap-1"
-                >
-                  <span>💰 Payouts</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage('How does wholesale COD selling work?')}
-                  className="shrink-0 whitespace-nowrap px-2.5 py-1 rounded-full bg-white/5 hover:bg-[#D9C08A]/15 border border-white/10 text-[10px] text-[#9EABA2] hover:text-[#D9C08A] transition-all flex items-center gap-1"
-                >
-                  <span>📦 COD Selling</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage('Where are training video tutorials?')}
-                  className="shrink-0 whitespace-nowrap px-2.5 py-1 rounded-full bg-white/5 hover:bg-[#D9C08A]/15 border border-white/10 text-[10px] text-[#9EABA2] hover:text-[#D9C08A] transition-all flex items-center gap-1"
-                >
-                  <span>🎓 Tutorials</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleConnectLiveAgent()}
-                  className="shrink-0 whitespace-nowrap px-2.5 py-1 rounded-full bg-rose-500/20 border border-rose-500/50 text-[10px] text-rose-300 font-bold hover:bg-rose-500/30 transition-all flex items-center gap-1 active:scale-95"
-                >
-                  <BellRinging size={12} weight="bold" />
-                  <span>Call Live Agent</span>
-                </button>
-              </div>
+              {/* Resolution Action Card (When closed/resolved by admin) */}
+              {isTicketResolved ? (
+                <div className="p-3 border-t border-white/10 bg-[#0A130F] flex items-center justify-between gap-2">
+                  <div className="text-[11px] text-[#9EABA2]">
+                    Chat closed by team. Start a new topic anytime!
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={handleStartNewSession}
+                      className="px-3 py-1.5 rounded-xl bg-[#D9C08A] text-[#070B09] font-bold text-xs flex items-center gap-1 hover:bg-[#E5CE9F] transition-all"
+                    >
+                      <ArrowCounterClockwise size={13} weight="bold" />
+                      <span>New Chat</span>
+                    </button>
+                    <button
+                      onClick={handleClearHistory}
+                      className="p-1.5 rounded-xl bg-white/5 hover:bg-rose-500/20 text-[#9EABA2] hover:text-rose-300 border border-white/5 transition-all"
+                      title="Clear History"
+                    >
+                      <Trash size={14} />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Quick FAQ Chips */}
+                  <div className="px-3 py-1.5 border-t border-white/5 bg-[#0D1512]/90 flex items-center gap-1.5 overflow-x-auto scrollbar-none overscroll-x-contain shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleSendMessage('How do Rank criteria and bonuses work?')}
+                      className="shrink-0 whitespace-nowrap px-2.5 py-1 rounded-full bg-white/5 hover:bg-[#D9C08A]/15 border border-white/10 text-[10px] text-[#9EABA2] hover:text-[#D9C08A] transition-all flex items-center gap-1"
+                    >
+                      <span>👑 Ranks</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSendMessage('What are payout times and methods?')}
+                      className="shrink-0 whitespace-nowrap px-2.5 py-1 rounded-full bg-white/5 hover:bg-[#D9C08A]/15 border border-white/10 text-[10px] text-[#9EABA2] hover:text-[#D9C08A] transition-all flex items-center gap-1"
+                    >
+                      <span>💰 Payouts</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSendMessage('How does wholesale COD selling work?')}
+                      className="shrink-0 whitespace-nowrap px-2.5 py-1 rounded-full bg-white/5 hover:bg-[#D9C08A]/15 border border-white/10 text-[10px] text-[#9EABA2] hover:text-[#D9C08A] transition-all flex items-center gap-1"
+                    >
+                      <span>📦 COD Selling</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSendMessage('Where are training video tutorials?')}
+                      className="shrink-0 whitespace-nowrap px-2.5 py-1 rounded-full bg-white/5 hover:bg-[#D9C08A]/15 border border-white/10 text-[10px] text-[#9EABA2] hover:text-[#D9C08A] transition-all flex items-center gap-1"
+                    >
+                      <span>🎓 Tutorials</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleConnectLiveAgent()}
+                      className="shrink-0 whitespace-nowrap px-2.5 py-1 rounded-full bg-rose-500/20 border border-rose-500/50 text-[10px] text-rose-300 font-bold hover:bg-rose-500/30 transition-all flex items-center gap-1 active:scale-95"
+                    >
+                      <BellRinging size={12} weight="bold" />
+                      <span>Call Live Agent</span>
+                    </button>
+                  </div>
 
-              {/* Chat Input Bar */}
-              <div className="p-2 border-t border-white/10 bg-[#090F0C] shrink-0 flex items-center gap-1.5">
-                <input
-                  type="text"
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                  placeholder="Ask bot or type message for admin..."
-                  className="flex-1 px-3 py-1.5 rounded-xl bg-[#131E1A] border border-white/10 text-xs text-[#F4F7F5] placeholder-[#9EABA2]/60 focus:outline-none focus:border-[#D9C08A] focus:ring-1 focus:ring-[#D9C08A]/40 transition-all"
-                />
-                <button
-                  onClick={() => handleSendMessage()}
-                  disabled={!inputText.trim()}
-                  className="w-8 h-8 rounded-xl bg-[#D9C08A] text-[#070B09] flex items-center justify-center hover:bg-[#E5CE9F] disabled:opacity-40 active:scale-95 transition-all shrink-0"
-                  aria-label="Send Message"
-                >
-                  <PaperPlaneRight size={14} weight="bold" />
-                </button>
-              </div>
+                  {/* Chat Input Bar */}
+                  <div className="p-2 border-t border-white/10 bg-[#090F0C] shrink-0 flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      placeholder="Ask bot or type message for admin..."
+                      className="flex-1 px-3 py-1.5 rounded-xl bg-[#131E1A] border border-white/10 text-xs text-[#F4F7F5] placeholder-[#9EABA2]/60 focus:outline-none focus:border-[#D9C08A] focus:ring-1 focus:ring-[#D9C08A]/40 transition-all"
+                    />
+                    <button
+                      onClick={() => handleSendMessage()}
+                      disabled={!inputText.trim()}
+                      className="w-8 h-8 rounded-xl bg-[#D9C08A] text-[#070B09] flex items-center justify-center hover:bg-[#E5CE9F] disabled:opacity-40 active:scale-95 transition-all shrink-0"
+                      aria-label="Send Message"
+                    >
+                      <PaperPlaneRight size={14} weight="bold" />
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           )}
 

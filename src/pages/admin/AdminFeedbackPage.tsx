@@ -205,11 +205,26 @@ export const AdminFeedbackPage: React.FC = () => {
       await feedbackService.updateTicketStatus(id, status);
       toastSuccess(`Ticket marked as ${status}.`);
       if (selectedTicket?.id === id) {
-        setSelectedTicket((prev) => (prev ? { ...prev, status } : null));
+        const updated = feedbackService.getTicketById(id);
+        setSelectedTicket(updated || null);
       }
       refreshData();
     } catch {
       toastError('Failed to update ticket status.');
+    }
+  };
+
+  const handleDeleteTicket = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this chat history and ticket? This cannot be undone.')) return;
+    try {
+      await feedbackService.deleteTicket(id);
+      toastSuccess('Support ticket and chat history deleted.');
+      if (selectedTicket?.id === id) {
+        setSelectedTicket(null);
+      }
+      refreshData();
+    } catch {
+      toastError('Failed to delete ticket.');
     }
   };
 
@@ -690,11 +705,30 @@ export const AdminFeedbackPage: React.FC = () => {
                     </select>
 
                     <button
+                      onClick={() => handleUpdateTicketStatus(t.id, t.status === 'resolved' ? 'open' : 'resolved')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all ${
+                        t.status === 'resolved'
+                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                          : 'bg-[#34D399]/15 text-[#34D399] border-[#34D399]/40 hover:bg-[#34D399]/25'
+                      }`}
+                    >
+                      {t.status === 'resolved' ? 'Resolved ✓' : 'Mark Resolved'}
+                    </button>
+
+                    <button
                       onClick={() => setSelectedTicket(t)}
                       className="px-3 py-1.5 rounded-lg bg-[#D9C08A]/20 hover:bg-[#D9C08A]/30 text-[#D9C08A] font-bold text-xs border border-[#D9C08A]/40 transition-all flex items-center gap-1.5"
                     >
                       <ChatCircleDots size={14} weight="bold" />
                       <span>Inspect & Reply</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleDeleteTicket(t.id)}
+                      className="p-1.5 rounded-lg text-[#9EABA2] hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                      title="Delete Ticket and Chat History"
+                    >
+                      <Trash size={16} />
                     </button>
                   </div>
                 </div>
@@ -738,12 +772,31 @@ export const AdminFeedbackPage: React.FC = () => {
                   Email: {selectedTicket.userEmail} {selectedTicket.whatsapp ? `| WhatsApp: ${selectedTicket.whatsapp}` : ''}
                 </p>
               </div>
-              <button
-                onClick={() => setSelectedTicket(null)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/5"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleUpdateTicketStatus(selectedTicket.id, selectedTicket.status === 'resolved' ? 'open' : 'resolved')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                    selectedTicket.status === 'resolved'
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                      : 'bg-[#34D399]/20 text-[#34D399] border-[#34D399]/50 hover:bg-[#34D399]/30'
+                  }`}
+                >
+                  {selectedTicket.status === 'resolved' ? 'Resolved ✓' : 'Resolve & Close'}
+                </button>
+                <button
+                  onClick={() => handleDeleteTicket(selectedTicket.id)}
+                  className="p-1.5 rounded-lg text-[#9EABA2] hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                  title="Delete Chat History"
+                >
+                  <Trash size={16} />
+                </button>
+                <button
+                  onClick={() => setSelectedTicket(null)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/5"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             {/* Conversation Log */}
