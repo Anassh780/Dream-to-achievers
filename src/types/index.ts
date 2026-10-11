@@ -320,4 +320,49 @@ export interface VideoTutorial {
   updatedAt?: string;
 }
 
+export type FeedbackCategory = 'bug' | 'feature' | 'ux' | 'support' | 'general';
+export type FeedbackStatus = 'new' | 'reviewed' | 'in_progress' | 'resolved' | 'archived';
 
+export interface UserFeedback {
+  id: string;
+  userId?: string;
+  userName: string;
+  userEmail: string;
+  rating: number; // 1 to 5
+  category: FeedbackCategory;
+  sentiment: 'positive' | 'neutral' | 'negative';
+  subject: string;
+  message: string;
+  pageUrl: string;
+  deviceInfo?: string;
+  status: FeedbackStatus;
+  adminNotes?: string;
+  adminRepliedAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export type SupportTicketStatus = 'open' | 'waiting_agent' | 'resolved' | 'closed';
+export type SupportTicketPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export interface SupportChatMessage {
+  id: string;
+  sender: 'user' | 'bot' | 'agent';
+  text: string;
+  timestamp: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  userId?: string;
+  userName: string;
+  userEmail: string;
+  whatsapp?: string;
+  subject: string;
+  category: string;
+  status: SupportTicketStatus;
+  priority: SupportTicketPriority;
+  messages: SupportChatMessage[];
+  createdAt: string;
+  updatedAt: string;
+}

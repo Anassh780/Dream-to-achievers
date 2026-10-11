@@ -37,7 +37,9 @@ import {
   CaretLeft,
   CaretRight,
   VideoCamera,
+  Headset,
 } from '@phosphor-icons/react';
+import { feedbackService } from '@/services/feedbackService';
 
 interface NavGroup {
   title: string;
@@ -99,6 +101,7 @@ export const AdminLayout: React.FC = () => {
   // Dynamic real-time pending update counters with badge tracker integration
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [pendingPayoutsCount, setPendingPayoutsCount] = useState(0);
+  const [pendingFeedbackCount, setPendingFeedbackCount] = useState(0);
   const [, setBadgeTrigger] = useState(0);
 
   const calculatePendingUpdates = () => {
@@ -116,6 +119,10 @@ export const AdminLayout: React.FC = () => {
       const pendingRewards = rewards.filter((r) => r.status === 'pending_review').length;
 
       setPendingPayoutsCount(pendingWithdrawals + pendingRewards);
+
+      const unreviewedFeedbacks = feedbackService.getPendingFeedbackCount();
+      const urgentTickets = feedbackService.getPendingTicketsCount();
+      setPendingFeedbackCount(unreviewedFeedbacks + urgentTickets);
     } catch {
       // Fallback
     }
@@ -141,12 +148,20 @@ export const AdminLayout: React.FC = () => {
       calculatePendingUpdates();
       setBadgeTrigger((prev) => prev + 1);
     };
+    const handleFeedbackUpdate = () => {
+      calculatePendingUpdates();
+      setBadgeTrigger((prev) => prev + 1);
+    };
 
     window.addEventListener('dta_storage_change', handleStorageChange);
     window.addEventListener('dta_badge_update', handleBadgeUpdate);
+    window.addEventListener('dta_feedback_update', handleFeedbackUpdate);
+    window.addEventListener('dta_support_update', handleFeedbackUpdate);
     return () => {
       window.removeEventListener('dta_storage_change', handleStorageChange);
       window.removeEventListener('dta_badge_update', handleBadgeUpdate);
+      window.removeEventListener('dta_feedback_update', handleFeedbackUpdate);
+      window.removeEventListener('dta_support_update', handleFeedbackUpdate);
     };
   }, [location.pathname, pendingOrdersCount, pendingPayoutsCount]);
 
@@ -216,6 +231,12 @@ export const AdminLayout: React.FC = () => {
     {
       title: 'SYSTEM & SETTINGS',
       items: [
+        {
+          label: 'Support & Feedback',
+          href: '/admin/feedback',
+          icon: Headset,
+          badgeCount: pendingFeedbackCount > 0 ? pendingFeedbackCount : undefined,
+        },
         { label: 'Video Tutorials', href: '/admin/tutorials', icon: VideoCamera },
         { label: 'Website CMS & Config', href: '/admin/cms', icon: GearSix },
         { label: 'Activity Logs', href: '/admin/audit-logs', icon: Scroll },

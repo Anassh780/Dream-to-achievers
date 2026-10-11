@@ -63,6 +63,10 @@ const AdminCMSPage = lazy(() => import('@/pages/admin/AdminCMSPage').then((m) =>
 const AdminAuditLogsPage = lazy(() => import('@/pages/admin/AdminAuditLogsPage').then((m) => ({ default: m.AdminAuditLogsPage })));
 const AdminCategoriesPage = lazy(() => import('@/pages/admin/AdminCategoriesPage').then((m) => ({ default: m.AdminCategoriesPage })));
 const AdminTutorialsPage = lazy(() => import('@/pages/admin/AdminTutorialsPage').then((m) => ({ default: m.AdminTutorialsPage })));
+const AdminFeedbackPage = lazy(() => import('@/pages/admin/AdminFeedbackPage').then((m) => ({ default: m.AdminFeedbackPage })));
+
+// Global Customer Support & Feedback Floating Dock
+import { SupportFeedbackWidget } from '@/components/support/SupportFeedbackWidget';
 
 // Common / 404
 import { NotFound } from '@/pages/NotFound';
@@ -88,6 +92,7 @@ export const App: React.FC = () => {
         <ToastProvider>
           <BrowserRouter>
             <ReferralTracker />
+            <SupportFeedbackWidget />
             <Routes>
               {/* Public Portal Routes */}
               <Route path="/" element={<PublicLayout />}>
@@ -185,6 +190,7 @@ export const App: React.FC = () => {
                 <Route path="rewards" element={<AdminRewardsPage />} />
                 <Route path="cms" element={<AdminCMSPage />} />
                 <Route path="tutorials" element={<AdminTutorialsPage />} />
+                <Route path="feedback" element={<AdminFeedbackPage />} />
                 <Route path="audit-logs" element={<AdminAuditLogsPage />} />
               </Route>
 

@@ -25,4 +25,6 @@ android/*.xml
 android/*.png
 android/audit/
 
-
+# Video outputs
+brag-output/
+*.py

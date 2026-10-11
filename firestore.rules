@@ -165,6 +165,15 @@ service cloud.firestore {
       allow delete: if admin();
     }
     match /audit_logs/{id} { allow read, write: if admin(); }
+    match /feedbacks/{id} {
+      allow create: if true;
+      allow read, update, delete: if admin();
+    }
+    match /support_tickets/{id} {
+      allow create: if true;
+      allow read, update: if admin() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow delete: if admin();
+    }
     match /deleted_products/{id} { allow read, write: if admin(); }
     match /deleted_users/{id} { allow read, write: if superadmin(); }
     match /{document=**} { allow read, write: if false; }
