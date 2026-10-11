@@ -2,6 +2,8 @@ import { db } from '@/lib/firebase';
 import { collection, doc, setDoc, deleteDoc, getDocs, updateDoc } from 'firebase/firestore';
 import { storage } from './storage';
 import { auditService } from './auditService';
+import { notificationService } from './notificationService';
+import { webNotificationService } from './webNotificationService';
 import type {
   UserFeedback,
   FeedbackCategory,
@@ -11,6 +13,39 @@ import type {
   SupportTicketPriority,
   SupportChatMessage,
 } from '@/types';
+
+async function notifyAdmins(title: string, message: string, linkUrl: string = '/admin/feedback') {
+  try {
+    const users = storage.get<any[]>('USERS', []);
+    const admins = users.filter(
+      (u) =>
+        u.role === 'admin' ||
+        u.role === 'superadmin' ||
+        u.email?.toLowerCase().includes('ghhhbbbhjn3@gmail.com') ||
+        u.email?.toLowerCase().includes('dreamtoachievers@gmail.com')
+    );
+
+    const adminIds = new Set(admins.map((a) => a.id));
+    adminIds.add('oi8O5XbNHZOtnXaV10BRXdOATgi2');
+    adminIds.add('PN9MiF9b8ZP54utzL8fgDu1XU072');
+    adminIds.add('admin');
+    adminIds.add('all');
+
+    for (const adminId of adminIds) {
+      notificationService.createNotification({
+        userId: adminId,
+        type: 'system',
+        title,
+        message,
+        linkUrl,
+      });
+    }
+
+    webNotificationService.sendLocalNotification(title, message, linkUrl);
+  } catch (err) {
+    console.warn('Error sending notification to admins:', err);
+  }
+}
 
 // Pre-seeded initial mock feedbacks for immediate admin preview if empty
 const INITIAL_FEEDBACKS: UserFeedback[] = [
@@ -135,6 +170,13 @@ class FeedbackService {
       window.dispatchEvent(new CustomEvent('dta_feedback_update'));
     }
 
+    // Send high-priority bell notification to all administrators
+    notifyAdmins(
+      `⭐ New Feedback (${newFeedback.rating} Stars) - ${newFeedback.category.toUpperCase()}`,
+      `Dispatched to official email (support@dreamtoachievers.com): "${newFeedback.message.substring(0, 80)}"`,
+      '/admin/feedback'
+    );
+
     return newFeedback;
   }
 
@@ -233,6 +275,13 @@ class FeedbackService {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('dta_support_update'));
     }
+
+    // Bell notification to all administrators
+    notifyAdmins(
+      `🚨 Live Agent Chat Request: ${newTicket.userName}`,
+      `User requested live assistance: "${newTicket.subject || 'Live query'}". Click to open chat and reply.`,
+      '/admin/feedback'
+    );
 
     return newTicket;
   }
