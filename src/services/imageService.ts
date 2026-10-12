@@ -104,6 +104,36 @@ export function normalizeImageUrl(rawUrl: string): string {
   // Already a base64 Data URI
   if (url.startsWith('data:image/')) return url;
 
+  // Extract from HTML <img src="..."> or <a href="...">
+  const htmlMatch = url.match(/src=["'](https?:\/\/[^"']+)["']/i);
+  if (htmlMatch && htmlMatch[1]) {
+    url = htmlMatch[1].trim();
+  }
+
+  // Extract from Markdown: ![alt](https://...)
+  const mdMatch = url.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/i);
+  if (mdMatch && mdMatch[1]) {
+    url = mdMatch[1].trim();
+  }
+
+  // Extract from BBCode: [img]https://...[/img]
+  const bbMatch = url.match(/\[img\](https?:\/\/[^\[]+)\[\/img\]/i);
+  if (bbMatch && bbMatch[1]) {
+    url = bbMatch[1].trim();
+  }
+
+  // If user pasted on top of an existing URL (e.g. multiple http/https in one string):
+  const allUrls = url.match(/https?:\/\/[^\s"'<>]+/gi);
+  if (allUrls && allUrls.length > 1) {
+    url = allUrls[allUrls.length - 1];
+  }
+
+  // PhotoToURL support:
+  // e.g. https://phototourl.com/member/... must be https://cdn.phototourl.com/member/...
+  if (url.includes('phototourl.com') && !url.includes('cdn.phototourl.com')) {
+    url = url.replace(/https?:\/\/(?:www\.)?phototourl\.com\//i, 'https://cdn.phototourl.com/');
+  }
+
   // Google Images Search Link: https://www.google.com/imgres?imgurl=...
   if (url.includes('google.') && url.includes('/imgres')) {
     try {
@@ -141,6 +171,15 @@ export function normalizeImageUrl(rawUrl: string): string {
   if (imgurMatch && imgurMatch[1]) {
     return `https://i.imgur.com/${imgurMatch[1]}.png`;
   }
+
+  // Postimages / Postimg page link:
+  const postimgMatch = url.match(/^https?:\/\/postimg\.cc\/([a-zA-Z0-9]+)$/);
+  if (postimgMatch && postimgMatch[1]) {
+    return `https://i.postimg.cc/${postimgMatch[1]}/image.jpg`;
+  }
+
+  // Strip trailing punctuation
+  url = url.replace(/[.,;)\s]+$/, '');
 
   return url;
 }
