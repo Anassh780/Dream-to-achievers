@@ -143,17 +143,46 @@ class CloudSyncService {
     }
 
     try {
-      const profile = await getDoc(doc(db, 'users', user.uid));
+      const isHardcodedAdmin =
+        user.uid === 'oi8O5XbNHZOtnXaV10BRXdOATgi2' ||
+        user.uid === 'PN9MiF9b8ZP54utzL8fgDu1XU072' ||
+        ['ghhhbbbhjn3@gmail.com', 'dreamtoachievers@gmail.com'].includes(
+          String(user.email || '').toLowerCase().trim()
+        );
+
+      let role: string | null = null;
+      let userData: any = null;
+
+      try {
+        const profile = await getDoc(doc(db, 'users', user.uid));
+        if (profile.exists()) {
+          userData = profile.data();
+          role = userData?.role || null;
+        }
+      } catch (profileErr) {
+        console.warn('[Firestore] Profile fetch error, checking RTDB fallback:', profileErr);
+      }
+
+      // RTDB Fallback for role check if Firestore is unreachable
+      if (!role && user.uid) {
+        try {
+          const rtdbSnap = await get(ref(rtdb, `users/${user.uid}/role`));
+          if (rtdbSnap.exists()) {
+            role = rtdbSnap.val();
+          }
+        } catch {}
+      }
+
       if (revision !== this.authRevision || auth.currentUser?.uid !== user.uid) return;
-      const role = profile.data()?.role;
-      if (role === 'admin' || role === 'superadmin') {
+
+      if (isHardcodedAdmin || role === 'admin' || role === 'superadmin') {
         ['sales', 'users', 'withdrawals', 'rewards', 'notifications', 'audit_logs', 'referrals', 'deleted_products'].forEach((name) =>
           this.listenCollection(name, name.toUpperCase() as CacheKey, this.privateUnsubscribers));
         return;
       }
 
-      if (profile.exists()) {
-        storage.set('USERS', [{ id: profile.id, ...profile.data() }]);
+      if (userData) {
+        storage.set('USERS', [{ id: user.uid, ...userData }]);
       }
       this.listenQuery(query(collection(db, 'sales'), where('userId', '==', user.uid)), 'sales', 'SALES');
       this.listenQuery(query(collection(db, 'withdrawals'), where('userId', '==', user.uid)), 'withdrawals', 'WITHDRAWALS');
