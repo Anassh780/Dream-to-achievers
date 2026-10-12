@@ -18,10 +18,74 @@ class CloudSyncService {
   init() {
     if (this.isInitialized || typeof window === 'undefined') return;
     this.isInitialized = true;
+
+    // 1. Dual Realtime Database listeners for Products & Categories (instant public access on all devices without Firestore permission blocks)
+    try {
+      const productsRef = ref(rtdb, 'products');
+      const unsubRtdbProducts = onValue(
+        productsRef,
+        (snapshot: any) => {
+          if (snapshot.exists()) {
+            const val = snapshot.val() || {};
+            const items = Object.values(val) as Product[];
+            if (Array.isArray(items) && items.length > 0) {
+              storage.set('PRODUCTS', items);
+              window.dispatchEvent(new CustomEvent('dta_products_update', { detail: items }));
+            }
+          } else {
+            // If RTDB products node is empty, push existing local products to cloud
+            const local = storage.get<Product[]>('PRODUCTS', []);
+            if (local.length > 0) {
+              local.forEach((p) => {
+                set(ref(rtdb, `products/${p.id}`), this.cleanProductForCloud(p)).catch(() => {});
+              });
+            }
+          }
+        },
+        (error: any) => {
+          console.warn('[RTDB] products listener error:', error);
+        }
+      );
+      this.publicUnsubscribers.push(() => unsubRtdbProducts());
+    } catch (rtdbErr) {
+      console.warn('[RTDB] products listener setup failed:', rtdbErr);
+    }
+
+    try {
+      const categoriesRef = ref(rtdb, 'categories');
+      const unsubRtdbCategories = onValue(
+        categoriesRef,
+        (snapshot: any) => {
+          if (snapshot.exists()) {
+            const val = snapshot.val() || {};
+            const items = Object.values(val) as Category[];
+            if (Array.isArray(items) && items.length > 0) {
+              storage.set('CATEGORIES', items);
+              window.dispatchEvent(new CustomEvent('dta_categories_update', { detail: items }));
+            }
+          } else {
+            const local = storage.get<Category[]>('CATEGORIES', []);
+            if (local.length > 0) {
+              local.forEach((c) => {
+                set(ref(rtdb, `categories/${c.id}`), c).catch(() => {});
+              });
+            }
+          }
+        },
+        (error: any) => {
+          console.warn('[RTDB] categories listener error:', error);
+        }
+      );
+      this.publicUnsubscribers.push(() => unsubRtdbCategories());
+    } catch (rtdbErr) {
+      console.warn('[RTDB] categories listener setup failed:', rtdbErr);
+    }
+
+    // 2. Also listen to Firestore collections as secondary/redundant cloud store
     this.listenCollection('products', 'PRODUCTS', this.publicUnsubscribers);
     this.listenCollection('categories', 'CATEGORIES', this.publicUnsubscribers);
 
-    // Realtime Database listener for tutorials (public real-time broadcast across all users)
+    // 3. Realtime Database listener for tutorials (public real-time broadcast across all users)
     try {
       const tutorialsRef = ref(rtdb, 'tutorials');
       const unsubRtdbTutorials = onValue(
@@ -227,13 +291,96 @@ class CloudSyncService {
     };
   }
 
-  async syncProductToCloud(product: Product) { await setDoc(doc(db, 'products', product.id), this.cleanProductForCloud(product), { merge: true }); }
-  async syncAllProductsToCloud(products: Product[]) { for (const product of products) await this.syncProductToCloud(product); return products.length; }
-  async deleteProductFromCloud(productId: string) { await deleteDoc(doc(db, 'products', productId)); }
-  async archiveProduct(product: Product) { await setDoc(doc(db, 'deleted_products', product.id), this.cleanProductForCloud(product)); await this.deleteProductFromCloud(product.id); }
-  async restoreProduct(product: Product) { await this.syncProductToCloud(product); await deleteDoc(doc(db, 'deleted_products', product.id)); }
-  async syncCategoryToCloud(category: Category) { await setDoc(doc(db, 'categories', category.id), category, { merge: true }); }
-  async deleteCategoryFromCloud(categoryId: string) { await deleteDoc(doc(db, 'categories', categoryId)); }
+  async syncProductToCloud(product: Product) {
+    const cleaned = this.cleanProductForCloud(product);
+    // 1. Dual-sync to Realtime Database (guaranteed high-availability & instant cross-device broadcast)
+    try {
+      await set(ref(rtdb, `products/${product.id}`), cleaned);
+    } catch (rtdbErr) {
+      console.warn('[RTDB] syncProductToCloud warning:', rtdbErr);
+    }
+    // 2. Also persist to Cloud Firestore
+    try {
+      await setDoc(doc(db, 'products', product.id), cleaned, { merge: true });
+    } catch (fsErr) {
+      console.warn('[Firestore] syncProductToCloud warning:', fsErr);
+    }
+  }
+
+  async syncAllProductsToCloud(products: Product[]) {
+    for (const product of products) {
+      await this.syncProductToCloud(product);
+    }
+    return products.length;
+  }
+
+  async deleteProductFromCloud(productId: string) {
+    try {
+      await remove(ref(rtdb, `products/${productId}`));
+    } catch (rtdbErr) {
+      console.warn('[RTDB] deleteProductFromCloud warning:', rtdbErr);
+    }
+    try {
+      await deleteDoc(doc(db, 'products', productId));
+    } catch (fsErr) {
+      console.warn('[Firestore] deleteProductFromCloud warning:', fsErr);
+    }
+  }
+
+  async archiveProduct(product: Product) {
+    const cleaned = this.cleanProductForCloud(product);
+    try {
+      await set(ref(rtdb, `deleted_products/${product.id}`), cleaned);
+    } catch (rtdbErr) {
+      console.warn('[RTDB] archiveProduct warning:', rtdbErr);
+    }
+    try {
+      await setDoc(doc(db, 'deleted_products', product.id), cleaned);
+    } catch (fsErr) {
+      console.warn('[Firestore] archiveProduct warning:', fsErr);
+    }
+    await this.deleteProductFromCloud(product.id);
+  }
+
+  async restoreProduct(product: Product) {
+    await this.syncProductToCloud(product);
+    try {
+      await remove(ref(rtdb, `deleted_products/${product.id}`));
+    } catch (rtdbErr) {
+      console.warn('[RTDB] restoreProduct warning:', rtdbErr);
+    }
+    try {
+      await deleteDoc(doc(db, 'deleted_products', product.id));
+    } catch (fsErr) {
+      console.warn('[Firestore] restoreProduct warning:', fsErr);
+    }
+  }
+
+  async syncCategoryToCloud(category: Category) {
+    try {
+      await set(ref(rtdb, `categories/${category.id}`), category);
+    } catch (rtdbErr) {
+      console.warn('[RTDB] syncCategoryToCloud warning:', rtdbErr);
+    }
+    try {
+      await setDoc(doc(db, 'categories', category.id), category, { merge: true });
+    } catch (fsErr) {
+      console.warn('[Firestore] syncCategoryToCloud warning:', fsErr);
+    }
+  }
+
+  async deleteCategoryFromCloud(categoryId: string) {
+    try {
+      await remove(ref(rtdb, `categories/${categoryId}`));
+    } catch (rtdbErr) {
+      console.warn('[RTDB] deleteCategoryFromCloud warning:', rtdbErr);
+    }
+    try {
+      await deleteDoc(doc(db, 'categories', categoryId));
+    } catch (fsErr) {
+      console.warn('[Firestore] deleteCategoryFromCloud warning:', fsErr);
+    }
+  }
   async syncNotificationToCloud(notification: AppNotification) {
     await setDoc(doc(db, 'notifications', notification.id), notification, { merge: true });
     if (notification.userId) {

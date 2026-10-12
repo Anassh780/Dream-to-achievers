@@ -74,8 +74,12 @@ export const AdminProductsPage: React.FC = () => {
       }
     };
     refreshCategories();
+    window.addEventListener('dta_categories_update', refreshCategories);
     window.addEventListener('dta_storage_change', refreshCategories);
-    return () => window.removeEventListener('dta_storage_change', refreshCategories);
+    return () => {
+      window.removeEventListener('dta_categories_update', refreshCategories);
+      window.removeEventListener('dta_storage_change', refreshCategories);
+    };
   }, []);
 
   const [isCreating, setIsCreating] = useState(false);
