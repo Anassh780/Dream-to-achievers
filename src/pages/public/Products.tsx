@@ -15,6 +15,8 @@ import {
   CaretRight,
   House,
   ShieldCheck,
+  Truck,
+  Images,
 } from '@phosphor-icons/react';
 
 export const Products: React.FC = () => {
@@ -328,18 +330,24 @@ export const Products: React.FC = () => {
                             e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
                           }}
                         />
-                        <div className="absolute top-2.5 left-2.5">
+                        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 items-start">
                           <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-[#070B09]/80 backdrop-blur-md text-[#D9C08A] border border-[#D9C08A]/30 shadow-sm">
                             {product.category}
                           </span>
                         </div>
-                        {product.isFeatured && (
-                          <div className="absolute top-2.5 right-2.5">
+                        <div className="absolute top-2.5 right-2.5 flex flex-col gap-1 items-end">
+                          {product.isFeatured && (
                             <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#D9C08A] text-[#070B09] shadow-sm">
                               FEATURED
                             </span>
-                          </div>
-                        )}
+                          )}
+                          {product.images && product.images.length > 1 && (
+                            <span className="text-[9.5px] font-mono font-semibold px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-white border border-white/20 shadow-sm flex items-center gap-1">
+                              <Images size={11} />
+                              {product.images.length}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {/* Product Content Details */}
@@ -349,6 +357,21 @@ export const Products: React.FC = () => {
                           <span className={product.inStock ? 'text-[#34D399] font-medium' : 'text-rose-400'}>
                             {product.inStock ? '● In Stock' : '○ Out of Stock'}
                           </span>
+                        </div>
+
+                        {/* Cash on Delivery & Brand Badges (Daraz/Alibaba Spec) */}
+                        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                          {product.cashOnDelivery !== false && (
+                            <span className="inline-flex items-center gap-1 text-[9.5px] font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                              <Truck size={12} weight="bold" />
+                              Cash on Delivery (COD)
+                            </span>
+                          )}
+                          {product.brand && (
+                            <span className="text-[9.5px] font-mono text-[#9EABA2] bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/[0.08] truncate max-w-[140px]">
+                              {product.brand}
+                            </span>
+                          )}
                         </div>
 
                         <h3 className="font-serif font-medium text-[15px] text-[#F4F7F5] group-hover:text-[#D9C08A] transition-colors line-clamp-1">

@@ -19,6 +19,8 @@ import {
   Sparkle,
   Rows,
   SquaresFour,
+  Truck,
+  Images,
 } from '@phosphor-icons/react';
 
 export const DashboardProducts: React.FC = () => {
@@ -271,6 +273,12 @@ export const DashboardProducts: React.FC = () => {
                   <span className="funding-ghost-pill absolute top-2.5 left-2.5 text-[10px] font-mono px-2.5 py-0.5 text-[#F4F7F5] bg-[#070B09]/80 backdrop-blur-md">
                     {p.category}
                   </span>
+                  {p.images && p.images.length > 1 && (
+                    <span className="absolute top-2.5 right-2.5 text-[9.5px] font-mono font-semibold px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-white border border-white/20 shadow-sm flex items-center gap-1">
+                      <Images size={11} />
+                      {p.images.length}
+                    </span>
+                  )}
                 </div>
 
                 <div className="p-5 space-y-2">
@@ -280,6 +288,16 @@ export const DashboardProducts: React.FC = () => {
                       {p.inStock ? '● In Stock' : '○ Out of Stock'}
                     </span>
                   </div>
+
+                  {/* Cash on Delivery Badge */}
+                  {p.cashOnDelivery !== false && (
+                    <div className="pt-0.5">
+                      <span className="inline-flex items-center gap-1 text-[9.5px] font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                        <Truck size={12} weight="bold" />
+                        Cash on Delivery (COD)
+                      </span>
+                    </div>
+                  )}
 
                   <h3 className="font-serif font-bold text-[15px] text-[#F4F7F5] line-clamp-1">
                     {p.name}
@@ -327,7 +345,7 @@ export const DashboardProducts: React.FC = () => {
               <tr className="border-b border-white/[0.08] bg-white/[0.02] text-[#9EABA2] font-mono text-[11px]">
                 <th className="p-3.5 whitespace-nowrap min-w-[220px]">Product Details</th>
                 <th className="p-3.5 whitespace-nowrap min-w-[130px]">SKU / Category</th>
-                <th className="p-3.5 whitespace-nowrap min-w-[110px]">Stock Status</th>
+                <th className="p-3.5 whitespace-nowrap min-w-[130px]">Stock &amp; COD</th>
                 <th className="p-3.5 text-right whitespace-nowrap min-w-[110px]">Retail Price</th>
                 <th className="p-3.5 text-right whitespace-nowrap min-w-[110px]">Wholesale Cost</th>
                 <th className="p-3.5 text-right whitespace-nowrap min-w-[110px]">Gross Margin</th>
@@ -339,15 +357,23 @@ export const DashboardProducts: React.FC = () => {
                 <tr key={p.id} className="hover:bg-[var(--surface-alt)]/60 transition-colors">
                   <td className="p-3.5 min-w-[220px]">
                     <div className="flex items-center space-x-3">
-                      <img
-                        src={p.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
-                        alt={p.name}
-                        referrerPolicy="no-referrer"
-                        className="w-9 h-9 rounded-lg object-cover bg-[var(--surface)] border border-[var(--line)] shrink-0"
-                        onError={(e) => {
-                          e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
-                        }}
-                      />
+                      <div className="relative w-9 h-9 shrink-0">
+                        <img
+                          src={p.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
+                          alt={p.name}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full rounded-lg object-cover bg-[var(--surface)] border border-[var(--line)]"
+                          onError={(e) => {
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
+                          }}
+                        />
+                        {p.images && p.images.length > 1 && (
+                          <span className="absolute -bottom-1 -right-1 bg-black/85 text-white text-[8px] font-mono px-1 rounded-xs flex items-center gap-0.5">
+                            <Images size={9} />
+                            {p.images.length}
+                          </span>
+                        )}
+                      </div>
                       <span className="font-serif font-medium text-[var(--ink)] truncate max-w-[180px]" title={p.name}>
                         {p.name}
                       </span>
@@ -357,16 +383,22 @@ export const DashboardProducts: React.FC = () => {
                     <span className="block text-[var(--ink)] font-bold">{p.sku}</span>
                     <span className="text-[10px] text-[var(--ink-soft)]/70">{p.category}</span>
                   </td>
-                  <td className="p-3.5 whitespace-nowrap min-w-[110px]">
-                    <span
-                      className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded whitespace-nowrap ${
-                        p.inStock
-                          ? 'bg-[var(--surface-alt)] text-[var(--primary)] border border-[var(--line)]'
-                          : 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
-                      }`}
-                    >
-                      {p.inStock ? 'In Stock' : 'Out of Stock'}
-                    </span>
+                  <td className="p-3.5 whitespace-nowrap min-w-[130px]">
+                    <div className="flex flex-col gap-1 items-start">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium ${
+                          p.inStock ? 'bg-[#34D399]/15 text-[#34D399]' : 'bg-rose-500/15 text-rose-400'
+                        }`}
+                      >
+                        {p.inStock ? 'In Stock' : 'Out of Stock'}
+                      </span>
+                      {p.cashOnDelivery !== false && (
+                        <span className="inline-flex items-center gap-1 text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <Truck size={10} weight="bold" />
+                          COD
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="p-3.5 text-right font-mono text-[var(--ink)] whitespace-nowrap min-w-[110px]">
                     PKR {p.retailPrice.toLocaleString()}

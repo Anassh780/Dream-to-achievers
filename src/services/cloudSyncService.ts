@@ -200,7 +200,31 @@ class CloudSyncService {
   }
 
   cleanProductForCloud(product: Product): Record<string, unknown> {
-    return { ...product, id: String(product.id), name: String(product.name || '').trim(), slug: String(product.slug || '').trim(), categoryIds: Array.isArray(product.categoryIds) ? product.categoryIds : [], retailPrice: Number(product.retailPrice || 0), partnerPrice: Number(product.partnerPrice || 0), suggestedSellingPrice: Number(product.suggestedSellingPrice || product.retailPrice || 0), grossMargin: Number(product.grossMargin ?? Math.max(0, product.retailPrice - product.partnerPrice)), currency: product.currency || 'PKR', status: product.status || 'active' };
+    const images = Array.isArray(product.images) && product.images.length > 0
+      ? product.images.filter(Boolean)
+      : (product.imageUrl ? [product.imageUrl] : []);
+
+    return {
+      ...product,
+      id: String(product.id),
+      name: String(product.name || '').trim(),
+      slug: String(product.slug || '').trim(),
+      categoryIds: Array.isArray(product.categoryIds) ? product.categoryIds : [],
+      retailPrice: Number(product.retailPrice || 0),
+      partnerPrice: Number(product.partnerPrice || 0),
+      suggestedSellingPrice: Number(product.suggestedSellingPrice || product.retailPrice || 0),
+      grossMargin: Number(product.grossMargin ?? Math.max(0, product.retailPrice - product.partnerPrice)),
+      currency: product.currency || 'PKR',
+      status: product.status || 'active',
+      images,
+      imageUrl: product.imageUrl || images[0] || '',
+      cashOnDelivery: product.cashOnDelivery !== false,
+      brand: String(product.brand || 'Dream to Achievers Official').trim(),
+      warranty: String(product.warranty || '7-Day Replacement Guarantee').trim(),
+      dispatchTime: String(product.dispatchTime || 'Within 24-48 Hours (COD)').trim(),
+      features: Array.isArray(product.features) ? product.features : [],
+      specifications: product.specifications || {},
+    };
   }
 
   async syncProductToCloud(product: Product) { await setDoc(doc(db, 'products', product.id), this.cleanProductForCloud(product), { merge: true }); }

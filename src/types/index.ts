@@ -96,10 +96,17 @@ export interface Product {
   grossMargin: number;
   currency: string;
   imageUrl: string;
+  images?: string[];
   sku: string;
   inStock: boolean;
   isFeatured: boolean;
   status: ProductStatus;
+  cashOnDelivery?: boolean;
+  brand?: string;
+  warranty?: string;
+  dispatchTime?: string;
+  features?: string[];
+  specifications?: Record<string, string>;
   createdAt: string;
 }
 

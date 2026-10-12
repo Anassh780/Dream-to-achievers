@@ -35,6 +35,10 @@ import {
   CircleNotch,
   WarningCircle,
   CheckCircle,
+  Truck,
+  Images,
+  Star,
+  ShieldCheck,
 } from '@phosphor-icons/react';
 
 export const AdminProductsPage: React.FC = () => {
@@ -91,6 +95,13 @@ export const AdminProductsPage: React.FC = () => {
   const [partnerPrice, setPartnerPrice] = useState(2000);
   const [sku, setSku] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [galleryInput, setGalleryInput] = useState('');
+  const [cashOnDelivery, setCashOnDelivery] = useState(true);
+  const [brand, setBrand] = useState('Dream to Achievers Official');
+  const [warranty, setWarranty] = useState('7-Day Replacement Guarantee');
+  const [dispatchTime, setDispatchTime] = useState('Within 24-48 Hours (COD)');
+  const [featuresText, setFeaturesText] = useState('100% Original Authentic Stock\nNationwide Cash on Delivery (COD)\nDirect Wholesale Margins for Resellers');
   const [imageInputMode, setImageInputMode] = useState<'url' | 'upload'>('url');
   const [imageStatus, setImageStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [imageErrorMessage, setImageErrorMessage] = useState('');
@@ -99,6 +110,7 @@ export const AdminProductsPage: React.FC = () => {
   const [inStock, setInStock] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
 
   useEffect(() => {
     if (!imageUrl || !imageUrl.trim()) {
@@ -174,6 +186,39 @@ export const AdminProductsPage: React.FC = () => {
     }
   };
 
+  const handleAddGalleryImages = (raw: string) => {
+    if (!raw.trim()) return;
+    const items = raw
+      .split(/[\n,]/)
+      .map((s) => normalizeImageUrl(s.trim()))
+      .filter((s) => Boolean(s) && isValidImageUrl(s) && !galleryImages.includes(s) && s !== imageUrl);
+    if (items.length > 0) {
+      setGalleryImages((prev) => [...prev, ...items]);
+      setGalleryInput('');
+      showToast(`Added ${items.length} photo(s) to product gallery!`);
+    } else {
+      showToast('Please enter valid image URLs.');
+    }
+  };
+
+  const handleRemoveGalleryImage = (index: number) => {
+    setGalleryImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSetGalleryImageAsCover = (selectedImg: string) => {
+    const oldCover = imageUrl;
+    setImageUrl(selectedImg);
+    setImageStatus('success');
+    setImageErrorMessage('');
+    const remaining = galleryImages.filter((img) => img !== selectedImg);
+    if (oldCover && oldCover !== selectedImg) {
+      setGalleryImages([oldCover, ...remaining]);
+    } else {
+      setGalleryImages(remaining);
+    }
+    showToast('Cover photo updated!');
+  };
+
   const handleOpenCreate = () => {
     setEditingProd(null);
     setName('');
@@ -182,6 +227,13 @@ export const AdminProductsPage: React.FC = () => {
     setRetailPrice(2500);
     setPartnerPrice(2000);
     setImageUrl('');
+    setGalleryImages([]);
+    setGalleryInput('');
+    setCashOnDelivery(true);
+    setBrand('Dream to Achievers Official');
+    setWarranty('7-Day Replacement Guarantee');
+    setDispatchTime('Within 24-48 Hours (COD)');
+    setFeaturesText('100% Original Authentic Stock\nNationwide Cash on Delivery (COD)\nDirect Wholesale Margins for Resellers');
     setImageStatus('idle');
     setImageErrorMessage('');
     setImageInputMode('url');
@@ -200,6 +252,13 @@ export const AdminProductsPage: React.FC = () => {
     setRetailPrice(p.retailPrice);
     setPartnerPrice(p.partnerPrice);
     setImageUrl(p.imageUrl || '');
+    setGalleryImages(Array.isArray(p.images) ? p.images.filter((img) => img !== p.imageUrl) : []);
+    setGalleryInput('');
+    setCashOnDelivery(p.cashOnDelivery !== false);
+    setBrand(p.brand || 'Dream to Achievers Official');
+    setWarranty(p.warranty || '7-Day Replacement Guarantee');
+    setDispatchTime(p.dispatchTime || 'Within 24-48 Hours (COD)');
+    setFeaturesText(Array.isArray(p.features) && p.features.length > 0 ? p.features.join('\n') : '100% Original Authentic Stock\nNationwide Cash on Delivery (COD)\nDirect Wholesale Margins for Resellers');
     setImageStatus(p.imageUrl ? 'loading' : 'idle');
     setImageErrorMessage('');
     setImageInputMode(p.imageUrl?.startsWith('data:') ? 'upload' : 'url');
@@ -227,7 +286,15 @@ export const AdminProductsPage: React.FC = () => {
     const targetCat = allCategories.find((c) => c.id === categoryId);
     const categoryName = targetCat ? targetCat.name : 'General';
     const grossMargin = Math.max(0, retailPrice - partnerPrice);
-    const finalImageUrl = normalizeImageUrl(imageUrl).trim() || DEFAULT_PRODUCT_FALLBACK_IMAGE;
+    const finalCover = normalizeImageUrl(imageUrl).trim() || DEFAULT_PRODUCT_FALLBACK_IMAGE;
+    const finalGallery = galleryImages
+      .map((img) => normalizeImageUrl(img).trim())
+      .filter((img) => img && img !== finalCover);
+    const allImages = [finalCover, ...finalGallery];
+    const parsedFeatures = featuresText
+      .split('\n')
+      .map((f) => f.trim())
+      .filter(Boolean);
 
     if (editingProd) {
       const updatedProdObj: Product = {
@@ -241,7 +308,13 @@ export const AdminProductsPage: React.FC = () => {
         suggestedSellingPrice: Number(retailPrice),
         grossMargin,
         sku: sku.trim(),
-        imageUrl: finalImageUrl,
+        imageUrl: finalCover,
+        images: allImages,
+        cashOnDelivery,
+        brand: brand.trim() || 'Dream to Achievers Official',
+        warranty: warranty.trim() || '7-Day Replacement Guarantee',
+        dispatchTime: dispatchTime.trim() || 'Within 24-48 Hours (COD)',
+        features: parsedFeatures,
         shortDescription: shortDescription.trim(),
         description: description.trim(),
         inStock,
@@ -265,7 +338,7 @@ export const AdminProductsPage: React.FC = () => {
         details: `Updated product "${name}" (SKU: ${sku})`,
       });
 
-      showToast(`Product "${name}" updated and synced across all devices.`);
+      showToast(`Product "${name}" updated with gallery & COD settings.`);
     } else {
       const newProduct: Product = {
         id: `prod-${Date.now()}`,
@@ -278,7 +351,13 @@ export const AdminProductsPage: React.FC = () => {
         suggestedSellingPrice: Number(retailPrice),
         grossMargin,
         currency: 'PKR',
-        imageUrl: finalImageUrl,
+        imageUrl: finalCover,
+        images: allImages,
+        cashOnDelivery,
+        brand: brand.trim() || 'Dream to Achievers Official',
+        warranty: warranty.trim() || '7-Day Replacement Guarantee',
+        dispatchTime: dispatchTime.trim() || 'Within 24-48 Hours (COD)',
+        features: parsedFeatures,
         sku: sku.trim(),
         inStock,
         isFeatured,
@@ -302,7 +381,7 @@ export const AdminProductsPage: React.FC = () => {
         details: `Created product "${name}" (SKU: ${sku})`,
       });
 
-      showToast(`Product "${name}" created and synced across all devices.`);
+      showToast(`Product "${name}" created with Daraz/Alibaba gallery & COD enabled.`);
     }
 
     setIsCreating(false);
@@ -512,23 +591,39 @@ export const AdminProductsPage: React.FC = () => {
         {filteredList.map((prod) => (
           <article key={prod.id} className="rounded-2xl bg-[var(--surface)] border border-[var(--line)] p-4 shadow-xs space-y-3">
             <div className="flex items-start gap-3">
-              <img
-                src={prod.imageUrl || DEFAULT_PRODUCT_FALLBACK_IMAGE}
-                alt={prod.name}
-                referrerPolicy="no-referrer"
-                onError={(e) => {
-                  e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
-                }}
-                className="size-16 rounded-xl object-cover bg-[var(--surface)] border border-[var(--line)] shrink-0"
-              />
+              <div className="relative size-16 shrink-0">
+                <img
+                  src={prod.imageUrl || DEFAULT_PRODUCT_FALLBACK_IMAGE}
+                  alt={prod.name}
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                  }}
+                  className="w-full h-full rounded-xl object-cover bg-[var(--surface)] border border-[var(--line)]"
+                />
+                {prod.images && prod.images.length > 1 && (
+                  <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[9px] font-mono px-1 rounded flex items-center gap-0.5">
+                    <Images size={10} />
+                    {prod.images.length}
+                  </span>
+                )}
+              </div>
               <div className="min-w-0 flex-1">
                 <h2 className="font-semibold text-sm text-[var(--ink)] leading-snug">{prod.name}</h2>
                 <p className="mt-1 text-[10px] font-mono text-[var(--ink-soft)] truncate">{prod.sku} · {prod.category}</p>
-                <span className={`mt-2 inline-flex text-[10px] font-mono font-medium px-2 py-1 rounded-lg border ${
-                  prod.inStock ? 'bg-[var(--surface-alt)] text-[var(--primary-dark)] border-[var(--line)]' : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
-                }`}>
-                  {prod.inStock ? 'In stock' : 'Out of stock'}
-                </span>
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  <span className={`inline-flex text-[10px] font-mono font-medium px-2 py-0.5 rounded-lg border ${
+                    prod.inStock ? 'bg-[var(--surface-alt)] text-[var(--primary-dark)] border-[var(--line)]' : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                  }`}>
+                    {prod.inStock ? 'In stock' : 'Out of stock'}
+                  </span>
+                  {prod.cashOnDelivery !== false && (
+                    <span className="inline-flex items-center gap-1 text-[9.5px] font-mono font-semibold px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                      <Truck size={11} weight="bold" />
+                      COD
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <dl className="grid grid-cols-3 gap-2 rounded-xl bg-[var(--surface)] border border-[var(--line)] p-3 text-center">
@@ -550,7 +645,7 @@ export const AdminProductsPage: React.FC = () => {
             <tr className="border-b border-[var(--line)] bg-[var(--surface-alt)] text-[var(--ink-soft)] font-mono text-[11px]">
               <th className="p-3.5 min-w-[240px]">Product</th>
               <th className="p-3.5 min-w-[150px] whitespace-nowrap">SKU &amp; Category</th>
-              <th className="p-3.5 min-w-[110px] whitespace-nowrap">Stock</th>
+              <th className="p-3.5 min-w-[140px] whitespace-nowrap">Stock &amp; Delivery</th>
               <th className="p-3.5 text-right min-w-[120px] whitespace-nowrap">Retail Price</th>
               <th className="p-3.5 text-right min-w-[120px] whitespace-nowrap">Wholesale Cost</th>
               <th className="p-3.5 text-right min-w-[130px] whitespace-nowrap">Partner Margin</th>
@@ -562,22 +657,37 @@ export const AdminProductsPage: React.FC = () => {
               <tr key={prod.id} className="hover:bg-[var(--surface-alt)]/60 transition-colors">
                 <td className="p-3.5">
                   <div className="flex items-center space-x-3">
-                    <img
-                      src={prod.imageUrl || DEFAULT_PRODUCT_FALLBACK_IMAGE}
-                      alt={prod.name}
-                      referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
-                      }}
-                      className="w-9 h-9 rounded-lg object-cover bg-[var(--surface)] border border-[var(--line)] shrink-0"
-                    />
-                    <div className="min-w-0">
-                      <p className="font-medium text-[var(--ink)] truncate max-w-[220px]">{prod.name}</p>
-                      {prod.isFeatured && (
-                        <span className="text-[9px] font-mono font-bold text-[var(--primary)] uppercase">
-                          Featured
+                    <div className="relative w-10 h-10 shrink-0">
+                      <img
+                        src={prod.imageUrl || DEFAULT_PRODUCT_FALLBACK_IMAGE}
+                        alt={prod.name}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                        }}
+                        className="w-full h-full rounded-lg object-cover bg-[var(--surface)] border border-[var(--line)]"
+                      />
+                      {prod.images && prod.images.length > 1 && (
+                        <span className="absolute -bottom-1 -right-1 bg-black/85 text-white text-[8px] font-mono px-1 rounded-sm flex items-center gap-0.5 border border-white/20">
+                          <Images size={9} />
+                          {prod.images.length}
                         </span>
                       )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium text-[var(--ink)] truncate max-w-[220px]">{prod.name}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        {prod.isFeatured && (
+                          <span className="text-[9px] font-mono font-bold text-[var(--primary)] uppercase">
+                            Featured
+                          </span>
+                        )}
+                        {prod.brand && (
+                          <span className="text-[9px] font-mono text-[var(--ink-soft)] truncate max-w-[120px]">
+                            · {prod.brand}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </td>
@@ -586,15 +696,23 @@ export const AdminProductsPage: React.FC = () => {
                   <div className="text-[10px] text-[var(--ink-soft)]/70">{prod.category}</div>
                 </td>
                 <td className="p-3.5 whitespace-nowrap">
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium ${
-                      prod.inStock
-                        ? 'bg-[var(--primary)]/10 text-[var(--primary)]'
-                        : 'bg-rose-500/10 text-rose-600'
-                    }`}
-                  >
-                    {prod.inStock ? 'In Stock' : 'Out of Stock'}
-                  </span>
+                  <div className="flex flex-col gap-1 items-start">
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium ${
+                        prod.inStock
+                          ? 'bg-[var(--primary)]/10 text-[var(--primary)]'
+                          : 'bg-rose-500/10 text-rose-600'
+                      }`}
+                    >
+                      {prod.inStock ? 'In Stock' : 'Out of Stock'}
+                    </span>
+                    {prod.cashOnDelivery !== false && (
+                      <span className="inline-flex items-center gap-1 text-[9.5px] font-mono font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                        <Truck size={11} weight="bold" />
+                        COD Verified
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="p-3.5 text-right font-mono font-medium text-[var(--ink)] whitespace-nowrap">
                   PKR {prod.retailPrice.toLocaleString()}
@@ -701,15 +819,20 @@ export const AdminProductsPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Product Image Dual-Option Selector */}
-              <div className="p-3.5 rounded-xl bg-[var(--surface)] border border-[var(--line)] space-y-3">
+              {/* Product Media Manager - Daraz / Alibaba Multi-Image Showcase */}
+              <div className="p-4 rounded-2xl bg-[var(--surface-alt)]/60 border border-[var(--line)] space-y-3.5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-[var(--ink)] flex items-center gap-1.5">
-                    <ImageIcon size={16} className="text-[var(--primary-dark)]" />
-                    Product Image Selection (Syncs to All Devices)
-                  </span>
+                  <div>
+                    <span className="text-xs font-semibold text-[var(--ink)] flex items-center gap-1.5">
+                      <Images size={16} className="text-[var(--primary)]" />
+                      Product Picture Gallery (Daraz / Alibaba Multi-Photo Studio)
+                    </span>
+                    <p className="text-[10px] text-[var(--ink-soft)] font-mono mt-0.5">
+                      1 Main Cover + Multiple angles, packaging, and real product photos
+                    </p>
+                  </div>
                   
-                  {/* Mode Tabs */}
+                  {/* Mode Tabs for Primary Cover */}
                   <div className="grid grid-cols-2 w-full sm:w-auto bg-[var(--surface)] p-0.5 rounded-lg border border-[var(--line)] text-xs">
                     <button
                       type="button"
@@ -721,7 +844,7 @@ export const AdminProductsPage: React.FC = () => {
                       }`}
                     >
                       <LinkIcon size={13} />
-                      <span>Image URL</span>
+                      <span>Web Link</span>
                     </button>
                     <button
                       type="button"
@@ -733,217 +856,354 @@ export const AdminProductsPage: React.FC = () => {
                       }`}
                     >
                       <UploadSimple size={13} />
-                      <span>Upload file</span>
+                      <span>Upload Device</span>
                     </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-                  {/* Left: Input controls */}
-                  <div className="md:col-span-8 space-y-2">
-                    {imageInputMode === 'url' ? (
-                      <div className="space-y-1.5">
-                        <label className="block text-[11px] text-[var(--ink-soft)] font-mono">
-                          Direct Image Web Link (HTTPS from Unsplash, Imgur, Cloudinary, Drive, etc.):
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            value={imageUrl}
-                            onChange={(e) => {
-                              const normalized = normalizeImageUrl(e.target.value);
-                              setImageUrl(normalized);
-                            }}
-                            onBlur={() => {
-                              if (imageUrl) {
-                                setImageUrl(normalizeImageUrl(imageUrl));
-                              }
-                            }}
-                            placeholder="Paste direct image link (e.g. https://.../photo.jpg)"
-                            className="flex-1 px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] text-xs focus:outline-none focus:border-[var(--primary)]"
-                          />
-                          {imageUrl && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setImageUrl('');
-                                setImageStatus('idle');
-                                setImageErrorMessage('');
-                              }}
-                              className="p-2 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink-soft)] hover:text-rose-600 hover:bg-rose-500/10 cursor-pointer"
-                              title="Clear URL"
-                            >
-                              <X size={14} />
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Live Status Message */}
-                        {imageStatus === 'loading' && (
-                          <div className="flex items-center gap-1.5 text-[11px] text-[#D9C08A] pt-0.5">
-                            <CircleNotch size={13} className="animate-spin" />
-                            <span>Checking image preview link...</span>
-                          </div>
-                        )}
-                        {imageStatus === 'success' && (
-                          <div className="flex items-center gap-1.5 text-[11px] text-emerald-500 font-medium pt-0.5">
-                            <CheckCircle size={14} weight="fill" />
-                            <span>Image link verified &amp; ready to preview!</span>
-                          </div>
-                        )}
-                        {imageStatus === 'error' && (
-                          <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[11px] space-y-1.5 mt-1">
-                            <div className="flex items-start gap-1.5 font-medium">
-                              <WarningCircle size={15} weight="fill" className="shrink-0 mt-0.5" />
-                              <span>{imageErrorMessage || 'Image preview failed to load.'}</span>
-                            </div>
-                            <p className="text-[10.5px] text-rose-400/90 leading-relaxed">
-                              Tip: Web links must point directly to an image (.jpg, .png, .webp). If the host blocks hotlinking, click below to upload the image directly from your device.
-                            </p>
-                            <button
-                              type="button"
-                              onClick={() => setImageInputMode('upload')}
-                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--primary)] hover:underline cursor-pointer"
-                            >
-                              <UploadSimple size={12} />
-                              <span>Switch to "Upload file" instead</span>
-                            </button>
-                          </div>
-                        )}
-
-                        <p className="text-[10px] text-[var(--ink-soft)]">
-                          Paste any direct image link. Links from Google Drive, Dropbox, and Imgur are automatically converted to direct preview links.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-1.5">
-                        <label className="block text-[11px] text-[var(--ink-soft)] font-mono">
-                          Select Image File from your Phone or Computer (Auto-Compressed):
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <label
-                            className={`flex-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 border-dashed border-[var(--primary)]/30 bg-[var(--surface)] hover:bg-[var(--surface-alt)]/50 text-[var(--ink)] text-xs cursor-pointer transition-all ${
-                              isUploadingImage ? 'opacity-60 pointer-events-none' : ''
-                            }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              <UploadSimple size={18} className="text-[var(--primary-dark)]" />
-                              <span className="font-medium">
-                                {isUploadingImage ? 'Optimizing & Uploading...' : 'Click to Browse Image File (JPG, PNG, WebP)'}
-                              </span>
-                            </div>
-                            <span className="text-[10px] text-[var(--ink-soft)] mt-0.5">
-                              Automatic smart compression creates a high-res, lightweight asset synced to all databases.
-                            </span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              disabled={isUploadingImage}
-                              className="hidden"
-                              onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  setIsUploadingImage(true);
-                                  try {
-                                    const optimizedUrl = await uploadProductImage(
-                                      file,
-                                      editingProd?.id || `prod-${Date.now()}`
-                                    );
-                                    setImageUrl(optimizedUrl);
-                                    setImageStatus('success');
-                                    setImageErrorMessage('');
-                                    showToast('⚡ Picture compressed and ready to sync across all devices!');
-                                  } catch (err) {
-                                    console.error('Image upload failed:', err);
-                                    setImageStatus('error');
-                                    setImageErrorMessage('Image processing failed. Please try a different image.');
-                                    showToast('Image processing failed. Please try a different image.');
-                                  } finally {
-                                    setIsUploadingImage(false);
-                                  }
-                                }
-                              }}
-                            />
-                          </label>
-                        </div>
-                      </div>
-                    )}
+                {/* Primary Cover Input */}
+                <div className="p-3 rounded-xl bg-[var(--surface)] border border-[var(--line)] space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-semibold text-[var(--ink)] flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-[var(--primary)] animate-pulse" />
+                      Primary Cover Photo * (Main Storefront Display)
+                    </label>
+                    <span className="text-[10px] font-mono text-[var(--ink-soft)]">
+                      {imageUrl ? '1 Cover Configured' : 'No Cover Selected'}
+                    </span>
                   </div>
 
-                  {/* Right: Live Preview Box */}
-                  <div className="md:col-span-4 flex items-center justify-center p-3 rounded-xl bg-[var(--surface)] border border-[var(--line)]">
-                    <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-[var(--line)] bg-[var(--surface-alt)] shrink-0 group flex items-center justify-center">
-                      {imageUrl && imageStatus !== 'error' ? (
-                        <>
-                          <img
-                            src={imageUrl}
-                            alt="Product Preview"
-                            referrerPolicy="no-referrer"
-                            className="w-full h-full object-cover"
-                            onLoad={() => {
-                              setImageStatus('success');
+                  {imageInputMode === 'url' ? (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={imageUrl}
+                          onChange={(e) => {
+                            const normalized = normalizeImageUrl(e.target.value);
+                            setImageUrl(normalized);
+                          }}
+                          onBlur={() => {
+                            if (imageUrl) {
+                              setImageUrl(normalizeImageUrl(imageUrl));
+                            }
+                          }}
+                          placeholder="Paste direct image link (e.g. cdn.phototourl.com, Google Drive, Unsplash, Imgur)"
+                          className="flex-1 px-3 py-2 rounded-lg bg-[var(--surface-alt)] border border-[var(--line)] text-[var(--ink)] text-xs focus:outline-none focus:border-[var(--primary)]"
+                        />
+                        {imageUrl && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setImageUrl('');
+                              setImageStatus('idle');
                               setImageErrorMessage('');
                             }}
-                            onError={() => {
-                              setImageStatus('error');
-                              setImageErrorMessage('Host blocked preview or link is broken.');
-                            }}
-                          />
-                          {imageStatus === 'loading' && (
-                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                              <CircleNotch size={20} className="animate-spin text-[#D9C08A]" />
-                            </div>
-                          )}
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[10px] text-white font-mono">
-                            Live Preview
+                            className="p-2 rounded-lg bg-[var(--surface-alt)] border border-[var(--line)] text-[var(--ink-soft)] hover:text-rose-600 hover:bg-rose-500/10 cursor-pointer"
+                            title="Clear URL"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Live Status Message */}
+                      {imageStatus === 'loading' && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-[#D9C08A] pt-0.5">
+                          <CircleNotch size={13} className="animate-spin" />
+                          <span>Checking image preview link...</span>
+                        </div>
+                      )}
+                      {imageStatus === 'success' && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-emerald-500 font-medium pt-0.5">
+                          <CheckCircle size={14} weight="fill" />
+                          <span>Image link verified &amp; ready to sync across all devices!</span>
+                        </div>
+                      )}
+                      {imageStatus === 'error' && (
+                        <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[11px] space-y-1 mt-1">
+                          <div className="flex items-start gap-1.5 font-medium">
+                            <WarningCircle size={15} weight="fill" className="shrink-0 mt-0.5" />
+                            <span>{imageErrorMessage || 'Image preview failed to load.'}</span>
                           </div>
-                        </>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center text-center p-1">
-                          {imageStatus === 'error' ? (
-                            <WarningCircle size={24} className="text-rose-500" />
-                          ) : (
-                            <ImageIcon size={24} className="text-[var(--ink-soft)] opacity-40" />
-                          )}
-                          <span className="text-[9px] font-mono mt-1 text-[var(--ink-soft)]">
-                            {imageStatus === 'error' ? 'Broken Link' : 'No Preview'}
-                          </span>
+                          <p className="text-[10.5px] text-rose-400/90 leading-relaxed">
+                            Web links must point directly to an image (.jpg, .png, .webp). If the host blocks hotlinking, click "Upload Device" instead.
+                          </p>
                         </div>
                       )}
                     </div>
-                    <div className="ml-3 text-left">
-                      <span
-                        className={`text-[10px] font-mono font-medium px-1.5 py-0.5 rounded border inline-block mb-1 ${
-                          imageStatus === 'success'
-                            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                            : imageStatus === 'error'
-                            ? 'bg-rose-500/10 text-rose-500 border-rose-500/20'
-                            : imageStatus === 'loading'
-                            ? 'bg-[#D9C08A]/10 text-[#D9C08A] border-[#D9C08A]/20'
-                            : 'bg-white/5 text-[var(--ink-soft)] border-white/10'
+                  ) : (
+                    <div>
+                      <label
+                        className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 border-dashed border-[var(--primary)]/40 bg-[var(--surface-alt)] hover:bg-[var(--surface-alt)]/80 text-[var(--ink)] text-xs cursor-pointer transition-all ${
+                          isUploadingImage ? 'opacity-60 pointer-events-none' : ''
                         }`}
                       >
-                        {imageStatus === 'success'
-                          ? imageUrl?.startsWith('data:')
-                            ? 'Compressed Asset'
-                            : 'Web URL Loaded'
-                          : imageStatus === 'error'
-                          ? 'Link Error'
-                          : imageStatus === 'loading'
-                          ? 'Loading...'
-                          : 'No Image'}
+                        <div className="flex items-center gap-2">
+                          <UploadSimple size={18} className="text-[var(--primary)]" />
+                          <span className="font-medium">
+                            {isUploadingImage ? 'Optimizing & Uploading...' : 'Browse Image File from Device (Auto-Compressed)'}
+                          </span>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          disabled={isUploadingImage}
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setIsUploadingImage(true);
+                              try {
+                                const optimizedUrl = await uploadProductImage(
+                                  file,
+                                  editingProd?.id || `prod-${Date.now()}`
+                                );
+                                setImageUrl(optimizedUrl);
+                                setImageStatus('success');
+                                setImageErrorMessage('');
+                                showToast('⚡ Picture compressed and set as cover!');
+                              } catch (err) {
+                                console.error('Image upload failed:', err);
+                                setImageStatus('error');
+                                setImageErrorMessage('Image processing failed.');
+                                showToast('Image processing failed. Please try a different image.');
+                              } finally {
+                                setIsUploadingImage(false);
+                              }
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+
+                {/* Additional Gallery Pictures (Alibaba/Daraz Multi-Angle Photos) */}
+                <div className="p-3 rounded-xl bg-[var(--surface)] border border-[var(--line)] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-semibold text-[var(--ink)] flex items-center gap-1.5">
+                      <Images size={14} className="text-[#D9C08A]" />
+                      Add Extra Photos &amp; Angle Shots (Gallery)
+                    </label>
+                    <span className="text-[10.5px] font-mono text-[#D9C08A]">
+                      {galleryImages.length} extra photo{galleryImages.length === 1 ? '' : 's'}
+                    </span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={galleryInput}
+                      onChange={(e) => setGalleryInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddGalleryImages(galleryInput);
+                        }
+                      }}
+                      placeholder="Paste extra image URL and click '+ Add to Gallery' (or separate by commas)"
+                      className="flex-1 px-3 py-1.5 rounded-lg bg-[var(--surface-alt)] border border-[var(--line)] text-[var(--ink)] text-xs focus:outline-none focus:border-[var(--primary)]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleAddGalleryImages(galleryInput)}
+                      className="px-3 py-1.5 rounded-lg bg-[var(--primary)]/15 border border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white text-xs font-medium cursor-pointer transition-colors shrink-0"
+                    >
+                      + Add Photo
+                    </button>
+                  </div>
+
+                  {/* Quick Device Upload for Gallery */}
+                  <div className="flex items-center justify-between pt-1 text-[11px] text-[var(--ink-soft)]">
+                    <span>Or upload directly from phone/PC:</span>
+                    <label className="inline-flex items-center gap-1 font-semibold text-[var(--primary)] hover:underline cursor-pointer">
+                      <UploadSimple size={12} />
+                      <span>Upload Extra Photo</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            try {
+                              const optimizedUrl = await uploadProductImage(
+                                file,
+                                `gallery-${Date.now()}`
+                              );
+                              setGalleryImages((prev) => [...prev, optimizedUrl]);
+                              showToast('Extra gallery photo uploaded!');
+                            } catch (err) {
+                              showToast('Failed to upload extra photo');
+                            }
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Visual Picture Manager Tray (Cover + Thumbnails) */}
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-center justify-between text-[10.5px] font-mono text-[var(--ink-soft)]">
+                    <span>Photos Summary ({1 + galleryImages.length} Total):</span>
+                    <span>Click "Set Cover" or "Remove" on any photo</span>
+                  </div>
+
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    {/* Primary Cover Thumbnail */}
+                    <div className="relative aspect-square rounded-xl overflow-hidden border-2 border-[var(--primary)] bg-[var(--surface)] shadow-xs group">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt="Cover"
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-center p-1 bg-[var(--surface-alt)]">
+                          <ImageIcon size={18} className="text-[var(--ink-soft)]" />
+                          <span className="text-[9px] text-[var(--ink-soft)] mt-1 font-mono">No Cover</span>
+                        </div>
+                      )}
+                      <span className="absolute top-1 left-1 bg-[var(--primary)] text-white text-[8.5px] font-bold font-mono px-1 py-0.5 rounded shadow-xs">
+                        COVER
                       </span>
-                      <p className="text-[10px] text-[var(--ink-soft)] line-clamp-2">
-                        {imageStatus === 'success'
-                          ? 'Ready for Realtime Cloud Sync'
-                          : imageStatus === 'error'
-                          ? 'Fix URL or upload file'
-                          : imageUrl
-                          ? 'Checking asset...'
-                          : 'Enter link or upload'}
+                    </div>
+
+                    {/* Gallery Thumbnails */}
+                    {galleryImages.map((imgUrl, idx) => (
+                      <div
+                        key={idx}
+                        className="relative aspect-square rounded-xl overflow-hidden border border-[var(--line)] bg-[var(--surface)] group hover:border-[#D9C08A] transition-all"
+                      >
+                        <img
+                          src={imgUrl}
+                          alt={`Gallery ${idx + 1}`}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                          }}
+                        />
+                        <span className="absolute top-1 left-1 bg-black/70 backdrop-blur-xs text-white text-[8px] font-mono px-1 rounded">
+                          #{idx + 2}
+                        </span>
+                        <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-1 gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleSetGalleryImageAsCover(imgUrl)}
+                            className="w-full py-0.5 text-[8.5px] font-semibold bg-[var(--primary)] text-white rounded cursor-pointer hover:brightness-110"
+                            title="Make this the main cover photo"
+                          >
+                            Set Cover
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveGalleryImage(idx)}
+                            className="w-full py-0.5 text-[8.5px] font-semibold bg-rose-500/80 text-white rounded cursor-pointer hover:bg-rose-600"
+                            title="Remove photo"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Daraz & Alibaba Commercial Standards (Cash on Delivery & Trust Badges) */}
+              <div className="p-4 rounded-2xl bg-[var(--surface-alt)]/60 border border-[var(--line)] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-[var(--ink)] flex items-center gap-1.5">
+                    <Truck size={16} className="text-[#34D399]" />
+                    Fulfillment &amp; Brand Commercial Badges (Daraz / Alibaba Specs)
+                  </span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 font-bold">
+                    Official Guarantee
+                  </span>
+                </div>
+
+                {/* Cash on Delivery Toggle Card */}
+                <label className="flex items-center justify-between p-3 rounded-xl bg-[var(--surface)] border border-emerald-500/30 hover:border-emerald-500/60 cursor-pointer transition-colors">
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shrink-0 mt-0.5">
+                      <Truck size={17} weight="bold" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5 font-bold text-xs text-[var(--ink)]">
+                        <span>Cash on Delivery (COD) Nationwide</span>
+                        <span className="bg-emerald-500 text-[#070B09] text-[9px] font-mono font-extrabold px-1.5 py-0.2 rounded">
+                          COD GUARANTEE
+                        </span>
+                      </div>
+                      <p className="text-[10.5px] text-[var(--ink-soft)] mt-0.5">
+                        Prominently showcase the verified Cash on Delivery badge on all catalog cards, search listings, and product details.
                       </p>
                     </div>
                   </div>
+                  <input
+                    type="checkbox"
+                    checked={cashOnDelivery}
+                    onChange={(e) => setCashOnDelivery(e.target.checked)}
+                    className="size-5 rounded accent-emerald-500 cursor-pointer ml-3 shrink-0"
+                  />
+                </label>
+
+                {/* Brand, Warranty, Dispatch Lead Time */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="block text-[11px] text-[var(--ink-soft)] mb-1 font-medium">Brand Identity</label>
+                    <input
+                      type="text"
+                      value={brand}
+                      onChange={(e) => setBrand(e.target.value)}
+                      placeholder="e.g. Dream to Achievers Official"
+                      className="w-full px-3 py-1.5 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] text-xs focus:outline-none focus:border-[var(--primary)]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-[var(--ink-soft)] mb-1 font-medium">Warranty / Return Policy</label>
+                    <input
+                      type="text"
+                      value={warranty}
+                      onChange={(e) => setWarranty(e.target.value)}
+                      placeholder="e.g. 7-Day Replacement Guarantee"
+                      className="w-full px-3 py-1.5 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] text-xs focus:outline-none focus:border-[var(--primary)]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-[var(--ink-soft)] mb-1 font-medium">Dispatch Lead Time</label>
+                    <input
+                      type="text"
+                      value={dispatchTime}
+                      onChange={(e) => setDispatchTime(e.target.value)}
+                      placeholder="e.g. Within 24-48 Hours (COD)"
+                      className="w-full px-3 py-1.5 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] text-xs focus:outline-none focus:border-[var(--primary)]"
+                    />
+                  </div>
+                </div>
+
+                {/* Bullet Highlights / Specifications (Alibaba/Daraz Key Attributes) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] text-[var(--ink-soft)] font-medium">
+                      Key Highlights &amp; Features (One bullet per line)
+                    </label>
+                    <span className="text-[10px] font-mono text-[var(--ink-soft)]">Alibaba/Daraz Spec Sheet</span>
+                  </div>
+                  <textarea
+                    rows={3}
+                    value={featuresText}
+                    onChange={(e) => setFeaturesText(e.target.value)}
+                    placeholder="100% Original Authentic Stock&#10;Nationwide Cash on Delivery (COD) Available&#10;Direct Wholesale Partner Margin"
+                    className="w-full px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] text-xs font-mono focus:outline-none focus:border-[var(--primary)]"
+                  />
                 </div>
               </div>
 
