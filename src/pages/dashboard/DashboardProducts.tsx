@@ -4,6 +4,7 @@ import { categoryService } from '@/services/categoryService';
 import { salesService } from '@/services/salesService';
 import { useAuth } from '@/context/AuthContext';
 import { Product } from '@/types';
+import { extractProductImages } from '@/services/imageService';
 import { Button } from '@/components/ui/Button';
 import { CategoryPill } from '@/components/categories/CategoryPill';
 import {
@@ -260,26 +261,34 @@ export const DashboardProducts: React.FC = () => {
               className="funding-card overflow-hidden flex flex-col justify-between hover:border-[#34D399]/40 hover:shadow-[0_20px_45px_-15px_rgba(52,211,153,0.15)] transition-all"
             >
               <div>
-                <div className="aspect-[16/10] bg-white/[0.02] relative overflow-hidden border-b border-white/[0.08]">
-                  <img
-                    src={p.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
-                    alt={p.name}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
-                    }}
-                  />
-                  <span className="funding-ghost-pill absolute top-2.5 left-2.5 text-[10px] font-mono px-2.5 py-0.5 text-[#F4F7F5] bg-[#070B09]/80 backdrop-blur-md">
-                    {p.category}
-                  </span>
-                  {p.images && p.images.length > 1 && (
-                    <span className="absolute top-2.5 right-2.5 text-[9.5px] font-mono font-semibold px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-white border border-white/20 shadow-sm flex items-center gap-1">
-                      <Images size={11} />
-                      {p.images.length}
-                    </span>
-                  )}
-                </div>
+                {(() => {
+                  const allImgs = extractProductImages(p);
+                  const coverSrc = p.imageUrl || allImgs[0] || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
+                  const count = allImgs.length;
+
+                  return (
+                    <div className="aspect-[16/10] bg-white/[0.02] relative overflow-hidden border-b border-white/[0.08]">
+                      <img
+                        src={coverSrc}
+                        alt={p.name}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
+                        }}
+                      />
+                      <span className="funding-ghost-pill absolute top-2.5 left-2.5 text-[10px] font-mono px-2.5 py-0.5 text-[#F4F7F5] bg-[#070B09]/80 backdrop-blur-md">
+                        {p.category}
+                      </span>
+                      {count > 1 && (
+                        <span className="absolute top-2.5 right-2.5 text-[9.5px] font-mono font-semibold px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-white border border-white/20 shadow-sm flex items-center gap-1">
+                          <Images size={11} />
+                          {count}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 <div className="p-5 space-y-2">
                   <div className="flex items-center justify-between text-[10px] font-mono text-[#9EABA2]">
@@ -357,23 +366,31 @@ export const DashboardProducts: React.FC = () => {
                 <tr key={p.id} className="hover:bg-[var(--surface-alt)]/60 transition-colors">
                   <td className="p-3.5 min-w-[220px]">
                     <div className="flex items-center space-x-3">
-                      <div className="relative w-9 h-9 shrink-0">
-                        <img
-                          src={p.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
-                          alt={p.name}
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full rounded-lg object-cover bg-[var(--surface)] border border-[var(--line)]"
-                          onError={(e) => {
-                            e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
-                          }}
-                        />
-                        {p.images && p.images.length > 1 && (
-                          <span className="absolute -bottom-1 -right-1 bg-black/85 text-white text-[8px] font-mono px-1 rounded-xs flex items-center gap-0.5">
-                            <Images size={9} />
-                            {p.images.length}
-                          </span>
-                        )}
-                      </div>
+                      {(() => {
+                        const allImgs = extractProductImages(p);
+                        const coverSrc = p.imageUrl || allImgs[0] || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
+                        const count = allImgs.length;
+
+                        return (
+                          <div className="relative w-9 h-9 shrink-0">
+                            <img
+                              src={coverSrc}
+                              alt={p.name}
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full rounded-lg object-cover bg-[var(--surface)] border border-[var(--line)]"
+                              onError={(e) => {
+                                e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
+                              }}
+                            />
+                            {count > 1 && (
+                              <span className="absolute -bottom-1 -right-1 bg-black/85 text-white text-[8px] font-mono px-1 rounded-xs flex items-center gap-0.5">
+                                <Images size={9} />
+                                {count}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
                       <span className="font-serif font-medium text-[var(--ink)] truncate max-w-[180px]" title={p.name}>
                         {p.name}
                       </span>

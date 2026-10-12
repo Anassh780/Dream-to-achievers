@@ -4,6 +4,7 @@ import { collection, deleteDoc, doc, getDoc, onSnapshot, query, setDoc, where } 
 import { ref, set, remove, onValue, get } from 'firebase/database';
 import { storage } from './storage';
 import { getReadNotificationIds, recordNotificationAsRead } from './notificationService';
+import { extractProductImages } from './imageService';
 import type { AppNotification, Category, Product, VideoTutorial } from '@/types';
 
 type CacheKey = Parameters<typeof storage.set>[0];
@@ -27,7 +28,14 @@ class CloudSyncService {
         (snapshot: any) => {
           if (snapshot.exists()) {
             const val = snapshot.val() || {};
-            const items = Object.values(val) as Product[];
+            const items = Object.values(val).map((p: any) => {
+              const images = extractProductImages(p);
+              return {
+                ...p,
+                images,
+                imageUrl: p.imageUrl || images[0] || '',
+              };
+            }) as Product[];
             if (Array.isArray(items) && items.length > 0) {
               storage.set('PRODUCTS', items);
               window.dispatchEvent(new CustomEvent('dta_products_update', { detail: items }));
@@ -196,7 +204,17 @@ class CloudSyncService {
 
   private listenCollection(collectionName: string, cacheKey: CacheKey, bucket: Array<() => void>) {
     bucket.push(onSnapshot(collection(db, collectionName), (snapshot: any) => {
-      const docs = snapshot.docs.map((item: any) => ({ id: item.id, ...item.data() }));
+      let docs = snapshot.docs.map((item: any) => ({ id: item.id, ...item.data() }));
+      if (collectionName === 'products') {
+        docs = docs.map((p: any) => {
+          const images = extractProductImages(p);
+          return {
+            ...p,
+            images,
+            imageUrl: p.imageUrl || images[0] || '',
+          };
+        });
+      }
       if (cacheKey === 'NOTIFICATIONS') {
         const existing = storage.get<AppNotification[]>('NOTIFICATIONS', []);
         const readIds = getReadNotificationIds();
@@ -293,9 +311,7 @@ class CloudSyncService {
   }
 
   cleanProductForCloud(product: Product): Record<string, unknown> {
-    const images = Array.isArray(product.images) && product.images.length > 0
-      ? product.images.filter(Boolean)
-      : (product.imageUrl ? [product.imageUrl] : []);
+    const images = extractProductImages(product);
 
     return {
       ...product,

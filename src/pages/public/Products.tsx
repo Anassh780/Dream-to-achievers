@@ -6,6 +6,7 @@ import { CategoryPillCarousel } from '@/components/categories/CategoryPillCarous
 import { CategorySidebarTree } from '@/components/categories/CategorySidebarTree';
 import { Button } from '@/components/ui/Button';
 import { SEOHead } from '@/components/common/SEOHead';
+import { extractProductImages } from '@/services/imageService';
 import {
   MagnifyingGlass,
   ArrowRight,
@@ -320,35 +321,43 @@ export const Products: React.FC = () => {
                   >
                     <div>
                       {/* Product Image Tile */}
-                      <div className="aspect-[16/10] bg-[#070B09] relative overflow-hidden border-b border-white/10">
-                        <img
-                          src={product.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
-                          alt={product.name}
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
-                          onError={(e) => {
-                            e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
-                          }}
-                        />
-                        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 items-start">
-                          <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-[#070B09]/80 backdrop-blur-md text-[#D9C08A] border border-[#D9C08A]/30 shadow-sm">
-                            {product.category}
-                          </span>
-                        </div>
-                        <div className="absolute top-2.5 right-2.5 flex flex-col gap-1 items-end">
-                          {product.isFeatured && (
-                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#D9C08A] text-[#070B09] shadow-sm">
-                              FEATURED
-                            </span>
-                          )}
-                          {product.images && product.images.length > 1 && (
-                            <span className="text-[9.5px] font-mono font-semibold px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-white border border-white/20 shadow-sm flex items-center gap-1">
-                              <Images size={11} />
-                              {product.images.length}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                      {(() => {
+                        const allImgs = extractProductImages(product);
+                        const coverSrc = product.imageUrl || allImgs[0] || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
+                        const photoCount = allImgs.length;
+
+                        return (
+                          <div className="aspect-[16/10] bg-[#070B09] relative overflow-hidden border-b border-white/10">
+                            <img
+                              src={coverSrc}
+                              alt={product.name}
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
+                              onError={(e) => {
+                                e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
+                              }}
+                            />
+                            <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 items-start">
+                              <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-[#070B09]/80 backdrop-blur-md text-[#D9C08A] border border-[#D9C08A]/30 shadow-sm">
+                                {product.category}
+                              </span>
+                            </div>
+                            <div className="absolute top-2.5 right-2.5 flex flex-col gap-1 items-end">
+                              {product.isFeatured && (
+                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#D9C08A] text-[#070B09] shadow-sm">
+                                  FEATURED
+                                </span>
+                              )}
+                              {photoCount > 1 && (
+                                <span className="text-[9.5px] font-mono font-semibold px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-white border border-white/20 shadow-sm flex items-center gap-1">
+                                  <Images size={11} />
+                                  {photoCount}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                       {/* Product Content Details */}
                       <div className="p-4 space-y-2">

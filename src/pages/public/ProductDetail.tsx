@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { SEOHead } from '@/components/common/SEOHead';
 import { useToast } from '@/context/ToastContext';
+import { extractProductImages } from '@/services/imageService';
 import {
   ArrowLeft,
   Check,
@@ -39,6 +40,12 @@ export const ProductDetail: React.FC = () => {
   }, []);
 
   const product = useMemo(() => productService.getProductBySlug(slug || ''), [slug, syncKey]);
+  const imagesList = useMemo(() => {
+    if (!product) return [];
+    const list = extractProductImages(product);
+    return list.length > 0 ? list : [product.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'];
+  }, [product]);
+
   const { user, isAuthenticated } = useAuth();
   const { success: toastSuccess } = useToast();
   const [customerName, setCustomerName] = useState('');
@@ -153,17 +160,15 @@ export const ProductDetail: React.FC = () => {
             <div className="rounded-3xl bg-[#0D1512]/80 backdrop-blur-xl border border-white/10 overflow-hidden p-3 shadow-xl hover:border-[#D9C08A]/30 transition-all">
               <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-[#070B09] relative group">
                 {(() => {
-                  const imagesList = Array.isArray(product.images) && product.images.length > 0
-                    ? product.images
-                    : [product.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'];
-                  const activeImg = imagesList[activeImageIndex] || imagesList[0];
+                  const safeActiveIndex = Math.min(activeImageIndex, Math.max(0, imagesList.length - 1));
+                  const activeImg = imagesList[safeActiveIndex] || imagesList[0];
 
                   return (
                     <>
                       <img
                         key={activeImg}
                         src={activeImg}
-                        alt={`${product.name} - Angle ${activeImageIndex + 1}`}
+                        alt={`${product.name} - Angle ${safeActiveIndex + 1}`}
                         referrerPolicy="no-referrer"
                         onError={(e) => {
                           e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
@@ -181,14 +186,14 @@ export const ProductDetail: React.FC = () => {
 
                       {/* Photo Navigation Overlay Arrows if > 1 photo */}
                       {imagesList.length > 1 && (
-                        <div className="absolute inset-y-0 inset-x-2 flex items-center justify-between pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="absolute inset-y-0 inset-x-2 flex items-center justify-between pointer-events-none opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                           <button
                             type="button"
                             onClick={(e) => {
                               e.preventDefault();
                               setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : imagesList.length - 1));
                             }}
-                            className="size-8 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center pointer-events-auto border border-white/20 shadow-lg cursor-pointer transition-transform hover:scale-110"
+                            className="size-8 rounded-full bg-black/75 hover:bg-black text-white flex items-center justify-center pointer-events-auto border border-white/20 shadow-lg cursor-pointer transition-transform hover:scale-110 active:scale-95"
                             aria-label="Previous photo"
                           >
                             <CaretLeft size={16} weight="bold" />
@@ -199,7 +204,7 @@ export const ProductDetail: React.FC = () => {
                               e.preventDefault();
                               setActiveImageIndex((prev) => (prev < imagesList.length - 1 ? prev + 1 : 0));
                             }}
-                            className="size-8 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center pointer-events-auto border border-white/20 shadow-lg cursor-pointer transition-transform hover:scale-110"
+                            className="size-8 rounded-full bg-black/75 hover:bg-black text-white flex items-center justify-center pointer-events-auto border border-white/20 shadow-lg cursor-pointer transition-transform hover:scale-110 active:scale-95"
                             aria-label="Next photo"
                           >
                             <CaretRight size={16} weight="bold" />
@@ -211,7 +216,7 @@ export const ProductDetail: React.FC = () => {
                       {imagesList.length > 1 && (
                         <span className="absolute bottom-3 right-3 text-[10px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-black/75 backdrop-blur-md text-white border border-white/20 shadow-sm flex items-center gap-1">
                           <Images size={12} />
-                          {activeImageIndex + 1} / {imagesList.length} Photos
+                          {safeActiveIndex + 1} / {imagesList.length} Photos
                         </span>
                       )}
                     </>
@@ -221,50 +226,45 @@ export const ProductDetail: React.FC = () => {
             </div>
 
             {/* Interactive Thumbnail Strip (Alibaba/Daraz Style) */}
-            {(() => {
-              const imagesList = Array.isArray(product.images) && product.images.length > 0
-                ? product.images
-                : [product.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'];
-              
-              if (imagesList.length <= 1) return null;
-
-              return (
-                <div className="p-2.5 rounded-2xl bg-[#0D1512]/80 backdrop-blur-xl border border-white/10 space-y-1.5 shadow-md">
-                  <div className="flex items-center justify-between px-1 text-[10.5px] font-mono text-[#9EABA2]">
-                    <span>Product Angles &amp; Packaging ({imagesList.length})</span>
-                    <span className="text-[#D9C08A]">Click to switch view</span>
-                  </div>
-                  <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5">
-                    {imagesList.map((thumbUrl, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setActiveImageIndex(idx)}
-                        onMouseEnter={() => setActiveImageIndex(idx)}
-                        className={`relative size-14 sm:size-16 rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
-                          activeImageIndex === idx
-                            ? 'border-[#D9C08A] shadow-[0_0_12px_rgba(217,192,138,0.35)] scale-105'
-                            : 'border-white/10 opacity-70 hover:opacity-100 hover:border-white/30'
-                        }`}
-                      >
-                        <img
-                          src={thumbUrl}
-                          alt={`${product.name} thumb ${idx + 1}`}
-                          referrerPolicy="no-referrer"
-                          onError={(e) => {
-                            e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
-                          }}
-                          className="w-full h-full object-cover"
-                        />
-                        {activeImageIndex === idx && (
-                          <span className="absolute inset-0 bg-[#D9C08A]/10 pointer-events-none" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
+            {imagesList.length > 1 && (
+              <div className="p-2.5 rounded-2xl bg-[#0D1512]/80 backdrop-blur-xl border border-white/10 space-y-1.5 shadow-md">
+                <div className="flex items-center justify-between px-1 text-[10.5px] font-mono text-[#9EABA2]">
+                  <span className="flex items-center gap-1.5">
+                    <Images size={13} className="text-[#D9C08A]" />
+                    Product Angles &amp; Packaging ({imagesList.length})
+                  </span>
+                  <span className="text-[#D9C08A]">Tap / click to view</span>
                 </div>
-              );
-            })()}
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 scrollbar-thin">
+                  {imagesList.map((thumbUrl, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setActiveImageIndex(idx)}
+                      onMouseEnter={() => setActiveImageIndex(idx)}
+                      className={`relative size-14 sm:size-16 rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
+                        activeImageIndex === idx
+                          ? 'border-[#D9C08A] shadow-[0_0_12px_rgba(217,192,138,0.35)] scale-105'
+                          : 'border-white/10 opacity-70 hover:opacity-100 hover:border-white/30'
+                      }`}
+                    >
+                      <img
+                        src={thumbUrl}
+                        alt={`${product.name} thumb ${idx + 1}`}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
+                        }}
+                        className="w-full h-full object-cover"
+                      />
+                      {activeImageIndex === idx && (
+                        <span className="absolute inset-0 bg-[#D9C08A]/10 pointer-events-none" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Official Cash on Delivery Guarantee Banner (Prominent Daraz / Alibaba Badge) */}
             <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-[#0D1512] to-emerald-950/30 backdrop-blur-xl border border-emerald-500/30 flex items-center justify-between gap-3 shadow-lg">

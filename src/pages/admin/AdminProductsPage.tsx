@@ -12,6 +12,8 @@ import {
   uploadProductImage,
   isValidImageUrl,
   normalizeImageUrl,
+  parseImageUrls,
+  extractProductImages,
   testImageLoad,
   DEFAULT_PRODUCT_FALLBACK_IMAGE,
 } from '@/services/imageService';
@@ -39,6 +41,7 @@ import {
   Images,
   Star,
   ShieldCheck,
+  Eye,
 } from '@phosphor-icons/react';
 
 export const AdminProductsPage: React.FC = () => {
@@ -115,6 +118,9 @@ export const AdminProductsPage: React.FC = () => {
   const [isFeatured, setIsFeatured] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const [previewLightboxUrl, setPreviewLightboxUrl] = useState<string | null>(null);
+
+  const pendingGalleryUrls = useMemo(() => parseImageUrls(galleryInput), [galleryInput]);
 
   useEffect(() => {
     if (!imageUrl || !imageUrl.trim()) {
@@ -192,16 +198,20 @@ export const AdminProductsPage: React.FC = () => {
 
   const handleAddGalleryImages = (raw: string) => {
     if (!raw.trim()) return;
-    const items = raw
-      .split(/[\n,]/)
-      .map((s) => normalizeImageUrl(s.trim()))
-      .filter((s) => Boolean(s) && isValidImageUrl(s) && !galleryImages.includes(s) && s !== imageUrl);
-    if (items.length > 0) {
-      setGalleryImages((prev) => [...prev, ...items]);
+    const parsed = parseImageUrls(raw);
+    if (parsed.length === 0) {
+      showToast('Please enter valid image URLs (e.g. cdn.phototourl.com, Google Drive, Unsplash, Imgur).');
+      return;
+    }
+    const newItems = parsed.filter(
+      (s) => !galleryImages.includes(s) && s !== imageUrl
+    );
+    if (newItems.length > 0) {
+      setGalleryImages((prev) => [...prev, ...newItems]);
       setGalleryInput('');
-      showToast(`Added ${items.length} photo(s) to product gallery!`);
+      showToast(`Added ${newItems.length} photo(s) to product gallery!`);
     } else {
-      showToast('Please enter valid image URLs.');
+      showToast('These image(s) are already in your product gallery or cover.');
     }
   };
 
@@ -255,8 +265,10 @@ export const AdminProductsPage: React.FC = () => {
     setCategoryId(p.categoryId || allCategories[0]?.id || 'cat-skincare');
     setRetailPrice(p.retailPrice);
     setPartnerPrice(p.partnerPrice);
-    setImageUrl(p.imageUrl || '');
-    setGalleryImages(Array.isArray(p.images) ? p.images.filter((img) => img !== p.imageUrl) : []);
+    const allImgs = extractProductImages(p);
+    const cover = p.imageUrl || allImgs[0] || '';
+    setImageUrl(cover);
+    setGalleryImages(allImgs.filter((img) => img !== cover));
     setGalleryInput('');
     setCashOnDelivery(p.cashOnDelivery !== false);
     setBrand(p.brand || 'Dream to Achievers Official');
@@ -595,23 +607,30 @@ export const AdminProductsPage: React.FC = () => {
         {filteredList.map((prod) => (
           <article key={prod.id} className="rounded-2xl bg-[var(--surface)] border border-[var(--line)] p-4 shadow-xs space-y-3">
             <div className="flex items-start gap-3">
-              <div className="relative size-16 shrink-0">
-                <img
-                  src={prod.imageUrl || DEFAULT_PRODUCT_FALLBACK_IMAGE}
-                  alt={prod.name}
-                  referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
-                  }}
-                  className="w-full h-full rounded-xl object-cover bg-[var(--surface)] border border-[var(--line)]"
-                />
-                {prod.images && prod.images.length > 1 && (
-                  <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[9px] font-mono px-1 rounded flex items-center gap-0.5">
-                    <Images size={10} />
-                    {prod.images.length}
-                  </span>
-                )}
-              </div>
+              {(() => {
+                const allImgs = extractProductImages(prod);
+                const cover = prod.imageUrl || allImgs[0] || DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                const count = allImgs.length;
+                return (
+                  <div className="relative size-16 shrink-0">
+                    <img
+                      src={cover}
+                      alt={prod.name}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                      }}
+                      className="w-full h-full rounded-xl object-cover bg-[var(--surface)] border border-[var(--line)]"
+                    />
+                    {count > 1 && (
+                      <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[9px] font-mono px-1 rounded flex items-center gap-0.5">
+                        <Images size={10} />
+                        {count}
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
               <div className="min-w-0 flex-1">
                 <h2 className="font-semibold text-sm text-[var(--ink)] leading-snug">{prod.name}</h2>
                 <p className="mt-1 text-[10px] font-mono text-[var(--ink-soft)] truncate">{prod.sku} · {prod.category}</p>
@@ -661,23 +680,30 @@ export const AdminProductsPage: React.FC = () => {
               <tr key={prod.id} className="hover:bg-[var(--surface-alt)]/60 transition-colors">
                 <td className="p-3.5">
                   <div className="flex items-center space-x-3">
-                    <div className="relative w-10 h-10 shrink-0">
-                      <img
-                        src={prod.imageUrl || DEFAULT_PRODUCT_FALLBACK_IMAGE}
-                        alt={prod.name}
-                        referrerPolicy="no-referrer"
-                        onError={(e) => {
-                          e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
-                        }}
-                        className="w-full h-full rounded-lg object-cover bg-[var(--surface)] border border-[var(--line)]"
-                      />
-                      {prod.images && prod.images.length > 1 && (
-                        <span className="absolute -bottom-1 -right-1 bg-black/85 text-white text-[8px] font-mono px-1 rounded-sm flex items-center gap-0.5 border border-white/20">
-                          <Images size={9} />
-                          {prod.images.length}
-                        </span>
-                      )}
-                    </div>
+                    {(() => {
+                      const allImgs = extractProductImages(prod);
+                      const cover = prod.imageUrl || allImgs[0] || DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                      const count = allImgs.length;
+                      return (
+                        <div className="relative w-10 h-10 shrink-0">
+                          <img
+                            src={cover}
+                            alt={prod.name}
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                            }}
+                            className="w-full h-full rounded-lg object-cover bg-[var(--surface)] border border-[var(--line)]"
+                          />
+                          {count > 1 && (
+                            <span className="absolute -bottom-1 -right-1 bg-black/85 text-white text-[8px] font-mono px-1 rounded-sm flex items-center gap-0.5 border border-white/20">
+                              <Images size={9} />
+                              {count}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
                     <div className="min-w-0">
                       <p className="font-medium text-[var(--ink)] truncate max-w-[220px]">{prod.name}</p>
                       <div className="flex items-center gap-1.5 mt-0.5">
@@ -878,7 +904,7 @@ export const AdminProductsPage: React.FC = () => {
                   </div>
 
                   {imageInputMode === 'url' ? (
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <input
                           type="text"
@@ -911,28 +937,56 @@ export const AdminProductsPage: React.FC = () => {
                         )}
                       </div>
 
-                      {/* Live Status Message */}
-                      {imageStatus === 'loading' && (
-                        <div className="flex items-center gap-1.5 text-[11px] text-[#D9C08A] pt-0.5">
-                          <CircleNotch size={13} className="animate-spin" />
-                          <span>Checking image preview link...</span>
-                        </div>
-                      )}
-                      {imageStatus === 'success' && (
-                        <div className="flex items-center gap-1.5 text-[11px] text-emerald-500 font-medium pt-0.5">
-                          <CheckCircle size={14} weight="fill" />
-                          <span>Image link verified &amp; ready to sync across all devices!</span>
-                        </div>
-                      )}
-                      {imageStatus === 'error' && (
-                        <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[11px] space-y-1 mt-1">
-                          <div className="flex items-start gap-1.5 font-medium">
-                            <WarningCircle size={15} weight="fill" className="shrink-0 mt-0.5" />
-                            <span>{imageErrorMessage || 'Image preview failed to load.'}</span>
+                      {/* Live Mini Preview for Cover Photo */}
+                      {imageUrl && (
+                        <div className="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-alt)] border border-[var(--line)]">
+                          <div
+                            className="relative size-12 rounded-md overflow-hidden bg-black/40 border border-[var(--primary)] shrink-0 cursor-pointer group"
+                            onClick={() => setPreviewLightboxUrl(imageUrl)}
+                            title="Click to view full resolution"
+                          >
+                            <img
+                              src={imageUrl}
+                              alt="Cover Live Preview"
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
+                              <Eye size={14} />
+                            </div>
                           </div>
-                          <p className="text-[10.5px] text-rose-400/90 leading-relaxed">
-                            Web links must point directly to an image (.jpg, .png, .webp). If the host blocks hotlinking, click "Upload Device" instead.
-                          </p>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-mono text-[var(--primary)] font-bold">
+                                COVER PREVIEW
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setPreviewLightboxUrl(imageUrl)}
+                                className="text-[10px] text-[#D9C08A] hover:underline flex items-center gap-0.5 cursor-pointer"
+                              >
+                                <Eye size={12} /> View Full
+                              </button>
+                            </div>
+                            {imageStatus === 'loading' && (
+                              <p className="text-[10.5px] text-[#D9C08A] flex items-center gap-1 mt-0.5">
+                                <CircleNotch size={12} className="animate-spin" /> Verifying link...
+                              </p>
+                            )}
+                            {imageStatus === 'success' && (
+                              <p className="text-[10.5px] text-emerald-500 font-medium flex items-center gap-1 mt-0.5">
+                                <CheckCircle size={13} weight="fill" /> Ready to sync across devices
+                              </p>
+                            )}
+                            {imageStatus === 'error' && (
+                              <p className="text-[10.5px] text-rose-500 font-medium flex items-center gap-1 mt-0.5">
+                                <WarningCircle size={13} weight="fill" /> {imageErrorMessage || 'Image preview failed.'}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1006,7 +1060,7 @@ export const AdminProductsPage: React.FC = () => {
                           handleAddGalleryImages(galleryInput);
                         }
                       }}
-                      placeholder="Paste extra image URL and click '+ Add to Gallery' (or separate by commas)"
+                      placeholder="Paste image link(s) (comma, space, or newline separated)"
                       className="flex-1 px-3 py-1.5 rounded-lg bg-[var(--surface-alt)] border border-[var(--line)] text-[var(--ink)] text-xs focus:outline-none focus:border-[var(--primary)]"
                     />
                     <button
@@ -1018,28 +1072,91 @@ export const AdminProductsPage: React.FC = () => {
                     </button>
                   </div>
 
-                  {/* Quick Device Upload for Gallery */}
+                  {/* Real-Time Live Preview for Pending Gallery Image Links */}
+                  {pendingGalleryUrls.length > 0 && (
+                    <div className="p-2.5 rounded-xl bg-gradient-to-r from-[var(--primary)]/10 via-[var(--surface-alt)] to-[var(--primary)]/5 border border-[var(--primary)]/30 space-y-2 animate-in fade-in-50 duration-150">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-[var(--ink)] flex items-center gap-1.5">
+                          <Sparkle size={14} className="text-[#D9C08A]" weight="fill" />
+                          {pendingGalleryUrls.length} Photo{pendingGalleryUrls.length > 1 ? 's' : ''} Ready to Add (Live Preview):
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleAddGalleryImages(galleryInput)}
+                          className="px-2.5 py-1 rounded-lg bg-[var(--primary)] text-white text-[11px] font-bold hover:brightness-110 shadow-xs cursor-pointer"
+                        >
+                          + Add All ({pendingGalleryUrls.length})
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5">
+                        {pendingGalleryUrls.map((pUrl, idx) => (
+                          <div
+                            key={idx}
+                            className="relative size-14 rounded-lg overflow-hidden border border-[#D9C08A] shrink-0 bg-black/40 cursor-pointer group"
+                            onClick={() => setPreviewLightboxUrl(pUrl)}
+                            title="Click to view full size"
+                          >
+                            <img
+                              src={pUrl}
+                              alt={`Pending ${idx + 1}`}
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                              }}
+                            />
+                            <span className="absolute bottom-0 inset-x-0 bg-black/75 text-[8.5px] font-mono text-center text-white py-0.5 truncate">
+                              #{galleryImages.length + idx + 2}
+                            </span>
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
+                              <Eye size={13} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Device Upload for Gallery (Supports Single or Multi-Select) */}
                   <div className="flex items-center justify-between pt-1 text-[11px] text-[var(--ink-soft)]">
-                    <span>Or upload directly from phone/PC:</span>
+                    <span>Or select photo(s) from phone/PC:</span>
                     <label className="inline-flex items-center gap-1 font-semibold text-[var(--primary)] hover:underline cursor-pointer">
-                      <UploadSimple size={12} />
-                      <span>Upload Extra Photo</span>
+                      {isUploadingGallery ? (
+                        <>
+                          <CircleNotch size={13} className="animate-spin text-[var(--primary)]" />
+                          <span>Uploading &amp; compressing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <UploadSimple size={13} />
+                          <span>Browse Photos (Multi-select)</span>
+                        </>
+                      )}
                       <input
                         type="file"
+                        multiple
                         accept="image/*"
+                        disabled={isUploadingGallery}
                         className="hidden"
                         onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
+                          const files = Array.from(e.target.files || []);
+                          if (files.length > 0) {
+                            setIsUploadingGallery(true);
                             try {
-                              const optimizedUrl = await uploadProductImage(
-                                file,
-                                `gallery-${Date.now()}`
-                              );
-                              setGalleryImages((prev) => [...prev, optimizedUrl]);
-                              showToast('Extra gallery photo uploaded!');
+                              const newUrls: string[] = [];
+                              for (const file of files) {
+                                const optUrl = await uploadProductImage(
+                                  file,
+                                  `gallery-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+                                );
+                                newUrls.push(optUrl);
+                              }
+                              setGalleryImages((prev) => [...prev, ...newUrls]);
+                              showToast(`⚡ Added ${newUrls.length} photo(s) from device!`);
                             } catch (err) {
-                              showToast('Failed to upload extra photo');
+                              showToast('Failed to upload extra photos');
+                            } finally {
+                              setIsUploadingGallery(false);
                             }
                           }
                         }}
@@ -1051,32 +1168,46 @@ export const AdminProductsPage: React.FC = () => {
                 {/* Visual Picture Manager Tray (Cover + Thumbnails) */}
                 <div className="space-y-1.5 pt-1">
                   <div className="flex items-center justify-between text-[10.5px] font-mono text-[var(--ink-soft)]">
-                    <span>Photos Summary ({1 + galleryImages.length} Total):</span>
-                    <span>Click "Set Cover" or "Remove" on any photo</span>
+                    <span>
+                      Photos Summary ({(imageUrl ? 1 : 0) + galleryImages.length} Total):{' '}
+                      <strong className="text-[var(--primary)]">{imageUrl ? 1 : 0} Cover</strong> + {galleryImages.length} Gallery
+                    </span>
+                    <span className="text-[10px] text-[#D9C08A]">Click photo to view full size</span>
                   </div>
 
                   <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                     {/* Primary Cover Thumbnail */}
                     <div className="relative aspect-square rounded-xl overflow-hidden border-2 border-[var(--primary)] bg-[var(--surface)] shadow-xs group">
                       {imageUrl ? (
-                        <img
-                          src={imageUrl}
-                          alt="Cover"
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
-                          }}
-                        />
+                        <>
+                          <img
+                            src={imageUrl}
+                            alt="Cover"
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover cursor-pointer"
+                            onClick={() => setPreviewLightboxUrl(imageUrl)}
+                            onError={(e) => {
+                              e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                            }}
+                          />
+                          <span className="absolute top-1 left-1 bg-[var(--primary)] text-white text-[8px] font-bold font-mono px-1 py-0.5 rounded shadow-xs">
+                            COVER
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setPreviewLightboxUrl(imageUrl)}
+                            className="absolute bottom-1 right-1 p-1 rounded bg-black/70 hover:bg-black text-white text-[9px] flex items-center gap-0.5 cursor-pointer opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                            title="Preview full size"
+                          >
+                            <Eye size={12} />
+                          </button>
+                        </>
                       ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center text-center p-1 bg-[var(--surface-alt)]">
                           <ImageIcon size={18} className="text-[var(--ink-soft)]" />
                           <span className="text-[9px] text-[var(--ink-soft)] mt-1 font-mono">No Cover</span>
                         </div>
                       )}
-                      <span className="absolute top-1 left-1 bg-[var(--primary)] text-white text-[8.5px] font-bold font-mono px-1 py-0.5 rounded shadow-xs">
-                        COVER
-                      </span>
                     </div>
 
                     {/* Gallery Thumbnails */}
@@ -1089,15 +1220,25 @@ export const AdminProductsPage: React.FC = () => {
                           src={imgUrl}
                           alt={`Gallery ${idx + 1}`}
                           referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover cursor-pointer"
+                          onClick={() => setPreviewLightboxUrl(imgUrl)}
                           onError={(e) => {
                             e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
                           }}
                         />
-                        <span className="absolute top-1 left-1 bg-black/70 backdrop-blur-xs text-white text-[8px] font-mono px-1 rounded">
+                        <span className="absolute top-1 left-1 bg-black/75 backdrop-blur-xs text-white text-[8px] font-mono px-1 rounded">
                           #{idx + 2}
                         </span>
-                        <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-1 gap-1">
+                        {/* Overlay Controls */}
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-1 gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setPreviewLightboxUrl(imgUrl)}
+                            className="w-full py-0.5 text-[8.5px] font-semibold bg-white/20 hover:bg-white/30 text-white rounded flex items-center justify-center gap-0.5 cursor-pointer"
+                            title="View full image"
+                          >
+                            <Eye size={10} /> View
+                          </button>
                           <button
                             type="button"
                             onClick={() => handleSetGalleryImageAsCover(imgUrl)}
@@ -1459,6 +1600,72 @@ export const AdminProductsPage: React.FC = () => {
               </div>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* 5. High-Resolution Image Preview Lightbox */}
+      {previewLightboxUrl && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overscroll-contain animate-in fade-in-50 duration-200"
+          onClick={() => setPreviewLightboxUrl(null)}
+        >
+          <div
+            className="relative max-w-2xl w-full max-h-[90vh] bg-[var(--surface)] border border-[var(--line)] rounded-2xl p-4 flex flex-col space-y-3 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-[var(--line)]">
+              <span className="text-xs font-semibold text-[var(--ink)] flex items-center gap-1.5">
+                <Images size={16} className="text-[#D9C08A]" />
+                Full Resolution Image Preview
+              </span>
+              <button
+                type="button"
+                onClick={() => setPreviewLightboxUrl(null)}
+                className="p-1.5 rounded-lg hover:bg-[var(--surface-alt)] text-[var(--ink-soft)] hover:text-[var(--ink)] cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="flex-1 min-h-0 flex items-center justify-center bg-black/40 rounded-xl overflow-hidden p-2">
+              <img
+                src={previewLightboxUrl}
+                alt="Full preview"
+                referrerPolicy="no-referrer"
+                className="max-h-[60vh] max-w-full object-contain rounded-lg shadow-lg"
+                onError={(e) => {
+                  e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                }}
+              />
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
+              <p className="text-[11px] font-mono text-[var(--ink-soft)] truncate max-w-[320px]">
+                {previewLightboxUrl}
+              </p>
+              <div className="flex items-center gap-2">
+                {imageUrl !== previewLightboxUrl && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleSetGalleryImageAsCover(previewLightboxUrl);
+                      setPreviewLightboxUrl(null);
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-[var(--primary)] text-white text-xs font-semibold hover:brightness-110 cursor-pointer shadow-xs"
+                  >
+                    Set as Cover
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setPreviewLightboxUrl(null)}
+                  className="px-3 py-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface-alt)] text-[var(--ink)] text-xs font-medium hover:bg-[var(--surface-alt)]/80 cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

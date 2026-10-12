@@ -96,8 +96,14 @@ export function normalizeImageUrl(rawUrl: string): string {
   if (!rawUrl || typeof rawUrl !== 'string') return '';
   let url = rawUrl.trim();
 
-  // Strip wrapping quotes if pasted from markdown/HTML/code
+  // Strip wrapping quotes or brackets if pasted from markdown/HTML/code
   if ((url.startsWith('"') && url.endsWith('"')) || (url.startsWith("'") && url.endsWith("'"))) {
+    url = url.slice(1, -1).trim();
+  }
+  if (url.startsWith('<') && url.endsWith('>')) {
+    url = url.slice(1, -1).trim();
+  }
+  if (url.startsWith('(') && url.endsWith(')')) {
     url = url.slice(1, -1).trim();
   }
 
@@ -105,27 +111,33 @@ export function normalizeImageUrl(rawUrl: string): string {
   if (url.startsWith('data:image/')) return url;
 
   // Extract from HTML <img src="..."> or <a href="...">
-  const htmlMatch = url.match(/src=["'](https?:\/\/[^"']+)["']/i);
+  const htmlMatch = url.match(/src=["']([^"']+)["']/i);
   if (htmlMatch && htmlMatch[1]) {
     url = htmlMatch[1].trim();
   }
 
   // Extract from Markdown: ![alt](https://...)
-  const mdMatch = url.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/i);
+  const mdMatch = url.match(/!\[.*?\]\(([^\s)]+)\)/i);
   if (mdMatch && mdMatch[1]) {
     url = mdMatch[1].trim();
   }
 
   // Extract from BBCode: [img]https://...[/img]
-  const bbMatch = url.match(/\[img\](https?:\/\/[^\[]+)\[\/img\]/i);
+  const bbMatch = url.match(/\[img\]([^\[]+)\[\/img\]/i);
   if (bbMatch && bbMatch[1]) {
     url = bbMatch[1].trim();
   }
 
-  // If user pasted on top of an existing URL (e.g. multiple http/https in one string):
-  const allUrls = url.match(/https?:\/\/[^\s"'<>]+/gi);
-  if (allUrls && allUrls.length > 1) {
-    url = allUrls[allUrls.length - 1];
+  // Protocol-relative URLs
+  if (url.startsWith('//')) {
+    url = 'https:' + url;
+  }
+
+  // Auto-prepend https:// if protocol is omitted (e.g. cdn.phototourl.com, phototourl.com, images.unsplash.com)
+  if (!/^https?:\/\//i.test(url) && !url.startsWith('data:image/')) {
+    if (/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/i.test(url) || url.includes('phototourl.com')) {
+      url = 'https://' + url;
+    }
   }
 
   // PhotoToURL support:
@@ -197,6 +209,61 @@ export function isValidImageUrl(url: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Parses raw text containing one or more image URLs separated by newlines,
+ * commas, spaces, tabs, or HTML/Markdown tags. Returns an array of clean, unique URLs.
+ */
+export function parseImageUrls(raw: string): string[] {
+  if (!raw || typeof raw !== 'string') return [];
+  const tokens = raw
+    .split(/[\r\n,;\t]+/)
+    .flatMap((t) => t.trim().split(/\s+/))
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  const results: string[] = [];
+  for (const token of tokens) {
+    const norm = normalizeImageUrl(token);
+    if (norm && isValidImageUrl(norm) && !results.includes(norm)) {
+      results.push(norm);
+    }
+  }
+  return results;
+}
+
+/**
+ * Extracts and normalizes all product image URLs into a guaranteed clean array.
+ * Handles single `imageUrl`, array `images`, or RTDB map object `{ 0: "url1", 1: "url2" }`.
+ * Guarantees `imageUrl` appears at index 0 if present.
+ */
+export function extractProductImages(product: any): string[] {
+  if (!product) return [];
+  const list: string[] = [];
+
+  const addIfValid = (item: any) => {
+    if (typeof item === 'string') {
+      const norm = normalizeImageUrl(item).trim();
+      if (norm && isValidImageUrl(norm) && !list.includes(norm)) {
+        list.push(norm);
+      }
+    }
+  };
+
+  // 1. Cover photo first
+  if (product.imageUrl) {
+    addIfValid(product.imageUrl);
+  }
+
+  // 2. Extra gallery images (handles real array or RTDB map object)
+  if (Array.isArray(product.images)) {
+    product.images.forEach(addIfValid);
+  } else if (product.images && typeof product.images === 'object') {
+    Object.values(product.images).forEach(addIfValid);
+  }
+
+  return list;
 }
 
 /**
