@@ -8,7 +8,13 @@ import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/context/ToastContext';
 import { cloudSyncService } from '@/services/cloudSyncService';
-import { uploadProductImage, isValidImageUrl } from '@/services/imageService';
+import {
+  uploadProductImage,
+  isValidImageUrl,
+  normalizeImageUrl,
+  testImageLoad,
+  DEFAULT_PRODUCT_FALLBACK_IMAGE,
+} from '@/services/imageService';
 import {
   Plus,
   Trash,
@@ -26,6 +32,9 @@ import {
   Image as ImageIcon,
   CloudCheck,
   ArrowClockwise,
+  CircleNotch,
+  WarningCircle,
+  CheckCircle,
 } from '@phosphor-icons/react';
 
 export const AdminProductsPage: React.FC = () => {
@@ -81,15 +90,57 @@ export const AdminProductsPage: React.FC = () => {
   const [retailPrice, setRetailPrice] = useState(2500);
   const [partnerPrice, setPartnerPrice] = useState(2000);
   const [sku, setSku] = useState('');
-  const [imageUrl, setImageUrl] = useState(
-    'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80'
-  );
+  const [imageUrl, setImageUrl] = useState('');
   const [imageInputMode, setImageInputMode] = useState<'url' | 'upload'>('url');
+  const [imageStatus, setImageStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [imageErrorMessage, setImageErrorMessage] = useState('');
   const [shortDescription, setShortDescription] = useState('');
   const [description, setDescription] = useState('');
   const [inStock, setInStock] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  useEffect(() => {
+    if (!imageUrl || !imageUrl.trim()) {
+      setImageStatus('idle');
+      setImageErrorMessage('');
+      return;
+    }
+
+    const trimmed = imageUrl.trim();
+    if (trimmed.startsWith('data:image/')) {
+      setImageStatus('success');
+      setImageErrorMessage('');
+      return;
+    }
+
+    if (!isValidImageUrl(trimmed)) {
+      setImageStatus('error');
+      setImageErrorMessage('Invalid URL format. Please enter a valid web link.');
+      return;
+    }
+
+    let isMounted = true;
+    setImageStatus('loading');
+    setImageErrorMessage('');
+
+    testImageLoad(trimmed, 6000).then((success) => {
+      if (!isMounted) return;
+      if (success) {
+        setImageStatus('success');
+        setImageErrorMessage('');
+      } else {
+        setImageStatus('error');
+        setImageErrorMessage(
+          'Image preview failed to load. The host might block hotlinking (403), or the link does not point directly to an image.'
+        );
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [imageUrl]);
 
   useEffect(() => {
     if (allCategories.length > 0 && !allCategories.some((category) => category.id === categoryId)) {
@@ -130,7 +181,9 @@ export const AdminProductsPage: React.FC = () => {
     setCategoryId(allCategories[0]?.id || 'cat-skincare');
     setRetailPrice(2500);
     setPartnerPrice(2000);
-    setImageUrl('https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80');
+    setImageUrl('');
+    setImageStatus('idle');
+    setImageErrorMessage('');
     setImageInputMode('url');
     setShortDescription('');
     setDescription('');
@@ -146,7 +199,9 @@ export const AdminProductsPage: React.FC = () => {
     setCategoryId(p.categoryId || allCategories[0]?.id || 'cat-skincare');
     setRetailPrice(p.retailPrice);
     setPartnerPrice(p.partnerPrice);
-    setImageUrl(p.imageUrl);
+    setImageUrl(p.imageUrl || '');
+    setImageStatus(p.imageUrl ? 'loading' : 'idle');
+    setImageErrorMessage('');
     setImageInputMode(p.imageUrl?.startsWith('data:') ? 'upload' : 'url');
     setShortDescription(p.shortDescription);
     setDescription(p.description);
@@ -172,6 +227,7 @@ export const AdminProductsPage: React.FC = () => {
     const targetCat = allCategories.find((c) => c.id === categoryId);
     const categoryName = targetCat ? targetCat.name : 'General';
     const grossMargin = Math.max(0, retailPrice - partnerPrice);
+    const finalImageUrl = normalizeImageUrl(imageUrl).trim() || DEFAULT_PRODUCT_FALLBACK_IMAGE;
 
     if (editingProd) {
       const updatedProdObj: Product = {
@@ -185,7 +241,7 @@ export const AdminProductsPage: React.FC = () => {
         suggestedSellingPrice: Number(retailPrice),
         grossMargin,
         sku: sku.trim(),
-        imageUrl: imageUrl.trim() || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80',
+        imageUrl: finalImageUrl,
         shortDescription: shortDescription.trim(),
         description: description.trim(),
         inStock,
@@ -222,7 +278,7 @@ export const AdminProductsPage: React.FC = () => {
         suggestedSellingPrice: Number(retailPrice),
         grossMargin,
         currency: 'PKR',
-        imageUrl: imageUrl.trim() || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80',
+        imageUrl: finalImageUrl,
         sku: sku.trim(),
         inStock,
         isFeatured,
@@ -457,8 +513,12 @@ export const AdminProductsPage: React.FC = () => {
           <article key={prod.id} className="rounded-2xl bg-[var(--surface)] border border-[var(--line)] p-4 shadow-xs space-y-3">
             <div className="flex items-start gap-3">
               <img
-                src={prod.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
+                src={prod.imageUrl || DEFAULT_PRODUCT_FALLBACK_IMAGE}
                 alt={prod.name}
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                }}
                 className="size-16 rounded-xl object-cover bg-[var(--surface)] border border-[var(--line)] shrink-0"
               />
               <div className="min-w-0 flex-1">
@@ -503,8 +563,12 @@ export const AdminProductsPage: React.FC = () => {
                 <td className="p-3.5">
                   <div className="flex items-center space-x-3">
                     <img
-                      src={prod.imageUrl}
+                      src={prod.imageUrl || DEFAULT_PRODUCT_FALLBACK_IMAGE}
                       alt={prod.name}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                      }}
                       className="w-9 h-9 rounded-lg object-cover bg-[var(--surface)] border border-[var(--line)] shrink-0"
                     />
                     <div className="min-w-0">
@@ -680,29 +744,75 @@ export const AdminProductsPage: React.FC = () => {
                     {imageInputMode === 'url' ? (
                       <div className="space-y-1.5">
                         <label className="block text-[11px] text-[var(--ink-soft)] font-mono">
-                          Direct Image Web Link (HTTPS from Unsplash, Imgur, Cloudinary, etc.):
+                          Direct Image Web Link (HTTPS from Unsplash, Imgur, Cloudinary, Drive, etc.):
                         </label>
                         <div className="flex items-center gap-2">
                           <input
-                            type="url"
+                            type="text"
                             value={imageUrl}
-                            onChange={(e) => setImageUrl(e.target.value)}
-                            placeholder="https://images.unsplash.com/photo-..."
+                            onChange={(e) => {
+                              const normalized = normalizeImageUrl(e.target.value);
+                              setImageUrl(normalized);
+                            }}
+                            onBlur={() => {
+                              if (imageUrl) {
+                                setImageUrl(normalizeImageUrl(imageUrl));
+                              }
+                            }}
+                            placeholder="Paste direct image link (e.g. https://.../photo.jpg)"
                             className="flex-1 px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] text-xs focus:outline-none focus:border-[var(--primary)]"
                           />
                           {imageUrl && (
                             <button
                               type="button"
-                              onClick={() => setImageUrl('')}
-                              className="p-2 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink-soft)] hover:text-rose-600 hover:bg-rose-500/10"
+                              onClick={() => {
+                                setImageUrl('');
+                                setImageStatus('idle');
+                                setImageErrorMessage('');
+                              }}
+                              className="p-2 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink-soft)] hover:text-rose-600 hover:bg-rose-500/10 cursor-pointer"
                               title="Clear URL"
                             >
                               <X size={14} />
                             </button>
                           )}
                         </div>
+
+                        {/* Live Status Message */}
+                        {imageStatus === 'loading' && (
+                          <div className="flex items-center gap-1.5 text-[11px] text-[#D9C08A] pt-0.5">
+                            <CircleNotch size={13} className="animate-spin" />
+                            <span>Checking image preview link...</span>
+                          </div>
+                        )}
+                        {imageStatus === 'success' && (
+                          <div className="flex items-center gap-1.5 text-[11px] text-emerald-500 font-medium pt-0.5">
+                            <CheckCircle size={14} weight="fill" />
+                            <span>Image link verified &amp; ready to preview!</span>
+                          </div>
+                        )}
+                        {imageStatus === 'error' && (
+                          <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[11px] space-y-1.5 mt-1">
+                            <div className="flex items-start gap-1.5 font-medium">
+                              <WarningCircle size={15} weight="fill" className="shrink-0 mt-0.5" />
+                              <span>{imageErrorMessage || 'Image preview failed to load.'}</span>
+                            </div>
+                            <p className="text-[10.5px] text-rose-400/90 leading-relaxed">
+                              Tip: Web links must point directly to an image (.jpg, .png, .webp). If the host blocks hotlinking, click below to upload the image directly from your device.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => setImageInputMode('upload')}
+                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--primary)] hover:underline cursor-pointer"
+                            >
+                              <UploadSimple size={12} />
+                              <span>Switch to "Upload file" instead</span>
+                            </button>
+                          </div>
+                        )}
+
                         <p className="text-[10px] text-[var(--ink-soft)]">
-                          Paste any publicly accessible image link. It will render on all partner and public devices.
+                          Paste any direct image link. Links from Google Drive, Dropbox, and Imgur are automatically converted to direct preview links.
                         </p>
                       </div>
                     ) : (
@@ -740,9 +850,13 @@ export const AdminProductsPage: React.FC = () => {
                                       editingProd?.id || `prod-${Date.now()}`
                                     );
                                     setImageUrl(optimizedUrl);
+                                    setImageStatus('success');
+                                    setImageErrorMessage('');
                                     showToast('⚡ Picture compressed and ready to sync across all devices!');
                                   } catch (err) {
                                     console.error('Image upload failed:', err);
+                                    setImageStatus('error');
+                                    setImageErrorMessage('Image processing failed. Please try a different image.');
                                     showToast('Image processing failed. Please try a different image.');
                                   } finally {
                                     setIsUploadingImage(false);
@@ -757,26 +871,76 @@ export const AdminProductsPage: React.FC = () => {
                   </div>
 
                   {/* Right: Live Preview Box */}
-                  <div className="md:col-span-4 flex items-center justify-center p-2 rounded-xl bg-[var(--surface)] border border-[var(--line)]">
-                    <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-[var(--line)] bg-[var(--surface)] shrink-0 group">
-                      <img
-                        src={imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
-                        alt="Product Preview"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[10px] text-white font-mono">
-                        Live Preview
-                      </div>
+                  <div className="md:col-span-4 flex items-center justify-center p-3 rounded-xl bg-[var(--surface)] border border-[var(--line)]">
+                    <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-[var(--line)] bg-[var(--surface-alt)] shrink-0 group flex items-center justify-center">
+                      {imageUrl && imageStatus !== 'error' ? (
+                        <>
+                          <img
+                            src={imageUrl}
+                            alt="Product Preview"
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover"
+                            onLoad={() => {
+                              setImageStatus('success');
+                              setImageErrorMessage('');
+                            }}
+                            onError={() => {
+                              setImageStatus('error');
+                              setImageErrorMessage('Host blocked preview or link is broken.');
+                            }}
+                          />
+                          {imageStatus === 'loading' && (
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                              <CircleNotch size={20} className="animate-spin text-[#D9C08A]" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[10px] text-white font-mono">
+                            Live Preview
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-center p-1">
+                          {imageStatus === 'error' ? (
+                            <WarningCircle size={24} className="text-rose-500" />
+                          ) : (
+                            <ImageIcon size={24} className="text-[var(--ink-soft)] opacity-40" />
+                          )}
+                          <span className="text-[9px] font-mono mt-1 text-[var(--ink-soft)]">
+                            {imageStatus === 'error' ? 'Broken Link' : 'No Preview'}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <div className="ml-3 text-left">
-                      <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary-dark)] border border-[var(--primary)]/20 inline-block mb-1">
-                        {imageUrl?.startsWith('data:') ? 'Compressed Asset' : 'Web URL Asset'}
+                      <span
+                        className={`text-[10px] font-mono font-medium px-1.5 py-0.5 rounded border inline-block mb-1 ${
+                          imageStatus === 'success'
+                            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                            : imageStatus === 'error'
+                            ? 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                            : imageStatus === 'loading'
+                            ? 'bg-[#D9C08A]/10 text-[#D9C08A] border-[#D9C08A]/20'
+                            : 'bg-white/5 text-[var(--ink-soft)] border-white/10'
+                        }`}
+                      >
+                        {imageStatus === 'success'
+                          ? imageUrl?.startsWith('data:')
+                            ? 'Compressed Asset'
+                            : 'Web URL Loaded'
+                          : imageStatus === 'error'
+                          ? 'Link Error'
+                          : imageStatus === 'loading'
+                          ? 'Loading...'
+                          : 'No Image'}
                       </span>
                       <p className="text-[10px] text-[var(--ink-soft)] line-clamp-2">
-                        {imageUrl ? 'Ready for Realtime Cloud Sync' : 'No image loaded'}
+                        {imageStatus === 'success'
+                          ? 'Ready for Realtime Cloud Sync'
+                          : imageStatus === 'error'
+                          ? 'Fix URL or upload file'
+                          : imageUrl
+                          ? 'Checking asset...'
+                          : 'Enter link or upload'}
                       </p>
                     </div>
                   </div>

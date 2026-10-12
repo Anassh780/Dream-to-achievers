@@ -262,6 +262,7 @@ export const DashboardProducts: React.FC = () => {
                   <img
                     src={p.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
                     alt={p.name}
+                    referrerPolicy="no-referrer"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
@@ -341,6 +342,7 @@ export const DashboardProducts: React.FC = () => {
                       <img
                         src={p.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
                         alt={p.name}
+                        referrerPolicy="no-referrer"
                         className="w-9 h-9 rounded-lg object-cover bg-[var(--surface)] border border-[var(--line)] shrink-0"
                         onError={(e) => {
                           e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';

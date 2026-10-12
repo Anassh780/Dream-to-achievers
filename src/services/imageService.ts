@@ -83,17 +83,121 @@ export async function uploadProductImage(file: File, productId: string): Promise
 }
 
 /**
+ * Default fallback image placeholder when an image fails to load or is missing.
+ */
+export const DEFAULT_PRODUCT_FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
+
+/**
+ * Normalizes and converts various web image links (Google Drive, Dropbox, Google Images, Imgur, etc.)
+ * into directly embeddable image URLs. Also trims whitespace and surrounding quotes.
+ */
+export function normalizeImageUrl(rawUrl: string): string {
+  if (!rawUrl || typeof rawUrl !== 'string') return '';
+  let url = rawUrl.trim();
+
+  // Strip wrapping quotes if pasted from markdown/HTML/code
+  if ((url.startsWith('"') && url.endsWith('"')) || (url.startsWith("'") && url.endsWith("'"))) {
+    url = url.slice(1, -1).trim();
+  }
+
+  // Already a base64 Data URI
+  if (url.startsWith('data:image/')) return url;
+
+  // Google Images Search Link: https://www.google.com/imgres?imgurl=...
+  if (url.includes('google.') && url.includes('/imgres')) {
+    try {
+      const parsed = new URL(url);
+      const imgurl = parsed.searchParams.get('imgurl');
+      if (imgurl) {
+        return decodeURIComponent(imgurl);
+      }
+    } catch {}
+  }
+
+  // Google Drive Share Link:
+  // e.g. https://drive.google.com/file/d/FILE_ID/view...
+  // or https://drive.google.com/open?id=FILE_ID
+  const gdriveMatch = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/);
+  if (gdriveMatch && gdriveMatch[1]) {
+    // lh3.googleusercontent.com/d/ID directly delivers the image without CORS / auth prompts
+    return `https://lh3.googleusercontent.com/d/${gdriveMatch[1]}`;
+  }
+
+  // Dropbox Share Link:
+  // e.g. https://www.dropbox.com/s/xyz/photo.jpg?dl=0
+  if (url.includes('dropbox.com')) {
+    try {
+      const parsed = new URL(url);
+      parsed.searchParams.set('raw', '1');
+      parsed.searchParams.delete('dl');
+      return parsed.toString();
+    } catch {}
+  }
+
+  // Imgur page link:
+  // e.g. https://imgur.com/abc1234 -> https://i.imgur.com/abc1234.png
+  const imgurMatch = url.match(/^https?:\/\/(?:www\.)?imgur\.com\/([a-zA-Z0-9]+)$/);
+  if (imgurMatch && imgurMatch[1]) {
+    return `https://i.imgur.com/${imgurMatch[1]}.png`;
+  }
+
+  return url;
+}
+
+/**
  * Validates whether an image URL is well-formed.
  */
 export function isValidImageUrl(url: string): boolean {
   if (!url || typeof url !== 'string') return false;
-  const trimmed = url.trim();
-  if (trimmed.startsWith('data:image/')) return true;
+  const normalized = normalizeImageUrl(url);
+  if (normalized.startsWith('data:image/')) return true;
   try {
-    const parsed = new URL(trimmed);
+    const parsed = new URL(normalized);
     return parsed.protocol === 'http:' || parsed.protocol === 'https:';
   } catch {
     return false;
   }
+}
+
+/**
+ * Tests whether an image URL can be loaded successfully by the browser.
+ */
+export function testImageLoad(url: string, timeoutMs = 8000): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (!url) {
+      resolve(false);
+      return;
+    }
+    const normalized = normalizeImageUrl(url);
+    const img = new Image();
+    img.referrerPolicy = 'no-referrer';
+    let settled = false;
+
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        resolve(false);
+      }
+    }, timeoutMs);
+
+    img.onload = () => {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
+        resolve(true);
+      }
+    };
+
+    img.onerror = () => {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
+        resolve(false);
+      }
+    };
+
+    img.src = normalized;
+  });
 }
 

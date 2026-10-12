@@ -359,8 +359,12 @@ export const DashboardOverview: React.FC = () => {
               >
                 <div className="flex items-center space-x-2.5 truncate min-w-0">
                   <img
-                    src={item.imageUrl}
+                    src={item.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
                     alt={item.name}
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
+                    }}
                     className="w-11 h-11 rounded-xl object-cover bg-white/[0.04] border border-white/10 shrink-0"
                   />
                   <div className="truncate min-w-0">

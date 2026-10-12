@@ -144,8 +144,12 @@ export const ProductDetail: React.FC = () => {
             <div className="rounded-3xl bg-[#0D1512]/80 backdrop-blur-xl border border-white/10 overflow-hidden p-3 shadow-xl hover:border-[#D9C08A]/30 transition-all">
               <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-[#070B09] relative group">
                 <img
-                  src={product.imageUrl}
+                  src={product.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'}
                   alt={product.name}
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
+                  }}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <span className="absolute top-3 left-3 text-[10.5px] font-mono font-medium px-3 py-1 rounded bg-[#070B09]/80 backdrop-blur-md text-[#D9C08A] border border-[#D9C08A]/30 shadow-sm">
