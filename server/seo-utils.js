@@ -1,5 +1,13 @@
 export const SITE_URL = 'https://dream-to-achievers.vercel.app';
 
+function getRtdbProductsUrl() {
+  const dbUrl =
+    process.env.FIREBASE_DATABASE_URL ||
+    process.env.VITE_FIREBASE_DATABASE_URL ||
+    'https://uc-store-b5265-default-rtdb.firebaseio.com';
+  return `${dbUrl.replace(/\/$/, '')}/products.json`;
+}
+
 function getFirestoreProductsUrl() {
   const projectId =
     process.env.FIREBASE_PROJECT_ID ||
@@ -41,18 +49,44 @@ function decodeFields(fields = {}) {
 }
 
 export async function getActiveProducts() {
-  const response = await fetch(`${getFirestoreProductsUrl()}?pageSize=1000`, {
-    headers: { Accept: 'application/json' },
-  });
-  if (!response.ok) throw new Error(`Firestore returned ${response.status}`);
-  const payload = await response.json();
-  return (payload.documents || [])
-    .map((document) => ({
-      id: document.name.split('/').pop(),
-      ...decodeFields(document.fields || {}),
-      updateTime: document.updateTime,
-    }))
-    .filter((product) => product.status === 'active' && product.slug);
+  // Primary: Firebase Realtime Database (always publicly readable for catalog sync)
+  try {
+    const rtdbResponse = await fetch(getRtdbProductsUrl(), {
+      headers: { Accept: 'application/json' },
+    });
+    if (rtdbResponse.ok) {
+      const data = await rtdbResponse.json();
+      if (data && typeof data === 'object') {
+        const items = Object.entries(data).map(([id, item]) => ({
+          id,
+          ...(item || {}),
+          updateTime: item?.updatedAt || item?.createdAt,
+        }));
+        const active = items.filter((product) => product.status === 'active' && product.slug);
+        if (active.length > 0) return active;
+      }
+    }
+  } catch {
+    // Fall through to Firestore backup
+  }
+
+  // Secondary fallback: Cloud Firestore REST API
+  try {
+    const response = await fetch(`${getFirestoreProductsUrl()}?pageSize=1000`, {
+      headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) return [];
+    const payload = await response.json();
+    return (payload.documents || [])
+      .map((document) => ({
+        id: document.name.split('/').pop(),
+        ...decodeFields(document.fields || {}),
+        updateTime: document.updateTime,
+      }))
+      .filter((product) => product.status === 'active' && product.slug);
+  } catch {
+    return [];
+  }
 }
 
 export function send(res, status, contentType, body, cacheControl) {

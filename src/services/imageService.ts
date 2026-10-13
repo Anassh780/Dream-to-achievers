@@ -23,7 +23,7 @@ export async function compressImage(file: File, maxWidth = 800, maxHeight = 800,
             width = maxWidth;
           } else {
             width = Math.round((width * maxHeight) / height);
-            height = maxHeight;
+            width = maxHeight;
           }
         }
 
@@ -110,6 +110,15 @@ export function normalizeImageUrl(rawUrl: string): string {
   // Already a base64 Data URI
   if (url.startsWith('data:image/')) return url;
 
+  // Unwrap if already proxied through /api/image-proxy
+  if (url.includes('/api/image-proxy?url=')) {
+    try {
+      const parsed = new URL(url, 'https://dream-to-achievers.vercel.app');
+      const inner = parsed.searchParams.get('url');
+      if (inner) url = decodeURIComponent(inner).trim();
+    } catch {}
+  }
+
   // Extract from HTML <img src="..."> or <a href="...">
   const htmlMatch = url.match(/src=["']([^"']+)["']/i);
   if (htmlMatch && htmlMatch[1]) {
@@ -134,7 +143,7 @@ export function normalizeImageUrl(rawUrl: string): string {
   }
 
   // Auto-prepend https:// if protocol is omitted (e.g. cdn.phototourl.com, phototourl.com, images.unsplash.com)
-  if (!/^https?:\/\//i.test(url) && !url.startsWith('data:image/')) {
+  if (!/^https?:\/\//i.test(url) && !url.startsWith('data:image/') && !url.startsWith('/')) {
     if (/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/i.test(url) || url.includes('phototourl.com')) {
       url = 'https://' + url;
     }
@@ -194,6 +203,147 @@ export function normalizeImageUrl(rawUrl: string): string {
   url = url.replace(/[.,;)\s]+$/, '');
 
   return url;
+}
+
+/**
+ * Returns an image URL that is guaranteed to render without anti-hotlink blocks or mobile ISP issues.
+ * - Base64 `data:image/...` URIs and first-party/Unsplash/Firebase Storage URLs are returned as-is.
+ * - External third-party image hosts (like `img.sanishtech.com`, `cdn.phototourl.com`, etc.) are routed
+ *   through our same-origin `/api/image-proxy` endpoint on production so hotlink-protected servers
+ *   never return a blank/placeholder image on mobile or desktop.
+ */
+export function getRenderableImageUrl(rawUrl: string): string {
+  const normalized = normalizeImageUrl(rawUrl);
+  if (!normalized) return DEFAULT_PRODUCT_FALLBACK_IMAGE;
+
+  if (
+    normalized.startsWith('data:image/') ||
+    normalized.startsWith('blob:') ||
+    normalized.startsWith('/')
+  ) {
+    return normalized;
+  }
+
+  // Known CORS/hotlink-friendly CDNs that work directly everywhere
+  const safeDirectHosts = [
+    'images.unsplash.com',
+    'plus.unsplash.com',
+    'firebasestorage.googleapis.com',
+    'lh3.googleusercontent.com',
+    'dream-to-achievers.vercel.app',
+  ];
+
+  try {
+    const parsed = new URL(normalized);
+    if (safeDirectHosts.some((host) => parsed.hostname === host || parsed.hostname.endsWith(`.${host}`))) {
+      return normalized;
+    }
+
+    // On production (Vercel), route external image hosts through our same-origin anti-hotlink proxy
+    if (
+      typeof window !== 'undefined' &&
+      !window.location.hostname.includes('localhost') &&
+      !window.location.hostname.includes('127.0.0.1')
+    ) {
+      return `/api/image-proxy?url=${encodeURIComponent(normalized)}`;
+    }
+  } catch {}
+
+  return normalized;
+}
+
+/**
+ * Attempts to convert an external image URL into a permanent compressed WebP Data URI
+ * so that once saved in Admin, the product image is permanently embedded in Firebase RTDB
+ * and never depends on external image hosts staying online.
+ */
+export async function convertUrlToDataUri(
+  rawUrl: string,
+  maxWidth = 800,
+  maxHeight = 800,
+  quality = 0.76
+): Promise<string> {
+  const normalized = normalizeImageUrl(rawUrl);
+  if (!normalized || normalized.startsWith('data:image/')) return normalized;
+
+  const fetchCandidates: string[] = [];
+  if (
+    typeof window !== 'undefined' &&
+    !window.location.hostname.includes('localhost') &&
+    !window.location.hostname.includes('127.0.0.1')
+  ) {
+    fetchCandidates.push(`/api/image-proxy?url=${encodeURIComponent(normalized)}`);
+  }
+  fetchCandidates.push(normalized);
+
+  for (const candidate of fetchCandidates) {
+    try {
+      const dataUri = await new Promise<string | null>((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.referrerPolicy = 'no-referrer';
+        const timer = setTimeout(() => resolve(null), 6500);
+
+        img.onload = () => {
+          clearTimeout(timer);
+          // Reject tiny anti-hotlink error banners (e.g. 800x200 placeholder from sanishtech)
+          if (img.naturalWidth === 800 && img.naturalHeight === 200 && normalized.includes('sanishtech.com')) {
+            resolve(null);
+            return;
+          }
+          try {
+            const canvas = document.createElement('canvas');
+            let width = img.naturalWidth || img.width;
+            let height = img.naturalHeight || img.height;
+            if (width <= 1 || height <= 1) {
+              resolve(null);
+              return;
+            }
+            if (width > maxWidth || height > maxHeight) {
+              if (width / height > maxWidth / maxHeight) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+              } else {
+                width = Math.round((width * maxHeight) / height);
+                width = maxHeight;
+              }
+            }
+            canvas.width = Math.max(1, width);
+            canvas.height = Math.max(1, height);
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+              resolve(null);
+              return;
+            }
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
+            const webp = canvas.toDataURL('image/webp', quality);
+            if (webp.startsWith('data:image/')) {
+              resolve(webp);
+              return;
+            }
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          } catch {
+            resolve(null);
+          }
+        };
+
+        img.onerror = () => {
+          clearTimeout(timer);
+          resolve(null);
+        };
+
+        img.src = candidate;
+      });
+
+      if (dataUri && dataUri.startsWith('data:image/')) {
+        return dataUri;
+      }
+    } catch {}
+  }
+
+  return normalized;
 }
 
 /**
@@ -267,6 +417,37 @@ export function extractProductImages(product: any): string[] {
 }
 
 /**
+ * Computes consistent, non-zero wholesale unit economics for any product.
+ * Prevents inverted pricing where Wholesale Cost >= Retail Price or Margin is PKR 0.
+ */
+export function getProductEconomics(product: any): {
+  retailPrice: number;
+  partnerPrice: number;
+  grossMargin: number;
+  marginPercent: number;
+} {
+  const retailPrice = Math.max(100, Number(product?.retailPrice) || 2500);
+  let partnerPrice = Number(product?.partnerPrice) || 0;
+
+  if (partnerPrice <= 0 || partnerPrice >= retailPrice) {
+    partnerPrice = Math.max(50, Math.round((retailPrice * 0.72) / 10) * 10);
+    if (partnerPrice >= retailPrice) {
+      partnerPrice = Math.floor(retailPrice * 0.75);
+    }
+  }
+
+  const grossMargin = Math.max(1, retailPrice - partnerPrice);
+  const marginPercent = Math.max(1, Math.round((grossMargin / retailPrice) * 100));
+
+  return {
+    retailPrice,
+    partnerPrice,
+    grossMargin,
+    marginPercent,
+  };
+}
+
+/**
  * Tests whether an image URL can be loaded successfully by the browser.
  */
 export function testImageLoad(url: string, timeoutMs = 8000): Promise<boolean> {
@@ -275,7 +456,7 @@ export function testImageLoad(url: string, timeoutMs = 8000): Promise<boolean> {
       resolve(false);
       return;
     }
-    const normalized = normalizeImageUrl(url);
+    const renderable = getRenderableImageUrl(url);
     const img = new Image();
     img.referrerPolicy = 'no-referrer';
     let settled = false;
@@ -303,7 +484,6 @@ export function testImageLoad(url: string, timeoutMs = 8000): Promise<boolean> {
       }
     };
 
-    img.src = normalized;
+    img.src = renderable;
   });
 }
-

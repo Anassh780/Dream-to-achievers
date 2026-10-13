@@ -4,7 +4,12 @@ import { categoryService } from '@/services/categoryService';
 import { salesService } from '@/services/salesService';
 import { useAuth } from '@/context/AuthContext';
 import { Product } from '@/types';
-import { extractProductImages } from '@/services/imageService';
+import {
+  extractProductImages,
+  getRenderableImageUrl,
+  getProductEconomics,
+  DEFAULT_PRODUCT_FALLBACK_IMAGE,
+} from '@/services/imageService';
 import { Button } from '@/components/ui/Button';
 import { CategoryPill } from '@/components/categories/CategoryPill';
 import {
@@ -255,96 +260,113 @@ export const DashboardProducts: React.FC = () => {
       ) : viewMode === 'grid' ? (
         /* Grid Discovery View */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredProducts.map((p) => (
-            <div
-              key={p.id}
-              className="funding-card overflow-hidden flex flex-col justify-between hover:border-[#34D399]/40 hover:shadow-[0_20px_45px_-15px_rgba(52,211,153,0.15)] transition-all"
-            >
-              <div>
-                {(() => {
-                  const allImgs = extractProductImages(p);
-                  const coverSrc = p.imageUrl || allImgs[0] || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
-                  const count = allImgs.length;
+          {filteredProducts.map((p) => {
+            const econ = getProductEconomics(p);
+            const allImgs = extractProductImages(p);
+            const coverSrc = getRenderableImageUrl(
+              p.imageUrl || allImgs[0] || DEFAULT_PRODUCT_FALLBACK_IMAGE
+            );
+            const count = Math.max(1, allImgs.length);
 
-                  return (
-                    <div className="aspect-[16/10] bg-white/[0.02] relative overflow-hidden border-b border-white/[0.08]">
-                      <img
-                        src={coverSrc}
-                        alt={p.name}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
-                        }}
-                      />
-                      <span className="funding-ghost-pill absolute top-2.5 left-2.5 text-[10px] font-mono px-2.5 py-0.5 text-[#F4F7F5] bg-[#070B09]/80 backdrop-blur-md">
-                        {p.category}
+            return (
+              <div
+                key={p.id}
+                className="funding-card overflow-hidden flex flex-col justify-between hover:border-[#34D399]/40 hover:shadow-[0_20px_45px_-15px_rgba(52,211,153,0.15)] transition-all group"
+              >
+                <div>
+                  <div className="aspect-[4/3] bg-[#070B09] relative overflow-hidden border-b border-white/[0.08]">
+                    <img
+                      src={coverSrc}
+                      alt=""
+                      aria-hidden="true"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                      }}
+                      className="absolute inset-0 w-full h-full object-cover blur-xl opacity-35 scale-110 pointer-events-none select-none"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#070B09]/70 via-transparent to-[#070B09]/35 pointer-events-none" />
+                    <img
+                      src={coverSrc}
+                      alt={p.name}
+                      referrerPolicy="no-referrer"
+                      className="relative z-10 w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500 drop-shadow-[0_8px_20px_rgba(0,0,0,0.65)]"
+                      onError={(e) => {
+                        e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                      }}
+                    />
+                    <span className="funding-ghost-pill absolute top-2.5 left-2.5 z-20 text-[10px] font-mono px-2.5 py-0.5 text-[#F4F7F5] bg-[#070B09]/85 backdrop-blur-md">
+                      {p.category}
+                    </span>
+                    <span className="absolute top-2.5 right-2.5 z-20 text-[9.5px] font-mono font-semibold px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-white border border-white/20 shadow-sm flex items-center gap-1">
+                      <Images size={11} className="text-[#D9C08A]" />
+                      {count} {count === 1 ? 'Photo' : 'Photos'}
+                    </span>
+                  </div>
+
+                  <div className="p-5 space-y-2">
+                    <div className="flex items-center justify-between text-[10px] font-mono text-[#9EABA2]">
+                      <span>SKU: {p.sku}</span>
+                      <span className={p.inStock ? 'text-[#34D399] font-medium' : 'text-rose-400'}>
+                        {p.inStock ? '● In Stock' : '○ Out of Stock'}
                       </span>
-                      {count > 1 && (
-                        <span className="absolute top-2.5 right-2.5 text-[9.5px] font-mono font-semibold px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-white border border-white/20 shadow-sm flex items-center gap-1">
-                          <Images size={11} />
-                          {count}
+                    </div>
+
+                    {/* Cash on Delivery Badge */}
+                    {p.cashOnDelivery !== false && (
+                      <div className="pt-0.5">
+                        <span className="inline-flex items-center gap-1 text-[9.5px] font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                          <Truck size={12} weight="bold" />
+                          Cash on Delivery (COD)
                         </span>
-                      )}
-                    </div>
-                  );
-                })()}
+                      </div>
+                    )}
 
-                <div className="p-5 space-y-2">
-                  <div className="flex items-center justify-between text-[10px] font-mono text-[#9EABA2]">
-                    <span>SKU: {p.sku}</span>
-                    <span className={p.inStock ? 'text-[#34D399] font-medium' : 'text-rose-400'}>
-                      {p.inStock ? '● In Stock' : '○ Out of Stock'}
-                    </span>
+                    <h3 className="font-serif font-bold text-[15px] text-[#F4F7F5] line-clamp-1">
+                      {p.name}
+                    </h3>
+                    <p className="text-xs text-[#9EABA2] line-clamp-2 leading-relaxed">
+                      {p.shortDescription}
+                    </p>
                   </div>
+                </div>
 
-                  {/* Cash on Delivery Badge */}
-                  {p.cashOnDelivery !== false && (
-                    <div className="pt-0.5">
-                      <span className="inline-flex items-center gap-1 text-[9.5px] font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
-                        <Truck size={12} weight="bold" />
-                        Cash on Delivery (COD)
+                <div className="p-5 pt-0 space-y-3">
+                  <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-1.5 text-xs">
+                    <div className="flex justify-between text-[#9EABA2]">
+                      <span>Suggested Retail:</span>
+                      <span className="text-[#F4F7F5] font-mono font-semibold">PKR {econ.retailPrice.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-[#9EABA2]">
+                      <span>Wholesale Cost:</span>
+                      <span className="text-[#34D399] font-mono font-semibold">PKR {econ.partnerPrice.toLocaleString()}</span>
+                    </div>
+                    <div className="pt-2 border-t border-white/[0.06] flex justify-between items-center">
+                      <span className="text-[#F4F7F5] font-bold">Your Profit Margin:</span>
+                      <span className="text-[#34D399] bg-[#34D399]/15 border border-[#34D399]/30 px-2 py-0.5 rounded-md font-mono font-bold text-xs">
+                        +PKR {econ.grossMargin.toLocaleString()}
                       </span>
                     </div>
-                  )}
+                  </div>
 
-                  <h3 className="font-serif font-bold text-[15px] text-[#F4F7F5] line-clamp-1">
-                    {p.name}
-                  </h3>
-                  <p className="text-xs text-[#9EABA2] line-clamp-2 leading-relaxed">
-                    {p.shortDescription}
-                  </p>
+                  <button
+                    onClick={() =>
+                      setSelectedProduct({
+                        ...p,
+                        retailPrice: econ.retailPrice,
+                        partnerPrice: econ.partnerPrice,
+                        grossMargin: econ.grossMargin,
+                      })
+                    }
+                    className="funding-sheen-btn w-full justify-center text-xs font-bold uppercase tracking-wider py-2.5 shadow-md inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <ShoppingCart size={15} weight="bold" />
+                    <span>Record Client Sale &amp; Keep Profit</span>
+                  </button>
                 </div>
               </div>
-
-              <div className="p-5 pt-0 space-y-3">
-                <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-1.5 text-xs">
-                  <div className="flex justify-between text-[#9EABA2]">
-                    <span>Suggested Retail:</span>
-                    <span className="text-[#F4F7F5] font-mono font-semibold">PKR {p.retailPrice.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-[#9EABA2]">
-                    <span>Wholesale Cost:</span>
-                    <span className="text-[#34D399] font-mono font-semibold">PKR {p.partnerPrice.toLocaleString()}</span>
-                  </div>
-                  <div className="pt-2 border-t border-white/[0.06] flex justify-between items-center">
-                    <span className="text-[#F4F7F5] font-bold">Your Profit Margin:</span>
-                    <span className="text-[#34D399] bg-[#34D399]/15 border border-[#34D399]/30 px-2 py-0.5 rounded-md font-mono font-bold text-xs">
-                      +PKR {p.grossMargin.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setSelectedProduct(p)}
-                  className="funding-sheen-btn w-full justify-center text-xs font-bold uppercase tracking-wider py-2.5 shadow-md inline-flex items-center gap-1.5 cursor-pointer"
-                >
-                  <ShoppingCart size={15} weight="bold" />
-                  <span>Record Client Sale &amp; Keep Profit</span>
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         /* Dense Operational Table View */
@@ -362,82 +384,90 @@ export const DashboardProducts: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--line)]">
-              {filteredProducts.map((p) => (
-                <tr key={p.id} className="hover:bg-[var(--surface-alt)]/60 transition-colors">
-                  <td className="p-3.5 min-w-[220px]">
-                    <div className="flex items-center space-x-3">
-                      {(() => {
-                        const allImgs = extractProductImages(p);
-                        const coverSrc = p.imageUrl || allImgs[0] || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
-                        const count = allImgs.length;
+              {filteredProducts.map((p) => {
+                const econ = getProductEconomics(p);
+                const allImgs = extractProductImages(p);
+                const coverSrc = getRenderableImageUrl(
+                  p.imageUrl || allImgs[0] || DEFAULT_PRODUCT_FALLBACK_IMAGE
+                );
+                const count = allImgs.length;
 
-                        return (
-                          <div className="relative w-9 h-9 shrink-0">
-                            <img
-                              src={coverSrc}
-                              alt={p.name}
-                              referrerPolicy="no-referrer"
-                              className="w-full h-full rounded-lg object-cover bg-[var(--surface)] border border-[var(--line)]"
-                              onError={(e) => {
-                                e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
-                              }}
-                            />
-                            {count > 1 && (
-                              <span className="absolute -bottom-1 -right-1 bg-black/85 text-white text-[8px] font-mono px-1 rounded-xs flex items-center gap-0.5">
-                                <Images size={9} />
-                                {count}
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })()}
-                      <span className="font-serif font-medium text-[var(--ink)] truncate max-w-[180px]" title={p.name}>
-                        {p.name}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="p-3.5 font-mono text-[var(--ink-soft)] whitespace-nowrap min-w-[130px]">
-                    <span className="block text-[var(--ink)] font-bold">{p.sku}</span>
-                    <span className="text-[10px] text-[var(--ink-soft)]/70">{p.category}</span>
-                  </td>
-                  <td className="p-3.5 whitespace-nowrap min-w-[130px]">
-                    <div className="flex flex-col gap-1 items-start">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium ${
-                          p.inStock ? 'bg-[#34D399]/15 text-[#34D399]' : 'bg-rose-500/15 text-rose-400'
-                        }`}
-                      >
-                        {p.inStock ? 'In Stock' : 'Out of Stock'}
-                      </span>
-                      {p.cashOnDelivery !== false && (
-                        <span className="inline-flex items-center gap-1 text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          <Truck size={10} weight="bold" />
-                          COD
+                return (
+                  <tr key={p.id} className="hover:bg-[var(--surface-alt)]/60 transition-colors">
+                    <td className="p-3.5 min-w-[220px]">
+                      <div className="flex items-center space-x-3">
+                        <div className="relative w-9 h-9 shrink-0">
+                          <img
+                            src={coverSrc}
+                            alt={p.name}
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full rounded-lg object-cover bg-[var(--surface)] border border-[var(--line)]"
+                            onError={(e) => {
+                              e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                            }}
+                          />
+                          {count > 1 && (
+                            <span className="absolute -bottom-1 -right-1 bg-black/85 text-white text-[8px] font-mono px-1 rounded-xs flex items-center gap-0.5">
+                              <Images size={9} />
+                              {count}
+                            </span>
+                          )}
+                        </div>
+                        <span className="font-serif font-medium text-[var(--ink)] truncate max-w-[180px]" title={p.name}>
+                          {p.name}
                         </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="p-3.5 text-right font-mono text-[var(--ink)] whitespace-nowrap min-w-[110px]">
-                    PKR {p.retailPrice.toLocaleString()}
-                  </td>
-                  <td className="p-3.5 text-right font-mono text-[var(--primary)] font-medium whitespace-nowrap min-w-[110px]">
-                    PKR {p.partnerPrice.toLocaleString()}
-                  </td>
-                  <td className="p-3.5 text-right font-mono text-[var(--accent)] font-bold whitespace-nowrap min-w-[110px]">
-                    +PKR {p.grossMargin.toLocaleString()}
-                  </td>
-                  <td className="p-3.5 text-center whitespace-nowrap min-w-[120px]">
-                    <Button
-                      onClick={() => setSelectedProduct(p)}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs px-3 py-1 hover:bg-[var(--surface-alt)] whitespace-nowrap shrink-0"
-                    >
-                      Record Sale
-                    </Button>
-                  </td>
-                </tr>
-              ))}
+                      </div>
+                    </td>
+                    <td className="p-3.5 font-mono text-[var(--ink-soft)] whitespace-nowrap min-w-[130px]">
+                      <span className="block text-[var(--ink)] font-bold">{p.sku}</span>
+                      <span className="text-[10px] text-[var(--ink-soft)]/70">{p.category}</span>
+                    </td>
+                    <td className="p-3.5 whitespace-nowrap min-w-[130px]">
+                      <div className="flex flex-col gap-1 items-start">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium ${
+                            p.inStock ? 'bg-[#34D399]/15 text-[#34D399]' : 'bg-rose-500/15 text-rose-400'
+                          }`}
+                        >
+                          {p.inStock ? 'In Stock' : 'Out of Stock'}
+                        </span>
+                        {p.cashOnDelivery !== false && (
+                          <span className="inline-flex items-center gap-1 text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <Truck size={10} weight="bold" />
+                            COD
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-3.5 text-right font-mono text-[var(--ink)] whitespace-nowrap min-w-[110px]">
+                      PKR {econ.retailPrice.toLocaleString()}
+                    </td>
+                    <td className="p-3.5 text-right font-mono text-[var(--primary)] font-medium whitespace-nowrap min-w-[110px]">
+                      PKR {econ.partnerPrice.toLocaleString()}
+                    </td>
+                    <td className="p-3.5 text-right font-mono text-[var(--accent)] font-bold whitespace-nowrap min-w-[110px]">
+                      +PKR {econ.grossMargin.toLocaleString()}
+                    </td>
+                    <td className="p-3.5 text-center whitespace-nowrap min-w-[120px]">
+                      <Button
+                        onClick={() =>
+                          setSelectedProduct({
+                            ...p,
+                            retailPrice: econ.retailPrice,
+                            partnerPrice: econ.partnerPrice,
+                            grossMargin: econ.grossMargin,
+                          })
+                        }
+                        variant="outline"
+                        size="sm"
+                        className="text-xs px-3 py-1 hover:bg-[var(--surface-alt)] whitespace-nowrap shrink-0"
+                      >
+                        Record Sale
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

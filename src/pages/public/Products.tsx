@@ -6,7 +6,12 @@ import { CategoryPillCarousel } from '@/components/categories/CategoryPillCarous
 import { CategorySidebarTree } from '@/components/categories/CategorySidebarTree';
 import { Button } from '@/components/ui/Button';
 import { SEOHead } from '@/components/common/SEOHead';
-import { extractProductImages } from '@/services/imageService';
+import {
+  extractProductImages,
+  getRenderableImageUrl,
+  getProductEconomics,
+  DEFAULT_PRODUCT_FALLBACK_IMAGE,
+} from '@/services/imageService';
 import {
   MagnifyingGlass,
   ArrowRight,
@@ -124,7 +129,7 @@ export const Products: React.FC = () => {
       />
       
       {/* 1. Storefront Header Banner */}
-      <header className="px-6 sm:px-8 pt-10 sm:pt-14 pb-10 border-b border-white/10 bg-gradient-to-b from-[#0D1512] to-[#070B09] relative overflow-hidden">
+      <header className="px-6 sm:px-8 pt-24 sm:pt-28 pb-10 border-b border-white/10 bg-gradient-to-b from-[#0D1512] to-[#070B09] relative overflow-hidden">
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#D9C08A]/5 rounded-full blur-3xl pointer-events-none" />
         <div className="max-w-[1180px] mx-auto space-y-5 relative z-10">
           
@@ -314,125 +319,143 @@ export const Products: React.FC = () => {
             ) : (
               /* 2-Column (Mobile) / 3-Column (Desktop) Product Cards Grid */
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {filteredProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="rounded-2xl bg-[#0D1512]/80 backdrop-blur-xl border border-white/10 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-[#D9C08A]/40 hover:shadow-[0_15px_35px_rgba(0,0,0,0.6),0_0_20px_rgba(217,192,138,0.08)] active:scale-[0.99] flex flex-col justify-between group shadow-lg touch-manipulation"
-                  >
-                    <div>
-                      {/* Product Image Tile */}
-                      {(() => {
-                        const allImgs = extractProductImages(product);
-                        const coverSrc = product.imageUrl || allImgs[0] || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
-                        const photoCount = allImgs.length;
+                {filteredProducts.map((product) => {
+                  const econ = getProductEconomics(product);
+                  const allImgs = extractProductImages(product);
+                  const coverSrc = getRenderableImageUrl(
+                    product.imageUrl || allImgs[0] || DEFAULT_PRODUCT_FALLBACK_IMAGE
+                  );
+                  const photoCount = Math.max(1, allImgs.length);
 
-                        return (
-                          <div className="aspect-[16/10] bg-[#070B09] relative overflow-hidden border-b border-white/10">
-                            <img
-                              src={coverSrc}
-                              alt={product.name}
-                              referrerPolicy="no-referrer"
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
-                              onError={(e) => {
-                                e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
-                              }}
-                            />
-                            <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 items-start">
-                              <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-[#070B09]/80 backdrop-blur-md text-[#D9C08A] border border-[#D9C08A]/30 shadow-sm">
-                                {product.category}
-                              </span>
-                            </div>
-                            <div className="absolute top-2.5 right-2.5 flex flex-col gap-1 items-end">
-                              {product.isFeatured && (
-                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#D9C08A] text-[#070B09] shadow-sm">
-                                  FEATURED
-                                </span>
-                              )}
-                              {photoCount > 1 && (
-                                <span className="text-[9.5px] font-mono font-semibold px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-white border border-white/20 shadow-sm flex items-center gap-1">
-                                  <Images size={11} />
-                                  {photoCount}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })()}
-
-                      {/* Product Content Details */}
-                      <div className="p-4 space-y-2">
-                        <div className="flex items-center justify-between text-[10px] font-mono text-[#9EABA2]">
-                          <span>SKU: {product.sku}</span>
-                          <span className={product.inStock ? 'text-[#34D399] font-medium' : 'text-rose-400'}>
-                            {product.inStock ? '● In Stock' : '○ Out of Stock'}
-                          </span>
-                        </div>
-
-                        {/* Cash on Delivery & Brand Badges (Daraz/Alibaba Spec) */}
-                        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                          {product.cashOnDelivery !== false && (
-                            <span className="inline-flex items-center gap-1 text-[9.5px] font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
-                              <Truck size={12} weight="bold" />
-                              Cash on Delivery (COD)
-                            </span>
-                          )}
-                          {product.brand && (
-                            <span className="text-[9.5px] font-mono text-[#9EABA2] bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/[0.08] truncate max-w-[140px]">
-                              {product.brand}
-                            </span>
-                          )}
-                        </div>
-
-                        <h3 className="font-serif font-medium text-[15px] text-[#F4F7F5] group-hover:text-[#D9C08A] transition-colors line-clamp-1">
-                          {product.name}
-                        </h3>
-                        <p className="text-xs text-[#9EABA2] line-clamp-2 leading-relaxed">
-                          {product.shortDescription}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Economics & Action Footer */}
-                    <div className="p-4 pt-0 space-y-3">
-                      {/* Pricing Box */}
-                      <div className="p-3 rounded-xl bg-[#070B09]/90 border border-white/[0.08] space-y-1.5 text-xs">
-                        <div className="flex items-center justify-between text-[#9EABA2]">
-                          <span>Retail Price:</span>
-                          <span className="text-[#C4D0C8] font-mono font-medium">
-                            PKR {product.retailPrice.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-[#9EABA2]">
-                          <span>Wholesale Cost:</span>
-                          <span className="text-[#34D399] font-mono font-medium">
-                            PKR {product.partnerPrice.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="pt-1.5 border-t border-white/[0.08] flex items-center justify-between font-medium">
-                          <span className="text-[#F4F7F5]">Partner Margin:</span>
-                          <span className="text-[#34D399] bg-[#34D399]/10 px-2 py-0.5 rounded border border-[#34D399]/25 font-mono font-bold">
-                            +PKR {product.grossMargin.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Detail CTA Button */}
-                      <Link to={`/products/${product.slug}`} className="block">
-                        <Button
-                          variant="liquid-glass"
-                          size="sm"
-                          className="w-full justify-between text-xs font-medium group/btn text-[#F4F7F5]"
+                  return (
+                    <div
+                      key={product.id}
+                      className="rounded-2xl bg-[#0D1512]/85 backdrop-blur-xl border border-white/10 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-[#D9C08A]/40 hover:shadow-[0_15px_35px_rgba(0,0,0,0.6),0_0_20px_rgba(217,192,138,0.08)] active:scale-[0.99] flex flex-col justify-between group shadow-lg touch-manipulation"
+                    >
+                      <div>
+                        {/* Product Image Tile — Dual-Layer Uncropped Studio Frame */}
+                        <Link
+                          to={`/products/${product.slug}`}
+                          className="block aspect-[4/3] bg-[#070B09] relative overflow-hidden border-b border-white/10"
                         >
-                          <span>View Economics &amp; Details</span>
-                          <ArrowRight
-                            size={12}
-                            className="group-hover/btn:translate-x-1 transition-transform text-[#D9C08A]"
+                          {/* Ambient Blurred Background */}
+                          <img
+                            src={coverSrc}
+                            alt=""
+                            aria-hidden="true"
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                            }}
+                            className="absolute inset-0 w-full h-full object-cover blur-xl opacity-35 scale-110 pointer-events-none select-none"
                           />
-                        </Button>
-                      </Link>
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#070B09]/70 via-transparent to-[#070B09]/35 pointer-events-none" />
+
+                          {/* Full Uncropped Product Cover Image */}
+                          <img
+                            src={coverSrc}
+                            alt={product.name}
+                            referrerPolicy="no-referrer"
+                            className="relative z-10 w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500 drop-shadow-[0_8px_20px_rgba(0,0,0,0.65)]"
+                            onError={(e) => {
+                              e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                            }}
+                          />
+                          <div className="absolute top-2.5 left-2.5 z-20 flex flex-col gap-1 items-start">
+                            <span className="text-[10px] font-mono font-medium px-2.5 py-0.5 rounded-md bg-[#070B09]/85 backdrop-blur-md text-[#D9C08A] border border-[#D9C08A]/35 shadow-sm">
+                              {product.category}
+                            </span>
+                          </div>
+                          <div className="absolute top-2.5 right-2.5 z-20 flex flex-col gap-1 items-end">
+                            {product.isFeatured && (
+                              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#D9C08A] text-[#070B09] shadow-sm">
+                                FEATURED
+                              </span>
+                            )}
+                            <span className="text-[9.5px] font-mono font-semibold px-2 py-0.5 rounded-md bg-black/80 backdrop-blur-md text-white border border-white/20 shadow-sm flex items-center gap-1">
+                              <Images size={11} className="text-[#D9C08A]" />
+                              {photoCount} {photoCount === 1 ? 'Photo' : 'Photos'}
+                            </span>
+                          </div>
+                        </Link>
+
+                        {/* Product Content Details */}
+                        <div className="p-4 space-y-2">
+                          <div className="flex items-center justify-between text-[10px] font-mono text-[#9EABA2]">
+                            <span>SKU: {product.sku}</span>
+                            <span className={product.inStock ? 'text-[#34D399] font-medium' : 'text-rose-400'}>
+                              {product.inStock ? '● In Stock' : '○ Out of Stock'}
+                            </span>
+                          </div>
+
+                          {/* Cash on Delivery & Brand Badges (Daraz/Alibaba Spec) */}
+                          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                            {product.cashOnDelivery !== false && (
+                              <span className="inline-flex items-center gap-1 text-[9.5px] font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                                <Truck size={12} weight="bold" />
+                                Cash on Delivery (COD)
+                              </span>
+                            )}
+                            {product.brand && (
+                              <span className="text-[9.5px] font-mono text-[#9EABA2] bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/[0.08] truncate max-w-[140px]">
+                                {product.brand}
+                              </span>
+                            )}
+                          </div>
+
+                          <Link to={`/products/${product.slug}`} className="block">
+                            <h3 className="font-serif font-medium text-[15px] text-[#F4F7F5] group-hover:text-[#D9C08A] transition-colors line-clamp-1">
+                              {product.name}
+                            </h3>
+                          </Link>
+                          <p className="text-xs text-[#9EABA2] line-clamp-2 leading-relaxed">
+                            {product.shortDescription}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Economics & Action Footer */}
+                      <div className="p-4 pt-0 space-y-3">
+                        {/* Pricing Box */}
+                        <div className="p-3 rounded-xl bg-[#070B09]/90 border border-white/[0.08] space-y-1.5 text-xs">
+                          <div className="flex items-center justify-between text-[#9EABA2]">
+                            <span>Retail Price:</span>
+                            <span className="text-[#C4D0C8] font-mono font-medium">
+                              PKR {econ.retailPrice.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-[#9EABA2]">
+                            <span>Wholesale Cost:</span>
+                            <span className="text-[#34D399] font-mono font-medium">
+                              PKR {econ.partnerPrice.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="pt-1.5 border-t border-white/[0.08] flex items-center justify-between font-medium">
+                            <span className="text-[#F4F7F5]">Partner Margin:</span>
+                            <span className="text-[#34D399] bg-[#34D399]/10 px-2 py-0.5 rounded border border-[#34D399]/25 font-mono font-bold">
+                              +PKR {econ.grossMargin.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Detail CTA Button */}
+                        <Link to={`/products/${product.slug}`} className="block">
+                          <Button
+                            variant="liquid-glass"
+                            size="sm"
+                            className="w-full justify-between text-xs font-medium group/btn text-[#F4F7F5]"
+                          >
+                            <span>View Gallery &amp; Details</span>
+                            <ArrowRight
+                              size={12}
+                              className="group-hover/btn:translate-x-1 transition-transform text-[#D9C08A]"
+                            />
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

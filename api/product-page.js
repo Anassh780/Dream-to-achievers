@@ -6,28 +6,39 @@ function replaceTag(html, pattern, replacement) {
 
 export default async function handler(req, res) {
   const slug = String(req.query.slug || '').trim();
-  if (!slug) return send(res, 404, 'text/plain; charset=utf-8', 'Product not found', 'no-store');
+  const origin = `https://${req.headers.host}`;
 
   try {
-    const products = await getActiveProducts();
-    const product = products.find((item) => item.slug === slug);
-    if (!product) return send(res, 404, 'text/html; charset=utf-8', '<!doctype html><title>Product not found</title><h1>Product not found</h1>', 'no-store');
-
-    const origin = `https://${req.headers.host}`;
     const shellResponse = await fetch(`${origin}/`);
     let html = await shellResponse.text();
+
+    if (!slug) {
+      return send(res, 200, 'text/html; charset=utf-8', html, 'no-store');
+    }
+
+    const products = await getActiveProducts();
+    const product = products.find((item) => item.slug === slug);
+
+    if (!product) {
+      // Serve SPA shell so client-side router & live RTDB sync can still resolve dynamic products
+      return send(res, 200, 'text/html; charset=utf-8', html, 'public, max-age=0, s-maxage=60');
+    }
+
     const name = escapeHtml(product.name || slug.replace(/-/g, ' '));
     const shortDescription = escapeHtml(product.shortDescription || product.description || 'Verified wholesale product for online resellers in Pakistan.');
     const canonical = `${SITE_URL}/products/${encodeURIComponent(slug)}`;
     const title = `${name} Wholesale Price Pakistan | Dream to Achievers`;
     const description = `${shortDescription} Buy at wholesale rates for online reselling in Pakistan with nationwide cash on delivery fulfillment.`.slice(0, 160);
-    const image = escapeHtml(product.imageUrl || `${SITE_URL}/images/og-banner.png`);
+    const rawImage = product.imageUrl && !String(product.imageUrl).startsWith('data:image/')
+      ? `${SITE_URL}/api/image-proxy?url=${encodeURIComponent(product.imageUrl)}`
+      : `${SITE_URL}/images/og-banner.png`;
+    const image = escapeHtml(rawImage);
     const price = Number(product.retailPrice || product.suggestedSellingPrice || 0);
     const schema = JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'Product',
       name: product.name || slug,
-      image: product.imageUrl ? [product.imageUrl] : undefined,
+      image: [rawImage],
       description: product.description || product.shortDescription,
       sku: product.sku,
       brand: { '@type': 'Brand', name: 'Dream to Achievers' },
@@ -50,7 +61,7 @@ export default async function handler(req, res) {
     html = html.replace('</head>', `<script type="application/ld+json">${schema}</script>\n</head>`);
     html = html.replace('<div id="root"></div>', `<div id="root"><main><h1>${name}</h1><p>${shortDescription}</p><p>Wholesale products for resellers in Pakistan with nationwide COD fulfillment by <a href="${SITE_URL}/">Dream to Achievers</a>.</p><a href="${SITE_URL}/products">Browse the wholesale product catalog</a></main></div>`);
 
-    send(res, 200, 'text/html; charset=utf-8', html, 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400');
+    send(res, 200, 'text/html; charset=utf-8', html, 'public, max-age=0, s-maxage=300, stale-while-revalidate=86400');
   } catch (error) {
     send(res, 503, 'text/plain; charset=utf-8', `Product page temporarily unavailable: ${error.message}`, 'no-store');
   }

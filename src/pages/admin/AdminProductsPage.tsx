@@ -14,6 +14,9 @@ import {
   normalizeImageUrl,
   parseImageUrls,
   extractProductImages,
+  getRenderableImageUrl,
+  convertUrlToDataUri,
+  getProductEconomics,
   testImageLoad,
   DEFAULT_PRODUCT_FALLBACK_IMAGE,
 } from '@/services/imageService';
@@ -259,12 +262,13 @@ export const AdminProductsPage: React.FC = () => {
   };
 
   const handleOpenEdit = (p: Product) => {
+    const econ = getProductEconomics(p);
     setEditingProd(p);
     setName(p.name);
     setSku(p.sku);
     setCategoryId(p.categoryId || allCategories[0]?.id || 'cat-skincare');
-    setRetailPrice(p.retailPrice);
-    setPartnerPrice(p.partnerPrice);
+    setRetailPrice(econ.retailPrice);
+    setPartnerPrice(econ.partnerPrice);
     const allImgs = extractProductImages(p);
     const cover = p.imageUrl || allImgs[0] || '';
     setImageUrl(cover);
@@ -301,11 +305,37 @@ export const AdminProductsPage: React.FC = () => {
 
     const targetCat = allCategories.find((c) => c.id === categoryId);
     const categoryName = targetCat ? targetCat.name : 'General';
-    const grossMargin = Math.max(0, retailPrice - partnerPrice);
-    const finalCover = normalizeImageUrl(imageUrl).trim() || DEFAULT_PRODUCT_FALLBACK_IMAGE;
-    const finalGallery = galleryImages
+    const econ = getProductEconomics({ retailPrice, partnerPrice });
+
+    // Parse cover input (in case multiple URLs were pasted into the cover field)
+    const coverTokens = imageUrl.startsWith('data:image/')
+      ? [imageUrl.trim()]
+      : parseImageUrls(imageUrl);
+    const rawCover = coverTokens[0] || normalizeImageUrl(imageUrl).trim() || DEFAULT_PRODUCT_FALLBACK_IMAGE;
+    const extraFromCover = coverTokens.slice(1);
+
+    // Automatically merge any URLs left in galleryInput even if user didn't click "+ Add Photo"
+    const pendingFromInput = parseImageUrls(galleryInput);
+    const combinedGalleryRaw = [
+      ...galleryImages,
+      ...extraFromCover,
+      ...pendingFromInput,
+    ]
       .map((img) => normalizeImageUrl(img).trim())
-      .filter((img) => img && img !== finalCover);
+      .filter((img) => img && isValidImageUrl(img) && img !== rawCover);
+
+    const uniqueGalleryRaw = Array.from(new Set(combinedGalleryRaw));
+
+    // Convert external URLs to embedded WebP Data URIs where possible for 100% mobile reliability
+    const finalCover = await convertUrlToDataUri(rawCover);
+    const finalGallery: string[] = [];
+    for (const gUrl of uniqueGalleryRaw) {
+      const converted = await convertUrlToDataUri(gUrl);
+      if (converted && converted !== finalCover && !finalGallery.includes(converted)) {
+        finalGallery.push(converted);
+      }
+    }
+
     const allImages = [finalCover, ...finalGallery];
     const parsedFeatures = featuresText
       .split('\n')
@@ -319,10 +349,10 @@ export const AdminProductsPage: React.FC = () => {
         slug,
         category: categoryName,
         categoryId,
-        retailPrice: Number(retailPrice),
-        partnerPrice: Number(partnerPrice),
-        suggestedSellingPrice: Number(retailPrice),
-        grossMargin,
+        retailPrice: econ.retailPrice,
+        partnerPrice: econ.partnerPrice,
+        suggestedSellingPrice: econ.retailPrice,
+        grossMargin: econ.grossMargin,
         sku: sku.trim(),
         imageUrl: finalCover,
         images: allImages,
@@ -351,10 +381,10 @@ export const AdminProductsPage: React.FC = () => {
         action: 'UPDATE_PRODUCT',
         entityType: 'product',
         entityId: editingProd.id,
-        details: `Updated product "${name}" (SKU: ${sku})`,
+        details: `Updated product "${name}" (SKU: ${sku}) with ${allImages.length} photos`,
       });
 
-      showToast(`Product "${name}" updated with gallery & COD settings.`);
+      showToast(`Product "${name}" updated with ${allImages.length} photo(s) & synced to cloud!`);
     } else {
       const newProduct: Product = {
         id: `prod-${Date.now()}`,
@@ -362,10 +392,10 @@ export const AdminProductsPage: React.FC = () => {
         slug,
         category: categoryName,
         categoryId,
-        retailPrice: Number(retailPrice),
-        partnerPrice: Number(partnerPrice),
-        suggestedSellingPrice: Number(retailPrice),
-        grossMargin,
+        retailPrice: econ.retailPrice,
+        partnerPrice: econ.partnerPrice,
+        suggestedSellingPrice: econ.retailPrice,
+        grossMargin: econ.grossMargin,
         currency: 'PKR',
         imageUrl: finalCover,
         images: allImages,
@@ -394,12 +424,13 @@ export const AdminProductsPage: React.FC = () => {
         action: 'CREATE_PRODUCT',
         entityType: 'product',
         entityId: newProduct.id,
-        details: `Created product "${name}" (SKU: ${sku})`,
+        details: `Created product "${name}" (SKU: ${sku}) with ${allImages.length} photos`,
       });
 
-      showToast(`Product "${name}" created with Daraz/Alibaba gallery & COD enabled.`);
+      showToast(`Product "${name}" created with ${allImages.length} photo(s) & synced to cloud!`);
     }
 
+    setGalleryInput('');
     setIsCreating(false);
   };
 
@@ -609,7 +640,7 @@ export const AdminProductsPage: React.FC = () => {
             <div className="flex items-start gap-3">
               {(() => {
                 const allImgs = extractProductImages(prod);
-                const cover = prod.imageUrl || allImgs[0] || DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                const cover = getRenderableImageUrl(prod.imageUrl || allImgs[0] || DEFAULT_PRODUCT_FALLBACK_IMAGE);
                 const count = allImgs.length;
                 return (
                   <div className="relative size-16 shrink-0">
@@ -649,11 +680,16 @@ export const AdminProductsPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            <dl className="grid grid-cols-3 gap-2 rounded-xl bg-[var(--surface)] border border-[var(--line)] p-3 text-center">
-              <div><dt className="text-[9px] text-[var(--ink-soft)]">Retail</dt><dd className="text-[11px] font-mono font-semibold">PKR {prod.retailPrice.toLocaleString()}</dd></div>
-              <div><dt className="text-[9px] text-[var(--ink-soft)]">Cost</dt><dd className="text-[11px] font-mono font-semibold text-[var(--primary-dark)]">PKR {prod.partnerPrice.toLocaleString()}</dd></div>
-              <div><dt className="text-[9px] text-[var(--ink-soft)]">Margin</dt><dd className="text-[11px] font-mono font-bold text-[var(--accent)]">+{prod.grossMargin.toLocaleString()}</dd></div>
-            </dl>
+            {(() => {
+              const econ = getProductEconomics(prod);
+              return (
+                <dl className="grid grid-cols-3 gap-2 rounded-xl bg-[var(--surface)] border border-[var(--line)] p-3 text-center">
+                  <div><dt className="text-[9px] text-[var(--ink-soft)]">Retail</dt><dd className="text-[11px] font-mono font-semibold">PKR {econ.retailPrice.toLocaleString()}</dd></div>
+                  <div><dt className="text-[9px] text-[var(--ink-soft)]">Cost</dt><dd className="text-[11px] font-mono font-semibold text-[var(--primary-dark)]">PKR {econ.partnerPrice.toLocaleString()}</dd></div>
+                  <div><dt className="text-[9px] text-[var(--ink-soft)]">Margin</dt><dd className="text-[11px] font-mono font-bold text-[var(--accent)]">+{econ.grossMargin.toLocaleString()}</dd></div>
+                </dl>
+              );
+            })()}
             <div className="grid grid-cols-2 gap-2">
               <Button type="button" variant="outline" size="sm" className="w-full" iconLeft={<PencilSimple size={14} />} onClick={() => handleOpenEdit(prod)}>Edit</Button>
               <Button type="button" variant="danger" size="sm" className="w-full" iconLeft={<Trash size={14} />} onClick={() => handleDelete(prod)}>Delete</Button>
@@ -682,7 +718,7 @@ export const AdminProductsPage: React.FC = () => {
                   <div className="flex items-center space-x-3">
                     {(() => {
                       const allImgs = extractProductImages(prod);
-                      const cover = prod.imageUrl || allImgs[0] || DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                      const cover = getRenderableImageUrl(prod.imageUrl || allImgs[0] || DEFAULT_PRODUCT_FALLBACK_IMAGE);
                       const count = allImgs.length;
                       return (
                         <div className="relative w-10 h-10 shrink-0">
@@ -744,15 +780,22 @@ export const AdminProductsPage: React.FC = () => {
                     )}
                   </div>
                 </td>
-                <td className="p-3.5 text-right font-mono font-medium text-[var(--ink)] whitespace-nowrap">
-                  PKR {prod.retailPrice.toLocaleString()}
-                </td>
-                <td className="p-3.5 text-right font-mono text-[var(--ink-soft)] whitespace-nowrap">
-                  PKR {prod.partnerPrice.toLocaleString()}
-                </td>
-                <td className="p-3.5 text-right font-mono font-bold text-[var(--accent)] whitespace-nowrap">
-                  +PKR {prod.grossMargin.toLocaleString()}
-                </td>
+                {(() => {
+                  const econ = getProductEconomics(prod);
+                  return (
+                    <>
+                      <td className="p-3.5 text-right font-mono font-medium text-[var(--ink)] whitespace-nowrap">
+                        PKR {econ.retailPrice.toLocaleString()}
+                      </td>
+                      <td className="p-3.5 text-right font-mono text-[var(--ink-soft)] whitespace-nowrap">
+                        PKR {econ.partnerPrice.toLocaleString()}
+                      </td>
+                      <td className="p-3.5 text-right font-mono font-bold text-[var(--accent)] whitespace-nowrap">
+                        +PKR {econ.grossMargin.toLocaleString()}
+                      </td>
+                    </>
+                  );
+                })()}
                 <td className="p-3.5 text-center whitespace-nowrap">
                   <div className="flex items-center justify-center space-x-2">
                     <button
@@ -946,7 +989,7 @@ export const AdminProductsPage: React.FC = () => {
                             title="Click to view full resolution"
                           >
                             <img
-                              src={imageUrl}
+                              src={getRenderableImageUrl(imageUrl)}
                               alt="Cover Live Preview"
                               referrerPolicy="no-referrer"
                               className="w-full h-full object-cover"
@@ -1078,7 +1121,7 @@ export const AdminProductsPage: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-semibold text-[var(--ink)] flex items-center gap-1.5">
                           <Sparkle size={14} className="text-[#D9C08A]" weight="fill" />
-                          {pendingGalleryUrls.length} Photo{pendingGalleryUrls.length > 1 ? 's' : ''} Ready to Add (Live Preview):
+                          {pendingGalleryUrls.length} Photo{pendingGalleryUrls.length > 1 ? 's' : ''} Ready (Auto-saved on Submit or click + Add All):
                         </span>
                         <button
                           type="button"
@@ -1097,7 +1140,7 @@ export const AdminProductsPage: React.FC = () => {
                             title="Click to view full size"
                           >
                             <img
-                              src={pUrl}
+                              src={getRenderableImageUrl(pUrl)}
                               alt={`Pending ${idx + 1}`}
                               referrerPolicy="no-referrer"
                               className="w-full h-full object-cover"
@@ -1169,8 +1212,8 @@ export const AdminProductsPage: React.FC = () => {
                 <div className="space-y-1.5 pt-1">
                   <div className="flex items-center justify-between text-[10.5px] font-mono text-[var(--ink-soft)]">
                     <span>
-                      Photos Summary ({(imageUrl ? 1 : 0) + galleryImages.length} Total):{' '}
-                      <strong className="text-[var(--primary)]">{imageUrl ? 1 : 0} Cover</strong> + {galleryImages.length} Gallery
+                      Photos Summary ({(imageUrl ? 1 : 0) + galleryImages.length + pendingGalleryUrls.length} Total):{' '}
+                      <strong className="text-[var(--primary)]">{imageUrl ? 1 : 0} Cover</strong> + {galleryImages.length + pendingGalleryUrls.length} Gallery
                     </span>
                     <span className="text-[10px] text-[#D9C08A]">Click photo to view full size</span>
                   </div>
@@ -1181,7 +1224,7 @@ export const AdminProductsPage: React.FC = () => {
                       {imageUrl ? (
                         <>
                           <img
-                            src={imageUrl}
+                            src={getRenderableImageUrl(imageUrl)}
                             alt="Cover"
                             referrerPolicy="no-referrer"
                             className="w-full h-full object-cover cursor-pointer"
@@ -1217,7 +1260,7 @@ export const AdminProductsPage: React.FC = () => {
                         className="relative aspect-square rounded-xl overflow-hidden border border-[var(--line)] bg-[var(--surface)] group hover:border-[#D9C08A] transition-all"
                       >
                         <img
-                          src={imgUrl}
+                          src={getRenderableImageUrl(imgUrl)}
                           alt={`Gallery ${idx + 1}`}
                           referrerPolicy="no-referrer"
                           className="w-full h-full object-cover cursor-pointer"
@@ -1360,7 +1403,13 @@ export const AdminProductsPage: React.FC = () => {
                     required
                     min={100}
                     value={retailPrice}
-                    onChange={(e) => setRetailPrice(Number(e.target.value))}
+                    onChange={(e) => {
+                      const nextRetail = Number(e.target.value);
+                      setRetailPrice(nextRetail);
+                      if (nextRetail >= 100 && partnerPrice >= nextRetail) {
+                        setPartnerPrice(Math.max(50, Math.round((nextRetail * 0.72) / 10) * 10));
+                      }
+                    }}
                     className="w-full px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] font-mono focus:outline-none focus:border-[var(--primary)]"
                   />
                 </div>
@@ -1380,7 +1429,7 @@ export const AdminProductsPage: React.FC = () => {
                   <input
                     type="text"
                     disabled
-                    value={`+PKR ${Math.max(0, retailPrice - partnerPrice).toLocaleString()}`}
+                    value={`+PKR ${getProductEconomics({ retailPrice, partnerPrice }).grossMargin.toLocaleString()}`}
                     className="w-full px-3 py-2 rounded-lg bg-[var(--surface-alt)] border border-[var(--line)] text-[var(--accent)] font-mono font-bold cursor-not-allowed"
                   />
                 </div>
@@ -1544,8 +1593,12 @@ export const AdminProductsPage: React.FC = () => {
                           className="w-4 h-4 rounded accent-[var(--primary)] cursor-pointer shrink-0"
                         />
                         <img
-                          src={p.imageUrl}
+                          src={getRenderableImageUrl(p.imageUrl)}
                           alt={p.name}
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
+                          }}
                           className="w-12 h-12 rounded-xl object-cover border border-[var(--line)] bg-[var(--surface)] shrink-0"
                         />
                         <div className="min-w-0">
@@ -1631,7 +1684,7 @@ export const AdminProductsPage: React.FC = () => {
             </div>
             <div className="flex-1 min-h-0 flex items-center justify-center bg-black/40 rounded-xl overflow-hidden p-2">
               <img
-                src={previewLightboxUrl}
+                src={getRenderableImageUrl(previewLightboxUrl)}
                 alt="Full preview"
                 referrerPolicy="no-referrer"
                 className="max-h-[60vh] max-w-full object-contain rounded-lg shadow-lg"
