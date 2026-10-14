@@ -170,10 +170,38 @@ export const storage = {
     if (typeof window === 'undefined') return;
     try {
       if (cloudDataKeys.has(key)) memoryData.set(key, value);
-      localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(value));
-      window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key, value } }));
-      window.dispatchEvent(new CustomEvent('dta_badge_update'));
-      syncChannel?.postMessage({ type: 'storage_change', key, value });
+
+      // Attempt to persist to localStorage safely
+      try {
+        localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(value));
+      } catch (storageErr: any) {
+        console.warn(`[Storage] Failed to persist ${key} to localStorage:`, storageErr?.message || storageErr);
+        if (key === 'PRODUCTS' && Array.isArray(value)) {
+          // If quota exceeded, cache a slim version in localStorage (strip heavy inline base64 images > 20KB)
+          // while keeping full-fidelity products in memoryData for the active session
+          try {
+            const isHeavyDataUri = (url?: string) => typeof url === 'string' && url.startsWith('data:image/') && url.length > 20480;
+            const slimProducts = (value as any[]).map((p) => ({
+              ...p,
+              imageUrl: isHeavyDataUri(p.imageUrl) ? '' : p.imageUrl,
+              images: Array.isArray(p.images) ? p.images.map((img: string) => (isHeavyDataUri(img) ? '' : img)).filter(Boolean) : [],
+            }));
+            localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(slimProducts));
+          } catch {
+            // If even slim products fail, remove key so stale products never overwrite live data on restart
+            try { localStorage.removeItem(STORAGE_KEYS[key]); } catch {}
+          }
+        }
+      }
+
+      // Always fire window events and broadcast channel so UI reactivity is never blocked by localStorage limits
+      try {
+        window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key, value } }));
+        window.dispatchEvent(new CustomEvent('dta_badge_update'));
+        syncChannel?.postMessage({ type: 'storage_change', key, value });
+      } catch (eventErr) {
+        console.warn(`[Storage] Failed to dispatch storage event for ${key}:`, eventErr);
+      }
     } catch (err) {
       console.error(`Error saving to storage key ${key}:`, err);
     }

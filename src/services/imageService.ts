@@ -6,7 +6,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
  * Produces an optimized, lightweight Data URL (< 50KB) that synchronizes effortlessly
  * across Firebase Realtime Database and renders instantly on all mobile and desktop devices.
  */
-export async function compressImage(file: File, maxWidth = 800, maxHeight = 800, quality = 0.76): Promise<string> {
+export async function compressImage(file: File, maxWidth = 640, maxHeight = 640, quality = 0.68): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (readerEvent) => {
@@ -23,7 +23,7 @@ export async function compressImage(file: File, maxWidth = 800, maxHeight = 800,
             width = maxWidth;
           } else {
             width = Math.round((width * maxHeight) / height);
-            width = maxHeight;
+            height = maxHeight;
           }
         }
 
@@ -79,7 +79,7 @@ export async function uploadProductImage(file: File, productId: string): Promise
   }
 
   // High-speed Canvas compression fallback
-  return compressImage(file, 800, 800, 0.76);
+  return compressImage(file, 640, 640, 0.68);
 }
 
 /**
@@ -259,9 +259,9 @@ export function getRenderableImageUrl(rawUrl: string): string {
  */
 export async function convertUrlToDataUri(
   rawUrl: string,
-  maxWidth = 800,
-  maxHeight = 800,
-  quality = 0.76
+  maxWidth = 640,
+  maxHeight = 640,
+  quality = 0.68
 ): Promise<string> {
   const normalized = normalizeImageUrl(rawUrl);
   if (!normalized || normalized.startsWith('data:image/')) return normalized;
@@ -305,7 +305,7 @@ export async function convertUrlToDataUri(
                 width = maxWidth;
               } else {
                 width = Math.round((width * maxHeight) / height);
-                width = maxHeight;
+                height = maxHeight;
               }
             }
             canvas.width = Math.max(1, width);

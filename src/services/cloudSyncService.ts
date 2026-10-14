@@ -89,9 +89,7 @@ class CloudSyncService {
       console.warn('[RTDB] categories listener setup failed:', rtdbErr);
     }
 
-    // 2. Also listen to Firestore collections as secondary/redundant cloud store
-    this.listenCollection('products', 'PRODUCTS', this.publicUnsubscribers);
-    this.listenCollection('categories', 'CATEGORIES', this.publicUnsubscribers);
+    // RTDB is the primary authoritative store for products & categories (instant cross-device broadcast)
 
     // 3. Realtime Database listener for tutorials (public real-time broadcast across all users)
     try {
