@@ -1,5 +1,5 @@
-import { storageBucket } from '@/lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import app, { firebaseConfig, storageBucket } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL, getStorage } from 'firebase/storage';
 
 /**
  * Resizes and compresses an image File using HTML5 Canvas.
@@ -67,17 +67,24 @@ export async function compressImage(file: File, maxWidth = 1024, maxHeight = 102
  * If Firebase Storage is not yet activated in console, uses high-definition canvas fallback.
  */
 export async function uploadProductImage(file: File, productId: string): Promise<string> {
-  try {
-    const storageRef = ref(
-      storageBucket,
-      `products/${productId}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
-    );
-    // Upload complete original file with zero compression or downscaling
-    const uploadResult = await uploadBytes(storageRef, file);
-    const downloadUrl = await getDownloadURL(uploadResult.ref);
-    if (downloadUrl) return downloadUrl;
-  } catch (err) {
-    console.warn('[Storage] Cloud storage upload fell back to high-res canvas:', err);
+  const safeName = `${productId}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+
+  // Try default storageBucket, then standard Firebase bucket aliases (.firebasestorage.app and .appspot.com)
+  const bucketCandidates = [
+    storageBucket,
+    getStorage(app, `gs://${firebaseConfig.projectId}.firebasestorage.app`),
+    getStorage(app, `gs://${firebaseConfig.projectId}.appspot.com`),
+  ];
+
+  for (const bucket of bucketCandidates) {
+    try {
+      const storageRef = ref(bucket, `products/${safeName}`);
+      const uploadResult = await uploadBytes(storageRef, file);
+      const downloadUrl = await getDownloadURL(uploadResult.ref);
+      if (downloadUrl) return downloadUrl;
+    } catch {
+      // try next candidate
+    }
   }
 
   // High-definition Canvas compression fallback (1024x1024 at 0.82 quality)
