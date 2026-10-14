@@ -6,7 +6,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
  * Produces an optimized, lightweight Data URL (< 50KB) that synchronizes effortlessly
  * across Firebase Realtime Database and renders instantly on all mobile and desktop devices.
  */
-export async function compressImage(file: File, maxWidth = 640, maxHeight = 640, quality = 0.68): Promise<string> {
+export async function compressImage(file: File, maxWidth = 1024, maxHeight = 1024, quality = 0.82): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (readerEvent) => {
@@ -62,8 +62,9 @@ export async function compressImage(file: File, maxWidth = 640, maxHeight = 640,
 }
 
 /**
- * Uploads an image file to Firebase Storage if available, or produces an ultra-compact
- * compressed Data URI that is 100% portable across all devices and stored directly in RTDB.
+ * Uploads an image file to Firebase Storage at 100% original quality and dimensions,
+ * returning a permanent Google CDN download URL.
+ * If Firebase Storage is not yet activated in console, uses high-definition canvas fallback.
  */
 export async function uploadProductImage(file: File, productId: string): Promise<string> {
   try {
@@ -71,15 +72,16 @@ export async function uploadProductImage(file: File, productId: string): Promise
       storageBucket,
       `products/${productId}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
     );
+    // Upload complete original file with zero compression or downscaling
     const uploadResult = await uploadBytes(storageRef, file);
     const downloadUrl = await getDownloadURL(uploadResult.ref);
     if (downloadUrl) return downloadUrl;
   } catch (err) {
-    // Cloud storage bucket might not have public write rules; fall back to portable compressed URI
+    console.warn('[Storage] Cloud storage upload fell back to high-res canvas:', err);
   }
 
-  // High-speed Canvas compression fallback
-  return compressImage(file, 640, 640, 0.68);
+  // High-definition Canvas compression fallback (1024x1024 at 0.82 quality)
+  return compressImage(file, 1024, 1024, 0.82);
 }
 
 /**
@@ -259,9 +261,9 @@ export function getRenderableImageUrl(rawUrl: string): string {
  */
 export async function convertUrlToDataUri(
   rawUrl: string,
-  maxWidth = 640,
-  maxHeight = 640,
-  quality = 0.68
+  maxWidth = 1024,
+  maxHeight = 1024,
+  quality = 0.82
 ): Promise<string> {
   const normalized = normalizeImageUrl(rawUrl);
   if (!normalized || normalized.startsWith('data:image/')) return normalized;
