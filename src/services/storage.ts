@@ -103,6 +103,78 @@ if (typeof window !== 'undefined') {
   });
 }
 
+// Built-in IndexedDB Persistence Engine (Gigabytes capacity, no 5MB limit)
+const DB_NAME = 'dta_client_db';
+const DB_VERSION = 1;
+const STORE_NAME = 'key_values';
+
+function openIndexedDB(): Promise<IDBDatabase | null> {
+  if (typeof window === 'undefined' || !('indexedDB' in window)) return Promise.resolve(null);
+  return new Promise((resolve) => {
+    try {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      request.onupgradeneeded = (e: any) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME);
+        }
+      };
+      request.onsuccess = (e: any) => resolve(e.target.result);
+      request.onerror = () => resolve(null);
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+export async function idbGet<T>(key: string): Promise<T | null> {
+  const db = await openIndexedDB();
+  if (!db) return null;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.get(key);
+      req.onsuccess = () => resolve((req.result as T) ?? null);
+      req.onerror = () => resolve(null);
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+export async function idbSet<T>(key: string, value: T): Promise<boolean> {
+  const db = await openIndexedDB();
+  if (!db) return false;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.put(value, key);
+      req.onsuccess = () => resolve(true);
+      req.onerror = () => resolve(false);
+    } catch {
+      resolve(false);
+    }
+  });
+}
+
+export async function idbRemove(key: string): Promise<boolean> {
+  const db = await openIndexedDB();
+  if (!db) return false;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.delete(key);
+      req.onsuccess = () => resolve(true);
+      req.onerror = () => resolve(false);
+    } catch {
+      resolve(false);
+    }
+  });
+}
+
 export const storage = {
   init() {
     if (typeof window === 'undefined') return;
@@ -137,8 +209,7 @@ export const storage = {
         // ignore parse error
       }
     }
-    // Cloud-backed data is also cached locally. Firestore remains the source of
-    // truth, while the cache prevents a blank UI during startup/offline periods.
+    // 1. Synchronously populate memory cache from localStorage for 0ms initial render
     cloudDataKeys.forEach((key) => {
       const cached = localStorage.getItem(STORAGE_KEYS[key]);
       if (!cached) return;
@@ -148,6 +219,21 @@ export const storage = {
         localStorage.removeItem(STORAGE_KEYS[key]);
       }
     });
+
+    // 2. Asynchronously hydrate from IndexedDB (restores high-fidelity full products with zero quota limits)
+    if (typeof window !== 'undefined' && 'indexedDB' in window) {
+      cloudDataKeys.forEach(async (key) => {
+        try {
+          const idbValue = await idbGet<any>(STORAGE_KEYS[key]);
+          if (idbValue !== null && idbValue !== undefined) {
+            memoryData.set(key, idbValue);
+            if (key === 'PRODUCTS' && Array.isArray(idbValue) && idbValue.length > 0) {
+              window.dispatchEvent(new CustomEvent('dta_products_update', { detail: idbValue }));
+            }
+          }
+        } catch {}
+      });
+    }
   },
 
   get<T>(key: keyof typeof STORAGE_KEYS, defaultValue: T): T {
@@ -171,14 +257,17 @@ export const storage = {
     try {
       if (cloudDataKeys.has(key)) memoryData.set(key, value);
 
-      // Attempt to persist to localStorage safely
+      // 1. Asynchronously persist to IndexedDB (Gigabytes capacity, no 5MB quota limit)
+      idbSet(STORAGE_KEYS[key], value).catch(() => {});
+
+      // 2. Attempt to persist to localStorage safely
       try {
         localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(value));
       } catch (storageErr: any) {
         console.warn(`[Storage] Failed to persist ${key} to localStorage:`, storageErr?.message || storageErr);
         if (key === 'PRODUCTS' && Array.isArray(value)) {
           // If quota exceeded, cache a slim version in localStorage (strip heavy inline base64 images > 20KB)
-          // while keeping full-fidelity products in memoryData for the active session
+          // while keeping full-fidelity products in memoryData and IndexedDB for the active session
           try {
             const isHeavyDataUri = (url?: string) => typeof url === 'string' && url.startsWith('data:image/') && url.length > 20480;
             const slimProducts = (value as any[]).map((p) => ({
@@ -194,7 +283,7 @@ export const storage = {
         }
       }
 
-      // Always fire window events and broadcast channel so UI reactivity is never blocked by localStorage limits
+      // 3. Always fire window events and broadcast channel so UI reactivity is never blocked by localStorage limits
       try {
         window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key, value } }));
         window.dispatchEvent(new CustomEvent('dta_badge_update'));
@@ -215,6 +304,7 @@ export const storage = {
   setRaw(key: keyof typeof STORAGE_KEYS, val: string): void {
     if (typeof window === 'undefined') return;
     localStorage.setItem(STORAGE_KEYS[key], val);
+    idbSet(STORAGE_KEYS[key], val).catch(() => {});
     syncChannel?.postMessage({ type: 'storage_change', key, value: val });
   },
 
@@ -222,6 +312,7 @@ export const storage = {
     if (typeof window === 'undefined') return;
     memoryData.delete(key);
     localStorage.removeItem(STORAGE_KEYS[key]);
+    idbRemove(STORAGE_KEYS[key]).catch(() => {});
     window.dispatchEvent(new CustomEvent('dta_storage_change', { detail: { key } }));
     window.dispatchEvent(new CustomEvent('dta_badge_update'));
     syncChannel?.postMessage({ type: 'storage_remove', key });
@@ -235,7 +326,10 @@ export const storage = {
 
   clearAllData(): void {
     if (typeof window === 'undefined') return;
-    Object.values(STORAGE_KEYS).forEach((k) => localStorage.removeItem(k));
+    Object.values(STORAGE_KEYS).forEach((k) => {
+      localStorage.removeItem(k);
+      idbRemove(k).catch(() => {});
+    });
     memoryData.clear();
     this.init();
     syncChannel?.postMessage({ type: 'badge_update' });
