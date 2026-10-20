@@ -72,11 +72,11 @@ export const AdminRanksPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleEdit(rank)}
-                  className="p-1 rounded text-[var(--ink-soft)] hover:text-[var(--ink)] focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:outline-none cursor-pointer"
+                  className="min-h-[40px] min-w-[40px] -m-1.5 p-2 inline-flex items-center justify-center rounded-lg text-[var(--ink-soft)] hover:text-[var(--ink)] focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:outline-none cursor-pointer"
                   title={`Edit thresholds for ${rank.name}`}
                   aria-label={`Edit thresholds for ${rank.name}`}
                 >
-                  <Pencil size={14} />
+                  <Pencil size={15} />
                 </button>
               </div>
               <h3 className="font-serif font-medium text-base text-[var(--ink)]">{rank.name}</h3>
@@ -156,11 +156,11 @@ export const AdminRanksPage: React.FC = () => {
                 />
               </div>
 
-              <div className="flex justify-end space-x-2 pt-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => setSelectedRank(null)}>
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:space-x-2 pt-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => setSelectedRank(null)} className="min-h-[42px] sm:min-h-0 justify-center">
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary" size="sm">
+                <Button type="submit" variant="primary" size="sm" className="min-h-[42px] sm:min-h-0 justify-center">
                   Save Thresholds
                 </Button>
               </div>

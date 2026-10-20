@@ -402,7 +402,7 @@ export const DashboardProfile: React.FC = () => {
             <form onSubmit={handleAddPaymentMethod} className="space-y-3.5">
               <div>
                 <label className="block text-[var(--ink-soft)] mb-1 font-medium">Payment Provider *</label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {[
                     { id: 'easypaisa', label: 'EasyPaisa' },
                     { id: 'jazzcash', label: 'JazzCash' },
@@ -422,10 +422,10 @@ export const DashboardProfile: React.FC = () => {
                         else if (item.id === 'nayapay') setBankName('NayaPay');
                         else if (item.id === 'bank_transfer') setBankName('Meezan Bank');
                       }}
-                      className={`p-2 rounded-lg border text-center transition-all ${
+                      className={`min-h-[40px] p-2 rounded-xl border text-center transition-all cursor-pointer text-xs flex items-center justify-center ${
                         methodType === item.id
-                          ? 'bg-[var(--primary)] text-white border-[var(--primary)] font-medium'
-                          : 'bg-[var(--surface-alt)] text-[var(--ink-soft)] border-[var(--line)] hover:bg-[var(--surface-alt)]/80'
+                          ? 'bg-[var(--primary)] text-white border-[var(--primary)] font-semibold shadow-xs'
+                          : 'bg-[var(--surface-alt)] text-[var(--ink-soft)] border-[var(--line)] hover:bg-[var(--surface-alt)]/80 hover:text-[var(--ink)]'
                       }`}
                     >
                       {item.label}

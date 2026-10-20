@@ -399,20 +399,23 @@ export const DashboardLayout: React.FC = () => {
       </aside>
 
       {/* Mobile Top Header */}
-      <header className="md:hidden sticky top-0 z-40 funding-topbar p-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <DreamLogo size={28} showText={false} />
-          <span className="font-serif font-semibold text-sm text-[#F4F7F5]">Partner Terminal</span>
+      <header className="md:hidden sticky top-0 z-40 funding-topbar px-3.5 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 border-b border-white/[0.08]">
+        <Link to="/" className="flex items-center gap-2 min-w-0 group">
+          <DreamLogo size={26} showText={false} />
+          <div className="min-w-0">
+            <span className="font-serif font-semibold text-xs sm:text-sm text-[#F4F7F5] block truncate leading-tight">Partner Terminal</span>
+            <span className="text-[8.5px] sm:text-[9px] font-mono text-[#34D399] font-semibold uppercase tracking-wider block truncate">Live · Tier Active</span>
+          </div>
         </Link>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <button
             type="button"
             onClick={() => setNotifPopoverOpen(!notifPopoverOpen)}
-            className={`relative p-2 rounded-xl border transition-all cursor-pointer ${
+            className={`relative min-h-[40px] min-w-[40px] p-2 rounded-xl border transition-all cursor-pointer inline-flex items-center justify-center ${
               notifPopoverOpen
                 ? 'bg-[#34D399]/15 border-[#34D399]/40 text-[#34D399]'
-                : 'text-[#9EABA2] hover:text-[#F4F7F5] bg-white/[0.04] border-white/10'
+                : 'text-[#9EABA2] hover:text-[#F4F7F5] bg-white/[0.04] border-white/10 active:bg-white/[0.08]'
             }`}
             title="Notifications"
             aria-label="Toggle notifications pop-up"
@@ -425,12 +428,12 @@ export const DashboardLayout: React.FC = () => {
               </span>
             )}
           </button>
-          <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/30 uppercase">
+          <span className="max-w-[75px] sm:max-w-none text-[9.5px] sm:text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/30 uppercase truncate">
             {user.currentRankSlug}
           </span>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 rounded-xl text-[#F4F7F5] bg-white/[0.06] border border-white/10 active:scale-[0.96] transition-all"
+            className="min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] inline-flex items-center justify-center p-2 rounded-xl text-[#F4F7F5] bg-white/[0.06] border border-white/10 active:scale-[0.96] transition-all"
             aria-label="Toggle partner navigation"
             aria-expanded={mobileMenuOpen}
             aria-controls="partner-mobile-navigation"

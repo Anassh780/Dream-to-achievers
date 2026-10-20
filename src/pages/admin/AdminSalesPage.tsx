@@ -303,8 +303,91 @@ export const AdminSalesPage: React.FC = () => {
             <p className="font-bold text-base text-[var(--ink)]">No sales records found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto w-full touch-pan-x overscroll-x-contain">
-            <table className="w-full min-w-[1050px] text-left font-sans border-collapse">
+          <>
+            {/* Mobile Responsive Cards for Android / Small Screens */}
+            <div className="sm:hidden divide-y divide-[var(--line)]">
+              {filteredSales.map((sale) => {
+                const partner = getUserInfo(sale.userId);
+                return (
+                  <div key={sale.id} className="p-4 space-y-3 hover:bg-[var(--surface-alt)]/40 transition-colors">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-mono text-[var(--ink-soft)]/80 block">Order #{sale.id}</span>
+                        <h4 className="font-serif font-semibold text-sm text-[var(--ink)] truncate mt-0.5">{sale.productName}</h4>
+                        <span className="text-[10px] font-mono text-[var(--ink-soft)] block mt-0.5">
+                          {new Date(sale.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="shrink-0">
+                        {getStatusBadge(sale.status)}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="p-2.5 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--line)] space-y-0.5 min-w-0">
+                        <span className="text-[9.5px] font-mono text-[var(--ink-soft)] block uppercase">Reseller Partner</span>
+                        <p className="font-semibold text-[var(--ink)] text-xs truncate">{partner.name}</p>
+                        <p className="text-[10px] font-mono text-[var(--primary-dark)] truncate">{partner.code}</p>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--line)] space-y-0.5 min-w-0">
+                        <span className="text-[9.5px] font-mono text-[var(--ink-soft)] block uppercase">Buyer (Client)</span>
+                        <p className="font-semibold text-[var(--ink)] text-xs truncate">{sale.customerName}</p>
+                        <p className="text-[10px] font-mono text-[var(--ink-soft)] truncate">{sale.customerEmail || 'No email'}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--surface-alt)]/40 border border-[var(--line)] text-xs font-mono">
+                      <div>
+                        <span className="text-[10px] text-[var(--ink-soft)] block">Quantity</span>
+                        <span className="font-bold text-[var(--ink)]">{sale.quantity} Unit(s)</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-[var(--ink-soft)] block">Profit Margin</span>
+                        <span className="font-bold text-[var(--accent)] text-xs sm:text-sm">
+                          +PKR {(sale.profitMargin * sale.quantity).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      {sale.paymentScreenshotUrl && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedSale(sale);
+                            setPreviewSlipUrl(sale.paymentScreenshotUrl!);
+                            setPreviewZoom(1);
+                            setPreviewRotation(0);
+                          }}
+                          className="flex-1 min-h-[40px] px-3 py-2 rounded-xl bg-[var(--surface-alt)] hover:bg-[var(--surface-alt)]/80 border border-[var(--line)] text-[var(--ink)] text-xs font-mono inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                        >
+                          <MagnifyingGlassPlus size={14} className="text-[var(--primary)]" />
+                          <span>View Proof Slip</span>
+                        </button>
+                      )}
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedSale(sale);
+                          setCourier(sale.shippingCourier || 'TCS Express');
+                          setTrackingNo(sale.trackingNumber || '');
+                          setShippingNotes(sale.shippingNotes || '');
+                        }}
+                        className="flex-1 min-h-[40px] text-xs font-medium"
+                      >
+                        Audit &amp; Fulfill
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table View: Hidden on Mobile (<640px) */}
+            <div className="hidden sm:block overflow-x-auto w-full touch-pan-x overscroll-x-contain">
+              <table className="w-full min-w-[1050px] text-left font-sans border-collapse">
               <thead className="border-b border-[var(--line)] text-[var(--ink-soft)] font-mono text-[10px] bg-[var(--surface)]">
                 <tr>
                   <th className="p-3.5 font-medium min-w-[110px] whitespace-nowrap">Order ID</th>
@@ -397,6 +480,7 @@ export const AdminSalesPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 

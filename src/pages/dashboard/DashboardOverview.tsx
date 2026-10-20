@@ -24,7 +24,11 @@ import {
   Question,
   CurrencyDollar,
   CaretRight,
+  CaretDown,
+  CaretUp,
   CheckCircle,
+  Info,
+  LightbulbFilament,
 } from '@phosphor-icons/react';
 
 export const DashboardOverview: React.FC = () => {
@@ -34,6 +38,20 @@ export const DashboardOverview: React.FC = () => {
     if (!user) return false;
     return !localStorage.getItem(`dta_onboarding_dismissed_${user.id}`);
   });
+  const [showQuickstart, setShowQuickstart] = useState<boolean>(() => {
+    if (!user) return true;
+    return localStorage.getItem(`dta_quickstart_minimized_${user.id}`) !== 'true';
+  });
+
+  const toggleQuickstart = () => {
+    setShowQuickstart((prev) => {
+      const next = !prev;
+      if (user) {
+        localStorage.setItem(`dta_quickstart_minimized_${user.id}`, String(!next));
+      }
+      return next;
+    });
+  };
 
   if (!user || !rankProgress) return null;
 
@@ -120,27 +138,192 @@ export const DashboardOverview: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Four Master Financial & Operational KPI Cards */}
+      {/* 2. Google-Style Reseller Quickstart Roadmap (Beginner-Friendly Interaction) */}
+      <div className="funding-card p-5 sm:p-6 space-y-4 relative overflow-hidden border-[#34D399]/20 bg-gradient-to-b from-[#34D399]/[0.03] to-transparent">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-[#34D399] shrink-0 shadow-[0_0_20px_rgba(52,211,153,0.15)]">
+              <LightbulbFilament size={20} weight="fill" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="font-serif font-bold text-base sm:text-lg text-[#F4F7F5]">
+                  How to Earn with Dream to Achievers
+                </h2>
+                <span className="hidden sm:inline-flex items-center text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+                  Beginner Guide
+                </span>
+              </div>
+              <p className="text-xs text-[#9EABA2]">
+                Zero investment required. Source wholesale SKUs, take client orders with COD, and withdraw direct profit.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={toggleQuickstart}
+            className="self-start sm:self-center inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-xs font-mono text-[#9EABA2] hover:text-[#F4F7F5] border border-white/10 transition-colors cursor-pointer"
+          >
+            {showQuickstart ? (
+              <>
+                <span>Minimize</span>
+                <CaretUp size={13} weight="bold" />
+              </>
+            ) : (
+              <>
+                <span>View 4 Steps</span>
+                <CaretDown size={13} weight="bold" />
+              </>
+            )}
+          </button>
+        </div>
+
+        {showQuickstart && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-1 animate-in fade-in duration-300">
+            {/* Step 1 */}
+            <div className="p-4 rounded-2xl bg-[#070B09]/70 border border-white/[0.07] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-3 group">
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">
+                    Step 01
+                  </span>
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                    <Package size={17} weight="duotone" />
+                  </div>
+                </div>
+                <h3 className="font-serif font-bold text-sm text-[#F4F7F5]">
+                  Select Products
+                </h3>
+                <p className="text-xs text-[#9EABA2] leading-relaxed">
+                  Browse wholesale items offering <strong className="text-[#34D399]">PKR 500 – 1,500+</strong> profit margin per unit.
+                </p>
+              </div>
+              <Link
+                to="/dashboard/products"
+                className="inline-flex items-center gap-1 text-xs font-mono font-semibold text-[#34D399] group-hover:underline pt-1"
+              >
+                <span>Browse Catalog</span>
+                <ArrowRight size={13} />
+              </Link>
+            </div>
+
+            {/* Step 2 */}
+            <div className="p-4 rounded-2xl bg-[#070B09]/70 border border-white/[0.07] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-3 group">
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">
+                    Step 02
+                  </span>
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                    <WhatsappLogo size={17} weight="fill" />
+                  </div>
+                </div>
+                <h3 className="font-serif font-bold text-sm text-[#F4F7F5]">
+                  Share with Buyers
+                </h3>
+                <p className="text-xs text-[#9EABA2] leading-relaxed">
+                  Share product photos with your contacts on WhatsApp, Facebook, or Instagram to collect orders.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleWhatsAppShare}
+                className="inline-flex items-center gap-1 text-xs font-mono font-semibold text-[#34D399] group-hover:underline pt-1 cursor-pointer text-left"
+              >
+                <span>Share Referral &amp; Deals</span>
+                <ArrowRight size={13} />
+              </button>
+            </div>
+
+            {/* Step 3 */}
+            <div className="p-4 rounded-2xl bg-[#070B09]/70 border border-white/[0.07] hover:border-sky-500/40 transition-all flex flex-col justify-between space-y-3 group">
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-400 font-bold border border-sky-500/20">
+                    Step 03
+                  </span>
+                  <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
+                    <ShoppingCart size={17} weight="duotone" />
+                  </div>
+                </div>
+                <h3 className="font-serif font-bold text-sm text-[#F4F7F5]">
+                  Record Client Order
+                </h3>
+                <p className="text-xs text-[#9EABA2] leading-relaxed">
+                  Enter customer address. We dispatch COD across Pakistan while you track delivery status.
+                </p>
+              </div>
+              <Link
+                to="/dashboard/products"
+                className="inline-flex items-center gap-1 text-xs font-mono font-semibold text-sky-400 group-hover:underline pt-1"
+              >
+                <span>Record New Sale</span>
+                <ArrowRight size={13} />
+              </Link>
+            </div>
+
+            {/* Step 4 */}
+            <div className="p-4 rounded-2xl bg-[#070B09]/70 border border-white/[0.07] hover:border-[#D9C08A]/40 transition-all flex flex-col justify-between space-y-3 group">
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#D9C08A]/10 text-[#D9C08A] font-bold border border-[#D9C08A]/20">
+                    Step 04
+                  </span>
+                  <div className="w-8 h-8 rounded-xl bg-[#D9C08A]/10 text-[#D9C08A] flex items-center justify-center">
+                    <Wallet size={17} weight="duotone" />
+                  </div>
+                </div>
+                <h3 className="font-serif font-bold text-sm text-[#F4F7F5]">
+                  Withdraw Profit
+                </h3>
+                <p className="text-xs text-[#9EABA2] leading-relaxed">
+                  Upon parcel delivery, your margin is credited. Withdraw directly to <strong className="text-[#F4F7F5]">JazzCash, EasyPaisa, or Bank</strong>.
+                </p>
+              </div>
+              <Link
+                to="/dashboard/sales"
+                className="inline-flex items-center gap-1 text-xs font-mono font-semibold text-[#D9C08A] group-hover:underline pt-1"
+              >
+                <span>Payout Balance</span>
+                <ArrowRight size={13} />
+              </Link>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 3. Four Master Financial & Operational KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* KPI 1: Qualifying Delivered Sales */}
         <div className="funding-stat-kpi p-5 sm:p-6 space-y-3 relative overflow-hidden group">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-[#9EABA2] font-mono font-medium">Delivered Sales</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-[#9EABA2] font-mono font-medium">Delivered Sales</span>
+              <span className="cursor-help text-[#9EABA2]/60 hover:text-[#34D399] transition-colors" title="Delivered customer orders that have earned profit">
+                <Info size={13} />
+              </span>
+            </div>
             <div className="w-9 h-9 rounded-xl bg-[#34D399]/10 text-[#34D399] flex items-center justify-center border border-[#34D399]/25 shadow-[0_0_15px_rgba(52,211,153,0.15)]">
               <ShoppingCart size={18} weight="bold" />
             </div>
           </div>
           <div>
             <p className="text-2xl sm:text-3xl font-bold text-[#F4F7F5] font-mono tracking-tight">{totalSales}</p>
-            <p className="text-[11px] text-[#9EABA2] font-mono mt-0.5">Delivered Client Orders</p>
+            <p className="text-[11px] text-[#9EABA2] font-mono mt-0.5">Completed Client Orders</p>
           </div>
         </div>
 
         {/* KPI 2: Available Profit Margin */}
         <div className="funding-stat-kpi p-5 sm:p-6 space-y-3 relative overflow-hidden group border-[#34D399]/20 hover:border-[#34D399]/40">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-[#34D399] font-mono font-bold">Available Profit</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-[#34D399] font-mono font-bold">Available Profit</span>
+              <span className="cursor-help text-[#34D399]/60 hover:text-[#34D399] transition-colors" title="Cash profit ready for direct withdrawal to your bank or mobile wallet">
+                <Info size={13} />
+              </span>
+            </div>
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#34D399]/20 to-[#34D399]/5 text-[#34D399] flex items-center justify-center border border-[#34D399]/30 shadow-[0_0_20px_rgba(52,211,153,0.2)]">
               <TrendUp size={18} weight="bold" />
             </div>
@@ -158,21 +341,31 @@ export const DashboardOverview: React.FC = () => {
         {/* KPI 3: Community Referral Network */}
         <div className="funding-stat-kpi p-5 sm:p-6 space-y-3 relative overflow-hidden group">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-[#9EABA2] font-mono font-medium">Partner Downline</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-[#9EABA2] font-mono font-medium">Partner Downline</span>
+              <span className="cursor-help text-[#9EABA2]/60 hover:text-[#D9C08A] transition-colors" title="Affiliate partners registered using your referral code">
+                <Info size={13} />
+              </span>
+            </div>
             <div className="w-9 h-9 rounded-xl bg-[#D9C08A]/10 text-[#D9C08A] flex items-center justify-center border border-[#D9C08A]/25 shadow-[0_0_15px_rgba(217,192,138,0.15)]">
               <Users size={18} weight="bold" />
             </div>
           </div>
           <div>
             <p className="text-2xl sm:text-3xl font-bold text-[#F4F7F5] font-mono tracking-tight">{totalCommunity}</p>
-            <p className="text-[11px] text-[#9EABA2] font-mono mt-0.5">Active Referred Partners</p>
+            <p className="text-[11px] text-[#9EABA2] font-mono mt-0.5">Active Referred Resellers</p>
           </div>
         </div>
 
         {/* KPI 4: Milestone Rewards Claimed */}
         <div className="funding-stat-kpi p-5 sm:p-6 space-y-3 relative overflow-hidden group border-[#D9C08A]/20 hover:border-[#D9C08A]/40">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-[#D9C08A] font-mono font-bold">Milestone Rewards</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-[#D9C08A] font-mono font-bold">Milestone Rewards</span>
+              <span className="cursor-help text-[#D9C08A]/60 hover:text-[#D9C08A] transition-colors" title="Cash bonuses unlocked by achieving personal sales and team growth targets">
+                <Info size={13} />
+              </span>
+            </div>
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D9C08A]/20 to-[#D9C08A]/5 text-[#D9C08A] flex items-center justify-center border border-[#D9C08A]/30 shadow-[0_0_20px_rgba(217,192,138,0.2)]">
               <Gift size={18} weight="bold" />
             </div>
@@ -188,36 +381,36 @@ export const DashboardOverview: React.FC = () => {
       </div>
 
       {/* 3. 1-Click Referral Invitation & WhatsApp Sharing Hub */}
-      <div className="funding-card p-6 sm:p-7 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-5 relative overflow-hidden">
-        <div className="flex items-center space-x-4 min-w-0 z-10">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#6EE7A8] to-[#2FA46B] text-[#070B09] flex items-center justify-center shrink-0 shadow-[0_0_25px_rgba(52,211,153,0.3)]">
-            <ShareNetwork size={24} weight="bold" />
+      <div className="funding-card p-5 sm:p-7 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-5 relative overflow-hidden">
+        <div className="flex items-center space-x-3.5 sm:space-x-4 min-w-0 z-10">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-[#6EE7A8] to-[#2FA46B] text-[#070B09] flex items-center justify-center shrink-0 shadow-[0_0_25px_rgba(52,211,153,0.3)]">
+            <ShareNetwork size={22} weight="bold" />
           </div>
           <div className="min-w-0">
-            <p className="font-serif font-bold text-base sm:text-lg text-[#F4F7F5] truncate">
+            <p className="font-serif font-bold text-base sm:text-lg text-[#F4F7F5] leading-snug">
               Grow Your Partner Network &amp; Earn Milestone Cash
             </p>
-            <p className="text-xs text-[#9EABA2] mt-0.5 truncate">
+            <p className="text-xs text-[#9EABA2] mt-0.5 leading-relaxed">
               Share your link with prospective resellers to unlock rank upgrades and level bonuses.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0 z-10">
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 z-10">
           <button
             onClick={handleWhatsAppShare}
-            className="funding-sheen-btn px-5 py-2.5 text-xs font-bold uppercase tracking-wider inline-flex items-center justify-center gap-2 shadow-md cursor-pointer flex-1 sm:flex-initial"
+            className="funding-sheen-btn min-h-[44px] px-3.5 sm:px-5 py-2.5 text-xs font-bold uppercase tracking-wider inline-flex items-center justify-center gap-1.5 sm:gap-2 shadow-md cursor-pointer flex-1 sm:flex-initial whitespace-nowrap"
             title="Share referral link on WhatsApp"
           >
-            <WhatsappLogo size={18} weight="fill" />
+            <WhatsappLogo size={18} weight="fill" className="shrink-0" />
             <span>WhatsApp Invite</span>
           </button>
           <button
             onClick={handleCopy}
-            className="funding-ghost-pill px-4 py-2.5 text-xs font-medium text-[#F4F7F5] inline-flex items-center justify-center gap-1.5 cursor-pointer hover:border-white/20 transition-all flex-1 sm:flex-initial"
+            className="funding-ghost-pill min-h-[44px] px-3 sm:px-4 py-2.5 text-xs font-medium text-[#F4F7F5] inline-flex items-center justify-center gap-1.5 cursor-pointer hover:border-white/20 transition-all flex-1 sm:flex-initial whitespace-nowrap"
             title="Copy referral link"
           >
-            {copied ? <Check size={16} className="text-[#34D399]" /> : <Copy size={16} />}
+            {copied ? <Check size={16} className="text-[#34D399] shrink-0" /> : <Copy size={16} className="shrink-0" />}
             <span>{copied ? 'Link Copied!' : 'Copy Link'}</span>
           </button>
         </div>

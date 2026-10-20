@@ -192,42 +192,118 @@ export const DashboardReferrals: React.FC = () => {
         </div>
 
         {referrals.length === 0 ? (
-          <div className="p-12 text-center text-[#9EABA2] space-y-2">
-            <Users size={32} className="text-[#9EABA2]/60 mx-auto" />
-            <p className="font-serif font-bold text-base text-[#F4F7F5]">No team members referred yet</p>
-            <p className="text-xs text-[#9EABA2]">Share your referral link or sponsor code to onboard new distributor partners.</p>
+          <div className="p-8 sm:p-12 text-center text-[#9EABA2] space-y-4 max-w-lg mx-auto">
+            <div className="w-14 h-14 rounded-3xl bg-[#D9C08A]/10 text-[#D9C08A] flex items-center justify-center mx-auto border border-[#D9C08A]/25 shadow-[0_0_25px_rgba(217,192,138,0.15)]">
+              <Users size={28} weight="duotone" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-serif font-bold text-lg text-[#F4F7F5]">Build Your Distributor Network</h3>
+              <p className="text-xs text-[#9EABA2] leading-relaxed">
+                Invite friends and colleagues to become reseller partners. Each member who registers with your sponsor link accelerates your rank advancement.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-left text-xs pt-1">
+              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1">
+                <span className="text-[10px] font-mono font-bold text-[#D9C08A]">01. Invite</span>
+                <p className="text-[11px] text-[#F4F7F5]">Send your unique link via WhatsApp.</p>
+              </div>
+              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1">
+                <span className="text-[10px] font-mono font-bold text-[#34D399]">02. Team</span>
+                <p className="text-[11px] text-[#F4F7F5]">They start earning with zero risk.</p>
+              </div>
+              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1">
+                <span className="text-[10px] font-mono font-bold text-sky-400">03. Bonus</span>
+                <p className="text-[11px] text-[#F4F7F5]">Earn rank cash up to PKR 150k+.</p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+              <button
+                onClick={handleShareWhatsApp}
+                className="funding-sheen-btn px-5 py-2.5 text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-md cursor-pointer"
+              >
+                <WhatsappLogo size={16} weight="fill" />
+                <span>Invite on WhatsApp</span>
+              </button>
+              <button
+                onClick={handleCopyLink}
+                className="funding-ghost-pill px-4 py-2.5 text-xs font-medium text-[#F4F7F5] inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                {copiedLink ? <Check size={14} className="text-[#34D399]" /> : <Copy size={14} />}
+                <span>{copiedLink ? 'Link Copied' : 'Copy Link'}</span>
+              </button>
+            </div>
           </div>
         ) : (
-          <div className="overflow-x-auto w-full touch-pan-x overscroll-x-contain">
-            <table className="w-full min-w-[750px] text-left font-sans border-collapse">
-              <thead className="border-b border-white/[0.08] text-[#9EABA2] font-mono text-[10px] bg-white/[0.02]">
-                <tr>
-                  <th className="p-3.5 font-medium min-w-[160px]">Partner Name</th>
-                  <th className="p-3.5 font-medium min-w-[180px]">Email Address</th>
-                  <th className="p-3.5 font-medium min-w-[130px] whitespace-nowrap">Current Level</th>
-                  <th className="p-3.5 font-medium text-center min-w-[110px] whitespace-nowrap">Status</th>
-                  <th className="p-3.5 font-medium text-right min-w-[120px] whitespace-nowrap">Registered</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/[0.06] text-[#9EABA2]">
-                {referrals.map((ref) => (
-                  <tr key={ref.id} className="hover:bg-white/[0.03] transition-colors">
-                    <td className="p-3.5 font-serif font-semibold text-[#F4F7F5] min-w-[160px]">{ref.referredUserName || 'Teammate'}</td>
-                    <td className="p-3.5 font-mono text-[#9EABA2] min-w-[180px] truncate">{ref.referredUserEmail || '—'}</td>
-                    <td className="p-3.5 font-mono uppercase text-[#34D399] font-medium min-w-[130px] whitespace-nowrap">{ref.referredUserRank || 'unranked'}</td>
-                    <td className="p-3.5 text-center min-w-[110px] whitespace-nowrap">
-                      <span className="inline-block text-[10px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/30 whitespace-nowrap">
+          <>
+            {/* Mobile Responsive Cards for Android / Small Screens */}
+            <div className="sm:hidden divide-y divide-white/[0.08]">
+              {referrals.map((ref) => (
+                <div key={ref.id} className="p-4 space-y-3 hover:bg-white/[0.02] transition-colors">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-white/[0.04] border border-white/10 text-[#34D399] flex items-center justify-center font-bold text-xs shrink-0">
+                        {(ref.referredUserName || 'T').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="font-serif font-semibold text-sm text-[#F4F7F5] truncate">{ref.referredUserName || 'Teammate'}</h4>
+                        <span className="text-[10.5px] font-mono text-[#9EABA2] block truncate">{ref.referredUserEmail || '—'}</span>
+                      </div>
+                    </div>
+                    <div className="shrink-0">
+                      <span className="inline-block text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/30 whitespace-nowrap">
                         {ref.status || 'active'}
                       </span>
-                    </td>
-                    <td className="p-3.5 text-right font-mono text-[#9EABA2] min-w-[120px] whitespace-nowrap">
-                      {new Date(ref.createdAt).toLocaleDateString()}
-                    </td>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] text-xs font-mono">
+                    <div>
+                      <span className="text-[9.5px] text-[#9EABA2] block uppercase">Current Tier</span>
+                      <span className="font-semibold text-[#34D399] uppercase">{ref.referredUserRank || 'unranked'}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[9.5px] text-[#9EABA2] block uppercase">Joined Date</span>
+                      <span className="text-[11px] text-[#F4F7F5]">{new Date(ref.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table View: Hidden on Mobile (<640px) */}
+            <div className="hidden sm:block overflow-x-auto w-full touch-pan-x overscroll-x-contain">
+              <table className="w-full min-w-[750px] text-left font-sans border-collapse">
+                <thead className="border-b border-white/[0.08] text-[#9EABA2] font-mono text-[10px] bg-white/[0.02]">
+                  <tr>
+                    <th className="p-3.5 font-medium min-w-[160px]">Partner Name</th>
+                    <th className="p-3.5 font-medium min-w-[180px]">Email Address</th>
+                    <th className="p-3.5 font-medium min-w-[130px] whitespace-nowrap">Current Level</th>
+                    <th className="p-3.5 font-medium text-center min-w-[110px] whitespace-nowrap">Status</th>
+                    <th className="p-3.5 font-medium text-right min-w-[120px] whitespace-nowrap">Registered</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-white/[0.06] text-[#9EABA2]">
+                  {referrals.map((ref) => (
+                    <tr key={ref.id} className="hover:bg-white/[0.03] transition-colors">
+                      <td className="p-3.5 font-serif font-semibold text-[#F4F7F5] min-w-[160px]">{ref.referredUserName || 'Teammate'}</td>
+                      <td className="p-3.5 font-mono text-[#9EABA2] min-w-[180px] truncate">{ref.referredUserEmail || '—'}</td>
+                      <td className="p-3.5 font-mono uppercase text-[#34D399] font-medium min-w-[130px] whitespace-nowrap">{ref.referredUserRank || 'unranked'}</td>
+                      <td className="p-3.5 text-center min-w-[110px] whitespace-nowrap">
+                        <span className="inline-block text-[10px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/30 whitespace-nowrap">
+                          {ref.status || 'active'}
+                        </span>
+                      </td>
+                      <td className="p-3.5 text-right font-mono text-[#9EABA2] min-w-[120px] whitespace-nowrap">
+                        {new Date(ref.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 

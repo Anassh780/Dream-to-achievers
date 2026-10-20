@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { rewardService } from '@/services/rewardService';
 import { Gift } from '@phosphor-icons/react';
+import { Link } from 'react-router-dom';
 
 export const DashboardRewards: React.FC = () => {
   const { user } = useAuth();
@@ -72,15 +73,65 @@ export const DashboardRewards: React.FC = () => {
         </div>
 
         {rewards.length === 0 ? (
-          <div className="p-10 text-center text-[#9EABA2] space-y-2">
-            <Gift size={32} className="text-[#9EABA2]/60 mx-auto" />
-            <p className="font-serif font-bold text-base text-[#F4F7F5]">No milestone rewards generated yet</p>
-            <p className="text-xs max-w-sm mx-auto text-[#9EABA2]">
-              Complete 10 personal sales &amp; 20 community referrals to unlock Level 01 (PKR 2,000 bonus).
-            </p>
+          <div className="p-8 sm:p-10 text-center text-[#9EABA2] space-y-3 max-w-md mx-auto">
+            <div className="w-12 h-12 rounded-2xl bg-[#D9C08A]/10 text-[#D9C08A] flex items-center justify-center mx-auto border border-[#D9C08A]/20">
+              <Gift size={24} weight="duotone" />
+            </div>
+            <div className="space-y-1">
+              <p className="font-serif font-bold text-base text-[#F4F7F5]">No milestone rewards generated yet</p>
+              <p className="text-xs text-[#9EABA2] leading-relaxed">
+                As you fulfill customer orders and invite active partners, you unlock cash bonuses from PKR 2,000 up to PKR 150,000+!
+              </p>
+            </div>
+            <Link to="/dashboard/ranks" className="inline-block pt-1">
+              <button className="funding-ghost-pill px-4 py-2 text-xs font-medium text-[#D9C08A] border-[#D9C08A]/30 hover:border-[#D9C08A]/60 cursor-pointer">
+                Track Rank Progress →
+              </button>
+            </Link>
           </div>
         ) : (
-          <div className="overflow-x-auto w-full touch-pan-x overscroll-x-contain">
+          <>
+            {/* Mobile Responsive Cards for Android / Small Screens */}
+            <div className="sm:hidden divide-y divide-white/[0.08]">
+              {rewards.map((rew) => (
+                <div key={rew.id} className="p-4 space-y-3 hover:bg-white/[0.02] transition-colors">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-mono text-[#9EABA2] block">Reward #{rew.id}</span>
+                      <h4 className="font-serif font-semibold text-sm text-[#F4F7F5] truncate mt-0.5">{rew.rankName}</h4>
+                      <span className="text-[10.5px] font-mono text-[#9EABA2] block mt-0.5">
+                        {new Date(rew.earnedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="shrink-0">
+                      <span
+                        className={`inline-block text-[10px] font-mono font-semibold capitalize px-2.5 py-0.5 rounded-full border whitespace-nowrap ${
+                          statusStyles[rew.status] || 'bg-white/[0.04] text-[#9EABA2]'
+                        }`}
+                      >
+                        {rew.status.replace('_', ' ')}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-xs font-mono">
+                    <div>
+                      <span className="text-[10px] text-[#9EABA2] block uppercase">Bonus Award</span>
+                      <span className="font-bold text-[#D9C08A] text-sm">PKR {rew.amount.toLocaleString()}</span>
+                    </div>
+                    <div className="text-right max-w-[55%]">
+                      <span className="text-[10px] text-[#9EABA2] block uppercase">Disbursement Ref</span>
+                      <span className="text-[11px] text-[#F4F7F5] truncate block">
+                        {rew.transactionReference || rew.adminNote || 'Processing'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table View: Hidden on Mobile (<640px) */}
+            <div className="hidden sm:block overflow-x-auto w-full touch-pan-x overscroll-x-contain">
             <table className="w-full min-w-[850px] text-left font-sans border-collapse">
               <thead className="border-b border-white/[0.08] text-[#9EABA2] font-mono text-[10px] bg-white/[0.02]">
                 <tr>
@@ -120,6 +171,7 @@ export const DashboardRewards: React.FC = () => {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 

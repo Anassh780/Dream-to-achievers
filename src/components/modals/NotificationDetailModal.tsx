@@ -215,25 +215,25 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
         />
 
         {/* Modal Header */}
-        <div className="relative z-10 px-6 pt-6 pb-4 border-b border-white/[0.08] flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3.5 min-w-0">
+        <div className="relative z-10 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-white/[0.08] flex items-start justify-between gap-3 sm:gap-4">
+          <div className="flex items-start gap-3 sm:gap-3.5 min-w-0">
             <div
-              className={`w-12 h-12 rounded-2xl border flex items-center justify-center shrink-0 shadow-lg ${config.iconBg}`}
+              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl border flex items-center justify-center shrink-0 shadow-lg ${config.iconBg}`}
               style={{ boxShadow: `0 0 20px ${config.ringColor}` }}
             >
-              <IconComponent size={24} weight="fill" />
+              <IconComponent size={20} className="sm:w-6 sm:h-6" weight="fill" />
             </div>
 
             <div className="space-y-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 <span
-                  className={`text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${config.badgeClass}`}
+                  className={`text-[9.5px] sm:text-[10px] font-mono font-bold uppercase tracking-wider px-2 sm:px-2.5 py-0.5 rounded-full border ${config.badgeClass}`}
                 >
                   {config.label}
                 </span>
 
                 <span
-                  className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded-full border ${
+                  className={`text-[9.5px] sm:text-[10px] font-mono font-medium px-2 py-0.5 rounded-full border ${
                     notification.isRead
                       ? 'bg-white/[0.04] text-[#9EABA2] border-white/10'
                       : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
@@ -245,7 +245,7 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
 
               <h2
                 id="notification-modal-title"
-                className="font-serif text-base sm:text-lg font-semibold text-[#F4F7F5] leading-snug break-words"
+                className="font-serif text-sm sm:text-lg font-semibold text-[#F4F7F5] leading-snug break-words"
               >
                 {notification.title}
               </h2>
@@ -256,14 +256,14 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
           <button
             onClick={onClose}
             aria-label="Close notification details"
-            className="p-2 rounded-xl text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.06] active:scale-95 transition-all cursor-pointer border border-transparent hover:border-white/10 shrink-0"
+            className="min-h-[40px] min-w-[40px] p-2 rounded-xl text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.06] active:scale-95 transition-all cursor-pointer border border-transparent hover:border-white/10 shrink-0 inline-flex items-center justify-center"
           >
             <X size={18} weight="bold" />
           </button>
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="relative z-10 p-6 space-y-5 overflow-y-auto overscroll-contain flex-1">
+        <div className="relative z-10 p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto overscroll-contain flex-1">
           {/* Main Message Card */}
           <div className="p-4 sm:p-5 rounded-2xl bg-[#070B09]/80 border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] space-y-2">
             <span className="text-[10px] font-mono uppercase tracking-wider text-[#9EABA2] block">
@@ -336,13 +336,13 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
         </div>
 
         {/* Modal Action Footer */}
-        <div className="relative z-10 px-6 py-4 bg-[#070B09]/90 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3">
+        <div className="relative z-10 px-4 sm:px-6 py-3.5 sm:py-4 bg-[#070B09]/90 border-t border-white/[0.08] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             {onToggleRead && (
               <button
                 type="button"
                 onClick={() => onToggleRead(notification.id, notification.isRead)}
-                className="px-3 py-1.5 rounded-xl text-xs font-mono text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.05] border border-white/10 transition-colors cursor-pointer"
+                className="flex-1 sm:flex-none min-h-[38px] px-3 py-1.5 rounded-xl text-xs font-mono text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.05] border border-white/10 transition-colors cursor-pointer text-center"
               >
                 {notification.isRead ? 'Mark as Unread' : 'Mark as Read'}
               </button>
@@ -354,7 +354,7 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
                   onDelete(notification.id);
                   onClose();
                 }}
-                className="px-3 py-1.5 rounded-xl text-xs font-mono text-rose-400/80 hover:text-rose-400 hover:bg-rose-500/10 border border-rose-500/20 transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                className="min-h-[38px] px-3 py-1.5 rounded-xl text-xs font-mono text-rose-400/80 hover:text-rose-400 hover:bg-rose-500/10 border border-rose-500/20 transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5"
                 title="Delete this notification"
               >
                 <Trash size={13} />
@@ -363,7 +363,7 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
             )}
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-2.5">
             {targetLink && (
               <Button
                 type="button"
@@ -376,7 +376,7 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
                   onClose();
                   navigate(targetLink);
                 }}
-                className="text-xs font-semibold shadow-lg"
+                className="flex-1 sm:flex-none min-h-[40px] text-xs font-semibold shadow-lg justify-center"
                 iconRight={<ArrowRight size={13} />}
               >
                 {getActionLabel(targetLink)}
@@ -388,9 +388,9 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
               variant="outline"
               size="sm"
               onClick={onClose}
-              className="text-xs"
+              className="min-h-[40px] text-xs px-4"
             >
-              Close
+              Dismiss
             </Button>
           </div>
         </div>

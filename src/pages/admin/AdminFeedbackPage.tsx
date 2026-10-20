@@ -395,10 +395,10 @@ export const AdminFeedbackPage: React.FC = () => {
       {/* ========================================================
           NAVIGATION TABS (FEEDBACK vs SUPPORT TICKETS)
           ======================================================== */}
-      <div className="flex items-center gap-2 border-b border-white/10 pb-2">
+      <div className="flex items-center gap-2 border-b border-white/10 pb-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overscroll-x-contain">
         <button
           onClick={() => setActiveTab('feedback')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold font-serif transition-all ${
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-semibold font-serif transition-all whitespace-nowrap shrink-0 ${
             activeTab === 'feedback'
               ? 'bg-[#D9C08A]/20 text-[#D9C08A] border border-[#D9C08A]/40'
               : 'text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/5'
@@ -409,7 +409,7 @@ export const AdminFeedbackPage: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('tickets')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold font-serif transition-all ${
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-semibold font-serif transition-all whitespace-nowrap shrink-0 ${
             activeTab === 'tickets'
               ? 'bg-[#D9C08A]/20 text-[#D9C08A] border border-[#D9C08A]/40'
               : 'text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/5'
@@ -760,22 +760,22 @@ export const AdminFeedbackPage: React.FC = () => {
         >
           <div className="w-full max-w-2xl h-[620px] max-h-[90vh] flex flex-col rounded-2xl bg-[#0D1512] border border-[#D9C08A]/30 text-[#F4F7F5] shadow-2xl overflow-hidden">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#070B09]/80">
-              <div>
-                <h3 className="text-base font-bold font-serif text-[#F4F7F5] flex items-center gap-2">
-                  <span>Ticket Transcript: {selectedTicket.userName}</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-[#D9C08A]/20 text-[#D9C08A] font-mono">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-5 py-3 sm:py-4 border-b border-white/10 bg-[#070B09]/80">
+              <div className="min-w-0">
+                <h3 className="text-sm sm:text-base font-bold font-serif text-[#F4F7F5] flex items-center gap-2 truncate">
+                  <span className="truncate">Ticket Transcript: {selectedTicket.userName}</span>
+                  <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-[#D9C08A]/20 text-[#D9C08A] font-mono shrink-0">
                     {selectedTicket.priority}
                   </span>
                 </h3>
-                <p className="text-xs text-[#9EABA2] font-mono mt-0.5">
+                <p className="text-[11px] sm:text-xs text-[#9EABA2] font-mono mt-0.5 truncate">
                   Email: {selectedTicket.userEmail} {selectedTicket.whatsapp ? `| WhatsApp: ${selectedTicket.whatsapp}` : ''}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
                 <button
                   onClick={() => handleUpdateTicketStatus(selectedTicket.id, selectedTicket.status === 'resolved' ? 'open' : 'resolved')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                  className={`min-h-[36px] px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
                     selectedTicket.status === 'resolved'
                       ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
                       : 'bg-[#34D399]/20 text-[#34D399] border-[#34D399]/50 hover:bg-[#34D399]/30'
@@ -785,14 +785,14 @@ export const AdminFeedbackPage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => handleDeleteTicket(selectedTicket.id)}
-                  className="p-1.5 rounded-lg text-[#9EABA2] hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                  className="min-h-[36px] min-w-[36px] p-2 rounded-lg text-[#9EABA2] hover:text-rose-400 hover:bg-rose-500/10 transition-colors inline-flex items-center justify-center cursor-pointer"
                   title="Delete Chat History"
                 >
                   <Trash size={16} />
                 </button>
                 <button
                   onClick={() => setSelectedTicket(null)}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/5"
+                  className="min-h-[36px] min-w-[36px] w-8 h-8 rounded-lg flex items-center justify-center text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/5 cursor-pointer"
                 >
                   <X size={18} />
                 </button>

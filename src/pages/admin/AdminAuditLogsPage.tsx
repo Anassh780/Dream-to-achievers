@@ -51,34 +51,67 @@ export const AdminAuditLogsPage: React.FC = () => {
             <p className="font-serif font-medium text-base text-[var(--ink)]">No audit log records found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto w-full touch-pan-x overscroll-x-contain">
-            <table className="w-full min-w-[850px] text-left font-sans border-collapse">
-              <thead className="border-b border-[var(--line)] text-[var(--ink-soft)] font-mono text-[10px] bg-[var(--surface-alt)]">
-                <tr>
-                  <th className="p-3.5 font-medium min-w-[100px] whitespace-nowrap">Log ID</th>
-                  <th className="p-3.5 font-medium min-w-[160px] whitespace-nowrap">Actor</th>
-                  <th className="p-3.5 font-medium min-w-[140px] whitespace-nowrap">Action</th>
-                  <th className="p-3.5 font-medium min-w-[140px] whitespace-nowrap">Target Entity</th>
-                  <th className="p-3.5 font-medium min-w-[200px]">Details</th>
-                  <th className="p-3.5 font-medium text-right min-w-[150px] whitespace-nowrap">Timestamp</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--line)] text-[var(--ink-soft)]">
-                {filteredLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-[var(--surface-alt)]/60 transition-colors">
-                    <td className="p-3.5 font-mono text-[var(--ink-soft)]/70 min-w-[100px] whitespace-nowrap">{log.id}</td>
-                    <td className="p-3.5 font-medium text-[var(--ink)] min-w-[160px] whitespace-nowrap">{log.adminEmail}</td>
-                    <td className="p-3.5 font-mono font-semibold text-[var(--primary)] min-w-[140px] whitespace-nowrap">{log.action}</td>
-                    <td className="p-3.5 font-mono text-[var(--ink-soft)] min-w-[140px] whitespace-nowrap">{log.entityType} ({log.entityId})</td>
-                    <td className="p-3.5 text-[var(--ink-soft)] min-w-[200px] max-w-xs truncate">{log.details}</td>
-                    <td className="p-3.5 text-right font-mono text-[var(--ink-soft)]/70 min-w-[150px] whitespace-nowrap">
-                      {new Date(log.timestamp).toLocaleString()}
-                    </td>
+          <>
+            {/* Mobile Responsive Cards for Android / Small Screens */}
+            <div className="sm:hidden divide-y divide-[var(--line)]">
+              {filteredLogs.map((log) => (
+                <div key={log.id} className="p-4 space-y-2.5 hover:bg-[var(--surface-alt)]/40 transition-colors">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-mono text-[var(--ink-soft)]/80 block">Event #{log.id}</span>
+                      <span className="font-mono font-semibold text-xs text-[var(--primary)] block mt-0.5">{log.action}</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-[var(--ink-soft)] shrink-0">
+                      {new Date(log.timestamp).toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--line)] space-y-1 text-xs">
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                      <span className="text-[var(--ink-soft)]">Target:</span>
+                      <span className="text-[var(--ink)] font-semibold">{log.entityType} ({log.entityId})</span>
+                    </div>
+                    <p className="text-[11px] text-[var(--ink)] leading-relaxed pt-0.5">{log.details}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[10.5px] font-mono text-[var(--ink-soft)] pt-0.5">
+                    <span className="truncate">By: {log.adminEmail}</span>
+                    <span className="shrink-0">{new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table View: Hidden on Mobile (<640px) */}
+            <div className="hidden sm:block overflow-x-auto w-full touch-pan-x overscroll-x-contain">
+              <table className="w-full min-w-[850px] text-left font-sans border-collapse">
+                <thead className="border-b border-[var(--line)] text-[var(--ink-soft)] font-mono text-[10px] bg-[var(--surface-alt)]">
+                  <tr>
+                    <th className="p-3.5 font-medium min-w-[100px] whitespace-nowrap">Log ID</th>
+                    <th className="p-3.5 font-medium min-w-[160px] whitespace-nowrap">Actor</th>
+                    <th className="p-3.5 font-medium min-w-[140px] whitespace-nowrap">Action</th>
+                    <th className="p-3.5 font-medium min-w-[140px] whitespace-nowrap">Target Entity</th>
+                    <th className="p-3.5 font-medium min-w-[200px]">Details</th>
+                    <th className="p-3.5 font-medium text-right min-w-[150px] whitespace-nowrap">Timestamp</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-[var(--line)] text-[var(--ink-soft)]">
+                  {filteredLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-[var(--surface-alt)]/60 transition-colors">
+                      <td className="p-3.5 font-mono text-[var(--ink-soft)]/70 min-w-[100px] whitespace-nowrap">{log.id}</td>
+                      <td className="p-3.5 font-medium text-[var(--ink)] min-w-[160px] whitespace-nowrap">{log.adminEmail}</td>
+                      <td className="p-3.5 font-mono font-semibold text-[var(--primary)] min-w-[140px] whitespace-nowrap">{log.action}</td>
+                      <td className="p-3.5 font-mono text-[var(--ink-soft)] min-w-[140px] whitespace-nowrap">{log.entityType} ({log.entityId})</td>
+                      <td className="p-3.5 text-[var(--ink-soft)] min-w-[200px] max-w-xs truncate">{log.details}</td>
+                      <td className="p-3.5 text-right font-mono text-[var(--ink-soft)]/70 min-w-[150px] whitespace-nowrap">
+                        {new Date(log.timestamp).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>

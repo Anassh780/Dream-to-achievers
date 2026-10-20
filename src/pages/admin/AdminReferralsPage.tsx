@@ -159,40 +159,80 @@ export const AdminReferralsPage: React.FC = () => {
             <p className="font-serif font-medium text-base text-[var(--ink)]">No referral affiliations match query</p>
           </div>
         ) : (
-          <div className="overflow-x-auto w-full touch-pan-x overscroll-x-contain">
-            <table className="w-full min-w-[950px] text-left font-sans border-collapse">
-              <thead className="border-b border-[var(--line)] text-[var(--ink-soft)] font-mono text-[10px] bg-[var(--surface-alt)]">
-                <tr>
-                  <th className="p-3.5 font-medium min-w-[120px] whitespace-nowrap">Record ID</th>
-                  <th className="p-3.5 font-medium min-w-[150px] whitespace-nowrap">Sponsor Code Used</th>
-                  <th className="p-3.5 font-medium min-w-[180px]">Referred Partner</th>
-                  <th className="p-3.5 font-medium min-w-[180px]">Email Address</th>
-                  <th className="p-3.5 font-medium min-w-[120px] whitespace-nowrap">Rank Tier</th>
-                  <th className="p-3.5 font-medium text-center min-w-[110px] whitespace-nowrap">Status</th>
-                  <th className="p-3.5 font-medium text-right min-w-[120px] whitespace-nowrap">Registered</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--line)] text-[var(--ink-soft)]">
-                {filteredReferrals.map((r) => (
-                  <tr key={r.id} className="hover:bg-[var(--surface-alt)]/60 transition-colors">
-                    <td className="p-3.5 font-mono text-[var(--ink-soft)]/70 text-[11px] min-w-[120px] whitespace-nowrap">{r.id}</td>
-                    <td className="p-3.5 font-mono font-bold text-[var(--primary)] min-w-[150px] whitespace-nowrap">{r.referralCodeUsed}</td>
-                    <td className="p-3.5 font-serif font-semibold text-[var(--ink)] min-w-[180px]">{r.referredUserName}</td>
-                    <td className="p-3.5 font-mono text-[var(--ink-soft)] min-w-[180px] truncate">{r.referredUserEmail}</td>
-                    <td className="p-3.5 font-mono uppercase text-[var(--primary)] font-medium min-w-[120px] whitespace-nowrap">{r.referredUserRank || 'unranked'}</td>
-                    <td className="p-3.5 text-center min-w-[110px] whitespace-nowrap">
+          <>
+            {/* Mobile Responsive Cards for Android / Small Screens */}
+            <div className="sm:hidden divide-y divide-[var(--line)]">
+              {filteredReferrals.map((r) => (
+                <div key={r.id} className="p-4 space-y-3 hover:bg-[var(--surface-alt)]/40 transition-colors">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-mono text-[var(--ink-soft)]/80 block">Record #{r.id}</span>
+                      <h4 className="font-serif font-semibold text-sm text-[var(--ink)] truncate mt-0.5">{r.referredUserName}</h4>
+                      <span className="text-[10.5px] font-mono text-[var(--ink-soft)] block truncate mt-0.5">{r.referredUserEmail}</span>
+                    </div>
+                    <div className="shrink-0">
                       <span className="inline-block text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[var(--surface-alt)] text-[var(--primary)] border border-[var(--line)] whitespace-nowrap">
                         {r.status}
                       </span>
-                    </td>
-                    <td className="p-3.5 text-right font-mono text-[var(--ink-soft)]/70 min-w-[120px] whitespace-nowrap">
-                      {new Date(r.createdAt).toLocaleDateString()}
-                    </td>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="p-2.5 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--line)] space-y-0.5 min-w-0">
+                      <span className="text-[9.5px] font-mono text-[var(--ink-soft)] block uppercase">Sponsor Code</span>
+                      <p className="font-mono font-bold text-[var(--primary)] text-xs truncate">{r.referralCodeUsed}</p>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--line)] space-y-0.5 min-w-0">
+                      <span className="text-[9.5px] font-mono text-[var(--ink-soft)] block uppercase">Rank Milestone</span>
+                      <p className="font-mono uppercase font-semibold text-[var(--ink)] text-xs truncate">{r.referredUserRank || 'unranked'}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[10.5px] font-mono text-[var(--ink-soft)] pt-0.5">
+                    <span>Onboarding Date:</span>
+                    <span className="text-[var(--ink)] font-medium">{new Date(r.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table View: Hidden on Mobile (<640px) */}
+            <div className="hidden sm:block overflow-x-auto w-full touch-pan-x overscroll-x-contain">
+              <table className="w-full min-w-[950px] text-left font-sans border-collapse">
+                <thead className="border-b border-[var(--line)] text-[var(--ink-soft)] font-mono text-[10px] bg-[var(--surface-alt)]">
+                  <tr>
+                    <th className="p-3.5 font-medium min-w-[120px] whitespace-nowrap">Record ID</th>
+                    <th className="p-3.5 font-medium min-w-[150px] whitespace-nowrap">Sponsor Code Used</th>
+                    <th className="p-3.5 font-medium min-w-[180px]">Referred Partner</th>
+                    <th className="p-3.5 font-medium min-w-[180px]">Email Address</th>
+                    <th className="p-3.5 font-medium min-w-[120px] whitespace-nowrap">Rank Tier</th>
+                    <th className="p-3.5 font-medium text-center min-w-[110px] whitespace-nowrap">Status</th>
+                    <th className="p-3.5 font-medium text-right min-w-[120px] whitespace-nowrap">Registered</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-[var(--line)] text-[var(--ink-soft)]">
+                  {filteredReferrals.map((r) => (
+                    <tr key={r.id} className="hover:bg-[var(--surface-alt)]/60 transition-colors">
+                      <td className="p-3.5 font-mono text-[var(--ink-soft)]/70 text-[11px] min-w-[120px] whitespace-nowrap">{r.id}</td>
+                      <td className="p-3.5 font-mono font-bold text-[var(--primary)] min-w-[150px] whitespace-nowrap">{r.referralCodeUsed}</td>
+                      <td className="p-3.5 font-serif font-semibold text-[var(--ink)] min-w-[180px]">{r.referredUserName}</td>
+                      <td className="p-3.5 font-mono text-[var(--ink-soft)] min-w-[180px] truncate">{r.referredUserEmail}</td>
+                      <td className="p-3.5 font-mono uppercase text-[var(--primary)] font-medium min-w-[120px] whitespace-nowrap">{r.referredUserRank || 'unranked'}</td>
+                      <td className="p-3.5 text-center min-w-[110px] whitespace-nowrap">
+                        <span className="inline-block text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[var(--surface-alt)] text-[var(--primary)] border border-[var(--line)] whitespace-nowrap">
+                          {r.status}
+                        </span>
+                      </td>
+                      <td className="p-3.5 text-right font-mono text-[var(--ink-soft)]/70 min-w-[120px] whitespace-nowrap">
+                        {new Date(r.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>

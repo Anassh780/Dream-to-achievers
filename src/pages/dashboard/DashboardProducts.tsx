@@ -174,6 +174,18 @@ export const DashboardProducts: React.FC = () => {
         </div>
       )}
 
+      {/* Beginner Reseller Education Banner */}
+      <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-[#34D399]/10 via-[#34D399]/5 to-transparent border border-[#34D399]/20 flex items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-[#34D399]/15 border border-[#34D399]/25 flex items-center justify-center text-[#34D399] shrink-0">
+            <Sparkle size={16} weight="fill" />
+          </div>
+          <p className="text-[#F4F7F5] leading-relaxed">
+            <strong className="text-[#34D399]">Zero Inventory Risk:</strong> You don&apos;t purchase stock upfront. Share any product, collect buyer orders, and submit their delivery address. We dispatch nationwide with <strong className="text-[#F4F7F5]">Cash on Delivery (COD)</strong> and credit your profit margin!
+          </p>
+        </div>
+      </div>
+
       {/* 2. Category Filter Pill Strip */}
       <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
         <CategoryPill
@@ -475,20 +487,21 @@ export const DashboardProducts: React.FC = () => {
 
       {/* 5. Record Client Sale Modal */}
       {selectedProduct && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="rounded-2xl bg-[var(--surface)] border border-[var(--line)] p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto space-y-4 shadow-xl animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="rounded-2xl bg-[var(--surface)] border border-[var(--line)] p-4 sm:p-6 max-w-lg w-full max-h-[92vh] overflow-y-auto space-y-4 shadow-xl animate-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
-              <div>
+              <div className="min-w-0 pr-2">
                 <h3 className="font-serif font-medium text-base text-[var(--ink)]">
                   Submit Customer Order &amp; Proof
                 </h3>
-                <p className="text-[11px] font-mono text-[var(--ink-soft)]">
+                <p className="text-[11px] font-mono text-[var(--ink-soft)] truncate">
                   {selectedProduct.name} (SKU: {selectedProduct.sku})
                 </p>
               </div>
               <button
                 onClick={() => setSelectedProduct(null)}
-                className="p-1 rounded-lg text-[var(--ink-soft)] hover:text-[var(--ink)]"
+                className="min-h-[40px] min-w-[40px] p-2 inline-flex items-center justify-center rounded-lg text-[var(--ink-soft)] hover:text-[var(--ink)] cursor-pointer shrink-0"
+                aria-label="Close modal"
               >
                 <X size={18} />
               </button>
@@ -633,16 +646,17 @@ export const DashboardProducts: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-2 flex items-center justify-end space-x-2">
+              <div className="pt-2 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:space-x-2">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setSelectedProduct(null)}
+                  className="min-h-[42px] sm:min-h-0 justify-center"
                 >
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary" size="sm" className="font-medium">
+                <Button type="submit" variant="primary" size="sm" className="font-medium min-h-[42px] sm:min-h-0 justify-center">
                   Submit Order for Verification
                 </Button>
               </div>

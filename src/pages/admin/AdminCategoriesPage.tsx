@@ -264,38 +264,40 @@ export const AdminCategoriesPage: React.FC = () => {
 
               {/* Subcategories Level */}
               {parent.children && parent.children.length > 0 && (
-                <div className="pl-6 ml-5 border-l-2 border-[var(--line)] space-y-2 pt-1">
+                <div className="pl-4 sm:pl-6 ml-3 sm:ml-5 border-l-2 border-[var(--line)] space-y-2 pt-1">
                   {parent.children.map((sub) => (
                     <div
                       key={sub.id}
-                      className="p-3 rounded-xl bg-[var(--surface)] border border-[var(--line)] flex items-center justify-between hover:bg-[var(--surface)] transition-colors"
+                      className="p-3 rounded-xl bg-[var(--surface)] border border-[var(--line)] flex items-center justify-between gap-2.5 hover:bg-[var(--surface)] transition-colors"
                     >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-6 h-6 rounded-md bg-[var(--surface)] border border-[var(--line)] flex items-center justify-center text-[var(--ink-soft)]">
-                          <CategoryIcon name={sub.icon} size={13} />
+                      <div className="flex items-center space-x-3 min-w-0">
+                        <div className="w-7 h-7 rounded-lg bg-[var(--surface-alt)] border border-[var(--line)] flex items-center justify-center text-[var(--ink-soft)] shrink-0">
+                          <CategoryIcon name={sub.icon} size={14} />
                         </div>
-                        <div>
-                          <span className="font-serif font-medium text-[var(--ink)] text-xs block">{sub.name}</span>
-                          <span className="text-[10px] font-mono text-[var(--ink-soft)]">
+                        <div className="min-w-0">
+                          <span className="font-serif font-medium text-[var(--ink)] text-xs block truncate">{sub.name}</span>
+                          <span className="text-[10px] font-mono text-[var(--ink-soft)] block truncate">
                             {sub.productCount || 0} products in sub-collection
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-1.5">
+                      <div className="flex items-center space-x-1 shrink-0">
                         <button
                           onClick={() => handleOpenEdit(sub)}
-                          className="p-1.5 rounded-lg text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--surface)]"
+                          className="min-h-[36px] min-w-[36px] p-2 rounded-lg text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--surface-alt)] inline-flex items-center justify-center transition-colors cursor-pointer"
                           title="Edit Subcategory"
+                          aria-label={`Edit ${sub.name}`}
                         >
-                          <PencilSimple size={13} />
+                          <PencilSimple size={14} />
                         </button>
                         <button
                           onClick={() => handleDelete(sub)}
-                          className="p-1.5 rounded-lg text-[var(--ink-soft)] hover:text-rose-600 hover:bg-rose-500/10"
+                          className="min-h-[36px] min-w-[36px] p-2 rounded-lg text-[var(--ink-soft)] hover:text-rose-600 hover:bg-rose-500/10 inline-flex items-center justify-center transition-colors cursor-pointer"
                           title="Delete Subcategory"
+                          aria-label={`Delete ${sub.name}`}
                         >
-                          <Trash size={13} />
+                          <Trash size={14} />
                         </button>
                       </div>
                     </div>
@@ -396,22 +398,24 @@ export const AdminCategoriesPage: React.FC = () => {
                     value={iconSearch}
                     onChange={(e) => setIconSearch(e.target.value)}
                     placeholder="Search icons..."
-                    className="w-full px-2.5 py-1.5 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-xs focus:outline-none focus:border-[var(--primary)]"
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-[var(--surface-alt)] border border-[var(--line)] text-xs focus:outline-none focus:border-[var(--primary)]"
                   />
-                  <div className="grid grid-cols-6 gap-2 max-h-36 overflow-y-auto pr-1">
+                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-40 overflow-y-auto pr-1">
                     {filteredIcons.map((ic) => (
                       <button
+                        key={ic}
                         type="button"
                         onClick={() => {
                           setFormIcon(ic);
                           setIconPickerOpen(false);
                         }}
-                        className={`p-2 rounded-lg border flex items-center justify-center transition-colors ${
+                        className={`min-h-[40px] p-2 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${
                           formIcon === ic
-                            ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
+                            ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-xs'
                             : 'bg-[var(--surface)] text-[var(--ink)] border-[var(--line)] hover:bg-[var(--surface-alt)]'
                         }`}
                         title={ic}
+                        aria-label={`Select icon ${ic}`}
                       >
                         <CategoryIcon name={ic} size={16} />
                       </button>

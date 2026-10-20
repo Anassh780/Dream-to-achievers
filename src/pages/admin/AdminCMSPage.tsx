@@ -146,7 +146,7 @@ export const AdminCMSPage: React.FC = () => {
             size="sm"
             onClick={handleReset}
             iconLeft={<ArrowCounterClockwise size={13} />}
-            className="w-full"
+            className="w-full min-h-[40px]"
           >
             Reset
           </Button>
@@ -157,7 +157,7 @@ export const AdminCMSPage: React.FC = () => {
             size="sm"
             isLoading={isSubmitting}
             iconLeft={<FloppyDisk size={14} />}
-            className="w-full"
+            className="w-full min-h-[40px]"
           >
             Save All Changes
           </Button>
@@ -197,7 +197,7 @@ export const AdminCMSPage: React.FC = () => {
       <form id="cms-form" onSubmit={handleSave} className="space-y-6 text-xs">
         
         {/* Brand & Corporate Identity Card */}
-        <div className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--line)] space-y-4 shadow-xs">
+        <div className="p-4 sm:p-6 rounded-2xl bg-[var(--surface)] border border-[var(--line)] space-y-4 shadow-xs">
           <h3 className="font-serif font-medium text-base text-[var(--ink)] pb-2 border-b border-[var(--line)]">
             Brand &amp; Legal Entity Identity
           </h3>
@@ -231,7 +231,7 @@ export const AdminCMSPage: React.FC = () => {
         </div>
 
         {/* 7 Official Social Media Handles Card */}
-        <div className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--line)] space-y-4 shadow-xs">
+        <div className="p-4 sm:p-6 rounded-2xl bg-[var(--surface)] border border-[var(--line)] space-y-4 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[var(--line)]">
             <div>
               <h3 className="font-serif font-medium text-base text-[var(--ink)] flex items-center gap-2">
@@ -379,7 +379,7 @@ export const AdminCMSPage: React.FC = () => {
         </div>
 
         {/* Official Email & Support Desk Card */}
-        <div className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--line)] space-y-4 shadow-xs">
+        <div className="p-4 sm:p-6 rounded-2xl bg-[var(--surface)] border border-[var(--line)] space-y-4 shadow-xs">
           <h3 className="font-serif font-medium text-base text-[var(--ink)] pb-2 border-b border-[var(--line)]">
             Official Support Desk &amp; Communications
           </h3>
@@ -430,7 +430,7 @@ export const AdminCMSPage: React.FC = () => {
         </div>
 
         {/* Statutory Disclaimers Card */}
-        <div className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--line)] space-y-4 shadow-xs">
+        <div className="p-4 sm:p-6 rounded-2xl bg-[var(--surface)] border border-[var(--line)] space-y-4 shadow-xs">
           <h3 className="font-serif font-medium text-base text-[var(--ink)] pb-2 border-b border-[var(--line)]">
             Statutory Legal Disclaimers
           </h3>

@@ -322,19 +322,107 @@ export const DashboardSales: React.FC = () => {
           </div>
 
           {sales.length === 0 ? (
-            <div className="p-12 text-center text-[var(--ink-soft)] space-y-2">
-              <Package size={32} className="text-[var(--ink-soft)]/70 mx-auto" />
-              <p className="font-serif font-medium text-base text-[var(--ink)]">No sales recorded yet</p>
-              <p className="text-xs">Browse the wholesale catalog to record your first client purchase.</p>
-              <Link to="/dashboard/products" className="inline-block pt-2">
-                <Button variant="outline" size="sm">
-                  Browse Products
-                </Button>
-              </Link>
+            <div className="p-8 sm:p-12 text-center text-[var(--ink-soft)] space-y-4 max-w-lg mx-auto">
+              <div className="w-14 h-14 rounded-3xl bg-[#34D399]/10 text-[#34D399] flex items-center justify-center mx-auto border border-[#34D399]/25 shadow-[0_0_25px_rgba(52,211,153,0.15)]">
+                <Package size={28} weight="duotone" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-serif font-bold text-lg text-[var(--ink)]">Ready to Make Your First Sale?</h3>
+                <p className="text-xs text-[var(--ink-soft)] leading-relaxed">
+                  You don&apos;t need to hold stock or invest money. Select any product from the catalog, share photos with buyers, and record customer details here.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-left text-xs pt-2">
+                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1">
+                  <span className="text-[10px] font-mono font-bold text-[#34D399]">01. Choose</span>
+                  <p className="text-[11px] text-[#F4F7F5]">Pick a wholesale item with high profit.</p>
+                </div>
+                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1">
+                  <span className="text-[10px] font-mono font-bold text-sky-400">02. Share</span>
+                  <p className="text-[11px] text-[#F4F7F5]">Get customer order via WhatsApp.</p>
+                </div>
+                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1">
+                  <span className="text-[10px] font-mono font-bold text-[#D9C08A]">03. Earn</span>
+                  <p className="text-[11px] text-[#F4F7F5]">We deliver COD; you keep the profit.</p>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <Link to="/dashboard/products">
+                  <Button variant="champagne" size="sm" className="font-semibold text-xs px-5 shadow-md">
+                    Browse Wholesale Catalog
+                  </Button>
+                </Link>
+              </div>
             </div>
           ) : (
-            <div className="overflow-x-auto w-full touch-pan-x overscroll-x-contain">
-              <table className="w-full min-w-[950px] text-left font-sans border-collapse">
+            <>
+              {/* Mobile Responsive Cards for Android / Small Screens */}
+              <div className="sm:hidden divide-y divide-[var(--line)]">
+                {sales.map((sale) => (
+                  <div key={sale.id} className="p-4 space-y-3 hover:bg-[var(--surface-alt)]/40 transition-colors">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-mono text-[var(--ink-soft)]/80 block">Order #{sale.id}</span>
+                        <h4 className="font-serif font-semibold text-sm text-[var(--ink)] truncate mt-0.5">{sale.productName}</h4>
+                        <span className="text-[10px] font-mono text-[var(--ink-soft)] block mt-0.5">
+                          {new Date(sale.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="shrink-0">
+                        {getStatusBadge(sale.status)}
+                      </div>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--line)] space-y-1">
+                      <span className="text-[9.5px] font-mono text-[var(--ink-soft)] block uppercase">Client Information</span>
+                      <p className="font-semibold text-[var(--ink)] text-xs">{sale.customerName}</p>
+                      <div className="flex flex-wrap items-center gap-2 text-[10.5px] font-mono text-[var(--ink-soft)]">
+                        {sale.customerPhone && (
+                          <a
+                            href={`https://wa.me/${sale.customerPhone.replace(/[^0-9]/g, '')}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[#34D399] flex items-center gap-1 hover:underline"
+                          >
+                            <WhatsappLogo size={13} weight="fill" className="shrink-0" />
+                            <span>{sale.customerPhone}</span>
+                          </a>
+                        )}
+                        {sale.customerCity && <span>• {sale.customerCity}</span>}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--surface-alt)]/40 border border-[var(--line)] text-xs font-mono">
+                      <div>
+                        <span className="text-[10px] text-[var(--ink-soft)] block">Quantity</span>
+                        <span className="font-bold text-[var(--ink)]">{sale.quantity} Unit(s)</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-[var(--ink-soft)] block">Profit Margin</span>
+                        <span className="font-bold text-[var(--accent)] text-xs sm:text-sm">
+                          +PKR {(sale.profitMargin * sale.quantity).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedSale(sale)}
+                      iconLeft={<Truck size={14} className="shrink-0" />}
+                      className="w-full min-h-[40px] text-xs font-medium justify-center"
+                    >
+                      Track Shipping &amp; Details
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table View: Hidden on Mobile (<640px) */}
+              <div className="hidden sm:block overflow-x-auto w-full touch-pan-x overscroll-x-contain">
+                <table className="w-full min-w-[950px] text-left font-sans border-collapse">
                 <thead className="border-b border-[var(--line)] text-[var(--ink-soft)] font-mono text-[10px] bg-[var(--surface-alt)]">
                   <tr>
                     <th className="p-3.5 font-medium min-w-[110px] whitespace-nowrap">Order ID</th>
@@ -400,6 +488,7 @@ export const DashboardSales: React.FC = () => {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
       )}
@@ -428,8 +517,74 @@ export const DashboardSales: React.FC = () => {
               </button>
             </div>
           ) : (
-            <div className="overflow-x-auto w-full touch-pan-x overscroll-x-contain">
-              <table className="w-full min-w-[950px] text-left font-sans border-collapse">
+            <>
+              {/* Mobile Responsive Cards for Android / Small Screens */}
+              <div className="sm:hidden divide-y divide-[var(--line)]">
+                {withdrawals.map((w) => (
+                  <div key={w.id} className="p-4 space-y-3 hover:bg-[var(--surface-alt)]/40 transition-colors">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-mono text-[var(--ink-soft)]/80 block">Request #{w.id}</span>
+                        <h4 className="font-serif font-semibold text-sm text-[var(--ink)] truncate mt-0.5">{w.payoutMethod.bankName}</h4>
+                        <span className="text-[10px] font-mono text-[var(--ink-soft)] block mt-0.5">
+                          {new Date(w.requestedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="shrink-0">
+                        <span
+                          className={`inline-block text-[10px] font-mono font-semibold capitalize px-2 py-0.5 rounded border whitespace-nowrap ${
+                            w.status === 'paid'
+                              ? 'bg-[var(--surface-alt)] text-[var(--primary)] border-[var(--line)]'
+                              : w.status === 'approved'
+                              ? 'bg-[var(--surface-alt)] text-[var(--primary)] border-[var(--line)]'
+                              : w.status === 'rejected'
+                              ? 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                              : 'bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/20'
+                          }`}
+                        >
+                          {w.status}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--line)] space-y-1">
+                      <span className="text-[9.5px] font-mono text-[var(--ink-soft)] block uppercase">Payout Destination</span>
+                      <p className="font-semibold text-[var(--ink)] text-xs">{w.payoutMethod.accountTitle}</p>
+                      <p className="text-[10.5px] font-mono text-[var(--ink-soft)]">{w.payoutMethod.accountNumber}</p>
+                    </div>
+
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--surface-alt)]/40 border border-[var(--line)] text-xs font-mono">
+                      <div>
+                        <span className="text-[10px] text-[var(--ink-soft)] block">Requested Amount</span>
+                        <span className="font-bold text-[var(--primary)] text-sm">PKR {w.amount.toLocaleString()}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-[var(--ink-soft)] block">Transfer Status</span>
+                        <span className="text-xs text-[var(--ink)]">{w.transactionReference || w.adminNote || 'Processing'}</span>
+                      </div>
+                    </div>
+
+                    {w.payoutProofUrl && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPreviewSlipUrl(w.payoutProofUrl!);
+                          setPreviewZoom(1);
+                          setPreviewRotation(0);
+                        }}
+                        className="w-full min-h-[40px] px-3 py-2 rounded-xl bg-[var(--surface-alt)] hover:bg-[var(--surface-alt)]/80 border border-[var(--line)] text-[var(--primary)] text-xs font-mono inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <MagnifyingGlassPlus size={14} />
+                        <span>View Official Transfer Receipt</span>
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table View: Hidden on Mobile (<640px) */}
+              <div className="hidden sm:block overflow-x-auto w-full touch-pan-x overscroll-x-contain">
+                <table className="w-full min-w-[950px] text-left font-sans border-collapse">
                 <thead className="border-b border-[var(--line)] text-[var(--ink-soft)] font-mono text-[10px] bg-[var(--surface-alt)]">
                   <tr>
                     <th className="p-3.5 font-medium min-w-[110px] whitespace-nowrap">Request ID</th>
@@ -495,6 +650,7 @@ export const DashboardSales: React.FC = () => {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
       )}

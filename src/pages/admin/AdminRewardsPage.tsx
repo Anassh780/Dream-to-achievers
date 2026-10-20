@@ -246,8 +246,105 @@ export const AdminRewardsPage: React.FC = () => {
               <p className="font-serif font-medium text-base text-[var(--ink)]">No profit withdrawal requests</p>
             </div>
           ) : (
-            <div className="overflow-x-auto w-full touch-pan-x overscroll-x-contain">
-              <table className="w-full min-w-[1000px] text-left font-sans border-collapse">
+            <>
+              {/* Mobile Responsive Cards for Android / Small Screens */}
+              <div className="sm:hidden divide-y divide-[var(--line)]">
+                {withdrawals.map((w) => {
+                  const u = getUser(w.userId);
+                  return (
+                    <div key={w.id} className="p-4 space-y-3 hover:bg-[var(--surface-alt)]/40 transition-colors">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <span className="text-[10px] font-mono text-[var(--ink-soft)]/80 block">Claim #{w.id}</span>
+                          <h4 className="font-serif font-semibold text-sm text-[var(--ink)] truncate mt-0.5">{w.userName || u?.fullName}</h4>
+                          <div className="flex flex-wrap items-center gap-2 text-[10.5px] font-mono text-[var(--ink-soft)] mt-0.5">
+                            {w.userPhone && (
+                              <a
+                                href={`https://wa.me/${w.userPhone.replace(/[^0-9]/g, '')}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[var(--primary-dark)] flex items-center gap-0.5 hover:underline"
+                              >
+                                <WhatsappLogo size={12} weight="fill" className="shrink-0" />
+                                <span>{w.userPhone}</span>
+                              </a>
+                            )}
+                            <span className="truncate">{w.userEmail || u?.email}</span>
+                          </div>
+                        </div>
+                        <div className="shrink-0">
+                          <span
+                            className={`inline-block text-[10px] font-mono font-semibold capitalize px-2 py-0.5 rounded border whitespace-nowrap ${
+                              w.status === 'paid'
+                                ? 'bg-[var(--surface-alt)] text-[var(--primary-dark)] border-[var(--line)]'
+                                : w.status === 'approved'
+                                ? 'bg-[var(--surface-alt)] text-[var(--primary-dark)] border-[var(--line)]'
+                                : w.status === 'rejected'
+                                ? 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                                : 'bg-[var(--surface-alt)] text-[var(--accent)] border-[var(--accent)]/30'
+                            }`}
+                          >
+                            {w.status}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-[var(--surface)] border border-[var(--line)] space-y-1 font-mono text-xs">
+                        <span className="text-[9.5px] text-[var(--ink-soft)] block uppercase">Payout Destination</span>
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold text-[var(--ink)]">{w.payoutMethod.bankName}</span>
+                          {w.payoutMethod.branchCity && <span className="text-[10px] text-[var(--ink-soft)]">{w.payoutMethod.branchCity}</span>}
+                        </div>
+                        <p className="text-[11px] text-[var(--ink-soft)]">Title: {w.payoutMethod.accountTitle}</p>
+                        <p className="text-xs font-bold text-[var(--primary-dark)] select-all">No: {w.payoutMethod.accountNumber}</p>
+                      </div>
+
+                      <div className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--surface-alt)]/40 border border-[var(--line)] text-xs font-mono">
+                        <div>
+                          <span className="text-[10px] text-[var(--ink-soft)] block">Claim Amount</span>
+                          <span className="font-bold text-[var(--primary-dark)] text-sm">PKR {w.amount.toLocaleString()}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] text-[var(--ink-soft)] block">Reference</span>
+                          <span className="text-xs text-[var(--ink)]">{w.transactionReference || w.adminNote || 'Pending'}</span>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        {w.status === 'pending' && (
+                          <button
+                            onClick={() => handleApproveWithdrawal(w)}
+                            className="flex-1 min-h-[38px] px-3 py-1.5 rounded-xl bg-[var(--surface-alt)] text-[var(--primary-dark)] hover:bg-[var(--surface-alt)] border border-[var(--line)] text-xs font-mono font-medium cursor-pointer"
+                          >
+                            Approve
+                          </button>
+                        )}
+                        {(w.status === 'pending' || w.status === 'approved') && (
+                          <button
+                            onClick={() => setSelectedWithdrawal(w)}
+                            className="flex-1 min-h-[38px] px-3 py-1.5 rounded-xl bg-[var(--primary)] text-white hover:bg-[var(--primary-dark)] text-xs font-mono font-medium cursor-pointer shadow-xs"
+                          >
+                            Mark Paid
+                          </button>
+                        )}
+                        {w.status !== 'rejected' && w.status !== 'paid' && (
+                          <button
+                            onClick={() => setRejectingWithdrawal(w)}
+                            className="flex-1 min-h-[38px] px-3 py-1.5 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-500/20 border border-rose-200 text-xs font-mono font-medium cursor-pointer"
+                          >
+                            Reject
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop Table View: Hidden on Mobile (<640px) */}
+              <div className="hidden sm:block overflow-x-auto w-full touch-pan-x overscroll-x-contain">
+                <table className="w-full min-w-[1000px] text-left font-sans border-collapse">
                 <thead className="border-b border-[var(--line)] text-[var(--ink-soft)] font-mono text-[10px] bg-[var(--surface)]">
                   <tr>
                     <th className="p-3.5 font-medium min-w-[100px] whitespace-nowrap">Claim ID</th>
@@ -350,6 +447,7 @@ export const AdminRewardsPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
       )}
@@ -368,8 +466,88 @@ export const AdminRewardsPage: React.FC = () => {
               <p className="font-serif font-medium text-base text-[var(--ink)]">No milestone rewards submitted</p>
             </div>
           ) : (
-            <div className="overflow-x-auto w-full touch-pan-x overscroll-x-contain">
-              <table className="w-full min-w-[1000px] text-left font-sans border-collapse">
+            <>
+              {/* Mobile Responsive Cards for Android / Small Screens */}
+              <div className="sm:hidden divide-y divide-[var(--line)]">
+                {rewards.map((rew) => {
+                  const u = getUser(rew.userId);
+                  return (
+                    <div key={rew.id} className="p-4 space-y-3 hover:bg-[var(--surface-alt)]/40 transition-colors">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <span className="text-[10px] font-mono text-[var(--ink-soft)]/80 block">Claim #{rew.id}</span>
+                          <h4 className="font-serif font-semibold text-sm text-[var(--ink)] truncate mt-0.5">{u?.fullName || rew.userId}</h4>
+                          <span className="text-[10.5px] font-mono text-[var(--ink-soft)] block truncate mt-0.5">{u?.email || ''}</span>
+                        </div>
+                        <div className="shrink-0">
+                          <span
+                            className={`inline-block text-[10px] font-mono font-semibold capitalize px-2 py-0.5 rounded border whitespace-nowrap ${
+                              rew.status === 'paid'
+                                ? 'bg-[var(--surface-alt)] text-[var(--primary-dark)] border-[var(--line)]'
+                                : rew.status === 'pending_review'
+                                ? 'bg-[var(--surface-alt)] text-[var(--accent)] border-[var(--accent)]/30'
+                                : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                            }`}
+                          >
+                            {rew.status.replace('_', ' ')}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="p-2.5 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--line)] space-y-0.5 min-w-0">
+                          <span className="text-[9.5px] font-mono text-[var(--ink-soft)] block uppercase">Rank Milestone</span>
+                          <p className="font-bold text-[var(--ink)] text-xs truncate">{rew.rankName}</p>
+                        </div>
+
+                        <div className="p-2.5 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--line)] space-y-0.5 min-w-0">
+                          <span className="text-[9.5px] font-mono text-[var(--ink-soft)] block uppercase">Cash Bonus</span>
+                          <p className="font-bold text-[var(--accent)] text-xs sm:text-sm font-mono truncate">PKR {rew.amount.toLocaleString()}</p>
+                        </div>
+                      </div>
+
+                      {rew.transactionReference && (
+                        <div className="p-2.5 rounded-xl bg-[var(--surface-alt)]/40 border border-[var(--line)] text-xs font-mono">
+                          <span className="text-[10px] text-[var(--ink-soft)] block">Disbursement Reference</span>
+                          <span className="font-semibold text-[var(--ink)]">{rew.transactionReference}</span>
+                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        {rew.status === 'pending_review' && (
+                          <button
+                            onClick={() => handleApproveReward(rew)}
+                            className="flex-1 min-h-[38px] px-3 py-1.5 rounded-xl bg-[var(--surface-alt)] text-[var(--primary-dark)] hover:bg-[var(--surface-alt)] border border-[var(--line)] text-xs font-mono font-medium cursor-pointer"
+                          >
+                            Approve
+                          </button>
+                        )}
+                        {(rew.status === 'pending_review' || rew.status === 'approved') && (
+                          <button
+                            onClick={() => setSelectedReward(rew)}
+                            className="flex-1 min-h-[38px] px-3 py-1.5 rounded-xl bg-[var(--primary)] text-white hover:bg-[var(--primary-dark)] text-xs font-mono font-medium cursor-pointer shadow-xs"
+                          >
+                            Mark Paid
+                          </button>
+                        )}
+                        {rew.status !== 'rejected' && rew.status !== 'paid' && (
+                          <button
+                            onClick={() => handleRejectReward(rew)}
+                            className="flex-1 min-h-[38px] px-3 py-1.5 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-500/20 border border-rose-200 text-xs font-mono font-medium cursor-pointer"
+                          >
+                            Reject
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop Table View: Hidden on Mobile (<640px) */}
+              <div className="hidden sm:block overflow-x-auto w-full touch-pan-x overscroll-x-contain">
+                <table className="w-full min-w-[1000px] text-left font-sans border-collapse">
                 <thead className="border-b border-[var(--line)] text-[var(--ink-soft)] font-mono text-[10px] bg-[var(--surface)]">
                   <tr>
                     <th className="p-3.5 font-medium min-w-[100px] whitespace-nowrap">Claim ID</th>
@@ -446,6 +624,7 @@ export const AdminRewardsPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
       )}
