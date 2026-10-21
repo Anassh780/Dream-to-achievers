@@ -5,6 +5,7 @@ import { notificationService } from './notificationService';
 import { db, rtdb } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { ref, set } from 'firebase/database';
+import { cleanRecordForCloud } from './cloudSyncService';
 
 export const salesService = {
   /**
@@ -146,15 +147,16 @@ export const salesService = {
     storage.set('SALES', sales);
 
     // Sync to Cloud
+    const cloudSale = cleanRecordForCloud(newSale);
     try {
-      await setDoc(doc(db, 'sales', newSale.id), newSale, { merge: true });
-      await setDoc(doc(db, `users/${userId}/sales`, newSale.id), newSale, { merge: true });
+      await setDoc(doc(db, 'sales', newSale.id), cloudSale, { merge: true });
+      await setDoc(doc(db, `users/${userId}/sales`, newSale.id), cloudSale, { merge: true });
     } catch (err) {
       console.warn('Firestore recordSale sync warning:', err);
     }
     try {
-      await set(ref(rtdb, `sales/${newSale.id}`), newSale);
-      await set(ref(rtdb, `user_sales/${userId}/${newSale.id}`), newSale);
+      await set(ref(rtdb, `sales/${newSale.id}`), cloudSale);
+      await set(ref(rtdb, `user_sales/${userId}/${newSale.id}`), cloudSale);
     } catch (err) {
       console.warn('RTDB recordSale sync warning:', err);
     }
@@ -225,15 +227,16 @@ export const salesService = {
     storage.set('SALES', sales);
 
     // Sync to Cloud
+    const cloudSale = cleanRecordForCloud(sales[idx]);
     try {
-      await setDoc(doc(db, 'sales', saleId), sales[idx], { merge: true });
-      await setDoc(doc(db, `users/${sales[idx].userId}/sales`, saleId), sales[idx], { merge: true });
+      await setDoc(doc(db, 'sales', saleId), cloudSale, { merge: true });
+      await setDoc(doc(db, `users/${sales[idx].userId}/sales`, saleId), cloudSale, { merge: true });
     } catch (err) {
       console.warn('Firestore updateSaleStatus sync warning:', err);
     }
     try {
-      await set(ref(rtdb, `sales/${saleId}`), sales[idx]);
-      await set(ref(rtdb, `user_sales/${sales[idx].userId}/${saleId}`), sales[idx]);
+      await set(ref(rtdb, `sales/${saleId}`), cloudSale);
+      await set(ref(rtdb, `user_sales/${sales[idx].userId}/${saleId}`), cloudSale);
     } catch (err) {
       console.warn('RTDB updateSaleStatus sync warning:', err);
     }

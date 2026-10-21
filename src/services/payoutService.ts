@@ -4,6 +4,7 @@ import { notificationService } from './notificationService';
 import { db, rtdb } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { ref, set } from 'firebase/database';
+import { cleanRecordForCloud } from './cloudSyncService';
 
 export const payoutService = {
   /**
@@ -63,13 +64,14 @@ export const payoutService = {
     storage.set('PAYMENT_METHODS', methods);
 
     // Sync to Cloud
+    const cloudMethod = cleanRecordForCloud(newMethod);
     try {
-      await setDoc(doc(db, `users/${userId}/payment_methods`, newMethod.id), newMethod, { merge: true });
+      await setDoc(doc(db, `users/${userId}/payment_methods`, newMethod.id), cloudMethod, { merge: true });
     } catch (err) {
       console.warn('Firestore payment method sync warning:', err);
     }
     try {
-      await set(ref(rtdb, `user_payment_methods/${userId}/${newMethod.id}`), newMethod);
+      await set(ref(rtdb, `user_payment_methods/${userId}/${newMethod.id}`), cloudMethod);
     } catch (err) {
       console.warn('RTDB payment method sync warning:', err);
     }
@@ -162,15 +164,16 @@ export const payoutService = {
     storage.set('WITHDRAWALS', withdrawals);
 
     // Sync to Cloud
+    const cloudRequest = cleanRecordForCloud(newRequest);
     try {
-      await setDoc(doc(db, 'withdrawals', newRequest.id), newRequest, { merge: true });
-      await setDoc(doc(db, `users/${user.id}/withdrawals`, newRequest.id), newRequest, { merge: true });
+      await setDoc(doc(db, 'withdrawals', newRequest.id), cloudRequest, { merge: true });
+      await setDoc(doc(db, `users/${user.id}/withdrawals`, newRequest.id), cloudRequest, { merge: true });
     } catch (err) {
       console.warn('Firestore withdrawal sync warning:', err);
     }
     try {
-      await set(ref(rtdb, `withdrawals/${newRequest.id}`), newRequest);
-      await set(ref(rtdb, `user_withdrawals/${user.id}/${newRequest.id}`), newRequest);
+      await set(ref(rtdb, `withdrawals/${newRequest.id}`), cloudRequest);
+      await set(ref(rtdb, `user_withdrawals/${user.id}/${newRequest.id}`), cloudRequest);
     } catch (err) {
       console.warn('RTDB withdrawal sync warning:', err);
     }
@@ -224,14 +227,15 @@ export const payoutService = {
     storage.set('WITHDRAWALS', withdrawals);
 
     // Sync to Cloud
+    const cloudWd = cleanRecordForCloud(withdrawals[idx]);
     try {
-      await setDoc(doc(db, 'withdrawals', requestId), withdrawals[idx], { merge: true });
+      await setDoc(doc(db, 'withdrawals', requestId), cloudWd, { merge: true });
     } catch (err) {
       console.warn('Firestore withdrawal status sync warning:', err);
     }
     try {
-      await set(ref(rtdb, `withdrawals/${requestId}`), withdrawals[idx]);
-      await set(ref(rtdb, `user_withdrawals/${withdrawals[idx].userId}/${requestId}`), withdrawals[idx]);
+      await set(ref(rtdb, `withdrawals/${requestId}`), cloudWd);
+      await set(ref(rtdb, `user_withdrawals/${withdrawals[idx].userId}/${requestId}`), cloudWd);
     } catch (err) {
       console.warn('RTDB withdrawal status sync warning:', err);
     }

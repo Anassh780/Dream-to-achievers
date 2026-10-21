@@ -5,9 +5,28 @@ import { ref, set, remove, onValue, get } from 'firebase/database';
 import { storage } from './storage';
 import { getReadNotificationIds, recordNotificationAsRead } from './notificationService';
 import { extractProductImages } from './imageService';
-import type { AppNotification, Category, Product, VideoTutorial } from '@/types';
+import type { AppNotification, Category, Product, VideoTutorial, Sale, WithdrawalRequest, PaymentMethod, Reward } from '@/types';
 
 type CacheKey = Parameters<typeof storage.set>[0];
+
+/**
+ * Universal recursive sanitizer for Realtime Database & Firestore.
+ * Removes `undefined` values and ensures the payload will never crash RTDB.
+ */
+export function cleanRecordForCloud<T>(data: T): T {
+  if (data === null || data === undefined) return null as any;
+  if (typeof data !== 'object') return data;
+  if (Array.isArray(data)) {
+    return data.map((item) => cleanRecordForCloud(item)) as any;
+  }
+  const clean: Record<string, any> = {};
+  for (const [key, val] of Object.entries(data)) {
+    if (val !== undefined) {
+      clean[key] = cleanRecordForCloud(val);
+    }
+  }
+  return clean as T;
+}
 
 class CloudSyncService {
   private isInitialized = false;
@@ -181,22 +200,142 @@ class CloudSyncService {
 
       if (revision !== this.authRevision || auth.currentUser?.uid !== user.uid) return;
 
-      if (isHardcodedAdmin || role === 'admin' || role === 'superadmin') {
-        ['sales', 'users', 'withdrawals', 'rewards', 'notifications', 'audit_logs', 'referrals', 'deleted_products'].forEach((name) =>
-          this.listenCollection(name, name.toUpperCase() as CacheKey, this.privateUnsubscribers));
-        return;
-      }
+      const isSuperAdmin = isHardcodedAdmin || role === 'admin' || role === 'superadmin';
 
       if (userData) {
         storage.set('USERS', [{ id: user.uid, ...userData }]);
       }
-      this.listenQuery(query(collection(db, 'sales'), where('userId', '==', user.uid)), 'sales', 'SALES');
-      this.listenQuery(query(collection(db, 'withdrawals'), where('userId', '==', user.uid)), 'withdrawals', 'WITHDRAWALS');
-      this.listenQuery(query(collection(db, 'rewards'), where('userId', '==', user.uid)), 'rewards', 'REWARDS');
-      this.listenQuery(query(collection(db, 'notifications'), where('userId', '==', user.uid)), 'notifications', 'NOTIFICATIONS');
-      this.listenUserReferrals(user.uid);
+
+      // 1. Dual Realtime Database listeners (Instant, authoritative, cross-device sync)
+      // Listen to user-specific ledgers for every logged-in user/partner
+      this.bindRtdbListener(`user_sales/${user.uid}`, 'SALES', user.uid);
+      this.bindRtdbListener(`user_withdrawals/${user.uid}`, 'WITHDRAWALS', user.uid);
+      this.bindRtdbListener(`user_rewards/${user.uid}`, 'REWARDS', user.uid);
+      this.bindRtdbListener(`user_payment_methods/${user.uid}`, 'PAYMENT_METHODS', user.uid);
+      this.bindRtdbListener(`user_referrals/${user.uid}`, 'REFERRALS', user.uid);
+
+      if (isSuperAdmin) {
+        // In addition, administrators listen to platform-wide nodes across all users
+        this.bindRtdbListener('sales', 'SALES');
+        this.bindRtdbListener('withdrawals', 'WITHDRAWALS');
+        this.bindRtdbListener('rewards', 'REWARDS');
+        this.bindRtdbListener('users', 'USERS');
+        this.bindRtdbListener('referrals', 'REFERRALS');
+      }
+
+      // 2. Automated Two-Way Local Healing (Ensures sales/withdrawals created offline or on mobile sync to cloud)
+      this.reconcileLocalDataToCloud(user.uid, isSuperAdmin);
+
+      // 3. Secondary Cloud Firestore listeners
+      try {
+        if (isSuperAdmin) {
+          ['sales', 'users', 'withdrawals', 'rewards', 'notifications', 'audit_logs', 'referrals', 'deleted_products'].forEach((name) =>
+            this.listenCollection(name, name.toUpperCase() as CacheKey, this.privateUnsubscribers));
+        } else {
+          this.listenQuery(query(collection(db, 'sales'), where('userId', '==', user.uid)), 'sales', 'SALES');
+          this.listenQuery(query(collection(db, 'withdrawals'), where('userId', '==', user.uid)), 'withdrawals', 'WITHDRAWALS');
+          this.listenQuery(query(collection(db, 'rewards'), where('userId', '==', user.uid)), 'rewards', 'REWARDS');
+          this.listenQuery(query(collection(db, 'notifications'), where('userId', '==', user.uid)), 'notifications', 'NOTIFICATIONS');
+          this.listenUserReferrals(user.uid);
+        }
+      } catch (firestoreErr: any) {
+        console.warn('[Firestore] listeners secondary warning:', firestoreErr?.message || firestoreErr);
+      }
     } catch (error: any) {
-      console.warn('[Firestore] could not bind authenticated listeners:', error.code || error.message);
+      console.warn('[CloudSync] could not bind authenticated listeners:', error.code || error.message);
+    }
+  }
+
+  private bindRtdbListener(path: string, cacheKey: CacheKey, userId?: string) {
+    try {
+      const dbRef = ref(rtdb, path);
+      const unsub = onValue(
+        dbRef,
+        (snapshot: any) => {
+          if (snapshot.exists()) {
+            const val = snapshot.val() || {};
+            const items = (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) as any[];
+            if (Array.isArray(items)) {
+              const existing = storage.get<any[]>(cacheKey, []);
+              const map = new Map<string, any>();
+
+              if (userId) {
+                // Keep items from other users, merge items for this user
+                existing.forEach((item) => {
+                  if (item?.id && item?.userId !== userId) {
+                    map.set(item.id, item);
+                  }
+                });
+              } else {
+                existing.forEach((item) => {
+                  if (item?.id) map.set(item.id, item);
+                });
+              }
+
+              items.forEach((item: any) => {
+                if (item?.id) {
+                  map.set(item.id, item);
+                }
+              });
+
+              const merged = Array.from(map.values());
+              storage.set(cacheKey, merged);
+            }
+          }
+        },
+        (error: any) => {
+          console.warn(`[RTDB] ${path} listener warning:`, error?.message || error);
+        }
+      );
+      this.privateUnsubscribers.push(() => unsub());
+    } catch (err) {
+      console.warn(`[RTDB] setup listener failed for ${path}:`, err);
+    }
+  }
+
+  private reconcileLocalDataToCloud(userId: string, isSuperAdmin: boolean) {
+    // 1. Reconcile local sales
+    try {
+      const localSales = storage.get<Sale[]>('SALES', []);
+      for (const s of localSales) {
+        if (s && s.id && (s.userId === userId || isSuperAdmin)) {
+          const cleaned = cleanRecordForCloud(s);
+          const targetUid = s.userId || userId;
+          set(ref(rtdb, `user_sales/${targetUid}/${s.id}`), cleaned).catch(() => {});
+          set(ref(rtdb, `sales/${s.id}`), cleaned).catch(() => {});
+        }
+      }
+    } catch (err) {
+      console.warn('[Reconciliation] sales warning:', err);
+    }
+
+    // 2. Reconcile local withdrawals
+    try {
+      const localWds = storage.get<WithdrawalRequest[]>('WITHDRAWALS', []);
+      for (const w of localWds) {
+        if (w && w.id && (w.userId === userId || isSuperAdmin)) {
+          const cleaned = cleanRecordForCloud(w);
+          const targetUid = w.userId || userId;
+          set(ref(rtdb, `user_withdrawals/${targetUid}/${w.id}`), cleaned).catch(() => {});
+          set(ref(rtdb, `withdrawals/${w.id}`), cleaned).catch(() => {});
+        }
+      }
+    } catch (err) {
+      console.warn('[Reconciliation] withdrawals warning:', err);
+    }
+
+    // 3. Reconcile local payment methods
+    try {
+      const localMethods = storage.get<PaymentMethod[]>('PAYMENT_METHODS', []);
+      for (const pm of localMethods) {
+        if (pm && pm.id && (pm.userId === userId || isSuperAdmin)) {
+          const cleaned = cleanRecordForCloud(pm);
+          const targetUid = pm.userId || userId;
+          set(ref(rtdb, `user_payment_methods/${targetUid}/${pm.id}`), cleaned).catch(() => {});
+        }
+      }
+    } catch (err) {
+      console.warn('[Reconciliation] payment methods warning:', err);
     }
   }
 
@@ -241,8 +380,12 @@ class CloudSyncService {
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
         storage.set(cacheKey, merged);
-      } else {
-        storage.set(cacheKey, docs);
+      } else if (docs.length > 0) {
+        const existing = storage.get<any[]>(cacheKey, []);
+        const map = new Map<string, any>();
+        existing.forEach((item) => { if (item?.id) map.set(item.id, item); });
+        docs.forEach((item: any) => { if (item?.id) map.set(item.id, item); });
+        storage.set(cacheKey, Array.from(map.values()));
       }
     }, (error: any) => console.warn(`[Firestore] ${collectionName} listener failed:`, error.code)));
   }
@@ -281,8 +424,12 @@ class CloudSyncService {
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
         storage.set(cacheKey, merged);
-      } else {
-        storage.set(cacheKey, docs);
+      } else if (docs.length > 0) {
+        const existing = storage.get<any[]>(cacheKey, []);
+        const map = new Map<string, any>();
+        existing.forEach((item) => { if (item?.id) map.set(item.id, item); });
+        docs.forEach((item: any) => { if (item?.id) map.set(item.id, item); });
+        storage.set(cacheKey, Array.from(map.values()));
       }
     }, (error: any) => console.warn(`[Firestore] ${label} listener failed:`, error.code)));
   }
