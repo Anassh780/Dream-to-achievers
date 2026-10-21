@@ -37,12 +37,13 @@ const STORAGE_KEYS = {
   TUTORIALS: 'dta_tutorials',
   FEEDBACKS: 'dta_feedbacks',
   SUPPORT_TICKETS: 'dta_support_tickets',
+  SETTLEMENT_CERTIFICATES: 'dta_settlement_certificates',
 };
 
 const cloudDataKeys = new Set<keyof typeof STORAGE_KEYS>([
   'USERS', 'PRODUCTS', 'CATEGORIES', 'SALES', 'REFERRALS', 'REWARDS',
   'WITHDRAWALS', 'PAYMENT_METHODS', 'RANK_HISTORY', 'NOTIFICATIONS', 'AUDIT_LOGS',
-  'DELETED_PRODUCTS', 'TUTORIALS', 'FEEDBACKS', 'SUPPORT_TICKETS',
+  'DELETED_PRODUCTS', 'TUTORIALS', 'FEEDBACKS', 'SUPPORT_TICKETS', 'SETTLEMENT_CERTIFICATES',
 ]);
 const memoryData = new Map<keyof typeof STORAGE_KEYS, unknown>();
 

@@ -64,6 +64,7 @@ const AdminAuditLogsPage = lazy(() => import('@/pages/admin/AdminAuditLogsPage')
 const AdminCategoriesPage = lazy(() => import('@/pages/admin/AdminCategoriesPage').then((m) => ({ default: m.AdminCategoriesPage })));
 const AdminTutorialsPage = lazy(() => import('@/pages/admin/AdminTutorialsPage').then((m) => ({ default: m.AdminTutorialsPage })));
 const AdminFeedbackPage = lazy(() => import('@/pages/admin/AdminFeedbackPage').then((m) => ({ default: m.AdminFeedbackPage })));
+const AdminSettlementGenerator = lazy(() => import('@/pages/admin/AdminSettlementGenerator').then((m) => ({ default: m.AdminSettlementGenerator })));
 
 // Global Customer Support & Feedback Floating Dock
 import { SupportFeedbackWidget } from '@/components/support/SupportFeedbackWidget';
@@ -168,6 +169,7 @@ export const App: React.FC = () => {
                 <Route path="referrals" element={<DashboardReferrals />} />
                 <Route path="rewards" element={<DashboardRewards />} />
                 <Route path="notifications" element={<DashboardNotifications />} />
+                <Route path="settlements" element={<AdminSettlementGenerator />} />
                 <Route path="profile" element={<DashboardProfile />} />
               </Route>
 
@@ -188,6 +190,7 @@ export const App: React.FC = () => {
                 <Route path="referrals" element={<AdminReferralsPage />} />
                 <Route path="ranks" element={<AdminRanksPage />} />
                 <Route path="rewards" element={<AdminRewardsPage />} />
+                <Route path="settlements" element={<AdminSettlementGenerator />} />
                 <Route path="cms" element={<AdminCMSPage />} />
                 <Route path="tutorials" element={<AdminTutorialsPage />} />
                 <Route path="feedback" element={<AdminFeedbackPage />} />

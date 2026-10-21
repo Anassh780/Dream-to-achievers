@@ -6,7 +6,10 @@ import { notificationService } from '@/services/notificationService';
 import { Reward, WithdrawalRequest, User } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/context/ToastContext';
-import { Gift, HandCoins, X, Check, CheckCircle, Bank, DeviceMobile, WhatsappLogo } from '@phosphor-icons/react';
+import { Gift, HandCoins, X, Check, CheckCircle, Bank, DeviceMobile, WhatsappLogo, Certificate } from '@phosphor-icons/react';
+import { SettlementModal } from '@/components/settlement/SettlementModal';
+import { settlementService } from '@/services/settlementService';
+import { SettlementRecord } from '@/types/settlement';
 
 export const AdminRewardsPage: React.FC = () => {
   const { success: toastSuccess, error: toastError } = useToast();
@@ -26,6 +29,23 @@ export const AdminRewardsPage: React.FC = () => {
   const [withdrawalAdminNote, setWithdrawalAdminNote] = useState('');
   const [withdrawalProofSlip, setWithdrawalProofSlip] = useState<string>('');
   const [actionSuccessMsg, setActionSuccessMsg] = useState('');
+
+  // B2B Settlement Certificate Generator modal state
+  const [certificateRecord, setCertificateRecord] = useState<SettlementRecord | null>(null);
+  const [showCertModal, setShowCertModal] = useState(false);
+
+  const handleOpenWithdrawalCertificate = async (w: WithdrawalRequest) => {
+    const record = await settlementService.createRecordFromWithdrawal(w);
+    setCertificateRecord(record);
+    setShowCertModal(true);
+  };
+
+  const handleOpenRewardCertificate = async (r: Reward) => {
+    const u = getUser(r.userId);
+    const record = await settlementService.createRecordFromReward(r, u?.fullName || 'Distinguished Reseller');
+    setCertificateRecord(record);
+    setShowCertModal(true);
+  };
 
   const refreshData = () => {
     setRewards(storage.get<Reward[]>('REWARDS', []));
@@ -336,6 +356,14 @@ export const AdminRewardsPage: React.FC = () => {
                             Reject
                           </button>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenWithdrawalCertificate(w)}
+                          className="w-full min-h-[38px] px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-cyan-400 border border-cyan-500/30 text-xs font-mono font-medium inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                        >
+                          <Certificate size={15} />
+                          <span>Generate B2B Certificate</span>
+                        </button>
                       </div>
                     </div>
                   );
@@ -439,6 +467,15 @@ export const AdminRewardsPage: React.FC = () => {
                                 Reject
                               </button>
                             )}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenWithdrawalCertificate(w)}
+                              className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyan-400 border border-cyan-500/30 text-[11px] font-mono whitespace-nowrap shrink-0 cursor-pointer inline-flex items-center gap-1 shadow-2xs"
+                              title="Generate Official Settlement Certificate"
+                            >
+                              <Certificate size={13} />
+                              <span>Certificate</span>
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -539,6 +576,14 @@ export const AdminRewardsPage: React.FC = () => {
                             Reject
                           </button>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenRewardCertificate(rew)}
+                          className="w-full min-h-[38px] px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-400 border border-amber-500/30 text-xs font-mono font-medium inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                        >
+                          <Certificate size={15} />
+                          <span>Generate Milestone Certificate</span>
+                        </button>
                       </div>
                     </div>
                   );
@@ -616,6 +661,15 @@ export const AdminRewardsPage: React.FC = () => {
                                 Reject
                               </button>
                             )}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenRewardCertificate(rew)}
+                              className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-400 border border-amber-500/30 text-[11px] font-mono whitespace-nowrap shrink-0 cursor-pointer inline-flex items-center gap-1 shadow-2xs"
+                              title="Generate Official Milestone Certificate"
+                            >
+                              <Certificate size={13} />
+                              <span>Certificate</span>
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -794,6 +848,13 @@ export const AdminRewardsPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* B2B Settlement Certificate Generator Modal */}
+      <SettlementModal
+        isOpen={showCertModal}
+        onClose={() => setShowCertModal(false)}
+        initialRecord={certificateRecord || undefined}
+      />
 
     </div>
   );

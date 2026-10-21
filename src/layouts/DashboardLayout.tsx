@@ -21,6 +21,7 @@ import {
   ArrowSquareOut,
   CaretLeft,
   CaretRight,
+  Certificate,
 } from '@phosphor-icons/react';
 import { referralService } from '@/services/referralService';
 import { badgeTrackerService } from '@/services/badgeTrackerService';
@@ -155,6 +156,7 @@ export const DashboardLayout: React.FC = () => {
       count: unseenReferrals > 0 ? unseenReferrals : undefined,
     },
     { label: 'Rewards', href: '/dashboard/rewards', icon: Gift },
+    { label: 'Settlement Records', href: '/dashboard/settlements', icon: Certificate },
     {
       label: 'Notifications',
       href: '/dashboard/notifications',

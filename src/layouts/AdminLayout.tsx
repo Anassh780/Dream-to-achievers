@@ -38,6 +38,7 @@ import {
   CaretRight,
   VideoCamera,
   Headset,
+  Certificate,
 } from '@phosphor-icons/react';
 import { feedbackService } from '@/services/feedbackService';
 
@@ -226,6 +227,7 @@ export const AdminLayout: React.FC = () => {
           icon: HandCoins,
           badgeCount: unseenAdminPayouts > 0 ? unseenAdminPayouts : undefined,
         },
+        { label: 'B2B Settlements', href: '/admin/settlements', icon: Certificate },
       ],
     },
     {

@@ -24,7 +24,11 @@ import {
   ArrowClockwise,
   DownloadSimple,
   Plus,
+  Certificate,
 } from '@phosphor-icons/react';
+import { SettlementModal } from '@/components/settlement/SettlementModal';
+import { settlementService } from '@/services/settlementService';
+import { SettlementRecord } from '@/types/settlement';
 
 export const DashboardSales: React.FC = () => {
   const { user } = useAuth();
@@ -47,6 +51,16 @@ export const DashboardSales: React.FC = () => {
   const [previewSlipUrl, setPreviewSlipUrl] = useState<string | null>(null);
   const [previewZoom, setPreviewZoom] = useState<number>(1);
   const [previewRotation, setPreviewRotation] = useState<number>(0);
+
+  // B2B Settlement Certificate Modal State
+  const [certificateRecord, setCertificateRecord] = useState<SettlementRecord | null>(null);
+  const [showCertModal, setShowCertModal] = useState(false);
+
+  const handleOpenSettlementCertificate = async (w: WithdrawalRequest) => {
+    const record = await settlementService.createRecordFromWithdrawal(w);
+    setCertificateRecord(record);
+    setShowCertModal(true);
+  };
 
   const handleDownloadSlip = (dataUrl: string, fileName = 'payment_slip.jpg') => {
     try {
@@ -564,20 +578,30 @@ export const DashboardSales: React.FC = () => {
                       </div>
                     </div>
 
-                    {w.payoutProofUrl && (
+                    <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                      {w.payoutProofUrl && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPreviewSlipUrl(w.payoutProofUrl!);
+                            setPreviewZoom(1);
+                            setPreviewRotation(0);
+                          }}
+                          className="flex-1 min-h-[40px] px-3 py-2 rounded-xl bg-[var(--surface-alt)] hover:bg-[var(--surface-alt)]/80 border border-[var(--line)] text-[var(--primary)] text-xs font-mono inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                        >
+                          <MagnifyingGlassPlus size={14} />
+                          <span>View Transfer Slip</span>
+                        </button>
+                      )}
                       <button
                         type="button"
-                        onClick={() => {
-                          setPreviewSlipUrl(w.payoutProofUrl!);
-                          setPreviewZoom(1);
-                          setPreviewRotation(0);
-                        }}
-                        className="w-full min-h-[40px] px-3 py-2 rounded-xl bg-[var(--surface-alt)] hover:bg-[var(--surface-alt)]/80 border border-[var(--line)] text-[var(--primary)] text-xs font-mono inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                        onClick={() => handleOpenSettlementCertificate(w)}
+                        className="flex-1 min-h-[40px] px-3 py-2 rounded-xl bg-gradient-to-r from-slate-900 via-slate-800 to-amber-950/40 hover:from-slate-800 hover:to-amber-900/50 border border-amber-500/30 text-amber-300 text-xs font-mono inline-flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer"
                       >
-                        <MagnifyingGlassPlus size={14} />
-                        <span>View Official Transfer Receipt</span>
+                        <Certificate size={15} weight="duotone" className="text-amber-400" />
+                        <span>Official B2B Certificate</span>
                       </button>
-                    )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -627,20 +651,31 @@ export const DashboardSales: React.FC = () => {
                       </td>
                       <td className="p-3.5 font-mono text-[11px] text-[var(--ink-soft)] min-w-[150px]">
                         <p>{w.transactionReference || w.adminNote || 'Pending manual transfer'}</p>
-                        {w.payoutProofUrl && (
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                          {w.payoutProofUrl && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPreviewSlipUrl(w.payoutProofUrl!);
+                                setPreviewZoom(1);
+                                setPreviewRotation(0);
+                              }}
+                              className="text-[10px] text-[var(--primary)] font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                            >
+                              <MagnifyingGlassPlus size={11} />
+                              <span>View Slip</span>
+                            </button>
+                          )}
                           <button
                             type="button"
-                            onClick={() => {
-                              setPreviewSlipUrl(w.payoutProofUrl!);
-                              setPreviewZoom(1);
-                              setPreviewRotation(0);
-                            }}
-                            className="mt-1 text-[10px] text-[var(--primary)] font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                            onClick={() => handleOpenSettlementCertificate(w)}
+                            className="text-[10px] text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                            title="Generate / Download Official B2B Settlement Certificate"
                           >
-                            <MagnifyingGlassPlus size={11} />
-                            <span>View Payment Slip Receipt</span>
+                            <Certificate size={12} weight="duotone" />
+                            <span>B2B Certificate</span>
                           </button>
-                        )}
+                        </div>
                       </td>
                       <td className="p-3.5 text-right text-[var(--ink-soft)]/70 font-mono">
                         {new Date(w.requestedAt).toLocaleDateString()}
@@ -1083,6 +1118,13 @@ export const DashboardSales: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* B2B Settlement Certificate Generator Modal */}
+      <SettlementModal
+        isOpen={showCertModal}
+        onClose={() => setShowCertModal(false)}
+        initialRecord={certificateRecord || undefined}
+      />
 
     </div>
   );
