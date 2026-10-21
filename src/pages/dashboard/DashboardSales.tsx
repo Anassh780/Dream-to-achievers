@@ -303,27 +303,52 @@ export const DashboardSales: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center space-x-2 border-b border-white/[0.08] pb-2">
+      {/* Tabs & Executive Settlement Generator Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`px-4 py-2 rounded-xl text-xs font-mono font-medium transition-all cursor-pointer ${
+              activeTab === 'orders'
+                ? 'bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/30 font-semibold shadow-[0_0_15px_rgba(52,211,153,0.12)]'
+                : 'text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.04]'
+            }`}
+          >
+            Customer Orders Ledger ({sales.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('withdrawals')}
+            className={`px-4 py-2 rounded-xl text-xs font-mono font-medium transition-all cursor-pointer ${
+              activeTab === 'withdrawals'
+                ? 'bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/30 font-semibold shadow-[0_0_15px_rgba(52,211,153,0.12)]'
+                : 'text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.04]'
+            }`}
+          >
+            Profit Withdrawals ({withdrawals.length})
+          </button>
+        </div>
+
+        {/* Executive Action: B2B Settlement Image & Certificate Generator */}
         <button
-          onClick={() => setActiveTab('orders')}
-          className={`px-4 py-2 rounded-xl text-xs font-mono font-medium transition-all cursor-pointer ${
-            activeTab === 'orders'
-              ? 'bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/30 font-semibold shadow-[0_0_15px_rgba(52,211,153,0.12)]'
-              : 'text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.04]'
-          }`}
+          type="button"
+          onClick={() => {
+            const latestPaid = withdrawals.find((w) => w.status === 'paid') || withdrawals[0];
+            if (latestPaid) {
+              handleOpenSettlementCertificate(latestPaid);
+            } else {
+              const sample = settlementService.createSampleRecord();
+              sample.businessName = user.fullName || 'Partner Reseller';
+              sample.signatoryName = user.fullName || 'Authorized Signatory';
+              sample.amount = availableBalance || totalDeliveredProfit || 5000;
+              sample.cumulativeSettlements = totalWithdrawn || totalDeliveredProfit || 15000;
+              setCertificateRecord(sample);
+              setShowCertModal(true);
+            }
+          }}
+          className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent hover:from-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-mono font-semibold inline-flex items-center gap-2 shadow-xs cursor-pointer transition-all active:scale-[0.98]"
         >
-          Customer Orders Ledger ({sales.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('withdrawals')}
-          className={`px-4 py-2 rounded-xl text-xs font-mono font-medium transition-all cursor-pointer ${
-            activeTab === 'withdrawals'
-              ? 'bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/30 font-semibold shadow-[0_0_15px_rgba(52,211,153,0.12)]'
-              : 'text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.04]'
-          }`}
-        >
-          Profit Withdrawals ({withdrawals.length})
+          <Certificate size={16} weight="duotone" className="text-amber-400 shrink-0" />
+          <span>B2B Settlement Image Generator</span>
         </button>
       </div>
 
