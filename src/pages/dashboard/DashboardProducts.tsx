@@ -27,11 +27,14 @@ import {
   SquaresFour,
   Truck,
   Images,
+  Eye,
 } from '@phosphor-icons/react';
+import { ProductInspectionModal } from '@/components/products/ProductInspectionModal';
 
 export const DashboardProducts: React.FC = () => {
   const { user } = useAuth();
   const [syncKey, setSyncKey] = useState(0);
+  const [inspectingProduct, setInspectingProduct] = useState<Product | null>(null);
 
   React.useEffect(() => {
     const handleSync = () => setSyncKey((prev) => prev + 1);
@@ -285,8 +288,19 @@ export const DashboardProducts: React.FC = () => {
                 key={p.id}
                 className="funding-card overflow-hidden flex flex-col justify-between hover:border-[#34D399]/40 hover:shadow-[0_20px_45px_-15px_rgba(52,211,153,0.15)] transition-all group"
               >
-                <div>
-                  <div className="aspect-[4/3] bg-[#070B09] relative overflow-hidden border-b border-white/[0.08]">
+                <div
+                  onClick={() => setInspectingProduct(p)}
+                  className="cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setInspectingProduct(p);
+                    }
+                  }}
+                >
+                  <div className="aspect-[4/3] bg-[#070B09] relative overflow-hidden border-b border-white/[0.08] group/img">
                     <img
                       src={coverSrc}
                       alt=""
@@ -314,6 +328,14 @@ export const DashboardProducts: React.FC = () => {
                       <Images size={11} className="text-[#D9C08A]" />
                       {count} {count === 1 ? 'Photo' : 'Photos'}
                     </span>
+
+                    {/* Pro Inspection Studio Hover / Tap Pill */}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none z-20">
+                      <span className="px-3 py-1.5 rounded-xl bg-black/80 backdrop-blur-md text-white border border-[#34D399]/40 text-xs font-mono font-bold flex items-center gap-1.5 shadow-lg">
+                        <Eye size={14} className="text-[#34D399]" />
+                        Inspect Wholesale Studio
+                      </span>
+                    </div>
                   </div>
 
                   <div className="p-5 space-y-2">
@@ -334,7 +356,7 @@ export const DashboardProducts: React.FC = () => {
                       </div>
                     )}
 
-                    <h3 className="font-serif font-bold text-[15px] text-[#F4F7F5] line-clamp-1">
+                    <h3 className="font-serif font-bold text-[15px] text-[#F4F7F5] line-clamp-1 group-hover:text-[#34D399] transition-colors">
                       {p.name}
                     </h3>
                     <p className="text-xs text-[#9EABA2] line-clamp-2 leading-relaxed">
@@ -361,20 +383,31 @@ export const DashboardProducts: React.FC = () => {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() =>
-                      setSelectedProduct({
-                        ...p,
-                        retailPrice: econ.retailPrice,
-                        partnerPrice: econ.partnerPrice,
-                        grossMargin: econ.grossMargin,
-                      })
-                    }
-                    className="funding-sheen-btn w-full justify-center text-xs font-bold uppercase tracking-wider py-2.5 min-h-[44px] shadow-md inline-flex items-center gap-1.5 cursor-pointer active:scale-[0.98] transition-all"
-                  >
-                    <ShoppingCart size={15} weight="bold" />
-                    <span>Record Client Sale &amp; Keep Profit</span>
-                  </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setInspectingProduct(p)}
+                      className="min-h-[44px] px-3 py-2 rounded-xl text-xs font-mono font-semibold text-[#9EABA2] hover:text-[#F4F7F5] bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                    >
+                      <Eye size={15} />
+                      <span>Inspect Specs</span>
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        setSelectedProduct({
+                          ...p,
+                          retailPrice: econ.retailPrice,
+                          partnerPrice: econ.partnerPrice,
+                          grossMargin: econ.grossMargin,
+                        })
+                      }
+                      className="funding-sheen-btn justify-center text-xs font-bold uppercase tracking-wider py-2 min-h-[44px] shadow-md inline-flex items-center gap-1.5 cursor-pointer active:scale-[0.98] transition-all"
+                    >
+                      <ShoppingCart size={15} weight="bold" />
+                      <span>Record Sale</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -407,13 +440,18 @@ export const DashboardProducts: React.FC = () => {
                 return (
                   <tr key={p.id} className="hover:bg-[var(--surface-alt)]/60 transition-colors">
                     <td className="p-3.5 min-w-[220px]">
-                      <div className="flex items-center space-x-3">
+                      <div
+                        onClick={() => setInspectingProduct(p)}
+                        className="flex items-center space-x-3 cursor-pointer group/row"
+                        role="button"
+                        tabIndex={0}
+                      >
                         <div className="relative w-9 h-9 shrink-0">
                           <img
                             src={coverSrc}
                             alt={p.name}
                             referrerPolicy="no-referrer"
-                            className="w-full h-full rounded-lg object-cover bg-[var(--surface)] border border-[var(--line)]"
+                            className="w-full h-full rounded-lg object-cover bg-[var(--surface)] border border-[var(--line)] group-hover/row:scale-105 transition-transform"
                             onError={(e) => {
                               e.currentTarget.src = DEFAULT_PRODUCT_FALLBACK_IMAGE;
                             }}
@@ -425,7 +463,7 @@ export const DashboardProducts: React.FC = () => {
                             </span>
                           )}
                         </div>
-                        <span className="font-serif font-medium text-[var(--ink)] truncate max-w-[180px]" title={p.name}>
+                        <span className="font-serif font-medium text-[var(--ink)] truncate max-w-[180px] group-hover/row:text-[#34D399] transition-colors" title={p.name}>
                           {p.name}
                         </span>
                       </div>
@@ -460,22 +498,33 @@ export const DashboardProducts: React.FC = () => {
                     <td className="p-3.5 text-right font-mono text-[var(--accent)] font-bold whitespace-nowrap min-w-[110px]">
                       +PKR {econ.grossMargin.toLocaleString()}
                     </td>
-                    <td className="p-3.5 text-center whitespace-nowrap min-w-[120px]">
-                      <Button
-                        onClick={() =>
-                          setSelectedProduct({
-                            ...p,
-                            retailPrice: econ.retailPrice,
-                            partnerPrice: econ.partnerPrice,
-                            grossMargin: econ.grossMargin,
-                          })
-                        }
-                        variant="outline"
-                        size="sm"
-                        className="text-xs px-3 py-1 hover:bg-[var(--surface-alt)] whitespace-nowrap shrink-0"
-                      >
-                        Record Sale
-                      </Button>
+                    <td className="p-3.5 text-center whitespace-nowrap min-w-[150px]">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setInspectingProduct(p)}
+                          className="px-2.5 py-1 min-h-[32px] rounded-lg text-xs font-mono text-[#9EABA2] hover:text-[#F4F7F5] bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 transition-colors inline-flex items-center gap-1 cursor-pointer active:scale-95"
+                          title="Inspect Product Studio"
+                        >
+                          <Eye size={13} />
+                          <span>Inspect</span>
+                        </button>
+                        <Button
+                          onClick={() =>
+                            setSelectedProduct({
+                              ...p,
+                              retailPrice: econ.retailPrice,
+                              partnerPrice: econ.partnerPrice,
+                              grossMargin: econ.grossMargin,
+                            })
+                          }
+                          variant="outline"
+                          size="sm"
+                          className="text-xs px-2.5 py-1 hover:bg-[var(--surface-alt)] whitespace-nowrap shrink-0"
+                        >
+                          Record Sale
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -734,6 +783,23 @@ export const DashboardProducts: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Product Inspection Studio Modal */}
+      <ProductInspectionModal
+        product={inspectingProduct}
+        isOpen={Boolean(inspectingProduct)}
+        onClose={() => setInspectingProduct(null)}
+        onRecordSale={(prod) => {
+          const econ = getProductEconomics(prod);
+          setInspectingProduct(null);
+          setSelectedProduct({
+            ...prod,
+            retailPrice: econ.retailPrice,
+            partnerPrice: econ.partnerPrice,
+            grossMargin: econ.grossMargin,
+          });
+        }}
+      />
 
     </div>
   );

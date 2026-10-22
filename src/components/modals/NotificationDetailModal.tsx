@@ -22,7 +22,9 @@ import {
   Tag,
   CircleNotch,
   Trash,
+  EnvelopeSimple,
 } from '@phosphor-icons/react';
+import { EmailNotificationModal } from '@/components/modals/EmailNotificationModal';
 
 interface NotificationDetailModalProps {
   notification: AppNotification | null;
@@ -30,6 +32,7 @@ interface NotificationDetailModalProps {
   onClose: () => void;
   onToggleRead?: (id: string, currentlyRead: boolean) => void;
   onDelete?: (id: string) => void;
+  onSendEmail?: (notification: AppNotification) => void;
 }
 
 export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = ({
@@ -38,9 +41,11 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
   onClose,
   onToggleRead,
   onDelete,
+  onSendEmail,
 }) => {
   const navigate = useNavigate();
   const [copiedId, setCopiedId] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
   // Close on Escape key press
   useEffect(() => {
@@ -340,7 +345,23 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
 
         {/* Modal Action Footer */}
         <div className="relative z-10 px-4 sm:px-6 py-3.5 sm:py-4 bg-[#070B09]/95 border-t border-white/[0.08] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
-          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (onSendEmail) {
+                  onSendEmail(notification);
+                } else {
+                  setIsEmailModalOpen(true);
+                }
+              }}
+              className="min-h-[42px] px-3.5 py-2 rounded-xl text-xs font-mono font-medium text-[#D9C08A] hover:text-[#070B09] bg-[#D9C08A]/10 hover:bg-[#D9C08A] border border-[#D9C08A]/30 transition-all cursor-pointer inline-flex items-center justify-center gap-1.5 active:scale-95 shadow-xs"
+              title="Send Luxury Email Notification"
+            >
+              <EnvelopeSimple size={15} weight="bold" />
+              <span>Email Receipt</span>
+            </button>
+
             {onToggleRead && (
               <button
                 type="button"
@@ -398,6 +419,13 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
           </div>
         </div>
       </div>
+
+      {/* Embedded Luxury Email Dispatch Studio */}
+      <EmailNotificationModal
+        notification={notification}
+        isOpen={isEmailModalOpen}
+        onClose={() => setIsEmailModalOpen(false)}
+      />
     </div>
   );
 };

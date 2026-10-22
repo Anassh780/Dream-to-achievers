@@ -26,7 +26,10 @@ import {
   Trash,
   MagnifyingGlass,
   ArrowsClockwise,
+  EnvelopeSimple,
+  Broom,
 } from '@phosphor-icons/react';
+import { EmailNotificationModal } from '@/components/modals/EmailNotificationModal';
 
 export const DashboardNotifications: React.FC = () => {
   const { user, refreshUserData } = useAuth();
@@ -39,6 +42,8 @@ export const DashboardNotifications: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedNotif, setSelectedNotif] = useState<AppNotification | null>(null);
+  const [emailModalNotif, setEmailModalNotif] = useState<AppNotification | null>(null);
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   const [isSyncing, setIsSyncing] = useState(false);
 
   // Push Permission State
@@ -106,11 +111,22 @@ export const DashboardNotifications: React.FC = () => {
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    await notificationService.deleteNotification(id, user?.id);
-    refreshList();
-    if (selectedNotif && selectedNotif.id === id) {
-      setSelectedNotif(null);
-    }
+    // 1. Trigger animated vanishing slide-out & scale down
+    setDeletingIds((prev) => new Set(prev).add(id));
+
+    // 2. Wait 300ms for animation to vanish, then permanently purge from records
+    setTimeout(async () => {
+      await notificationService.deleteNotification(id, user?.id);
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      refreshList();
+      if (selectedNotif && selectedNotif.id === id) {
+        setSelectedNotif(null);
+      }
+    }, 320);
   };
 
   const handleMarkAllRead = async () => {
@@ -121,8 +137,35 @@ export const DashboardNotifications: React.FC = () => {
 
   const handleDeleteRead = async () => {
     if (!user) return;
-    await notificationService.deleteReadNotifications(user.id);
-    refreshList();
+    const readIds = notifications.filter((n) => n.isRead).map((n) => n.id);
+    if (readIds.length === 0) return;
+
+    setDeletingIds((prev) => {
+      const next = new Set(prev);
+      readIds.forEach((id) => next.add(id));
+      return next;
+    });
+
+    setTimeout(async () => {
+      await notificationService.deleteReadNotifications(user.id);
+      setDeletingIds(new Set());
+      refreshList();
+    }, 320);
+  };
+
+  const handleClearAll = async () => {
+    if (!user || notifications.length === 0) return;
+    const allIds = notifications.map((n) => n.id);
+
+    // Vanish all notifications with smooth collective slide-out
+    setDeletingIds(new Set(allIds));
+
+    setTimeout(async () => {
+      await notificationService.clearAllNotifications(user.id);
+      setDeletingIds(new Set());
+      refreshList();
+      if (selectedNotif) setSelectedNotif(null);
+    }, 320);
   };
 
   const handleOpenNotification = (notif: AppNotification) => {
@@ -337,6 +380,18 @@ export const DashboardNotifications: React.FC = () => {
               Clear Read ({readCount})
             </Button>
           )}
+
+          {notifications.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClearAll}
+              className="text-xs font-medium text-rose-400 hover:text-white hover:bg-rose-600 hover:border-rose-600 transition-all"
+              iconLeft={<Broom size={14} weight="bold" />}
+            >
+              Clear All ({notifications.length})
+            </Button>
+          )}
         </div>
       </div>
 
@@ -434,12 +489,17 @@ export const DashboardNotifications: React.FC = () => {
           filteredNotifications.map((notif) => {
             const action = getNotificationAction(notif);
             const borderAccent = getNotifBorderAccent(notif.type);
+            const isDeleting = deletingIds.has(notif.id);
 
             return (
               <div
                 key={notif.id}
                 onClick={() => handleOpenNotification(notif)}
-                className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 cursor-pointer group ${borderAccent} ${
+                className={`rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 cursor-pointer group transition-all duration-300 ease-out ${
+                  isDeleting
+                    ? 'opacity-0 -translate-x-full scale-95 max-h-0 py-0 my-0 overflow-hidden pointer-events-none'
+                    : 'max-h-[350px] p-3.5 sm:p-4 opacity-100 translate-x-0 scale-100'
+                } ${borderAccent} ${
                   !notif.isRead
                     ? 'bg-[var(--surface)] border-[var(--primary)]/40 shadow-xs ring-1 ring-[var(--primary)]/20 hover:border-[var(--primary)]'
                     : 'bg-[var(--surface)]/90 border-[var(--line)] hover:bg-[var(--surface-alt)]'
@@ -535,6 +595,19 @@ export const DashboardNotifications: React.FC = () => {
                     )}
 
                     <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEmailModalNotif(notif);
+                      }}
+                      className="min-h-[40px] min-w-[40px] p-2 rounded-xl text-[var(--ink-soft)] hover:text-[#D9C08A] hover:bg-[#D9C08A]/10 transition-colors cursor-pointer inline-flex items-center justify-center active:scale-95"
+                      title="Send Luxury Email Receipt"
+                      aria-label="Send Luxury Email Receipt"
+                    >
+                      <EnvelopeSimple size={16} weight="bold" />
+                    </button>
+
+                    <button
                       onClick={(e) => handleDelete(e, notif.id)}
                       className="min-h-[40px] min-w-[40px] p-2 rounded-xl text-[var(--ink-soft)] hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer inline-flex items-center justify-center active:scale-95"
                       title="Delete notification"
@@ -560,6 +633,7 @@ export const DashboardNotifications: React.FC = () => {
         notification={selectedNotif}
         isOpen={Boolean(selectedNotif)}
         onClose={() => setSelectedNotif(null)}
+        onSendEmail={(notif) => setEmailModalNotif(notif)}
         onToggleRead={async (id, currentlyRead) => {
           if (currentlyRead) {
             await notificationService.markAsUnread(id);
@@ -580,6 +654,15 @@ export const DashboardNotifications: React.FC = () => {
           refreshList();
           setSelectedNotif(null);
         }}
+      />
+
+      {/* 7. Luxury High-Visual Email Dispatch Studio Modal */}
+      <EmailNotificationModal
+        notification={emailModalNotif}
+        isOpen={Boolean(emailModalNotif)}
+        onClose={() => setEmailModalNotif(null)}
+        defaultEmail={user?.email}
+        defaultName={user?.fullName}
       />
 
     </div>

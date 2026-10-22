@@ -17,6 +17,7 @@ import {
   Sparkle,
   ArrowSquareOut,
   SlidersHorizontal,
+  Trash,
 } from '@phosphor-icons/react';
 
 interface NotificationQuickPopoverProps {
@@ -42,6 +43,7 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
     userId ? notificationService.getUserNotifications(userId) : []
   );
   const [filter, setFilter] = useState<'all' | 'unread' | 'sales' | 'rewards' | 'team'>('all');
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 
   const refreshList = () => {
     if (!userId) return;
@@ -106,6 +108,21 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
     e.stopPropagation();
     await notificationService.markAsRead(notifId);
     refreshList();
+  };
+
+  const handleDeleteItem = async (e: React.MouseEvent, notifId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDeletingIds((prev) => new Set(prev).add(notifId));
+    setTimeout(async () => {
+      await notificationService.deleteNotification(notifId, userId);
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(notifId);
+        return next;
+      });
+      refreshList();
+    }, 300);
   };
 
   const formatTimeAgo = (dateStr?: string) => {
@@ -333,6 +350,7 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
               const details = getNotifDetails(notif.type);
               const IconComp = details.icon;
               const action = getNotifAction(notif);
+              const isDeleting = deletingIds.has(notif.id);
 
               return (
                 <div
@@ -345,7 +363,11 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
                     onSelectNotification(notif);
                     onClose();
                   }}
-                  className={`p-3.5 rounded-2xl border transition-all flex flex-col gap-2.5 cursor-pointer group active:scale-[0.99] ${
+                  className={`border flex flex-col gap-2.5 cursor-pointer group active:scale-[0.99] transition-all duration-300 ease-out ${
+                    isDeleting
+                      ? 'opacity-0 -translate-x-full scale-95 max-h-0 py-0 my-0 overflow-hidden pointer-events-none'
+                      : 'max-h-[300px] p-3.5 opacity-100 translate-x-0 scale-100 rounded-2xl'
+                  } ${
                     !notif.isRead
                       ? 'bg-gradient-to-r from-emerald-950/30 via-white/[0.03] to-transparent border-l-4 border-l-[#34D399] border-y-white/10 border-r-white/10 shadow-xs'
                       : 'bg-white/[0.015] border-white/[0.06] hover:bg-white/[0.04] hover:border-white/10'
@@ -419,6 +441,16 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
                     ) : (
                       <span className="text-[10px] font-mono text-[#9EABA2]/50">Read</span>
                     )}
+
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteItem(e, notif.id)}
+                      className="min-h-[34px] min-w-[34px] px-2 rounded-lg text-[#9EABA2] hover:text-rose-400 hover:bg-rose-500/15 transition-all flex items-center justify-center cursor-pointer"
+                      title="Clear & delete notification"
+                      aria-label="Delete notification"
+                    >
+                      <Trash size={13} />
+                    </button>
                   </div>
                 </div>
               );

@@ -456,6 +456,49 @@ export const notificationService = {
   },
 
   /**
+   * Clears and permanently purges all notifications for a specific user across
+   * local cache, persistent read registries, Cloud Firestore, and Realtime Database.
+   */
+  async clearAllNotifications(userId: string): Promise<void> {
+    if (!userId) return;
+    const notifs = storage.get<AppNotification[]>('NOTIFICATIONS', []);
+    const toDelete: string[] = [];
+
+    const remaining = notifs.filter((n) => {
+      if (n.userId === userId || n.userId === 'all') {
+        toDelete.push(n.id);
+        removeDeletedNotificationId(n.id);
+        return false;
+      }
+      return true;
+    });
+
+    storage.set('NOTIFICATIONS', remaining);
+    storage.broadcastBadgeUpdate();
+
+    // Permanently purge from Cloud Firestore & RTDB
+    toDelete.forEach(async (id) => {
+      try {
+        await deleteDoc(doc(db, 'notifications', id));
+      } catch {}
+      try {
+        await deleteDoc(doc(db, `users/${userId}/notifications`, id));
+      } catch {}
+      try {
+        await remove(ref(rtdb, `notifications/${id}`));
+      } catch {}
+      try {
+        await remove(ref(rtdb, `user_notifications/${userId}/${id}`));
+      } catch {}
+    });
+
+    // Also clear whole user RTDB subnode if applicable
+    try {
+      await remove(ref(rtdb, `user_notifications/${userId}`));
+    } catch {}
+  },
+
+  /**
    * Marks all notifications for a specific user as read across local, Firestore, and RTDB.
    */
   async markAllAsRead(userId: string): Promise<void> {
