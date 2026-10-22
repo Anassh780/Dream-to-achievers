@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import { SettlementRecord, SettlementTemplateType } from '@/types/settlement';
 import { SettlementCanvas } from '@/components/settlement/SettlementCanvas';
 import { SettlementForm } from '@/components/settlement/SettlementForm';
@@ -21,6 +23,13 @@ import {
 } from 'lucide-react';
 
 export const AdminSettlementGenerator: React.FC = () => {
+  const { user } = useAuth();
+
+  // Strict Admin-Only Guard: Resellers cannot access this studio
+  if (user && user.role !== 'admin') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   const [record, setRecord] = useState<SettlementRecord>(() =>
     settlementService.createSampleRecord()
   );

@@ -2,6 +2,7 @@ import React from 'react';
 import { SettlementRecord, formatSettlementAmount } from '@/types/settlement';
 import { Zap, ShieldCheck, Check, Building2, QrCode, ArrowUpRight, Cpu } from 'lucide-react';
 import { RealQrCode } from '@/components/common/RealQrCode';
+import { resolveSettlementBackground } from '@/utils/settlementThemeHelper';
 
 interface TemplateProps {
   record: SettlementRecord;
@@ -12,18 +13,25 @@ export const DigitalModernTemplate: React.FC<TemplateProps> = ({ record }) => {
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://dream-to-achievers.vercel.app';
   const verifyUrl = `${origin}/dashboard/sales?certificate=${encodeURIComponent(record.id)}&partner=${encodeURIComponent(record.partnerId || '')}`;
 
+  const defaultBg = `
+    radial-gradient(circle at 0% 0%, rgba(6, 182, 212, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(52, 211, 153, 0.08) 0%, transparent 50%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
+  `;
+  const bgStyles = resolveSettlementBackground(record, defaultBg);
+
+  const primaryColor = record.primaryTextColor || '#F8FAFC';
+  const amountColor = record.amountTextColor || undefined;
+
   return (
     <div
       id="settlement-certificate-canvas"
-      className="relative w-[1200px] h-[750px] bg-[#090D16] text-[#F8FAFC] font-sans p-12 flex flex-col justify-between overflow-hidden select-none border border-cyan-500/30 shadow-2xl"
+      className="relative w-[1200px] h-[750px] bg-[#090D16] font-sans p-12 flex flex-col justify-between overflow-hidden select-none border border-cyan-500/30 shadow-2xl"
       style={{
-        backgroundImage: `
-          radial-gradient(circle at 0% 0%, rgba(6, 182, 212, 0.1) 0%, transparent 50%),
-          radial-gradient(circle at 100% 100%, rgba(52, 211, 153, 0.08) 0%, transparent 50%),
-          linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
-        `,
-        backgroundSize: '100% 100%, 100% 100%, 24px 24px, 24px 24px',
+        ...bgStyles,
+        fontFamily: record.customFontFamily || undefined,
+        color: primaryColor,
       }}
     >
       {/* High-Tech Framing Elements & Subtle Neon Grid Lines */}

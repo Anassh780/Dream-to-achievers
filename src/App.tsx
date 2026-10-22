@@ -169,7 +169,7 @@ export const App: React.FC = () => {
                 <Route path="referrals" element={<DashboardReferrals />} />
                 <Route path="rewards" element={<DashboardRewards />} />
                 <Route path="notifications" element={<DashboardNotifications />} />
-                <Route path="settlements" element={<AdminSettlementGenerator />} />
+                <Route path="settlements" element={<Navigate to="/dashboard/sales" replace />} />
                 <Route path="profile" element={<DashboardProfile />} />
               </Route>
 

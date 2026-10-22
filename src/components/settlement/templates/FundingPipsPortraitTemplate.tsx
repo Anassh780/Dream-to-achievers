@@ -2,6 +2,7 @@ import React from 'react';
 import { SettlementRecord, formatSettlementAmount } from '@/types/settlement';
 import { Package, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { RealQrCode } from '@/components/common/RealQrCode';
+import { resolveSettlementBackground } from '@/utils/settlementThemeHelper';
 
 interface TemplateProps {
   record: SettlementRecord;
@@ -18,6 +19,17 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://dream-to-achievers.vercel.app';
   const verifyUrl = `${origin}/dashboard/sales?certificate=${encodeURIComponent(record.id)}&partner=${encodeURIComponent(record.partnerId || '')}`;
 
+  // Default gradient
+  const defaultBg = isEmerald
+    ? `radial-gradient(circle at 100% 75%, rgba(52, 211, 153, 0.95) 0%, rgba(16, 185, 129, 0.92) 35%, rgba(5, 150, 105, 0.85) 65%, transparent 85%),
+       radial-gradient(circle at 20% 90%, rgba(110, 231, 183, 0.7) 0%, transparent 50%),
+       linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 40%, #DCFCE7 100%)`
+    : `radial-gradient(circle at 100% 70%, rgba(56, 189, 248, 0.95) 0%, rgba(37, 99, 235, 0.92) 40%, rgba(29, 78, 216, 0.85) 75%, transparent 90%),
+       radial-gradient(circle at 15% 90%, rgba(147, 197, 253, 0.6) 0%, transparent 50%),
+       linear-gradient(180deg, #FFFFFF 0%, #F0F7FF 38%, #DBEAFE 100%)`;
+
+  const bgStyles = resolveSettlementBackground(record, defaultBg);
+
   // Format date like "OCT 19, 2026"
   const formattedDate = (() => {
     try {
@@ -28,22 +40,19 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
     }
   })();
 
+  const primaryColor = record.primaryTextColor || '#0B1536';
+  const honoreeColor = record.honoreeTextColor || primaryColor;
+  const amountColor = record.amountTextColor || primaryColor;
+  const secondaryColor = record.secondaryTextColor || 'rgba(11, 21, 54, 0.7)';
+
   return (
     <div
       id="settlement-certificate-canvas"
-      className="relative w-[600px] h-[840px] text-[#0B1536] font-sans p-10 flex flex-col justify-between overflow-hidden select-none bg-white rounded-3xl shadow-2xl border border-slate-200/80"
+      className="relative w-[600px] h-[840px] font-sans p-10 flex flex-col justify-between overflow-hidden select-none bg-white rounded-3xl shadow-2xl border border-slate-200/80"
       style={{
-        background: isEmerald
-          ? `
-            radial-gradient(circle at 100% 75%, rgba(52, 211, 153, 0.95) 0%, rgba(16, 185, 129, 0.92) 35%, rgba(5, 150, 105, 0.85) 65%, transparent 85%),
-            radial-gradient(circle at 20% 90%, rgba(110, 231, 183, 0.7) 0%, transparent 50%),
-            linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 40%, #DCFCE7 100%)
-          `
-          : `
-            radial-gradient(circle at 100% 70%, rgba(56, 189, 248, 0.95) 0%, rgba(37, 99, 235, 0.92) 40%, rgba(29, 78, 216, 0.85) 75%, transparent 90%),
-            radial-gradient(circle at 15% 90%, rgba(147, 197, 253, 0.6) 0%, transparent 50%),
-            linear-gradient(180deg, #FFFFFF 0%, #F0F7FF 38%, #DBEAFE 100%)
-          `,
+        ...bgStyles,
+        fontFamily: record.customFontFamily || undefined,
+        color: primaryColor,
       }}
     >
       {/* 3D Perspective Cyber Grid Overlay across lower gradient field */}
@@ -84,41 +93,47 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
             />
           </div>
           <div className="flex items-center">
-            <span className="font-sans font-black text-xl text-[#0B1536] tracking-tight">
+            <span className="font-sans font-black text-xl tracking-tight" style={{ color: primaryColor }}>
               Dream to Achievers
             </span>
-            <span className="text-[10px] font-black text-[#0B1536] align-super ml-0.5">®</span>
+            <span className="text-[10px] font-black align-super ml-0.5" style={{ color: primaryColor }}>®</span>
           </div>
         </div>
 
         {/* Right: Subtitle */}
-        <div className="text-xs font-sans font-semibold text-slate-400/90 tracking-wide">
+        <div className="text-xs font-sans font-semibold tracking-wide" style={{ color: secondaryColor }}>
           Certification of achievement
         </div>
       </div>
 
       {/* 2. HERO SECTION: Congratulations & Giant Phase/Payout Header */}
       <div className="relative z-10 mt-6 space-y-1">
-        <div className="font-sans font-extrabold text-sm uppercase tracking-[0.22em] text-[#0B1536]">
+        <div className="font-sans font-extrabold text-sm uppercase tracking-[0.22em]" style={{ color: record.accentColor || primaryColor }}>
           CONGRATULATIONS
         </div>
 
         <div className="flex items-end justify-between gap-3 pt-1">
-          {/* Giant Impact Words - adjusted sizing to guarantee zero clipping */}
-          <div className="font-sans font-black text-[50px] leading-[0.92] tracking-tight text-[#0B1536] max-w-[360px]">
+          {/* Giant Impact Words - dynamic color & zero clipping */}
+          <div className="font-sans font-black text-[50px] leading-[0.92] tracking-tight max-w-[360px]" style={{ color: primaryColor }}>
             <div>WITHDRAWAL</div>
             <div>PROCESSED</div>
           </div>
 
           {/* Right Sub-Badge ("Disbursement Stage VERIFIED") - protected from overflow */}
           <div className="pb-2 text-right shrink-0 min-w-[125px]">
-            <div className="font-sans font-extrabold text-sm leading-tight text-[#0B1536] whitespace-nowrap">
+            <div className="font-sans font-extrabold text-sm leading-tight whitespace-nowrap" style={{ color: primaryColor }}>
               Disbursement
             </div>
-            <div className="font-sans font-extrabold text-sm leading-tight text-[#0B1536] whitespace-nowrap">
+            <div className="font-sans font-extrabold text-sm leading-tight whitespace-nowrap" style={{ color: primaryColor }}>
               Stage
             </div>
-            <div className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#0B1536]/10 text-[10px] font-mono font-bold text-[#0B1536] shadow-2xs whitespace-nowrap">
+            <div
+              className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold shadow-2xs whitespace-nowrap"
+              style={{
+                backgroundColor: 'rgba(11, 21, 54, 0.08)',
+                color: primaryColor,
+              }}
+            >
               <CheckCircle2 size={11} className="text-emerald-700" />
               <span>VERIFIED</span>
             </div>
@@ -133,7 +148,7 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
           <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
             Authorized Settlement Amount
           </div>
-          <div className="font-sans font-black text-2xl text-[#0B1536] mt-0.5 tracking-tight">
+          <div className="font-sans font-black text-2xl mt-0.5 tracking-tight" style={{ color: amountColor }}>
             {amountStr}
           </div>
           <div className="text-[10px] font-mono text-emerald-700 font-semibold mt-0.5 flex items-center gap-1">
@@ -148,7 +163,7 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
             <Package size={12} className="text-slate-600" />
             <span>Total Products Sold</span>
           </div>
-          <div className="font-sans font-black text-2xl text-[#0B1536] mt-0.5 tracking-tight">
+          <div className="font-sans font-black text-2xl mt-0.5 tracking-tight" style={{ color: primaryColor }}>
             {totalProducts} {totalProducts === 1 ? 'Product' : 'Products'}
           </div>
           <div className="text-[10px] font-mono text-blue-700 font-semibold mt-0.5">
@@ -159,13 +174,13 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
 
       {/* 4. HONOREE PRESENTATION */}
       <div className="relative z-10 space-y-1">
-        <div className="font-sans text-sm font-semibold text-slate-700">
+        <div className="font-sans text-sm font-semibold" style={{ color: secondaryColor }}>
           Proudly presented to
         </div>
-        <div className="font-sans font-black text-4xl text-[#0B1536] tracking-tight leading-tight truncate">
+        <div className="font-sans font-black text-4xl tracking-tight leading-tight truncate" style={{ color: honoreeColor }}>
           {honoreeName}
         </div>
-        <div className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold text-slate-700/90 pt-0.5">
+        <div className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold pt-0.5" style={{ color: secondaryColor }}>
           <span>Tier: {record.partnerTier || 'VIP Achiever'}</span>
           <span>•</span>
           <span>Routing: {record.payoutChannel}</span>
@@ -176,13 +191,13 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
       <div className="relative z-10 flex items-end justify-between pt-4 border-t border-white/30">
         {/* Left: Date & Batch reference */}
         <div className="space-y-0.5">
-          <div className="font-sans font-bold text-xs text-[#0B1536]/80 tracking-wider">
+          <div className="font-sans font-bold text-xs tracking-wider" style={{ color: secondaryColor }}>
             DATE:
           </div>
-          <div className="font-sans font-black text-base text-[#0B1536] tracking-wide">
+          <div className="font-sans font-black text-base tracking-wide" style={{ color: primaryColor }}>
             {formattedDate}
           </div>
-          <div className="font-mono text-[9.5px] text-[#0B1536]/70 mt-1">
+          <div className="font-mono text-[9.5px] mt-1" style={{ color: secondaryColor }}>
             REF: {record.utrReference} • ID: {record.id}
           </div>
         </div>
@@ -208,7 +223,7 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
               />
             </div>
           </div>
-          <span className="text-[8px] font-mono font-bold uppercase tracking-widest text-[#0B1536]/80 mt-1.5 flex items-center gap-1">
+          <span className="text-[8px] font-mono font-bold uppercase tracking-widest mt-1.5 flex items-center gap-1" style={{ color: secondaryColor }}>
             <ShieldCheck size={9} className="text-emerald-700" />
             <span>VERIFIED LEDGER</span>
           </span>

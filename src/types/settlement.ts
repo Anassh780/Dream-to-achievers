@@ -52,6 +52,17 @@ export interface SettlementRecord {
   complianceHash?: string; // SHA-256 fingerprint
   template: SettlementTemplateType;
   createdAt: string;
+
+  // Custom Typography, Text Colors & Amazing Backgrounds (Admin-Only Customization)
+  customFontFamily?: string;
+  primaryTextColor?: string;
+  honoreeTextColor?: string;
+  amountTextColor?: string;
+  secondaryTextColor?: string;
+  accentColor?: string;
+  backgroundPreset?: string;
+  customBackgroundGradient?: string;
+  customBackgroundImageUrl?: string;
 }
 
 export const CURRENCY_SYMBOLS: Record<SettlementCurrency, string> = {

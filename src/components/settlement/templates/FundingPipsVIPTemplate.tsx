@@ -11,6 +11,7 @@ import {
   QrCode,
 } from 'lucide-react';
 import { RealQrCode } from '@/components/common/RealQrCode';
+import { resolveSettlementBackground } from '@/utils/settlementThemeHelper';
 
 interface TemplateProps {
   record: SettlementRecord;
@@ -25,19 +26,27 @@ export const FundingPipsVIPTemplate: React.FC<TemplateProps> = ({ record }) => {
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://dream-to-achievers.vercel.app';
   const verifyUrl = `${origin}/dashboard/sales?certificate=${encodeURIComponent(record.id)}&partner=${encodeURIComponent(record.partnerId || '')}`;
 
+  const defaultBg = `
+    radial-gradient(ellipse at 50% -10%, rgba(245, 158, 11, 0.22) 0%, transparent 55%),
+    radial-gradient(circle at 95% 90%, rgba(16, 185, 129, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 5% 90%, rgba(56, 189, 248, 0.07) 0%, transparent 45%),
+    linear-gradient(to right, rgba(245, 158, 11, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(245, 158, 11, 0.03) 1px, transparent 1px)
+  `;
+  const bgStyles = resolveSettlementBackground(record, defaultBg);
+
+  const primaryColor = record.primaryTextColor || '#F8FAFC';
+  const accentColor = record.accentColor || '#F59E0B';
+  const secondaryColor = record.secondaryTextColor || '#94A3B8';
+
   return (
     <div
       id="settlement-certificate-canvas"
-      className="relative w-[1200px] h-[750px] bg-[#07090E] text-[#F8FAFC] font-sans p-10 flex flex-col justify-between overflow-hidden select-none border-2 border-amber-500/40 shadow-2xl"
+      className="relative w-[1200px] h-[750px] bg-[#07090E] font-sans p-10 flex flex-col justify-between overflow-hidden select-none border-2 border-amber-500/40 shadow-2xl"
       style={{
-        backgroundImage: `
-          radial-gradient(ellipse at 50% -10%, rgba(245, 158, 11, 0.22) 0%, transparent 55%),
-          radial-gradient(circle at 95% 90%, rgba(16, 185, 129, 0.08) 0%, transparent 45%),
-          radial-gradient(circle at 5% 90%, rgba(56, 189, 248, 0.07) 0%, transparent 45%),
-          linear-gradient(to right, rgba(245, 158, 11, 0.03) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(245, 158, 11, 0.03) 1px, transparent 1px)
-        `,
-        backgroundSize: '100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px',
+        ...bgStyles,
+        fontFamily: record.customFontFamily || undefined,
+        color: primaryColor,
       }}
     >
       {/* Precision Metallic Gold Dual Framing & Corner Accents */}
@@ -126,8 +135,13 @@ export const FundingPipsVIPTemplate: React.FC<TemplateProps> = ({ record }) => {
           This authoritative certificate of earnings is proudly awarded to
         </div>
 
-        <h2 className="font-serif font-black text-4xl sm:text-[42px] tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-[#FFF5C0] via-[#FFD700] to-[#E6B800] uppercase drop-shadow-[0_4px_22px_rgba(245,158,11,0.4)] py-1 max-w-4xl mx-auto truncate">
-          {honoreeName}
+        <h2
+          className="font-serif font-black text-4xl sm:text-[42px] tracking-wide uppercase drop-shadow-[0_4px_22px_rgba(245,158,11,0.4)] py-1 max-w-4xl mx-auto truncate"
+          style={record.honoreeTextColor ? { color: record.honoreeTextColor } : undefined}
+        >
+          <span className={record.honoreeTextColor ? '' : 'text-transparent bg-clip-text bg-gradient-to-r from-[#FFF5C0] via-[#FFD700] to-[#E6B800]'}>
+            {honoreeName}
+          </span>
         </h2>
 
         <p className="text-xs text-slate-400 max-w-2xl mx-auto font-sans leading-relaxed">
@@ -144,8 +158,13 @@ export const FundingPipsVIPTemplate: React.FC<TemplateProps> = ({ record }) => {
             <Award size={13} className="text-amber-400" />
             <span>Disbursed Amount</span>
           </div>
-          <div className="font-mono font-black text-2xl lg:text-[26px] text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-emerald-400 to-teal-300 tracking-tight">
-            {formatSettlementAmount(record.amount, record.currency)}
+          <div
+            className="font-mono font-black text-2xl lg:text-[26px] tracking-tight"
+            style={record.amountTextColor ? { color: record.amountTextColor } : undefined}
+          >
+            <span className={record.amountTextColor ? '' : 'text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-emerald-400 to-teal-300'}>
+              {formatSettlementAmount(record.amount, record.currency)}
+            </span>
           </div>
           <div className="text-[9.5px] font-mono text-slate-400">Net Processed Profit</div>
         </div>

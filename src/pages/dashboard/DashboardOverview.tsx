@@ -130,12 +130,14 @@ export const DashboardOverview: React.FC = () => {
               Withdraw Profits
             </button>
           </Link>
-          <Link to="/dashboard/settlements" className="flex-1 sm:flex-initial">
-            <button className="funding-ghost-pill px-4 py-2.5 text-xs font-medium text-amber-300 border-amber-500/30 hover:border-amber-500/50 w-full inline-flex items-center justify-center gap-1.5 cursor-pointer transition-all">
-              <Certificate size={15} weight="duotone" className="text-amber-400" />
-              <span>B2B Settlement Image</span>
-            </button>
-          </Link>
+          {user?.role === 'admin' && (
+            <Link to="/admin/settlements" className="flex-1 sm:flex-initial">
+              <button className="funding-ghost-pill px-4 py-2.5 text-xs font-medium text-amber-300 border-amber-500/30 hover:border-amber-500/50 w-full inline-flex items-center justify-center gap-1.5 cursor-pointer transition-all">
+                <Certificate size={15} weight="duotone" className="text-amber-400" />
+                <span>Certificate Studio (Admin)</span>
+              </button>
+            </Link>
+          )}
           <Link to="/dashboard/products" className="flex-1 sm:flex-initial">
             <button className="funding-sheen-btn px-5 py-2.5 text-xs font-bold uppercase tracking-wider w-full inline-flex items-center justify-center gap-1.5 shadow-md cursor-pointer">
               <ShoppingCart size={14} weight="bold" />

@@ -2,6 +2,7 @@ import React from 'react';
 import { SettlementRecord, formatSettlementAmount } from '@/types/settlement';
 import { ShieldCheck, Building2, Fingerprint, Check, QrCode } from 'lucide-react';
 import { RealQrCode } from '@/components/common/RealQrCode';
+import { resolveSettlementBackground } from '@/utils/settlementThemeHelper';
 
 interface TemplateProps {
   record: SettlementRecord;
@@ -12,18 +13,26 @@ export const ExecutiveStatementTemplate: React.FC<TemplateProps> = ({ record }) 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://dream-to-achievers.vercel.app';
   const verifyUrl = `${origin}/dashboard/sales?certificate=${encodeURIComponent(record.id)}&partner=${encodeURIComponent(record.partnerId || '')}`;
 
+  const defaultBg = `
+    radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.04) 0%, transparent 40%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
+  `;
+  const bgStyles = resolveSettlementBackground(record, defaultBg);
+
+  const primaryColor = record.primaryTextColor || '#F8FAFC';
+  const amountColor = record.amountTextColor || primaryColor;
+  const secondaryColor = record.secondaryTextColor || '#94A3B8';
+
   return (
     <div
       id="settlement-certificate-canvas"
-      className="relative w-[1200px] h-[750px] bg-[#080C14] text-[#F8FAFC] font-sans p-12 flex flex-col justify-between overflow-hidden select-none border border-slate-800 shadow-2xl"
+      className="relative w-[1200px] h-[750px] bg-[#080C14] font-sans p-12 flex flex-col justify-between overflow-hidden select-none border border-slate-800 shadow-2xl"
       style={{
-        backgroundImage: `
-          radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.04) 0%, transparent 40%),
-          radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.04) 0%, transparent 40%),
-          linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
-        `,
-        backgroundSize: '100% 100%, 100% 100%, 32px 32px, 32px 32px',
+        ...bgStyles,
+        fontFamily: record.customFontFamily || undefined,
+        color: primaryColor,
       }}
     >
       {/* Precision Guilloche Border & Titanium Framing */}
@@ -133,7 +142,10 @@ export const ExecutiveStatementTemplate: React.FC<TemplateProps> = ({ record }) 
           </div>
 
           <div className="flex items-baseline gap-2">
-            <span className="font-mono text-5xl font-black text-slate-50 tracking-tight tabular-nums drop-shadow-sm">
+            <span
+              className="font-mono text-5xl font-black tracking-tight tabular-nums drop-shadow-sm"
+              style={{ color: amountColor }}
+            >
               {formatSettlementAmount(record.amount, record.currency)}
             </span>
             <span className="font-mono text-sm font-semibold text-slate-400 uppercase">
@@ -180,7 +192,9 @@ export const ExecutiveStatementTemplate: React.FC<TemplateProps> = ({ record }) 
       <div className="relative z-10 grid grid-cols-4 gap-3 py-3 border-y border-slate-800 font-mono text-xs">
         <div className="p-3 rounded-lg bg-slate-900/40 border border-slate-800/80 space-y-1">
           <span className="text-[10px] text-slate-400 uppercase block">Honoree Partner</span>
-          <p className="text-slate-200 font-bold truncate">{record.recipientName || record.signatoryName || record.businessName}</p>
+          <p className="font-bold truncate" style={{ color: record.honoreeTextColor || '#F8FAFC' }}>
+            {record.recipientName || record.signatoryName || record.businessName}
+          </p>
           <span className="text-[9.5px] text-slate-500 block truncate">ID: {record.partnerId}</span>
         </div>
 
