@@ -217,6 +217,46 @@ export const DashboardNotifications: React.FC = () => {
     }
   };
 
+  const getNotifBorderAccent = (type: string) => {
+    switch (type) {
+      case 'rank_achieved':
+        return 'border-l-4 border-l-amber-500';
+      case 'reward_paid':
+      case 'reward_approved':
+      case 'reward_earned':
+      case 'withdrawal_paid':
+      case 'withdrawal_approved':
+        return 'border-l-4 border-l-[#34D399]';
+      case 'sale_submitted':
+      case 'sale_confirmed':
+      case 'sale_dispatched':
+      case 'sale_delivered':
+        return 'border-l-4 border-l-sky-500';
+      case 'referral_joined':
+      case 'team_expansion':
+        return 'border-l-4 border-l-purple-500';
+      default:
+        return 'border-l-4 border-l-[var(--primary)]';
+    }
+  };
+
+  const getNotificationAction = (notif: AppNotification) => {
+    const type = notif.type || '';
+    if (type.includes('sale') || type.includes('order')) {
+      return { label: 'View Orders', path: '/dashboard/sales', icon: ShoppingCart };
+    }
+    if (type.includes('reward') || type.includes('rank')) {
+      return { label: 'View Rewards', path: '/dashboard/rewards', icon: Gift };
+    }
+    if (type.includes('withdrawal')) {
+      return { label: 'View Balance', path: '/dashboard/sales', icon: Sparkle };
+    }
+    if (type.includes('referral') || type.includes('team')) {
+      return { label: 'View Team', path: '/dashboard/referrals', icon: Users };
+    }
+    return null;
+  };
+
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const readCount = notifications.filter((n) => n.isRead).length;
 
@@ -391,83 +431,127 @@ export const DashboardNotifications: React.FC = () => {
             </p>
           </div>
         ) : (
-          filteredNotifications.map((notif) => (
-            <div
-              key={notif.id}
-              onClick={() => handleOpenNotification(notif)}
-              className={`p-4 rounded-2xl border transition-all flex items-start justify-between gap-4 cursor-pointer group ${
-                !notif.isRead
-                  ? 'bg-[var(--surface)] border-[var(--primary)]/40 shadow-xs ring-1 ring-[var(--primary)]/20 hover:border-[var(--primary)]'
-                  : 'bg-[var(--surface)]/90 border-[var(--line)] hover:bg-[var(--surface-alt)]'
-              }`}
-            >
-              <div className="flex items-start space-x-3.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-[var(--surface-alt)] border border-[var(--line)] flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
-                  {getNotifIcon(notif.type)}
-                </div>
+          filteredNotifications.map((notif) => {
+            const action = getNotificationAction(notif);
+            const borderAccent = getNotifBorderAccent(notif.type);
 
-                <div className="space-y-1 min-w-0">
-                  <div className="flex items-center space-x-2">
-                    <h3 className="font-bold text-xs sm:text-sm text-[var(--ink)] truncate group-hover:text-[var(--primary)] transition-colors">
-                      {notif.title}
-                    </h3>
-                    {!notif.isRead && (
-                      <span className="w-2 h-2 rounded-full bg-rose-600 shrink-0" />
+            return (
+              <div
+                key={notif.id}
+                onClick={() => handleOpenNotification(notif)}
+                className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 cursor-pointer group ${borderAccent} ${
+                  !notif.isRead
+                    ? 'bg-[var(--surface)] border-[var(--primary)]/40 shadow-xs ring-1 ring-[var(--primary)]/20 hover:border-[var(--primary)]'
+                    : 'bg-[var(--surface)]/90 border-[var(--line)] hover:bg-[var(--surface-alt)]'
+                }`}
+              >
+                <div className="flex items-start space-x-3.5 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--surface-alt)] border border-[var(--line)] flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform shadow-2xs">
+                    {getNotifIcon(notif.type)}
+                  </div>
+
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-bold text-xs sm:text-sm text-[var(--ink)] truncate group-hover:text-[var(--primary)] transition-colors">
+                        {notif.title}
+                      </h3>
+                      {!notif.isRead && (
+                        <span className="w-2 h-2 rounded-full bg-rose-600 shrink-0 animate-pulse" />
+                      )}
+                    </div>
+
+                    <p className="text-xs text-[var(--ink-soft)] leading-relaxed line-clamp-2">
+                      {notif.message}
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-2 text-[10.5px] text-[var(--ink-soft)]/75 font-mono pt-0.5">
+                      <span className="inline-flex items-center gap-1">
+                        <Clock size={11} />
+                        {formatTimeAgo(notif.createdAt)}
+                      </span>
+                      <span>&bull;</span>
+                      <span className="capitalize">{notif.type.replace('_', ' ')}</span>
+                    </div>
+
+                    {/* Quick 1-Tap Action Deep-Link */}
+                    {action && (
+                      <div className="pt-1.5 sm:hidden">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(action.path);
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-medium text-[var(--primary)] bg-[var(--surface-alt)] hover:bg-[var(--primary)]/10 border border-[var(--primary)]/25 active:scale-[0.98] transition-all cursor-pointer min-h-[38px]"
+                        >
+                          <action.icon size={13} weight="bold" />
+                          <span>{action.label}</span>
+                          <ArrowRight size={11} />
+                        </button>
+                      </div>
                     )}
                   </div>
+                </div>
 
-                  <p className="text-xs text-[var(--ink-soft)] leading-relaxed line-clamp-2">
-                    {notif.message}
-                  </p>
+                <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[var(--line)]">
+                  {/* Desktop Quick 1-Tap Action Pill */}
+                  {action && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(action.path);
+                      }}
+                      className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-medium text-[var(--primary)] bg-[var(--surface-alt)] hover:bg-[var(--primary)]/10 border border-[var(--primary)]/25 active:scale-[0.98] transition-all cursor-pointer min-h-[36px]"
+                    >
+                      <action.icon size={13} weight="bold" />
+                      <span>{action.label}</span>
+                      <ArrowRight size={11} />
+                    </button>
+                  )}
 
-                  <div className="flex items-center space-x-2 text-[10px] text-[var(--ink-soft)]/70 font-mono pt-0.5">
-                    <span className="inline-flex items-center gap-1">
-                      <Clock size={11} />
-                      {formatTimeAgo(notif.createdAt)}
+                  <div className="flex items-center space-x-1 ml-auto sm:ml-0">
+                    {!notif.isRead ? (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMarkRead(notif.id);
+                        }}
+                        className="min-h-[40px] min-w-[40px] p-2 rounded-xl text-[var(--ink-soft)] hover:text-[#34D399] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer inline-flex items-center justify-center active:scale-95"
+                        title="Mark as read"
+                        aria-label="Mark notification as read"
+                      >
+                        <Check size={16} />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={(e) => handleMarkUnread(e, notif.id)}
+                        className="min-h-[40px] min-w-[40px] p-2 rounded-xl text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer inline-flex items-center justify-center active:scale-95"
+                        title="Mark as unread"
+                        aria-label="Mark notification as unread"
+                      >
+                        <Clock size={15} />
+                      </button>
+                    )}
+
+                    <button
+                      onClick={(e) => handleDelete(e, notif.id)}
+                      className="min-h-[40px] min-w-[40px] p-2 rounded-xl text-[var(--ink-soft)] hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer inline-flex items-center justify-center active:scale-95"
+                      title="Delete notification"
+                      aria-label="Delete notification"
+                    >
+                      <Trash size={15} />
+                    </button>
+
+                    <span className="text-[11px] font-mono text-[var(--primary)] font-semibold hidden md:inline-flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform ml-1">
+                      <span>Details</span>
+                      <ArrowRight size={12} />
                     </span>
-                    <span>&bull;</span>
-                    <span className="capitalize">{notif.type.replace('_', ' ')}</span>
                   </div>
                 </div>
               </div>
-
-              <div className="flex items-center space-x-1 shrink-0 self-center">
-                {!notif.isRead ? (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleMarkRead(notif.id);
-                    }}
-                    className="p-1.5 rounded-lg text-[var(--ink-soft)] hover:text-[#34D399] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
-                    title="Mark as read"
-                  >
-                    <Check size={15} />
-                  </button>
-                ) : (
-                  <button
-                    onClick={(e) => handleMarkUnread(e, notif.id)}
-                    className="p-1.5 rounded-lg text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
-                    title="Mark as unread"
-                  >
-                    <Clock size={14} />
-                  </button>
-                )}
-
-                <button
-                  onClick={(e) => handleDelete(e, notif.id)}
-                  className="p-1.5 rounded-lg text-[var(--ink-soft)] hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                  title="Delete notification"
-                >
-                  <Trash size={14} />
-                </button>
-
-                <span className="text-[11px] font-mono text-[var(--primary)] font-semibold hidden sm:inline-flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform ml-1">
-                  <span>Details</span>
-                  <ArrowRight size={12} />
-                </span>
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 

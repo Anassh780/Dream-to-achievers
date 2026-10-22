@@ -67,11 +67,11 @@
     --color-accent-soft: var(--accent-soft);
     --color-line: var(--line);
 
-    /* 2. Typography (Official Modern Professional SaaS / Fintech System) */
-    --font-display: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --font-serif: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    /* 2. Typography (Official Modern Professional SaaS / Luxury Fintech System) */
+    --font-serif: 'Cinzel', 'Playfair Display', Georgia, Cambria, 'Times New Roman', serif;
+    --font-display: 'Plus Jakarta Sans', 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --font-sans: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --font-heading: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-heading: 'Plus Jakarta Sans', 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
     /* 3. Radii */
@@ -149,10 +149,10 @@
 }
 
 @theme {
-  --font-display: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-serif: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Cinzel', 'Playfair Display', Georgia, Cambria, 'Times New Roman', serif;
+  --font-display: 'Plus Jakarta Sans', 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-sans: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-heading: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
 }
 
@@ -405,7 +405,23 @@ th, td {
 }
 
 /* Typography Rules */
-h1, h2, h3, h4, .font-display {
+.font-serif {
+  font-family: var(--font-serif) !important;
+}
+
+.font-display {
+  font-family: var(--font-display) !important;
+}
+
+.font-sans {
+  font-family: var(--font-sans) !important;
+}
+
+.font-mono {
+  font-family: var(--font-mono) !important;
+}
+
+h1, h2, h3, h4 {
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: -0.022em;
@@ -414,8 +430,13 @@ h1, h2, h3, h4, .font-display {
   -moz-osx-font-smoothing: grayscale;
 }
 
+h1.font-serif, h2.font-serif, h3.font-serif, h4.font-serif {
+  font-family: var(--font-serif) !important;
+  letter-spacing: -0.015em;
+}
+
 code, pre, .font-mono {
-  font-family: var(--font-mono);
+  font-family: var(--font-mono) !important;
   font-feature-settings: 'tnum' on, 'lnum' on, 'zero' on;
 }
 

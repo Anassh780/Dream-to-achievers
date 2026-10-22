@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AppNotification } from '@/types';
 import { notificationService } from '@/services/notificationService';
 import {
@@ -15,6 +15,8 @@ import {
   Users,
   Info,
   Sparkle,
+  ArrowSquareOut,
+  SlidersHorizontal,
 } from '@phosphor-icons/react';
 
 interface NotificationQuickPopoverProps {
@@ -34,6 +36,7 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
   unreadCount,
   onRefreshUserData,
 }) => {
+  const navigate = useNavigate();
   const popoverRef = useRef<HTMLDivElement>(null);
   const [notifications, setNotifications] = useState<AppNotification[]>(() =>
     userId ? notificationService.getUserNotifications(userId) : []
@@ -73,7 +76,6 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       if (!target) return;
-      // Critical: if clicked node was detached from DOM during react rerender, do not close!
       if (!document.body.contains(target)) return;
       if (popoverRef.current && popoverRef.current.contains(target)) return;
       if (target.closest?.('[aria-label="Quick Notifications"]')) return;
@@ -127,29 +129,75 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
     }
   };
 
-  const getNotifIcon = (type: string) => {
+  const getNotifDetails = (type: string) => {
     switch (type) {
       case 'rank_achieved':
-        return <Trophy size={15} weight="fill" className="text-amber-400" />;
+        return {
+          icon: Trophy,
+          iconBg: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+          accent: 'text-amber-400',
+          channel: 'Rank Level',
+        };
       case 'reward_paid':
       case 'reward_approved':
       case 'reward_earned':
-        return <Gift size={15} weight="fill" className="text-[#34D399]" />;
+        return {
+          icon: Gift,
+          iconBg: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+          accent: 'text-emerald-400',
+          channel: 'Cash Bonus',
+        };
       case 'withdrawal_requested':
       case 'withdrawal_approved':
       case 'withdrawal_paid':
-        return <Sparkle size={15} weight="fill" className="text-[#34D399]" />;
+        return {
+          icon: Sparkle,
+          iconBg: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+          accent: 'text-emerald-400',
+          channel: 'Payout',
+        };
       case 'sale_submitted':
       case 'sale_confirmed':
       case 'sale_dispatched':
       case 'sale_delivered':
-        return <ShoppingCart size={15} weight="fill" className="text-sky-400" />;
+        return {
+          icon: ShoppingCart,
+          iconBg: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+          accent: 'text-sky-400',
+          channel: 'Store Order',
+        };
       case 'referral_joined':
       case 'team_expansion':
-        return <Users size={15} weight="fill" className="text-purple-400" />;
+        return {
+          icon: Users,
+          iconBg: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
+          accent: 'text-purple-400',
+          channel: 'Downline Team',
+        };
       default:
-        return <Bell size={15} weight="fill" className="text-[#D9C08A]" />;
+        return {
+          icon: Bell,
+          iconBg: 'bg-[#D9C08A]/15 text-[#D9C08A] border-[#D9C08A]/30',
+          accent: 'text-[#D9C08A]',
+          channel: 'Notice',
+        };
     }
+  };
+
+  const getNotifAction = (notif: AppNotification) => {
+    const link = notif.linkUrl || notif.link;
+    if (link) {
+      if (link.includes('sales')) return { label: 'View Order', path: link };
+      if (link.includes('rewards')) return { label: 'View Reward', path: link };
+      if (link.includes('ranks')) return { label: 'Track Rank', path: link };
+      if (link.includes('referrals')) return { label: 'View Team', path: link };
+      if (link.includes('products')) return { label: 'View Catalog', path: link };
+      return { label: 'View Action', path: link };
+    }
+    if (notif.type.includes('sale') || notif.type.includes('order')) return { label: 'View Order', path: '/dashboard/sales' };
+    if (notif.type.includes('reward') || notif.type.includes('rank')) return { label: 'View Rewards', path: '/dashboard/rewards' };
+    if (notif.type.includes('referral') || notif.type.includes('team')) return { label: 'View Team', path: '/dashboard/referrals' };
+    return null;
   };
 
   const filteredNotifs = useMemo(() => {
@@ -166,42 +214,46 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
 
   return (
     <>
-      {/* Mobile & Desktop backdrop overlay for focus & outside dismiss */}
+      {/* Mobile & Desktop backdrop overlay */}
       <div
-        className="fixed inset-0 z-40 bg-black/60 md:bg-black/25 backdrop-blur-xs animate-notif-backdrop cursor-pointer"
+        className="fixed inset-0 z-40 bg-black/75 md:bg-black/35 backdrop-blur-xs animate-notif-backdrop cursor-pointer"
         onClick={onClose}
       />
 
-      {/* Floating Popover Container */}
+      {/* Floating Popover Container: Bottom Sheet on Mobile (<640px), Anchored Island on Desktop (sm+) */}
       <div
         ref={popoverRef}
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
         role="dialog"
-        aria-label="Quick Notifications"
-        className="fixed right-3 sm:right-6 md:right-8 lg:right-12 top-16 md:top-20 z-50 w-[calc(100vw-24px)] max-w-sm sm:max-w-md rounded-3xl bg-[#0D1512]/95 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.85),0_0_30px_rgba(217,192,138,0.06)] overflow-hidden flex flex-col max-h-[82vh] animate-notif-popover"
+        aria-modal="true"
+        aria-label="Notifications Panel"
+        className="fixed inset-x-0 bottom-0 sm:bottom-auto sm:top-20 sm:right-6 sm:inset-x-auto sm:w-[430px] z-50 rounded-t-[32px] sm:rounded-3xl bg-[#0D1512]/98 backdrop-blur-2xl border border-white/12 shadow-[0_-20px_50px_rgba(0,0,0,0.9),0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_35px_rgba(217,192,138,0.08)] overflow-hidden flex flex-col max-h-[85dvh] sm:max-h-[580px] pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-0 animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200"
       >
+        {/* Mobile Pull Handle */}
+        <div className="w-12 h-1.5 rounded-full bg-white/20 mx-auto mt-2.5 mb-1 sm:hidden shrink-0" />
+
         {/* Top Header */}
-        <div className="p-4 pb-3 border-b border-white/[0.08] flex items-center justify-between gap-3 bg-[#070B09]/60">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-[#D9C08A]">
-              <Bell size={16} weight="fill" />
+        <div className="px-4 py-3 sm:p-4 border-b border-white/[0.08] flex items-center justify-between gap-3 bg-[#070B09]/75 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D9C08A]/25 to-transparent border border-[#D9C08A]/40 flex items-center justify-center text-[#D9C08A] shrink-0 shadow-xs">
+              <Bell size={18} weight="fill" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h3 className="font-serif font-semibold text-sm text-[#F4F7F5]">Notifications</h3>
+                <h3 className="font-serif font-bold text-sm sm:text-base text-[#F4F7F5] truncate">Notifications</h3>
                 {unreadCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full bg-red-600 text-white font-mono font-bold text-[9.5px] animate-pulse">
+                  <span className="px-2 py-0.5 rounded-full bg-red-600 text-white font-mono font-bold text-[10px] shadow-xs animate-pulse">
                     {unreadCount} new
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-mono text-[#9EABA2]">Real-time Partner Alerts</span>
+              <span className="text-[10px] font-mono text-[#9EABA2] block truncate">Direct Partner Alerts &amp; Ledger Log</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             {unreadCount > 0 && (
               <button
                 type="button"
@@ -210,10 +262,12 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
                   e.stopPropagation();
                   handleMarkAllRead();
                 }}
-                className="px-2 py-1 rounded-lg text-[10px] font-mono text-[#34D399] hover:bg-[#34D399]/10 transition-colors cursor-pointer"
+                className="px-2.5 py-1.5 min-h-[36px] rounded-xl text-[11px] font-mono font-semibold text-[#34D399] bg-[#34D399]/10 hover:bg-[#34D399]/20 border border-[#34D399]/25 transition-all cursor-pointer active:scale-95 flex items-center gap-1"
                 title="Mark all as read"
               >
-                Mark all read
+                <CheckCircle size={13} weight="bold" />
+                <span className="hidden sm:inline">Mark all read</span>
+                <span className="sm:hidden">Read all</span>
               </button>
             )}
             <button
@@ -223,15 +277,16 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
                 e.stopPropagation();
                 onClose();
               }}
-              className="p-1.5 rounded-lg text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.06] transition-colors cursor-pointer"
+              className="min-h-[40px] min-w-[40px] p-2 rounded-xl text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.08] active:scale-95 transition-all cursor-pointer inline-flex items-center justify-center"
+              aria-label="Close notifications panel"
             >
-              <X size={15} weight="bold" />
+              <X size={17} weight="bold" />
             </button>
           </div>
         </div>
 
-        {/* Quick Filter Tabs */}
-        <div className="px-4 py-2 border-b border-white/[0.06] flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none]">
+        {/* Quick Category Filter Tabs */}
+        <div className="px-3.5 py-2 border-b border-white/[0.06] flex items-center gap-1.5 overflow-x-auto no-scrollbar touch-momentum bg-[#070B09]/40 shrink-0">
           {[
             { id: 'all', label: `All (${notifications.length})` },
             { id: 'unread', label: `Unread (${unreadCount})` },
@@ -248,10 +303,10 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
                 e.stopPropagation();
                 setFilter(tab.id as any);
               }}
-              className={`px-2.5 py-1 rounded-full text-[10.5px] font-mono font-medium shrink-0 transition-all cursor-pointer ${
+              className={`px-3 py-1.5 min-h-[36px] rounded-full text-xs font-mono font-medium shrink-0 transition-all cursor-pointer flex items-center justify-center active:scale-95 ${
                 filter === tab.id
-                  ? 'bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/30 font-semibold'
-                  : 'text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.04]'
+                  ? 'bg-[#34D399] text-[#070B09] font-bold shadow-md'
+                  : 'bg-white/[0.04] text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.08] border border-white/5'
               }`}
             >
               {tab.label}
@@ -259,83 +314,130 @@ export const NotificationQuickPopover: React.FC<NotificationQuickPopoverProps> =
           ))}
         </div>
 
-        {/* Scrollable Notifications List */}
-        <div className="overflow-y-auto overscroll-contain flex-1 max-h-[380px] p-2 space-y-1.5 [scrollbar-width:thin]">
+        {/* Scrollable Notifications Feed */}
+        <div className="overflow-y-auto overscroll-contain flex-1 p-3 space-y-2 no-scrollbar touch-momentum">
           {filteredNotifs.length === 0 ? (
-            <div className="p-8 text-center text-[#9EABA2] space-y-2">
-              <CheckCircle size={28} className="text-[#34D399]/70 mx-auto" />
-              <p className="text-xs font-medium text-[#F4F7F5]">All caught up!</p>
-              <p className="text-[11px] text-[#9EABA2]/70 leading-relaxed">
-                You have no notifications in this category right now.
+            <div className="p-8 text-center text-[#9EABA2] space-y-2.5">
+              <div className="w-12 h-12 rounded-2xl bg-[#34D399]/10 border border-[#34D399]/25 text-[#34D399] flex items-center justify-center mx-auto shadow-xs">
+                <CheckCircle size={26} weight="bold" />
+              </div>
+              <p className="font-serif font-bold text-sm text-[#F4F7F5]">All caught up!</p>
+              <p className="text-xs text-[#9EABA2] max-w-xs mx-auto leading-relaxed">
+                {filter === 'unread'
+                  ? 'Zero unread notices. You are up to date on all customer deliveries and bonus unlocks.'
+                  : 'No notifications in this category right now.'}
               </p>
             </div>
           ) : (
-            filteredNotifs.map((notif) => (
-              <div
-                key={notif.id}
-                onClick={() => {
-                  if (!notif.isRead) {
-                    notificationService.markAsRead(notif.id);
-                    refreshList();
-                  }
-                  onSelectNotification(notif);
-                  onClose();
-                }}
-                className={`p-3 rounded-2xl border transition-all flex items-start gap-3 cursor-pointer group active:scale-[0.99] ${
-                  !notif.isRead
-                    ? 'bg-white/[0.04] border-[#34D399]/30 hover:border-[#34D399] shadow-xs'
-                    : 'bg-white/[0.015] border-white/[0.06] hover:bg-white/[0.04] hover:border-white/10'
-                }`}
-              >
-                <div className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
-                  {getNotifIcon(notif.type)}
-                </div>
+            filteredNotifs.map((notif) => {
+              const details = getNotifDetails(notif.type);
+              const IconComp = details.icon;
+              const action = getNotifAction(notif);
 
-                <div className="flex-1 min-w-0 space-y-0.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <h4 className="text-xs font-semibold text-[#F4F7F5] truncate group-hover:text-[#34D399] transition-colors">
-                      {notif.title}
-                    </h4>
-                    {!notif.isRead && (
-                      <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+              return (
+                <div
+                  key={notif.id}
+                  onClick={() => {
+                    if (!notif.isRead) {
+                      notificationService.markAsRead(notif.id);
+                      refreshList();
+                    }
+                    onSelectNotification(notif);
+                    onClose();
+                  }}
+                  className={`p-3.5 rounded-2xl border transition-all flex flex-col gap-2.5 cursor-pointer group active:scale-[0.99] ${
+                    !notif.isRead
+                      ? 'bg-gradient-to-r from-emerald-950/30 via-white/[0.03] to-transparent border-l-4 border-l-[#34D399] border-y-white/10 border-r-white/10 shadow-xs'
+                      : 'bg-white/[0.015] border-white/[0.06] hover:bg-white/[0.04] hover:border-white/10'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform ${details.iconBg}`}
+                    >
+                      <IconComp size={18} weight="fill" />
+                    </div>
+
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className={`text-[9.5px] font-mono font-bold uppercase tracking-wider ${details.accent}`}>
+                            {details.channel}
+                          </span>
+                          {!notif.isRead && (
+                            <span className="w-2 h-2 rounded-full bg-red-500 shrink-0 animate-pulse" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 text-[10px] font-mono text-[#9EABA2]/70 shrink-0">
+                          <Clock size={11} />
+                          <span>{formatTimeAgo(notif.createdAt)}</span>
+                        </div>
+                      </div>
+
+                      <h4 className="text-xs sm:text-sm font-semibold text-[#F4F7F5] truncate group-hover:text-[#34D399] transition-colors leading-snug">
+                        {notif.title}
+                      </h4>
+
+                      <p className="text-xs text-[#9EABA2] line-clamp-2 leading-relaxed">
+                        {notif.message}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Action Strip (Direct Link Button + Mark Read Button) */}
+                  <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/[0.04]">
+                    {action ? (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!notif.isRead) {
+                            notificationService.markAsRead(notif.id);
+                          }
+                          onClose();
+                          navigate(action.path);
+                        }}
+                        className="px-3 py-1 min-h-[34px] rounded-lg bg-white/[0.05] hover:bg-[#34D399]/20 hover:text-[#34D399] border border-white/10 text-xs font-mono font-semibold text-[#F4F7F5] inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+                      >
+                        <span>{action.label}</span>
+                        <ArrowRight size={12} />
+                      </button>
+                    ) : (
+                      <span className="text-[10px] font-mono text-[#9EABA2]/60">Tap card to inspect</span>
+                    )}
+
+                    {!notif.isRead ? (
+                      <button
+                        type="button"
+                        onClick={(e) => handleMarkItemRead(e, notif.id)}
+                        className="min-h-[34px] px-2.5 py-1 rounded-lg text-[11px] font-mono text-[#34D399] hover:bg-[#34D399]/15 border border-transparent hover:border-[#34D399]/30 transition-all flex items-center gap-1 cursor-pointer"
+                        title="Mark notification as read"
+                      >
+                        <Check size={13} weight="bold" />
+                        <span>Mark read</span>
+                      </button>
+                    ) : (
+                      <span className="text-[10px] font-mono text-[#9EABA2]/50">Read</span>
                     )}
                   </div>
-                  <p className="text-[11px] text-[#9EABA2] line-clamp-2 leading-relaxed">
-                    {notif.message}
-                  </p>
-                  <div className="flex items-center gap-1.5 pt-0.5 text-[10px] font-mono text-[#9EABA2]/60">
-                    <Clock size={10} />
-                    <span>{formatTimeAgo(notif.createdAt)}</span>
-                  </div>
                 </div>
-
-                {!notif.isRead && (
-                  <button
-                    type="button"
-                    onClick={(e) => handleMarkItemRead(e, notif.id)}
-                    className="p-1.5 rounded-lg text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.08] transition-colors shrink-0"
-                    title="Mark read"
-                  >
-                    <Check size={13} />
-                  </button>
-                )}
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
-        {/* Footer Navigation Link */}
-        <div className="p-3 bg-[#070B09]/80 border-t border-white/[0.08] flex items-center justify-between text-xs">
+        {/* Footer Navigation Hub Link */}
+        <div className="p-3.5 bg-[#070B09]/90 border-t border-white/[0.08] flex items-center justify-between text-xs shrink-0">
           <Link
             to="/dashboard/notifications"
             onClick={onClose}
-            className="text-[11px] font-mono text-[#D9C08A] hover:underline inline-flex items-center gap-1 font-semibold"
+            className="text-xs font-mono text-[#D9C08A] hover:underline inline-flex items-center gap-1.5 font-bold min-h-[38px]"
           >
             <span>Open Full Notification Hub</span>
-            <ArrowRight size={12} />
+            <ArrowRight size={13} />
           </Link>
-          <span className="text-[10px] font-mono text-[#9EABA2]/60">
-            {notifications.length} total alerts
+          <span className="text-[10.5px] font-mono text-[#9EABA2]">
+            {notifications.length} alerts logged
           </span>
         </div>
       </div>

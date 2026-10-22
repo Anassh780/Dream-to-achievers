@@ -121,7 +121,7 @@ export const DashboardReferrals: React.FC = () => {
       )}
 
       {/* Shareable Link Box */}
-      <div className="funding-card p-6 sm:p-7 space-y-4 text-xs relative overflow-hidden">
+      <div className="funding-card p-4 sm:p-6 lg:p-7 space-y-4 text-xs relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3.5 border-b border-white/[0.08]">
           <div>
             <h3 className="font-serif text-base font-bold text-[#F4F7F5]">Your Unique Partner Referral Link</h3>
@@ -131,7 +131,7 @@ export const DashboardReferrals: React.FC = () => {
             <button
               onClick={handleCopyCode}
               title="Click to copy sponsor code"
-              className="funding-ghost-pill font-mono text-xs px-3 py-1 text-[#D9C08A] font-bold border-[#D9C08A]/30 transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="funding-ghost-pill font-mono text-xs px-3 py-1.5 min-h-[38px] text-[#D9C08A] font-bold border-[#D9C08A]/30 transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <span>Code: {user.referralCode}</span>
               {copiedCode ? <Check size={13} className="text-[#34D399]" /> : <Copy size={13} />}
@@ -163,18 +163,18 @@ export const DashboardReferrals: React.FC = () => {
       </div>
 
       {/* Stats Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="funding-stat-kpi p-5 sm:p-6 space-y-1 relative overflow-hidden group">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+        <div className="funding-stat-kpi p-4 sm:p-5 space-y-1 relative overflow-hidden group">
           <span className="text-xs text-[#9EABA2] font-mono block">Direct Team Partners</span>
           <span className="text-2xl font-bold font-mono text-[#F4F7F5] block">{referrals.length}</span>
           <span className="text-[10px] text-[#9EABA2] font-mono block">Registered Resellers</span>
         </div>
-        <div className="funding-stat-kpi p-5 sm:p-6 space-y-1 relative overflow-hidden group border-[#34D399]/30 hover:border-[#34D399]/50">
+        <div className="funding-stat-kpi p-4 sm:p-5 space-y-1 relative overflow-hidden group border-[#34D399]/30 hover:border-[#34D399]/50">
           <span className="text-xs text-[#34D399] font-mono font-medium block">Active / Qualifying for Level</span>
           <span className="text-2xl font-bold font-mono text-[#34D399] block">{rankProgress.qualifyingCommunity}</span>
           <span className="text-[10px] text-[#9EABA2] font-mono block">Counts toward milestone ranks</span>
         </div>
-        <div className="funding-stat-kpi p-5 sm:p-6 space-y-1 relative overflow-hidden group border-[#D9C08A]/30 hover:border-[#D9C08A]/50">
+        <div className="funding-stat-kpi p-4 sm:p-5 space-y-1 relative overflow-hidden group border-[#D9C08A]/30 hover:border-[#D9C08A]/50">
           <span className="text-xs text-[#D9C08A] font-mono font-medium block">Attribution Security</span>
           <div className="flex items-center gap-1.5 pt-0.5">
             <ShieldCheck size={20} weight="fill" className="text-[#34D399]" />

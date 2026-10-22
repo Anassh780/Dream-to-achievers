@@ -34,8 +34,7 @@ import {
 } from '@phosphor-icons/react';
 
 export const DashboardOverview: React.FC = () => {
-  const { user, isAdmin, isSuperAdmin, rankProgress } = useAuth();
-  const canAccessStudio = Boolean(isAdmin || isSuperAdmin || isUserAdminOrSuperAdmin(user));
+  const { user, rankProgress } = useAuth();
   const [copied, setCopied] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
     if (!user) return false;
@@ -43,7 +42,10 @@ export const DashboardOverview: React.FC = () => {
   });
   const [showQuickstart, setShowQuickstart] = useState<boolean>(() => {
     if (!user) return true;
-    return localStorage.getItem(`dta_quickstart_minimized_${user.id}`) !== 'true';
+    const stored = localStorage.getItem(`dta_quickstart_minimized_${user.id}`);
+    if (stored !== null) return stored !== 'true';
+    if (typeof window !== 'undefined' && window.innerWidth < 768) return false;
+    return true;
   });
 
   const toggleQuickstart = () => {
@@ -81,7 +83,7 @@ export const DashboardOverview: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 font-sans max-w-7xl">
+    <div className="space-y-5 sm:space-y-6 font-sans max-w-7xl">
       {/* Onboarding Welcome Pop-Up (Only shows for newly registered users) */}
       <OnboardingModal
         userId={user.id}
@@ -91,7 +93,7 @@ export const DashboardOverview: React.FC = () => {
       />
       
       {/* 1. Top Executive Partner Header */}
-      <div className="funding-card p-6 sm:p-7 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 relative overflow-hidden">
+      <div className="funding-card p-4 sm:p-6 lg:p-7 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 relative overflow-hidden">
         <div className="pointer-events-none absolute -right-20 -top-20 w-64 h-64 bg-[radial-gradient(circle,rgba(52,211,153,0.1),transparent_70%)] blur-2xl" />
         
         <div className="space-y-1.5 min-w-0 z-10">
@@ -118,39 +120,32 @@ export const DashboardOverview: React.FC = () => {
         </div>
 
         {/* Action Controls */}
-        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5 w-full md:w-auto shrink-0 z-10">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full md:w-auto shrink-0 z-10">
+          <Link to="/dashboard/products" className="flex-1 sm:flex-initial">
+            <button className="funding-sheen-btn px-4 sm:px-5 py-2.5 text-xs font-bold uppercase tracking-wider w-full inline-flex items-center justify-center gap-1.5 shadow-md cursor-pointer min-h-[44px]">
+              <ShoppingCart size={15} weight="bold" />
+              <span>Record Sale</span>
+            </button>
+          </Link>
+          <Link to="/dashboard/sales" className="flex-1 sm:flex-initial">
+            <button className="funding-ghost-pill px-3.5 sm:px-4 py-2.5 text-xs font-medium text-[#D9C08A] hover:border-[#D9C08A]/40 w-full inline-flex items-center justify-center gap-1.5 cursor-pointer transition-all min-h-[44px]">
+              <Wallet size={15} className="text-[#D9C08A]" />
+              <span>Withdraw Profits</span>
+            </button>
+          </Link>
           <button
             onClick={() => setShowOnboarding(true)}
-            className="funding-ghost-pill px-3 sm:px-4 py-2.5 text-xs font-medium text-[#F4F7F5] inline-flex items-center justify-center gap-1.5 cursor-pointer hover:border-white/20 transition-all min-h-[40px]"
+            className="funding-ghost-pill px-3.5 sm:px-4 py-2.5 text-xs font-medium text-[#F4F7F5] inline-flex items-center justify-center gap-1.5 cursor-pointer hover:border-white/20 transition-all min-h-[44px] w-full sm:w-auto"
             title="View beginner earning guide"
           >
             <Sparkle size={15} className="text-[#D9C08A]" weight="fill" />
             <span>How It Works</span>
           </button>
-          <Link to="/dashboard/sales" className="w-full sm:w-auto">
-            <button className="funding-ghost-pill px-3 sm:px-4 py-2.5 text-xs font-medium text-[#D9C08A] hover:border-[#D9C08A]/40 w-full inline-flex items-center justify-center cursor-pointer transition-all min-h-[40px]">
-              Withdraw Profits
-            </button>
-          </Link>
-          {canAccessStudio && (
-            <Link to="/admin/settlements" className="w-full sm:w-auto">
-              <button className="funding-ghost-pill px-3 sm:px-4 py-2.5 text-xs font-medium text-amber-300 border-amber-500/30 hover:border-amber-500/50 w-full inline-flex items-center justify-center gap-1.5 cursor-pointer transition-all min-h-[40px]">
-                <Certificate size={15} weight="duotone" className="text-amber-400" />
-                <span><span className="hidden sm:inline">Certificate </span>Studio</span>
-              </button>
-            </Link>
-          )}
-          <Link to="/dashboard/products" className="w-full sm:w-auto">
-            <button className="funding-sheen-btn px-4 sm:px-5 py-2.5 text-xs font-bold uppercase tracking-wider w-full inline-flex items-center justify-center gap-1.5 shadow-md cursor-pointer min-h-[40px]">
-              <ShoppingCart size={14} weight="bold" />
-              <span>Record Sale</span>
-            </button>
-          </Link>
         </div>
       </div>
 
       {/* 2. Google-Style Reseller Quickstart Roadmap (Beginner-Friendly Interaction) */}
-      <div className="funding-card p-5 sm:p-6 space-y-4 relative overflow-hidden border-[#34D399]/20 bg-gradient-to-b from-[#34D399]/[0.03] to-transparent">
+      <div className="funding-card p-4 sm:p-5 lg:p-6 space-y-4 relative overflow-hidden border-[#34D399]/20 bg-gradient-to-b from-[#34D399]/[0.03] to-transparent">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-[#34D399] shrink-0 shadow-[0_0_20px_rgba(52,211,153,0.15)]">
@@ -174,7 +169,7 @@ export const DashboardOverview: React.FC = () => {
           <button
             type="button"
             onClick={toggleQuickstart}
-            className="self-start sm:self-center inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-xs font-mono text-[#9EABA2] hover:text-[#F4F7F5] border border-white/10 transition-colors cursor-pointer"
+            className="self-start sm:self-center inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-xs font-mono text-[#9EABA2] hover:text-[#F4F7F5] border border-white/10 transition-colors cursor-pointer min-h-[38px]"
           >
             {showQuickstart ? (
               <>
@@ -193,8 +188,8 @@ export const DashboardOverview: React.FC = () => {
         {showQuickstart && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-1 animate-in fade-in duration-300">
             {/* Step 1 */}
-            <div className="p-4 rounded-2xl bg-[#070B09]/70 border border-white/[0.07] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-3 group">
-              <div className="space-y-2.5">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-[#070B09]/70 border border-white/[0.07] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-3 group">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">
                     Step 01
@@ -212,7 +207,7 @@ export const DashboardOverview: React.FC = () => {
               </div>
               <Link
                 to="/dashboard/products"
-                className="inline-flex items-center gap-1 text-xs font-mono font-semibold text-[#34D399] group-hover:underline pt-1"
+                className="inline-flex items-center gap-1 text-xs font-mono font-semibold text-[#34D399] group-hover:underline pt-1 min-h-[36px]"
               >
                 <span>Browse Catalog</span>
                 <ArrowRight size={13} />
@@ -220,8 +215,8 @@ export const DashboardOverview: React.FC = () => {
             </div>
 
             {/* Step 2 */}
-            <div className="p-4 rounded-2xl bg-[#070B09]/70 border border-white/[0.07] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-3 group">
-              <div className="space-y-2.5">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-[#070B09]/70 border border-white/[0.07] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-3 group">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">
                     Step 02
@@ -240,7 +235,7 @@ export const DashboardOverview: React.FC = () => {
               <button
                 type="button"
                 onClick={handleWhatsAppShare}
-                className="inline-flex items-center gap-1 text-xs font-mono font-semibold text-[#34D399] group-hover:underline pt-1 cursor-pointer text-left"
+                className="inline-flex items-center gap-1 text-xs font-mono font-semibold text-[#34D399] group-hover:underline pt-1 cursor-pointer text-left min-h-[36px]"
               >
                 <span>Share Referral &amp; Deals</span>
                 <ArrowRight size={13} />
@@ -248,8 +243,8 @@ export const DashboardOverview: React.FC = () => {
             </div>
 
             {/* Step 3 */}
-            <div className="p-4 rounded-2xl bg-[#070B09]/70 border border-white/[0.07] hover:border-sky-500/40 transition-all flex flex-col justify-between space-y-3 group">
-              <div className="space-y-2.5">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-[#070B09]/70 border border-white/[0.07] hover:border-sky-500/40 transition-all flex flex-col justify-between space-y-3 group">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-400 font-bold border border-sky-500/20">
                     Step 03
@@ -267,7 +262,7 @@ export const DashboardOverview: React.FC = () => {
               </div>
               <Link
                 to="/dashboard/products"
-                className="inline-flex items-center gap-1 text-xs font-mono font-semibold text-sky-400 group-hover:underline pt-1"
+                className="inline-flex items-center gap-1 text-xs font-mono font-semibold text-sky-400 group-hover:underline pt-1 min-h-[36px]"
               >
                 <span>Record New Sale</span>
                 <ArrowRight size={13} />
@@ -275,8 +270,8 @@ export const DashboardOverview: React.FC = () => {
             </div>
 
             {/* Step 4 */}
-            <div className="p-4 rounded-2xl bg-[#070B09]/70 border border-white/[0.07] hover:border-[#D9C08A]/40 transition-all flex flex-col justify-between space-y-3 group">
-              <div className="space-y-2.5">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-[#070B09]/70 border border-white/[0.07] hover:border-[#D9C08A]/40 transition-all flex flex-col justify-between space-y-3 group">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#D9C08A]/10 text-[#D9C08A] font-bold border border-[#D9C08A]/20">
                     Step 04
@@ -294,7 +289,7 @@ export const DashboardOverview: React.FC = () => {
               </div>
               <Link
                 to="/dashboard/sales"
-                className="inline-flex items-center gap-1 text-xs font-mono font-semibold text-[#D9C08A] group-hover:underline pt-1"
+                className="inline-flex items-center gap-1 text-xs font-mono font-semibold text-[#D9C08A] group-hover:underline pt-1 min-h-[36px]"
               >
                 <span>Payout Balance</span>
                 <ArrowRight size={13} />
@@ -305,10 +300,10 @@ export const DashboardOverview: React.FC = () => {
       </div>
 
       {/* 3. Four Master Financial & Operational KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
         
         {/* KPI 1: Qualifying Delivered Sales */}
-        <div className="funding-stat-kpi p-5 sm:p-6 space-y-3 relative overflow-hidden group">
+        <div className="funding-stat-kpi p-4 sm:p-5 space-y-2.5 relative overflow-hidden group">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-[#9EABA2] font-mono font-medium">Delivered Sales</span>
@@ -327,7 +322,7 @@ export const DashboardOverview: React.FC = () => {
         </div>
 
         {/* KPI 2: Available Profit Margin */}
-        <div className="funding-stat-kpi p-5 sm:p-6 space-y-3 relative overflow-hidden group border-[#34D399]/20 hover:border-[#34D399]/40">
+        <div className="funding-stat-kpi p-4 sm:p-5 space-y-2.5 relative overflow-hidden group border-[#34D399]/20 hover:border-[#34D399]/40">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-[#34D399] font-mono font-bold">Available Profit</span>
@@ -350,7 +345,7 @@ export const DashboardOverview: React.FC = () => {
         </div>
 
         {/* KPI 3: Community Referral Network */}
-        <div className="funding-stat-kpi p-5 sm:p-6 space-y-3 relative overflow-hidden group">
+        <div className="funding-stat-kpi p-4 sm:p-5 space-y-2.5 relative overflow-hidden group">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-[#9EABA2] font-mono font-medium">Partner Downline</span>
@@ -369,7 +364,7 @@ export const DashboardOverview: React.FC = () => {
         </div>
 
         {/* KPI 4: Milestone Rewards Claimed */}
-        <div className="funding-stat-kpi p-5 sm:p-6 space-y-3 relative overflow-hidden group border-[#D9C08A]/20 hover:border-[#D9C08A]/40">
+        <div className="funding-stat-kpi p-4 sm:p-5 space-y-2.5 relative overflow-hidden group border-[#D9C08A]/20 hover:border-[#D9C08A]/40">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-[#D9C08A] font-mono font-bold">Milestone Rewards</span>
@@ -392,7 +387,7 @@ export const DashboardOverview: React.FC = () => {
       </div>
 
       {/* 3. 1-Click Referral Invitation & WhatsApp Sharing Hub */}
-      <div className="funding-card p-5 sm:p-7 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-5 relative overflow-hidden">
+      <div className="funding-card p-4 sm:p-6 lg:p-7 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 sm:gap-5 relative overflow-hidden">
         <div className="flex items-center space-x-3.5 sm:space-x-4 min-w-0 z-10">
           <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-[#6EE7A8] to-[#2FA46B] text-[#070B09] flex items-center justify-center shrink-0 shadow-[0_0_25px_rgba(52,211,153,0.3)]">
             <ShareNetwork size={22} weight="bold" />
@@ -428,7 +423,7 @@ export const DashboardOverview: React.FC = () => {
       </div>
 
       {/* 4. Milestone Rank Roadmap Gauge */}
-      <div className="funding-card p-6 sm:p-7 space-y-5 relative overflow-hidden">
+      <div className="funding-card p-4 sm:p-6 lg:p-7 space-y-5 relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-white/[0.08]">
           <div>
             <h2 className="text-lg font-serif font-bold text-[#F4F7F5]">
@@ -495,25 +490,25 @@ export const DashboardOverview: React.FC = () => {
       </div>
 
       {/* 5. Two-Column Dashboard Split: Recent Orders + High-Margin Wholesale Products */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
         
         {/* Left 7 Cols: Recent Customer Orders */}
-        <div className="lg:col-span-7 funding-card p-6 space-y-4">
+        <div className="lg:col-span-7 funding-card p-4 sm:p-6 space-y-4">
           <div className="flex items-center justify-between pb-3.5 border-b border-white/[0.08]">
             <h3 className="font-serif font-bold text-base text-[#F4F7F5]">Recent Customer Orders</h3>
-            <Link to="/dashboard/sales" className="text-xs text-[#34D399] hover:underline font-semibold flex items-center gap-1">
+            <Link to="/dashboard/sales" className="text-xs text-[#34D399] hover:underline font-semibold flex items-center gap-1 min-h-[36px]">
               <span>View All</span>
               <CaretRight size={12} weight="bold" />
             </Link>
           </div>
 
           {recentSales.length === 0 ? (
-            <div className="p-8 text-center space-y-2.5 text-xs text-[#9EABA2]">
+            <div className="p-6 sm:p-8 text-center space-y-2.5 text-xs text-[#9EABA2]">
               <Package size={32} className="text-[#9EABA2]/60 mx-auto" />
               <p className="font-semibold text-sm text-[#F4F7F5]">No customer sales recorded yet.</p>
               <p className="text-[11px] text-[#9EABA2]">Select a product from the wholesale catalog to record your first client sale.</p>
               <Link to="/dashboard/products" className="inline-block pt-1">
-                <button className="funding-sheen-btn px-4 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer">
+                <button className="funding-sheen-btn px-4 py-2.5 min-h-[44px] text-xs font-bold uppercase tracking-wider cursor-pointer">
                   Browse Wholesale Catalog
                 </button>
               </Link>
@@ -525,7 +520,7 @@ export const DashboardOverview: React.FC = () => {
                   key={sale.id}
                   className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-between gap-3 hover:border-[#34D399]/30 hover:bg-white/[0.04] transition-all"
                 >
-                  <div className="space-y-0.5 min-w-0">
+                  <div className="space-y-0.5 min-w-0 flex-1">
                     <p className="font-bold text-[#F4F7F5] truncate">{sale.productName}</p>
                     <p className="text-[11px] text-[#9EABA2] font-mono truncate">
                       Client: {sale.customerName} • {sale.quantity} unit(s)
@@ -546,10 +541,10 @@ export const DashboardOverview: React.FC = () => {
         </div>
 
         {/* Right 5 Cols: Top High-Margin Inventory */}
-        <div className="lg:col-span-5 funding-card p-6 space-y-4">
+        <div className="lg:col-span-5 funding-card p-4 sm:p-6 space-y-4">
           <div className="flex items-center justify-between pb-3.5 border-b border-white/[0.08]">
             <h3 className="font-serif font-bold text-base text-[#F4F7F5]">Top Wholesale Margins</h3>
-            <Link to="/dashboard/products" className="text-xs text-[#34D399] hover:underline font-semibold flex items-center gap-1">
+            <Link to="/dashboard/products" className="text-xs text-[#34D399] hover:underline font-semibold flex items-center gap-1 min-h-[36px]">
               <span>Full Catalog</span>
               <CaretRight size={12} weight="bold" />
             </Link>
@@ -569,7 +564,7 @@ export const DashboardOverview: React.FC = () => {
                     onError={(e) => {
                       e.currentTarget.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
                     }}
-                    className="w-11 h-11 rounded-xl object-cover bg-white/[0.04] border border-white/10 shrink-0"
+                    className="w-12 h-12 rounded-xl object-cover bg-white/[0.04] border border-white/10 shrink-0"
                   />
                   <div className="truncate min-w-0">
                     <p className="font-bold text-[#F4F7F5] truncate">{item.name}</p>

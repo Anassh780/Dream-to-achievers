@@ -271,9 +271,9 @@ export const DashboardSales: React.FC = () => {
       </div>
 
       {/* Accounting Summary Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
         {/* Available Balance */}
-        <div className="funding-stat-kpi p-5 sm:p-6 space-y-1 relative overflow-hidden group border-[#34D399]/30 hover:border-[#34D399]/50">
+        <div className="funding-stat-kpi p-4 sm:p-5 space-y-1 relative overflow-hidden group border-[#34D399]/30 hover:border-[#34D399]/50">
           <span className="text-[11px] text-[#34D399] font-mono font-medium block">
             Available for Withdrawal
           </span>
@@ -284,7 +284,7 @@ export const DashboardSales: React.FC = () => {
         </div>
 
         {/* Pending In-Transit Profit */}
-        <div className="funding-stat-kpi p-5 sm:p-6 space-y-1 relative overflow-hidden group border-[#D9C08A]/30 hover:border-[#D9C08A]/50">
+        <div className="funding-stat-kpi p-4 sm:p-5 space-y-1 relative overflow-hidden group border-[#D9C08A]/30 hover:border-[#D9C08A]/50">
           <span className="text-[11px] text-[#D9C08A] font-mono font-medium block">
             Pending / In-Transit Profit
           </span>
@@ -295,7 +295,7 @@ export const DashboardSales: React.FC = () => {
         </div>
 
         {/* Lifetime Profit Earned */}
-        <div className="funding-stat-kpi p-5 sm:p-6 space-y-1 relative overflow-hidden group">
+        <div className="funding-stat-kpi p-4 sm:p-5 space-y-1 relative overflow-hidden group">
           <span className="text-[11px] text-[#9EABA2] font-mono block">
             Total Delivered Profit
           </span>
@@ -306,7 +306,7 @@ export const DashboardSales: React.FC = () => {
         </div>
 
         {/* Total Withdrawn */}
-        <div className="funding-stat-kpi p-5 sm:p-6 space-y-1 relative overflow-hidden group">
+        <div className="funding-stat-kpi p-4 sm:p-5 space-y-1 relative overflow-hidden group">
           <span className="text-[11px] text-[#9EABA2] font-mono block">
             Total Withdrawn
           </span>

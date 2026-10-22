@@ -41,22 +41,22 @@ export const DashboardRewards: React.FC = () => {
       </div>
 
       {/* Accounting Summary Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="funding-stat-kpi p-5 sm:p-6 space-y-1 relative overflow-hidden group">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+        <div className="funding-stat-kpi p-4 sm:p-5 space-y-1 relative overflow-hidden group">
           <span className="text-xs text-[#9EABA2] font-mono block">Total Milestone Rewards</span>
           <span className="text-2xl font-bold font-mono text-[#F4F7F5] block">
             PKR {totalEarned.toLocaleString()}
           </span>
           <span className="text-[10px] font-mono text-[#9EABA2] block">Accumulated earnings</span>
         </div>
-        <div className="funding-stat-kpi p-5 sm:p-6 space-y-1 relative overflow-hidden group border-[#34D399]/30 hover:border-[#34D399]/50">
+        <div className="funding-stat-kpi p-4 sm:p-5 space-y-1 relative overflow-hidden group border-[#34D399]/30 hover:border-[#34D399]/50">
           <span className="text-xs text-[#34D399] font-mono font-medium block">Disbursed / Paid</span>
           <span className="text-2xl font-bold font-mono text-[#34D399] block">
             PKR {paidTotal.toLocaleString()}
           </span>
           <span className="text-[10px] font-mono text-[#9EABA2] block">Transferred to partner</span>
         </div>
-        <div className="funding-stat-kpi p-5 sm:p-6 space-y-1 relative overflow-hidden group border-[#D9C08A]/30 hover:border-[#D9C08A]/50">
+        <div className="funding-stat-kpi p-4 sm:p-5 space-y-1 relative overflow-hidden group border-[#D9C08A]/30 hover:border-[#D9C08A]/50">
           <span className="text-xs text-[#D9C08A] font-mono font-medium block">Pending Review / Processing</span>
           <span className="text-2xl font-bold font-mono text-[#D9C08A] block">
             PKR {pendingTotal.toLocaleString()}

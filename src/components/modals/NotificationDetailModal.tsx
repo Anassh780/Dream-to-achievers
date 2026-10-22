@@ -201,14 +201,17 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
       role="dialog"
       aria-modal="true"
       aria-labelledby="notification-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 animate-notif-backdrop bg-black/75 overscroll-contain"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/80 backdrop-blur-xs overscroll-contain animate-notif-backdrop"
       onClick={onClose}
     >
-      {/* Centered Glass Dialog Card */}
+      {/* Centered Glass Dialog Card (Bottom Sheet on mobile, centered modal on sm+) */}
       <div
-        className="relative w-full max-w-lg rounded-3xl bg-[#0D1512]/95 backdrop-blur-2xl border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_rgba(217,192,138,0.06)] overflow-hidden flex flex-col max-h-[90vh] animate-notif-modal-spring"
+        className="relative w-full max-w-lg rounded-t-[32px] sm:rounded-3xl bg-[#0D1512]/98 backdrop-blur-2xl border border-white/12 shadow-[0_-20px_50px_rgba(0,0,0,0.95),0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_rgba(217,192,138,0.06)] overflow-hidden flex flex-col max-h-[88dvh] sm:max-h-[90vh] pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-0 animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Mobile Pull-Down Handle */}
+        <div className="w-12 h-1.5 rounded-full bg-white/20 mx-auto mt-2.5 mb-0.5 sm:hidden shrink-0" />
+
         {/* Ambient Top Glow Mesh */}
         <div
           className={`absolute top-0 inset-x-0 h-36 bg-gradient-to-b ${config.glowClass} pointer-events-none -z-0 opacity-80`}
@@ -336,13 +339,13 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
         </div>
 
         {/* Modal Action Footer */}
-        <div className="relative z-10 px-4 sm:px-6 py-3.5 sm:py-4 bg-[#070B09]/90 border-t border-white/[0.08] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+        <div className="relative z-10 px-4 sm:px-6 py-3.5 sm:py-4 bg-[#070B09]/95 border-t border-white/[0.08] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
             {onToggleRead && (
               <button
                 type="button"
                 onClick={() => onToggleRead(notification.id, notification.isRead)}
-                className="flex-1 sm:flex-none min-h-[38px] px-3 py-1.5 rounded-xl text-xs font-mono text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.05] border border-white/10 transition-colors cursor-pointer text-center"
+                className="min-h-[42px] px-3.5 py-2 rounded-xl text-xs font-mono font-medium text-[#9EABA2] hover:text-[#F4F7F5] bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 transition-colors cursor-pointer text-center inline-flex items-center justify-center active:scale-95"
               >
                 {notification.isRead ? 'Mark as Unread' : 'Mark as Read'}
               </button>
@@ -354,17 +357,17 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
                   onDelete(notification.id);
                   onClose();
                 }}
-                className="min-h-[38px] px-3 py-1.5 rounded-xl text-xs font-mono text-rose-400/80 hover:text-rose-400 hover:bg-rose-500/10 border border-rose-500/20 transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5"
+                className="min-h-[42px] px-3.5 py-2 rounded-xl text-xs font-mono font-medium text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5 active:scale-95"
                 title="Delete this notification"
               >
-                <Trash size={13} />
+                <Trash size={14} />
                 <span>Delete</span>
               </button>
             )}
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            {targetLink && (
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-2.5">
+            {targetLink ? (
               <Button
                 type="button"
                 variant="champagne"
@@ -376,19 +379,19 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
                   onClose();
                   navigate(targetLink);
                 }}
-                className="flex-1 sm:flex-none min-h-[40px] text-xs font-semibold shadow-lg justify-center"
-                iconRight={<ArrowRight size={13} />}
+                className="w-full sm:w-auto min-h-[44px] text-xs font-bold shadow-lg justify-center order-2 sm:order-1"
+                iconRight={<ArrowRight size={14} />}
               >
                 {getActionLabel(targetLink)}
               </Button>
-            )}
+            ) : null}
 
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={onClose}
-              className="min-h-[40px] text-xs px-4"
+              className="w-full sm:w-auto min-h-[44px] text-xs px-4 justify-center order-1 sm:order-2"
             >
               Dismiss
             </Button>

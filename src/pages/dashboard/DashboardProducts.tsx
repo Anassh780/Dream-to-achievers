@@ -487,8 +487,11 @@ export const DashboardProducts: React.FC = () => {
 
       {/* 5. Record Client Sale Modal */}
       {selectedProduct && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 touch-pan-y overscroll-contain">
-          <div className="rounded-2xl sm:rounded-3xl bg-[var(--surface)] border border-[var(--line)] p-4 sm:p-6 max-w-lg w-full max-h-[94vh] overflow-y-auto space-y-4 shadow-2xl animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 touch-pan-y overscroll-contain">
+          <div className="rounded-t-3xl sm:rounded-3xl bg-[var(--surface)] border border-[var(--line)] p-4 sm:p-6 max-w-lg w-full max-h-[calc(100dvh-1.5rem)] sm:max-h-[94vh] overflow-y-auto space-y-4 shadow-2xl pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:pb-6 animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200">
+            {/* Mobile Bottom Sheet Pull Indicator */}
+            <div className="w-12 h-1 rounded-full bg-[var(--line)] mx-auto -mt-1 mb-2 sm:hidden" />
+
             <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
               <div className="min-w-0 pr-2">
                 <h3 className="font-serif font-medium text-base text-[var(--ink)]">

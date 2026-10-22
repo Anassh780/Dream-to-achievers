@@ -30,7 +30,7 @@ export const RankProgressPage: React.FC = () => {
       </div>
 
       {/* 1. Primary Current-Rank Status Card */}
-      <div className="funding-card p-6 sm:p-7 space-y-5 relative overflow-hidden">
+      <div className="funding-card p-4 sm:p-6 lg:p-7 space-y-5 relative overflow-hidden">
         <div className="pointer-events-none absolute -right-20 -top-20 w-64 h-64 bg-[radial-gradient(circle,rgba(52,211,153,0.1),transparent_70%)] blur-2xl" />
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/[0.08] z-10 relative">
@@ -130,7 +130,7 @@ export const RankProgressPage: React.FC = () => {
             return (
               <div
                 key={rank.slug}
-                className={`funding-card p-5 sm:p-6 transition-all flex flex-col justify-between space-y-4 ${
+                className={`funding-card p-4 sm:p-5 transition-all flex flex-col justify-between space-y-4 ${
                   isCurrent
                     ? 'border-[#34D399] shadow-[0_0_25px_rgba(52,211,153,0.15)] ring-1 ring-[#34D399]/40'
                     : isTopTier
@@ -193,7 +193,7 @@ export const RankProgressPage: React.FC = () => {
       </div>
 
       {/* 3. Milestone Achievement History Ledger */}
-      <div className="funding-card p-6 space-y-4">
+      <div className="funding-card p-4 sm:p-6 space-y-4">
         <h3 className="font-serif text-base font-bold text-[#F4F7F5]">Milestone Achievement Ledger</h3>
         {rankHistory.length === 0 ? (
           <p className="text-xs text-[#9EABA2] py-4 text-center font-mono">
