@@ -174,27 +174,31 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('details')}
-          className={`py-2 px-3 rounded-xl font-mono text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+          className={`py-2 px-2.5 sm:px-3 rounded-xl font-mono text-xs font-semibold flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer ${
             activeTab === 'details'
               ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
           }`}
         >
-          <Sliders size={14} />
-          <span>Ledger &amp; Data Fields</span>
+          <Sliders size={14} className="shrink-0" />
+          <span className="truncate">
+            <span className="hidden sm:inline">Ledger &amp; </span>Data Fields
+          </span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('styles')}
-          className={`py-2 px-3 rounded-xl font-mono text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+          className={`py-2 px-2.5 sm:px-3 rounded-xl font-mono text-xs font-semibold flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer ${
             activeTab === 'styles'
               ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
           }`}
         >
-          <Paintbrush size={14} />
-          <span>Fonts, Colors &amp; Backgrounds</span>
+          <Paintbrush size={14} className="shrink-0" />
+          <span className="truncate">
+            <span className="hidden sm:inline">Fonts, Colors &amp; </span>Styling Studio
+          </span>
         </button>
       </div>
 
@@ -395,7 +399,7 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
                       key={c}
                       type="button"
                       onClick={() => handleFieldChange('primaryTextColor', c)}
-                      className="w-5 h-5 rounded-md border border-slate-700 shadow-2xs"
+                      className="w-7 h-7 sm:w-6 sm:h-6 rounded-lg border border-slate-700 shadow-2xs cursor-pointer transition-transform active:scale-90"
                       style={{ backgroundColor: c }}
                       title={c}
                     />
@@ -429,7 +433,7 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
                       key={c}
                       type="button"
                       onClick={() => handleFieldChange('honoreeTextColor', c)}
-                      className="w-5 h-5 rounded-md border border-slate-700 shadow-2xs"
+                      className="w-7 h-7 sm:w-6 sm:h-6 rounded-lg border border-slate-700 shadow-2xs cursor-pointer transition-transform active:scale-90"
                       style={{ backgroundColor: c }}
                       title={c}
                     />
@@ -463,7 +467,7 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
                       key={c}
                       type="button"
                       onClick={() => handleFieldChange('amountTextColor', c)}
-                      className="w-5 h-5 rounded-md border border-slate-700 shadow-2xs"
+                      className="w-7 h-7 sm:w-6 sm:h-6 rounded-lg border border-slate-700 shadow-2xs cursor-pointer transition-transform active:scale-90"
                       style={{ backgroundColor: c }}
                       title={c}
                     />
@@ -497,7 +501,7 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
                       key={c}
                       type="button"
                       onClick={() => handleFieldChange('secondaryTextColor', c)}
-                      className="w-5 h-5 rounded-md border border-slate-700 shadow-2xs"
+                      className="w-7 h-7 sm:w-6 sm:h-6 rounded-lg border border-slate-700 shadow-2xs cursor-pointer transition-transform active:scale-90"
                       style={{ backgroundColor: c }}
                       title={c}
                     />

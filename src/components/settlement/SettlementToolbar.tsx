@@ -177,14 +177,132 @@ export const SettlementToolbar: React.FC<SettlementToolbarProps> = ({
   };
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-slate-900/95 border border-slate-800 text-xs shadow-md">
-      {/* Left: Template Selector Pills & Admin Studio Toggle */}
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-col gap-2 p-2 sm:p-3 rounded-2xl bg-slate-900/95 border border-slate-800 text-xs shadow-md">
+      {/* Row 1: Zoom / Scaling Controls & Primary Action Buttons */}
+      <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+        {/* Center/Left: Zoom / Scaling Controls */}
+        <div className="flex items-center space-x-1 font-mono shrink-0">
+          <button
+            type="button"
+            onClick={() => onZoomChange(Math.max(0.18, zoom - 0.08))}
+            className="min-h-[36px] min-w-[36px] sm:min-h-[32px] sm:min-w-[32px] flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 border border-transparent hover:border-slate-700 active:bg-slate-800 cursor-pointer transition-colors"
+            title="Zoom Out"
+            aria-label="Zoom Out"
+          >
+            <ZoomOut size={15} />
+          </button>
+
+          <span className="px-1.5 py-1 rounded-md bg-slate-950 border border-slate-800 text-[11px] font-semibold text-slate-300 min-w-[44px] text-center">
+            {Math.round(zoom * 100)}%
+          </span>
+
+          <button
+            type="button"
+            onClick={() => onZoomChange(Math.min(1.2, zoom + 0.08))}
+            className="min-h-[36px] min-w-[36px] sm:min-h-[32px] sm:min-w-[32px] flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 border border-transparent hover:border-slate-700 active:bg-slate-800 cursor-pointer transition-colors"
+            title="Zoom In"
+            aria-label="Zoom In"
+          >
+            <ZoomIn size={15} />
+          </button>
+
+          <button
+            type="button"
+            onClick={onFitWidth}
+            className="min-h-[36px] px-2.5 py-1 rounded-lg text-[11px] text-cyan-400 hover:bg-cyan-500/10 border border-cyan-500/20 active:bg-cyan-500/20 cursor-pointer ml-1 inline-flex items-center gap-1 font-sans font-medium"
+            title="Fit Canvas to Screen"
+          >
+            <Maximize2 size={12} />
+            <span className="hidden xs:inline">Fit Screen</span>
+          </button>
+        </div>
+
+        {/* Right: Sleek Action Row matching Funding Pips / Mobile First */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 ml-auto">
+          {/* [ ↓ PNG ] Button */}
+          <button
+            type="button"
+            disabled={isExporting}
+            onClick={handleDownloadPng}
+            className="min-h-[36px] px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-950 font-bold text-xs inline-flex items-center gap-1.5 cursor-pointer shadow-sm transition-all active:scale-95 disabled:opacity-50 shrink-0"
+            title="Download High-Resolution PNG Image"
+          >
+            <Download size={14} />
+            <span>{isExporting ? 'Saving...' : 'PNG'}</span>
+          </button>
+
+          {/* [ 💬 WhatsApp ] Button */}
+          <button
+            type="button"
+            onClick={handleShareWhatsApp}
+            className="min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 shrink-0"
+            title="Share on WhatsApp"
+          >
+            <Share2 size={14} />
+            <span className="hidden xs:inline">WhatsApp</span>
+          </button>
+
+          {/* [ 📋 Image ] Button */}
+          <button
+            type="button"
+            disabled={isCopying}
+            onClick={handleCopyImage}
+            className="min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs inline-flex items-center gap-1.5 border border-slate-700 cursor-pointer transition-all active:scale-95 disabled:opacity-50 shrink-0"
+            title="Copy Image to clipboard"
+          >
+            {copiedSuccess ? (
+              <>
+                <Check size={14} className="text-emerald-400" />
+                <span className="text-emerald-400 hidden xs:inline">Copied</span>
+              </>
+            ) : (
+              <>
+                <Copy size={14} className="text-slate-300" />
+                <span className="hidden xs:inline">Image</span>
+              </>
+            )}
+          </button>
+
+          {/* [ 🔗 Link ] Button */}
+          <button
+            type="button"
+            onClick={handleCopyLink}
+            className="min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs inline-flex items-center gap-1.5 border border-slate-700 cursor-pointer transition-all active:scale-95 shrink-0"
+            title="Copy Verification Link"
+          >
+            {copiedLinkSuccess ? (
+              <>
+                <Check size={14} className="text-cyan-400" />
+                <span className="text-cyan-400 hidden xs:inline">Linked</span>
+              </>
+            ) : (
+              <>
+                <LinkIcon size={14} className="text-slate-300" />
+                <span className="hidden xs:inline">Link</span>
+              </>
+            )}
+          </button>
+
+          {/* [ ↓ PDF ] Button */}
+          <button
+            type="button"
+            onClick={handlePrintPdf}
+            className="min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs inline-flex items-center gap-1.5 border border-slate-700 cursor-pointer transition-all active:scale-95 shrink-0"
+            title="Export / Print Certificate as PDF"
+          >
+            <FileText size={14} />
+            <span className="hidden xs:inline">PDF</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Row 2: Horizontally Scrollable Template Selector Pills & Admin Studio Toggle */}
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 touch-pan-x">
         {canEdit && onToggleEditor && (
           <button
             type="button"
             onClick={onToggleEditor}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            className={`min-h-[34px] px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
               showEditor
                 ? 'bg-amber-400 text-slate-950 font-black shadow-[0_0_15px_rgba(251,191,36,0.5)]'
                 : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-xs'
@@ -192,40 +310,42 @@ export const SettlementToolbar: React.FC<SettlementToolbarProps> = ({
             title="Toggle real-time visual styling studio (Fonts, Colors & Backgrounds)"
           >
             <Sparkles size={13} className={showEditor ? 'text-slate-950' : 'text-amber-400'} />
-            <span>{showEditor ? 'Hide Styling Studio' : '🎨 Styling Studio (Fonts & Colors)'}</span>
+            <span className="whitespace-nowrap">
+              {showEditor ? 'Hide Studio' : '🎨 Styling Studio'}
+            </span>
           </button>
         )}
 
         {onTemplateChange && (
-          <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-slate-950/80 border border-slate-800">
+          <div className="flex items-center gap-1 p-0.5 rounded-xl bg-slate-950/80 border border-slate-800 shrink-0">
             <button
               type="button"
               onClick={() => onTemplateChange('funding_pips_portrait')}
-              className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`min-h-[32px] px-2.5 sm:px-3 py-1 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                 record.template === 'funding_pips_portrait' || !record.template
                   ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <span>⚡ Funding Pips (Sky Blue)</span>
+              <span>⚡ <span className="hidden sm:inline">Funding Pips </span>(Sky Blue)</span>
             </button>
 
             <button
               type="button"
               onClick={() => onTemplateChange('emerald_website_ui')}
-              className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`min-h-[32px] px-2.5 sm:px-3 py-1 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                 record.template === 'emerald_website_ui'
                   ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <span>💎 Website UI (Emerald)</span>
+              <span>💎 <span className="hidden sm:inline">Website UI </span>(Emerald)</span>
             </button>
 
             <button
               type="button"
               onClick={() => onTemplateChange('funding_pips_vip')}
-              className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`min-h-[32px] px-2.5 sm:px-3 py-1 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                 record.template === 'funding_pips_vip'
                   ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                   : 'text-slate-400 hover:text-slate-200'
@@ -238,129 +358,16 @@ export const SettlementToolbar: React.FC<SettlementToolbarProps> = ({
             <button
               type="button"
               onClick={() => onTemplateChange('executive_statement')}
-              className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-medium transition-all cursor-pointer ${
+              className={`min-h-[32px] px-2.5 sm:px-3 py-1 rounded-lg text-[11px] font-mono font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 record.template === 'executive_statement'
                   ? 'bg-slate-800 text-slate-100 border border-slate-700'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <span>Executive Minimal</span>
+              <span>Executive<span className="hidden sm:inline"> Minimal</span></span>
             </button>
           </div>
         )}
-      </div>
-
-      {/* Center: Zoom / Scaling Controls */}
-      <div className="flex items-center space-x-1.5 font-mono">
-        <button
-          type="button"
-          onClick={() => onZoomChange(Math.max(0.25, zoom - 0.08))}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 border border-transparent hover:border-slate-700 cursor-pointer"
-          title="Zoom Out"
-        >
-          <ZoomOut size={14} />
-        </button>
-
-        <span className="px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-[11px] font-semibold text-slate-300 min-w-[50px] text-center">
-          {Math.round(zoom * 100)}%
-        </span>
-
-        <button
-          type="button"
-          onClick={() => onZoomChange(Math.min(1.2, zoom + 0.08))}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 border border-transparent hover:border-slate-700 cursor-pointer"
-          title="Zoom In"
-        >
-          <ZoomIn size={14} />
-        </button>
-
-        <button
-          type="button"
-          onClick={onFitWidth}
-          className="px-2.5 py-1 rounded-lg text-[11px] text-cyan-400 hover:bg-cyan-500/10 border border-cyan-500/20 cursor-pointer ml-1 inline-flex items-center gap-1"
-          title="Fit Canvas to Screen"
-        >
-          <Maximize2 size={12} />
-          <span>Fit Screen</span>
-        </button>
-      </div>
-
-      {/* Right: Sleek Action Row matching Funding Pips Image 2 */}
-      <div className="flex flex-wrap items-center gap-2">
-        {/* [ ↓ PNG ] Button */}
-        <button
-          type="button"
-          disabled={isExporting}
-          onClick={handleDownloadPng}
-          className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-950 font-bold text-xs inline-flex items-center gap-1.5 cursor-pointer shadow-sm transition-all active:scale-95 disabled:opacity-50"
-          title="Download High-Resolution PNG Image"
-        >
-          <Download size={14} />
-          <span>{isExporting ? 'Generating...' : 'PNG'}</span>
-        </button>
-
-        {/* [ ↓ PDF ] Button */}
-        <button
-          type="button"
-          onClick={handlePrintPdf}
-          className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs inline-flex items-center gap-1.5 border border-slate-700 cursor-pointer transition-all active:scale-95"
-          title="Export / Print Certificate as PDF"
-        >
-          <FileText size={14} />
-          <span>PDF</span>
-        </button>
-
-        {/* [ 📋 Image ] Button */}
-        <button
-          type="button"
-          disabled={isCopying}
-          onClick={handleCopyImage}
-          className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs inline-flex items-center gap-1.5 border border-slate-700 cursor-pointer transition-all active:scale-95 disabled:opacity-50"
-          title="Copy Image to clipboard"
-        >
-          {copiedSuccess ? (
-            <>
-              <Check size={14} className="text-emerald-400" />
-              <span className="text-emerald-400">Copied</span>
-            </>
-          ) : (
-            <>
-              <Copy size={14} className="text-slate-300" />
-              <span>Image</span>
-            </>
-          )}
-        </button>
-
-        {/* [ 🔗 Link ] Button */}
-        <button
-          type="button"
-          onClick={handleCopyLink}
-          className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs inline-flex items-center gap-1.5 border border-slate-700 cursor-pointer transition-all active:scale-95"
-          title="Copy Verification Link"
-        >
-          {copiedLinkSuccess ? (
-            <>
-              <Check size={14} className="text-cyan-400" />
-              <span className="text-cyan-400">Linked</span>
-            </>
-          ) : (
-            <>
-              <LinkIcon size={14} className="text-slate-300" />
-              <span>Link</span>
-            </>
-          )}
-        </button>
-
-        {/* [ 💬 WhatsApp ] Button */}
-        <button
-          type="button"
-          onClick={handleShareWhatsApp}
-          className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
-          title="Share on WhatsApp"
-        >
-          <Share2 size={14} />
-          <span>WhatsApp</span>
-        </button>
       </div>
     </div>
   );

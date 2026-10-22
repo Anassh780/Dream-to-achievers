@@ -319,20 +319,20 @@ export const DashboardSales: React.FC = () => {
 
       {/* Tabs & Executive Settlement Generator Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto touch-pan-x pb-0.5 shrink-0">
           <button
             onClick={() => setActiveTab('orders')}
-            className={`px-4 py-2 rounded-xl text-xs font-mono font-medium transition-all cursor-pointer ${
+            className={`min-h-[38px] px-3.5 sm:px-4 py-2 rounded-xl text-xs font-mono font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === 'orders'
                 ? 'bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/30 font-semibold shadow-[0_0_15px_rgba(52,211,153,0.12)]'
                 : 'text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.04]'
             }`}
           >
-            Customer Orders Ledger ({sales.length})
+            Orders Ledger ({sales.length})
           </button>
           <button
             onClick={() => setActiveTab('withdrawals')}
-            className={`px-4 py-2 rounded-xl text-xs font-mono font-medium transition-all cursor-pointer ${
+            className={`min-h-[38px] px-3.5 sm:px-4 py-2 rounded-xl text-xs font-mono font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === 'withdrawals'
                 ? 'bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/30 font-semibold shadow-[0_0_15px_rgba(52,211,153,0.12)]'
                 : 'text-[#9EABA2] hover:text-[#F4F7F5] hover:bg-white/[0.04]'
@@ -362,10 +362,10 @@ export const DashboardSales: React.FC = () => {
               setShowCertModal(true);
             }
           }}
-          className="min-h-[38px] px-4 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/25 via-yellow-500/15 to-amber-500/20 hover:from-amber-500/35 hover:to-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-mono font-bold inline-flex items-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.15)] cursor-pointer transition-all active:scale-[0.98]"
+          className="min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500/25 via-yellow-500/15 to-amber-500/20 hover:from-amber-500/35 hover:to-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-mono font-bold inline-flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.15)] cursor-pointer transition-all active:scale-[0.98] w-full sm:w-auto"
         >
           <Crown size={16} weight="duotone" className="text-amber-400 shrink-0" />
-          <span>👑 View VIP Payout Certificate</span>
+          <span>View VIP Payout Certificate</span>
         </button>
       </div>
 

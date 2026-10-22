@@ -152,16 +152,16 @@ export const ProfileQrCard: React.FC<ProfileQrCardProps> = ({ user }) => {
   const currentStyles = getThemeFrameStyles();
 
   return (
-    <div className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--line)] shadow-xs space-y-6">
+    <div className="p-4 sm:p-6 rounded-2xl bg-[var(--surface)] border border-[var(--line)] shadow-xs space-y-5 sm:space-y-6">
       {/* Header with Title & Explanation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[var(--line)]">
         <div>
           <div className="flex items-center space-x-2">
-            <div className="p-2 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-xs">
+            <div className="p-2 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-xs shrink-0">
               <QrCode size={20} />
             </div>
             <div>
-              <h3 className="font-serif font-bold text-lg text-[var(--ink)] flex items-center gap-2">
+              <h3 className="font-serif font-bold text-base sm:text-lg text-[var(--ink)] flex items-center gap-2 flex-wrap">
                 <span>Reseller Profile QR Code Generator</span>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 uppercase font-bold tracking-wider">
                   Live &amp; Scannable
@@ -174,13 +174,13 @@ export const ProfileQrCard: React.FC<ProfileQrCardProps> = ({ user }) => {
           </div>
         </div>
 
-        {/* Theme Picker Pills */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[var(--surface-alt)] border border-[var(--line)] self-start sm:self-auto">
-          <Palette size={14} className="text-[var(--ink-soft)] ml-1.5 mr-1" />
+        {/* Theme Picker Pills: Horizontally Scrollable on Mobile with Touch Momentum */}
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[var(--surface-alt)] border border-[var(--line)] w-full sm:w-auto overflow-x-auto no-scrollbar shrink-0 touch-pan-x">
+          <Palette size={14} className="text-[var(--ink-soft)] ml-1.5 mr-1 shrink-0" />
           <button
             type="button"
             onClick={() => setSelectedTheme('holographic')}
-            className={`px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all ${
+            className={`min-h-[32px] px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all whitespace-nowrap shrink-0 cursor-pointer ${
               selectedTheme === 'holographic'
                 ? 'bg-blue-600 text-white shadow-xs font-semibold'
                 : 'text-[var(--ink-soft)] hover:text-[var(--ink)]'
@@ -191,7 +191,7 @@ export const ProfileQrCard: React.FC<ProfileQrCardProps> = ({ user }) => {
           <button
             type="button"
             onClick={() => setSelectedTheme('gold')}
-            className={`px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all ${
+            className={`min-h-[32px] px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all whitespace-nowrap shrink-0 cursor-pointer ${
               selectedTheme === 'gold'
                 ? 'bg-amber-500 text-slate-950 shadow-xs font-bold'
                 : 'text-[var(--ink-soft)] hover:text-[var(--ink)]'
@@ -202,7 +202,7 @@ export const ProfileQrCard: React.FC<ProfileQrCardProps> = ({ user }) => {
           <button
             type="button"
             onClick={() => setSelectedTheme('cyber')}
-            className={`px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all ${
+            className={`min-h-[32px] px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all whitespace-nowrap shrink-0 cursor-pointer ${
               selectedTheme === 'cyber'
                 ? 'bg-cyan-600 text-white shadow-xs font-semibold'
                 : 'text-[var(--ink-soft)] hover:text-[var(--ink)]'
@@ -213,7 +213,7 @@ export const ProfileQrCard: React.FC<ProfileQrCardProps> = ({ user }) => {
           <button
             type="button"
             onClick={() => setSelectedTheme('clean')}
-            className={`px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all ${
+            className={`min-h-[32px] px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all whitespace-nowrap shrink-0 cursor-pointer ${
               selectedTheme === 'clean'
                 ? 'bg-slate-800 text-white shadow-xs font-semibold'
                 : 'text-[var(--ink-soft)] hover:text-[var(--ink)]'
@@ -227,10 +227,10 @@ export const ProfileQrCard: React.FC<ProfileQrCardProps> = ({ user }) => {
       {/* Main Interactive Presentation Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
         {/* Left: Visual Live Card Preview */}
-        <div className="lg:col-span-5 flex justify-center">
+        <div className="lg:col-span-5 flex justify-center w-full">
           <div
             ref={cardRef}
-            className={`w-full max-w-sm rounded-3xl p-6 border transition-all duration-300 relative overflow-hidden flex flex-col items-center text-center space-y-4 ${currentStyles.wrapper}`}
+            className={`w-full max-w-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 border transition-all duration-300 relative overflow-hidden flex flex-col items-center text-center space-y-4 ${currentStyles.wrapper}`}
           >
             {/* Subtle background cyber grid */}
             <div

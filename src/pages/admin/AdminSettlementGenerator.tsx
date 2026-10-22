@@ -65,12 +65,18 @@ export const AdminSettlementGenerator: React.FC = () => {
         const baseWidth = isPortrait ? 600 : 1200;
         const baseHeight = isPortrait ? 840 : 750;
 
-        const availableWidth = previewContainerRef.current.clientWidth - 48;
-        const availableHeight = previewContainerRef.current.clientHeight - 48;
+        const containerW = previewContainerRef.current.clientWidth;
+        const containerH = previewContainerRef.current.clientHeight;
+        const paddingX = containerW < 640 ? 16 : 48;
+        const paddingY = containerH < 640 ? 16 : 48;
+
+        const availableWidth = Math.max(100, containerW - paddingX);
+        const availableHeight = containerH > 0 ? Math.max(100, containerH - paddingY) : availableWidth;
         const widthScale = availableWidth / baseWidth;
-        const heightScale = availableHeight > 0 ? availableHeight / baseHeight : 1;
-        const autoZoom = Math.min(isPortrait ? 0.95 : 0.92, Math.max(0.3, Math.min(widthScale, heightScale || widthScale)));
-        setZoom(autoZoom);
+        const heightScale = availableHeight / baseHeight;
+        const minScale = isPortrait ? 0.28 : 0.18;
+        const autoZoom = Math.min(isPortrait ? 0.95 : 0.92, Math.max(minScale, Math.min(widthScale, heightScale || widthScale)));
+        setZoom(Number(autoZoom.toFixed(3)));
       }
     };
 
@@ -86,11 +92,13 @@ export const AdminSettlementGenerator: React.FC = () => {
         record.template === 'funding_pips_portrait' ||
         record.template === 'emerald_website_ui';
       const baseWidth = isPortrait ? 600 : 1200;
-      const baseHeight = isPortrait ? 840 : 750;
 
-      const availableWidth = previewContainerRef.current.clientWidth - 48;
-      const autoZoom = Math.min(1.0, Math.max(0.32, availableWidth / baseWidth));
-      setZoom(autoZoom);
+      const containerW = previewContainerRef.current.clientWidth;
+      const paddingX = containerW < 640 ? 16 : 48;
+      const availableWidth = Math.max(100, containerW - paddingX);
+      const minScale = isPortrait ? 0.28 : 0.18;
+      const autoZoom = Math.min(1.0, Math.max(minScale, availableWidth / baseWidth));
+      setZoom(Number(autoZoom.toFixed(3)));
     }
   };
 
@@ -172,7 +180,7 @@ export const AdminSettlementGenerator: React.FC = () => {
             <select
               value={selectedWithdrawalId}
               onChange={handleSelectWithdrawal}
-              className="px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-mono font-semibold text-slate-200 focus:outline-none focus:border-amber-400 cursor-pointer max-w-xs"
+              className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-mono font-semibold text-slate-200 focus:outline-none focus:border-amber-400 cursor-pointer sm:max-w-xs"
             >
               <option value="">-- Mode B: Sample VIP Demo --</option>
               {allWithdrawals.map((w) => (
@@ -188,42 +196,26 @@ export const AdminSettlementGenerator: React.FC = () => {
       {/* 2. Main Workstation: Certificate Showcase & Toolbar */}
       <div className="space-y-4">
         {/* Action Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <SettlementToolbar
-            record={record}
-            canvasRef={canvasRef}
-            zoom={zoom}
-            onZoomChange={setZoom}
-            onFitWidth={handleFitWidth}
-            onTemplateChange={handleTemplateChange}
-            canEdit={true}
-            showEditor={showEditDrawer}
-            onToggleEditor={() => setShowEditDrawer(!showEditDrawer)}
-          />
-
-          <button
-            type="button"
-            onClick={() => setShowEditDrawer(!showEditDrawer)}
-            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl border text-xs font-mono font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
-              showEditDrawer
-                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md font-black'
-                : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border-amber-500/40 shadow-xs'
-            }`}
-            title="Toggle real-time visual styling studio (Fonts, Colors & Backgrounds)"
-          >
-            <SlidersHorizontal size={14} className={showEditDrawer ? 'text-slate-950' : 'text-amber-400'} />
-            <span>{showEditDrawer ? 'Hide Styling Studio' : '🎨 Styling Studio (Fonts & Colors)'}</span>
-          </button>
-        </div>
+        <SettlementToolbar
+          record={record}
+          canvasRef={canvasRef}
+          zoom={zoom}
+          onZoomChange={setZoom}
+          onFitWidth={handleFitWidth}
+          onTemplateChange={handleTemplateChange}
+          canEdit={true}
+          showEditor={showEditDrawer}
+          onToggleEditor={() => setShowEditDrawer(!showEditDrawer)}
+        />
 
         {/* Workstation Body */}
         <div className="flex flex-col lg:flex-row gap-6 items-start">
           {/* Main Canvas Viewport Frame */}
           <div
             ref={previewContainerRef}
-            className="flex-1 w-full p-4 sm:p-8 rounded-3xl bg-[#05070C] border border-amber-500/25 shadow-2xl flex items-center justify-center overflow-auto min-h-[560px]"
+            className="flex-1 w-full p-2.5 sm:p-8 rounded-3xl bg-[#05070C] border border-amber-500/25 shadow-2xl flex items-center justify-center overflow-auto min-h-[360px] sm:min-h-[560px] touch-pan-x touch-pan-y overscroll-contain"
           >
-            <div className="w-full flex items-center justify-center">
+            <div className="w-full flex items-center justify-center my-auto">
               <SettlementCanvas ref={canvasRef} record={record} scale={zoom} />
             </div>
           </div>

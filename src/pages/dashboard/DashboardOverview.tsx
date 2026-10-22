@@ -118,30 +118,30 @@ export const DashboardOverview: React.FC = () => {
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto shrink-0 z-10">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5 w-full md:w-auto shrink-0 z-10">
           <button
             onClick={() => setShowOnboarding(true)}
-            className="funding-ghost-pill px-4 py-2.5 text-xs font-medium text-[#F4F7F5] inline-flex items-center justify-center gap-1.5 flex-1 sm:flex-initial cursor-pointer hover:border-white/20 transition-all"
+            className="funding-ghost-pill px-3 sm:px-4 py-2.5 text-xs font-medium text-[#F4F7F5] inline-flex items-center justify-center gap-1.5 cursor-pointer hover:border-white/20 transition-all min-h-[40px]"
             title="View beginner earning guide"
           >
             <Sparkle size={15} className="text-[#D9C08A]" weight="fill" />
             <span>How It Works</span>
           </button>
-          <Link to="/dashboard/sales" className="flex-1 sm:flex-initial">
-            <button className="funding-ghost-pill px-4 py-2.5 text-xs font-medium text-[#D9C08A] hover:border-[#D9C08A]/40 w-full inline-flex items-center justify-center cursor-pointer transition-all">
+          <Link to="/dashboard/sales" className="w-full sm:w-auto">
+            <button className="funding-ghost-pill px-3 sm:px-4 py-2.5 text-xs font-medium text-[#D9C08A] hover:border-[#D9C08A]/40 w-full inline-flex items-center justify-center cursor-pointer transition-all min-h-[40px]">
               Withdraw Profits
             </button>
           </Link>
           {canAccessStudio && (
-            <Link to="/admin/settlements" className="flex-1 sm:flex-initial">
-              <button className="funding-ghost-pill px-4 py-2.5 text-xs font-medium text-amber-300 border-amber-500/30 hover:border-amber-500/50 w-full inline-flex items-center justify-center gap-1.5 cursor-pointer transition-all">
+            <Link to="/admin/settlements" className="w-full sm:w-auto">
+              <button className="funding-ghost-pill px-3 sm:px-4 py-2.5 text-xs font-medium text-amber-300 border-amber-500/30 hover:border-amber-500/50 w-full inline-flex items-center justify-center gap-1.5 cursor-pointer transition-all min-h-[40px]">
                 <Certificate size={15} weight="duotone" className="text-amber-400" />
-                <span>Certificate Studio (Admin)</span>
+                <span><span className="hidden sm:inline">Certificate </span>Studio</span>
               </button>
             </Link>
           )}
-          <Link to="/dashboard/products" className="flex-1 sm:flex-initial">
-            <button className="funding-sheen-btn px-5 py-2.5 text-xs font-bold uppercase tracking-wider w-full inline-flex items-center justify-center gap-1.5 shadow-md cursor-pointer">
+          <Link to="/dashboard/products" className="w-full sm:w-auto">
+            <button className="funding-sheen-btn px-4 sm:px-5 py-2.5 text-xs font-bold uppercase tracking-wider w-full inline-flex items-center justify-center gap-1.5 shadow-md cursor-pointer min-h-[40px]">
               <ShoppingCart size={14} weight="bold" />
               <span>Record Sale</span>
             </button>
