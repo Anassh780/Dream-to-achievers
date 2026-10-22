@@ -659,6 +659,33 @@ textarea:focus-visible {
 }
 
 /* ========================================================
+   ANDROID & MOBILE TOUCH OPTIMIZATIONS
+   ======================================================== */
+html {
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+}
+
+button, a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+/* Prevent Android Chrome & mobile browsers from zooming viewport on input focus */
+@media screen and (max-width: 768px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Smooth native momentum scrolling for touch carousels and lists */
+.touch-momentum {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* ========================================================
    LUXURY DESIGN SYSTEM UTILITIES (DreamToAchievers)
    ======================================================== */
 

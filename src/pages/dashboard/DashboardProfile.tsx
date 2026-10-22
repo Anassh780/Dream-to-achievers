@@ -383,8 +383,8 @@ export const DashboardProfile: React.FC = () => {
 
       {/* Add Payout Method Modal */}
       {showAddMethodModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="rounded-2xl bg-[var(--surface)] border border-[var(--line)] p-6 max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto space-y-4 shadow-xl animate-in zoom-in-95 text-xs">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overscroll-contain">
+          <div className="rounded-t-3xl sm:rounded-2xl bg-[var(--surface)] border border-[var(--line)] p-5 sm:p-6 max-w-md w-full max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto space-y-4 shadow-2xl animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 text-xs pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:pb-6 overscroll-contain">
             <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
               <div>
                 <h3 className="font-serif font-medium text-base text-[var(--ink)]">
@@ -506,16 +506,17 @@ export const DashboardProfile: React.FC = () => {
                 </label>
               </div>
 
-              <div className="pt-2 flex justify-end space-x-2">
+              <div className="pt-2 grid grid-cols-2 gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setShowAddMethodModal(false)}
+                  className="min-h-[44px]"
                 >
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary" size="sm">
+                <Button type="submit" variant="primary" size="sm" className="min-h-[44px] font-medium">
                   Save Payout Method
                 </Button>
               </div>

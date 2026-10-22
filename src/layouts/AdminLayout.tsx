@@ -580,7 +580,7 @@ export const AdminLayout: React.FC = () => {
           isCollapsed ? 'md:pl-20' : 'md:pl-64'
         }`}
       >
-        <main id="admin-main" tabIndex={-1} className="flex-1 w-full p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto overflow-x-hidden min-w-0">
+        <main id="admin-main" tabIndex={-1} className="flex-1 w-full p-3.5 sm:p-6 lg:p-8 max-w-7xl mx-auto overflow-x-hidden min-w-0 pb-24 md:pb-8">
           {/* Desktop Top Executive Utility Bar (Funding Pips Signature) */}
           <div className="hidden md:flex items-center justify-between pb-6 mb-6 border-b border-white/[0.08]">
             <div className="flex items-center gap-3">
@@ -632,6 +632,75 @@ export const AdminLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* Mobile Android Administrative Quick Dock */}
+      <nav
+        aria-label="Admin Mobile Navigation Dock"
+        className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[#070B09]/95 backdrop-blur-2xl border-t border-white/[0.08] shadow-[0_-8px_25px_rgba(0,0,0,0.85)] px-2 pt-1 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
+      >
+        <div className="grid grid-cols-5 items-center justify-around max-w-lg mx-auto">
+          {[
+            { label: 'Overview', href: '/admin', icon: House, exact: true },
+            {
+              label: 'Orders',
+              href: '/admin/sales',
+              icon: ShoppingCart,
+              badgeCount: unseenAdminOrders > 0 ? unseenAdminOrders : undefined,
+            },
+            { label: 'Products', href: '/admin/products', icon: Package },
+            { label: 'Certificates', href: '/admin/settlements', icon: Certificate },
+          ].map((item) => {
+            const Icon = item.icon;
+            const isActive = item.exact
+              ? location.pathname === item.href
+              : location.pathname.startsWith(item.href);
+
+            return (
+              <NavLink
+                key={item.label}
+                to={item.href}
+                className={`relative flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all active:scale-90 ${
+                  isActive ? 'text-[#D9C08A]' : 'text-[#9EABA2] hover:text-[#F4F7F5]'
+                }`}
+              >
+                <div className="relative flex items-center justify-center">
+                  <Icon size={21} weight={isActive ? 'fill' : 'regular'} />
+                  {item.badgeCount !== undefined && item.badgeCount > 0 && (
+                    <span className="absolute -top-1 -right-2 flex items-center justify-center min-w-[15px] h-[15px] px-1 rounded-full bg-red-600 text-white font-mono font-bold text-[8.5px] shadow-sm animate-pulse">
+                      {item.badgeCount}
+                    </span>
+                  )}
+                </div>
+                <span className={`text-[10px] font-mono tracking-tight mt-0.5 leading-none ${isActive ? 'font-bold' : 'font-medium'}`}>
+                  {item.label}
+                </span>
+                {isActive && (
+                  <span className="w-1 h-1 rounded-full bg-[#D9C08A] mt-0.5 shadow-[0_0_6px_rgba(217,192,138,0.9)]" />
+                )}
+              </NavLink>
+            );
+          })}
+
+          {/* 5th Button: Open Full Drawer Menu */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(true)}
+            className="relative flex flex-col items-center justify-center py-1 px-1 rounded-xl text-[#9EABA2] hover:text-[#F4F7F5] active:scale-90 transition-all cursor-pointer"
+          >
+            <div className="relative flex items-center justify-center">
+              <List size={21} weight="bold" />
+              {totalAdminAlerts > 0 && (
+                <span className="absolute -top-1 -right-2 flex items-center justify-center min-w-[15px] h-[15px] px-1 rounded-full bg-red-600 text-white font-mono font-bold text-[8.5px] shadow-sm animate-pulse">
+                  {totalAdminAlerts}
+                </span>
+              )}
+            </div>
+            <span className="text-[10px] font-mono font-medium tracking-tight mt-0.5 leading-none">
+              Menu
+            </span>
+          </button>
+        </div>
+      </nav>
 
       {/* Universal Floating Quick Notifications Popover */}
       {user && (

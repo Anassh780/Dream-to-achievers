@@ -146,14 +146,14 @@ export const DashboardReferrals: React.FC = () => {
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0">
             <button
               onClick={handleCopyLink}
-              className="funding-sheen-btn px-5 py-2.5 text-xs font-bold uppercase tracking-wider flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+              className="funding-sheen-btn px-5 py-2.5 min-h-[44px] text-xs font-bold uppercase tracking-wider flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 shadow-md cursor-pointer active:scale-[0.98]"
             >
               {copiedLink ? <Check size={14} weight="bold" /> : <Copy size={14} weight="bold" />}
               <span>{copiedLink ? 'Link Copied' : 'Copy Referral Link'}</span>
             </button>
             <button
               onClick={handleShareWhatsApp}
-              className="funding-ghost-pill px-4 py-2.5 text-xs font-medium text-[#25D366] hover:border-[#25D366]/40 flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 cursor-pointer"
+              className="funding-ghost-pill px-4 py-2.5 min-h-[44px] text-xs font-medium text-[#25D366] hover:border-[#25D366]/40 flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98]"
             >
               <WhatsappLogo size={16} weight="fill" />
               <span>WhatsApp</span>

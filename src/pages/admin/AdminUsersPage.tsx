@@ -555,24 +555,24 @@ export const AdminUsersPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
+        <div className="grid grid-cols-2 sm:flex sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
           <Button
             onClick={handleStandardizeCodes}
             variant="outline"
             size="sm"
-            className="w-full sm:w-auto text-xs font-semibold shrink-0 text-[var(--accent)] border-[var(--accent)]/40 hover:bg-[var(--surface)]"
+            className="w-full sm:w-auto min-h-[42px] text-xs font-semibold shrink-0 text-[var(--accent)] border-[var(--accent)]/40 hover:bg-[var(--surface)] justify-center"
             isLoading={isStandardizing}
             iconLeft={<Sparkle size={14} className={isStandardizing ? 'animate-spin' : 'text-[var(--accent)]'} />}
             title="Scan and upgrade all partner codes in database to DTA prefix (e.g. DTA-XXXX)"
           >
-            {isStandardizing ? 'Resetting to DTA...' : 'Reset to DTA Codes'}
+            {isStandardizing ? 'Resetting...' : 'Reset DTA'}
           </Button>
 
           <Button
             onClick={handleExportCSV}
             variant="outline"
             size="sm"
-            className="w-full sm:w-auto text-xs font-semibold shrink-0"
+            className="w-full sm:w-auto min-h-[42px] text-xs font-semibold shrink-0 justify-center"
             iconLeft={<DownloadSimple size={14} />}
             title="Download partner database as CSV spreadsheet"
           >
@@ -583,7 +583,7 @@ export const AdminUsersPage: React.FC = () => {
             onClick={handleManualSync}
             variant="outline"
             size="sm"
-            className="w-full sm:w-auto text-xs font-semibold shrink-0"
+            className="w-full sm:w-auto min-h-[42px] text-xs font-semibold shrink-0 justify-center"
             isLoading={isSyncing}
             iconLeft={<ArrowClockwise size={14} className={isSyncing ? 'animate-spin' : ''} />}
             title="Fetch all registered users from Cloud Firestore & RTDB"
@@ -595,7 +595,7 @@ export const AdminUsersPage: React.FC = () => {
             onClick={() => setShowRescueModal(true)}
             variant="outline"
             size="sm"
-            className="w-full sm:w-auto text-xs font-semibold shrink-0 border-amber-500/40 text-amber-300 hover:bg-amber-500/10"
+            className="w-full sm:w-auto min-h-[42px] text-xs font-semibold shrink-0 border-amber-500/40 text-amber-300 hover:bg-amber-500/10 justify-center"
             iconLeft={<Key size={14} className="text-amber-400" />}
             title="Send password reset link or rescue an unlinked user account"
           >
@@ -649,10 +649,10 @@ export const AdminUsersPage: React.FC = () => {
       </div>
 
       {/* 1. Quick Metric Filter Chips */}
-      <div className="flex flex-wrap items-center gap-2 text-xs">
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar touch-momentum pb-1 text-xs whitespace-nowrap">
         <button
           onClick={() => { setQuickTab('all'); setStatusFilter('all'); }}
-          className={`px-3.5 py-2 rounded-xl border font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+          className={`px-3.5 py-2 min-h-[40px] rounded-xl border font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-[0.98] ${
             quickTab === 'all'
               ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-xs'
               : 'bg-[var(--surface)] text-[var(--ink-soft)] border-[var(--line)] hover:bg-[var(--surface)]'
@@ -664,7 +664,7 @@ export const AdminUsersPage: React.FC = () => {
 
         <button
           onClick={() => { setQuickTab('admins'); }}
-          className={`px-3.5 py-2 rounded-xl border font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+          className={`px-3.5 py-2 min-h-[40px] rounded-xl border font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-[0.98] ${
             quickTab === 'admins'
               ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-xs'
               : 'bg-[var(--surface)] text-[var(--ink-soft)] border-[var(--line)] hover:bg-[var(--surface)]'
@@ -676,7 +676,7 @@ export const AdminUsersPage: React.FC = () => {
 
         <button
           onClick={() => { setQuickTab('active'); setStatusFilter('active'); }}
-          className={`px-3.5 py-2 rounded-xl border font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+          className={`px-3.5 py-2 min-h-[40px] rounded-xl border font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-[0.98] ${
             quickTab === 'active'
               ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-xs'
               : 'bg-[var(--surface)] text-[var(--ink-soft)] border-[var(--line)] hover:bg-[var(--surface)]'
@@ -688,7 +688,7 @@ export const AdminUsersPage: React.FC = () => {
 
         <button
           onClick={() => { setQuickTab('top_sellers'); setSalesFilter('has_sales'); }}
-          className={`px-3.5 py-2 rounded-xl border font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+          className={`px-3.5 py-2 min-h-[40px] rounded-xl border font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-[0.98] ${
             quickTab === 'top_sellers'
               ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-xs'
               : 'bg-[var(--surface)] text-[var(--ink-soft)] border-[var(--line)] hover:bg-[var(--surface)]'
@@ -700,7 +700,7 @@ export const AdminUsersPage: React.FC = () => {
 
         <button
           onClick={() => { setQuickTab('top_recruiters'); setReferralFilter('has_referrals'); }}
-          className={`px-3.5 py-2 rounded-xl border font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+          className={`px-3.5 py-2 min-h-[40px] rounded-xl border font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-[0.98] ${
             quickTab === 'top_recruiters'
               ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-xs'
               : 'bg-[var(--surface)] text-[var(--ink-soft)] border-[var(--line)] hover:bg-[var(--surface)]'
@@ -712,7 +712,7 @@ export const AdminUsersPage: React.FC = () => {
 
         <button
           onClick={() => { setQuickTab('high_ranks'); setRankFilter('all'); }}
-          className={`px-3.5 py-2 rounded-xl border font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+          className={`px-3.5 py-2 min-h-[40px] rounded-xl border font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-[0.98] ${
             quickTab === 'high_ranks'
               ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-xs'
               : 'bg-[var(--surface)] text-[var(--ink-soft)] border-[var(--line)] hover:bg-[var(--surface)]'
@@ -725,7 +725,7 @@ export const AdminUsersPage: React.FC = () => {
         {totalSuspended > 0 && (
           <button
             onClick={() => { setQuickTab('suspended'); setStatusFilter('suspended'); }}
-            className={`px-3.5 py-2 rounded-xl border font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 min-h-[40px] rounded-xl border font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-[0.98] ${
               quickTab === 'suspended'
                 ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
                 : 'bg-[var(--surface)] text-rose-600 border-rose-500/20 hover:bg-rose-500/10'

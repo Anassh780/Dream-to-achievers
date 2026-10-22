@@ -311,15 +311,15 @@ export const DashboardNotifications: React.FC = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search notifications by title, order ID, product, or keyword..."
-          className="w-full pl-10 pr-10 py-2 rounded-2xl bg-[var(--surface)] border border-[var(--line)] text-xs text-[var(--ink)] placeholder:text-[var(--ink-soft)]/60 focus:outline-hidden focus:border-[var(--primary)] transition-all font-sans shadow-xs"
+          className="w-full pl-10 pr-10 py-2.5 min-h-[44px] rounded-2xl bg-[var(--surface)] border border-[var(--line)] text-xs text-[var(--ink)] placeholder:text-[var(--ink-soft)]/60 focus:outline-hidden focus:border-[var(--primary)] transition-all font-sans shadow-xs"
         />
         {searchQuery && (
           <button
             type="button"
             onClick={() => setSearchQuery('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--ink-soft)] hover:text-[var(--ink)] p-1 rounded-lg"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--ink-soft)] hover:text-[var(--ink)] p-2 rounded-lg"
           >
-            <X size={13} />
+            <X size={14} />
           </button>
         )}
       </div>
@@ -347,7 +347,7 @@ export const DashboardNotifications: React.FC = () => {
             size="sm"
             onClick={handleEnablePush}
             isLoading={isEnablingPush}
-            className="text-xs font-semibold shrink-0"
+            className="text-xs font-semibold shrink-0 min-h-[44px]"
           >
             Turn On Notifications
           </Button>
@@ -355,7 +355,7 @@ export const DashboardNotifications: React.FC = () => {
       )}
 
       {/* 4. Filter Navigation Tabs */}
-      <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 text-xs font-mono">
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar touch-momentum pb-1 text-xs font-mono whitespace-nowrap">
         {[
           { id: 'all', label: `All (${notifications.length})` },
           { id: 'unread', label: `Unread (${unreadCount})` },
@@ -367,7 +367,7 @@ export const DashboardNotifications: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-3 py-1.5 rounded-xl border transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-3.5 py-2 min-h-[40px] rounded-xl border transition-all cursor-pointer whitespace-nowrap shrink-0 active:scale-[0.98] ${
               activeTab === tab.id
                 ? 'bg-[var(--primary)] text-white border-[var(--primary)] font-semibold shadow-xs'
                 : 'bg-[var(--surface)] text-[var(--ink-soft)] border-[var(--line)] hover:bg-[var(--surface-alt)]'

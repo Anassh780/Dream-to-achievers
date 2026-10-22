@@ -555,21 +555,21 @@ export const AdminProductsPage: React.FC = () => {
           <button
             onClick={handleForceCloudSync}
             disabled={isCloudSyncing}
-            className="funding-ghost-pill px-3.5 py-2 text-xs font-medium text-[#F4F7F5] hover:border-white/20 inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-all flex-1 sm:flex-initial justify-center"
+            className="funding-ghost-pill px-3.5 py-2 min-h-[42px] text-xs font-medium text-[#F4F7F5] hover:border-white/20 inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-all flex-1 sm:flex-initial justify-center active:scale-[0.98]"
           >
             <Sparkle size={14} className={isCloudSyncing ? 'animate-spin' : 'text-[#D9C08A]'} />
             <span>{isCloudSyncing ? 'Syncing...' : 'Sync catalog'}</span>
           </button>
           <button
             onClick={handleOpenRestoreModal}
-            className="funding-ghost-pill px-3.5 py-2 text-xs font-medium text-[#9EABA2] hover:text-[#F4F7F5] hover:border-white/20 inline-flex items-center gap-1.5 cursor-pointer transition-all flex-1 sm:flex-initial justify-center"
+            className="funding-ghost-pill px-3.5 py-2 min-h-[42px] text-xs font-medium text-[#9EABA2] hover:text-[#F4F7F5] hover:border-white/20 inline-flex items-center gap-1.5 cursor-pointer transition-all flex-1 sm:flex-initial justify-center active:scale-[0.98]"
           >
             <ArrowCounterClockwise size={14} />
             <span>Restore ({recoverableProducts.length})</span>
           </button>
           <button
             onClick={handleOpenCreate}
-            className="funding-champagne-sheen-btn px-5 py-2 text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-md cursor-pointer flex-1 sm:flex-initial justify-center"
+            className="funding-champagne-sheen-btn px-5 py-2 min-h-[42px] text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-md cursor-pointer flex-1 sm:flex-initial justify-center active:scale-[0.98]"
           >
             <Plus size={14} weight="bold" />
             <span>Add product</span>
@@ -691,8 +691,8 @@ export const AdminProductsPage: React.FC = () => {
               );
             })()}
             <div className="grid grid-cols-2 gap-2">
-              <Button type="button" variant="outline" size="sm" className="w-full" iconLeft={<PencilSimple size={14} />} onClick={() => handleOpenEdit(prod)}>Edit</Button>
-              <Button type="button" variant="danger" size="sm" className="w-full" iconLeft={<Trash size={14} />} onClick={() => handleDelete(prod)}>Delete</Button>
+              <Button type="button" variant="outline" size="sm" className="w-full min-h-[44px]" iconLeft={<PencilSimple size={15} />} onClick={() => handleOpenEdit(prod)}>Edit</Button>
+              <Button type="button" variant="danger" size="sm" className="w-full min-h-[44px]" iconLeft={<Trash size={15} />} onClick={() => handleDelete(prod)}>Delete</Button>
             </div>
           </article>
         ))}
@@ -1485,11 +1485,11 @@ export const AdminProductsPage: React.FC = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsCreating(false)}
-                  className="w-full"
+                  className="w-full min-h-[44px]"
                 >
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary" size="sm" disabled={allCategories.length === 0} className="w-full font-medium">
+                <Button type="submit" variant="primary" size="sm" disabled={allCategories.length === 0} className="w-full font-medium min-h-[44px]">
                   {editingProd ? 'Save Changes' : 'Create Product SKU'}
                 </Button>
               </div>

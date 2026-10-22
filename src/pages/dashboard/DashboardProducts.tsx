@@ -187,7 +187,7 @@ export const DashboardProducts: React.FC = () => {
       </div>
 
       {/* 2. Category Filter Pill Strip */}
-      <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar touch-pan-x overscroll-x-contain">
         <CategoryPill
           name="All Inventory"
           icon="Sparkle"
@@ -209,7 +209,7 @@ export const DashboardProducts: React.FC = () => {
       </div>
 
       {/* 3. Search, Sort & View Mode Toggle Bar */}
-      <div className="funding-card p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+      <div className="funding-card p-3 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         {/* Search */}
         <div className="relative w-full sm:max-w-xs">
           <MagnifyingGlass size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9EABA2]" />
@@ -223,15 +223,15 @@ export const DashboardProducts: React.FC = () => {
         </div>
 
         {/* Sort & View Mode */}
-        <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-end">
-          <div className="flex items-center space-x-1.5 text-[#9EABA2]">
-            <SlidersHorizontal size={14} />
+        <div className="flex items-center gap-2 sm:space-x-3 w-full sm:w-auto justify-between sm:justify-end">
+          <div className="flex items-center space-x-1.5 text-[#9EABA2] flex-1 sm:flex-initial">
+            <SlidersHorizontal size={14} className="shrink-0" />
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as ProductSortOption)}
-              className="px-3 py-2 rounded-xl bg-white/[0.03] border border-white/10 text-[#F4F7F5] text-xs focus:outline-none focus:border-[#D9C08A] cursor-pointer"
+              className="w-full sm:w-auto px-2.5 sm:px-3 py-2 rounded-xl bg-white/[0.03] border border-white/10 text-[#F4F7F5] text-xs focus:outline-none focus:border-[#D9C08A] cursor-pointer"
             >
-              <option value="highest_margin" className="bg-[#070B09] text-[#F4F7F5]">Highest Margin (PKR)</option>
+              <option value="highest_margin" className="bg-[#070B09] text-[#F4F7F5]">Highest Margin</option>
               <option value="lowest_margin" className="bg-[#070B09] text-[#F4F7F5]">Lowest Margin</option>
               <option value="most_stock" className="bg-[#070B09] text-[#F4F7F5]">In Stock First</option>
               <option value="recently_added" className="bg-[#070B09] text-[#F4F7F5]">Recently Added</option>
@@ -487,8 +487,8 @@ export const DashboardProducts: React.FC = () => {
 
       {/* 5. Record Client Sale Modal */}
       {selectedProduct && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-          <div className="rounded-2xl bg-[var(--surface)] border border-[var(--line)] p-4 sm:p-6 max-w-lg w-full max-h-[92vh] overflow-y-auto space-y-4 shadow-xl animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 touch-pan-y overscroll-contain">
+          <div className="rounded-2xl sm:rounded-3xl bg-[var(--surface)] border border-[var(--line)] p-4 sm:p-6 max-w-lg w-full max-h-[94vh] overflow-y-auto space-y-4 shadow-2xl animate-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
               <div className="min-w-0 pr-2">
                 <h3 className="font-serif font-medium text-base text-[var(--ink)]">
@@ -500,7 +500,7 @@ export const DashboardProducts: React.FC = () => {
               </div>
               <button
                 onClick={() => setSelectedProduct(null)}
-                className="min-h-[40px] min-w-[40px] p-2 inline-flex items-center justify-center rounded-lg text-[var(--ink-soft)] hover:text-[var(--ink)] cursor-pointer shrink-0"
+                className="min-h-[44px] min-w-[44px] p-2 inline-flex items-center justify-center rounded-xl text-[var(--ink-soft)] hover:text-[var(--ink)] cursor-pointer shrink-0"
                 aria-label="Close modal"
               >
                 <X size={18} />

@@ -341,6 +341,10 @@ export const SupportFeedbackWidget: React.FC = () => {
 
   const isTicketResolved = activeTicket?.status === 'resolved';
 
+  const isAppPortal = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin');
+  const bottomPos = isAppPortal ? 'bottom-[68px] sm:bottom-5' : 'bottom-3 sm:bottom-5';
+  const panelBottomPos = isAppPortal ? 'bottom-[74px] sm:bottom-20' : 'bottom-14 sm:bottom-20';
+
   return (
     <>
       {/* Mobile Backdrop */}
@@ -355,59 +359,59 @@ export const SupportFeedbackWidget: React.FC = () => {
       {/* ========================================================
           FLOATING ACTION LAUNCHER & TOGGLE BUTTON
           ======================================================== */}
-      <div className="fixed bottom-3 right-3 sm:bottom-5 sm:right-5 z-[90] flex items-center">
-        <button
-          id="support-float-toggle"
-          onClick={() => setIsOpen((prev) => !prev)}
-          aria-label={isOpen ? 'Close Support' : 'Open Live Support and Feedback'}
-          className={`group relative flex items-center gap-2 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-full border transition-all duration-300 shadow-[0_12px_35px_rgba(0,0,0,0.85)] backdrop-blur-xl focus:outline-none focus:ring-2 focus:ring-[#D9C08A]/60 active:scale-95 ${
-            isOpen
-              ? 'bg-[#18231E] border-rose-500/60 text-rose-300 hover:bg-rose-950/40'
-              : 'bg-[#0D1512]/95 hover:bg-[#131E1A] border-[#D9C08A]/45 text-[#F4F7F5]'
-          }`}
-        >
-          {/* Ambient Glow */}
-          <span className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[#D9C08A]/30 via-[#34D399]/30 to-[#D9C08A]/30 blur-sm opacity-70 group-hover:opacity-100 transition-opacity" />
+      <div className={`fixed ${bottomPos} right-3 sm:right-5 z-[90] flex items-center`}>
+              <button
+                id="support-float-toggle"
+                onClick={() => setIsOpen((prev) => !prev)}
+                aria-label={isOpen ? 'Close Support' : 'Open Live Support and Feedback'}
+                className={`group relative flex items-center gap-2 p-2 sm:px-4 sm:py-3 rounded-full border transition-all duration-300 shadow-[0_12px_35px_rgba(0,0,0,0.85)] backdrop-blur-xl focus:outline-none focus:ring-2 focus:ring-[#D9C08A]/60 active:scale-95 ${
+                  isOpen
+                    ? 'bg-[#18231E] border-rose-500/60 text-rose-300 hover:bg-rose-950/40'
+                    : 'bg-[#0D1512]/95 hover:bg-[#131E1A] border-[#D9C08A]/45 text-[#F4F7F5]'
+                }`}
+              >
+                {/* Ambient Glow */}
+                <span className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[#D9C08A]/30 via-[#34D399]/30 to-[#D9C08A]/30 blur-sm opacity-70 group-hover:opacity-100 transition-opacity" />
 
-          {isOpen ? (
-            // Close Toggle
-            <div className="relative z-10 flex items-center gap-1.5 font-sans font-bold text-xs text-rose-300">
-              <div className="w-6 h-6 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
-                <X size={15} weight="bold" />
-              </div>
-              <span className="font-serif">Close</span>
+                {isOpen ? (
+                  // Close Toggle
+                  <div className="relative z-10 flex items-center gap-1.5 font-sans font-bold text-xs text-rose-300 px-1.5 py-0.5">
+                    <div className="w-6 h-6 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
+                      <X size={15} weight="bold" />
+                    </div>
+                    <span className="font-serif hidden sm:inline">Close</span>
+                  </div>
+                ) : (
+                  // Open Launcher (Compact FAB on mobile, pill on desktop)
+                  <div className="relative z-10 flex items-center gap-2">
+                    <div className="relative flex items-center justify-center w-8 h-8 sm:w-8 sm:h-8 rounded-full bg-[#D9C08A]/20 border border-[#D9C08A]/50 text-[#D9C08A] shrink-0">
+                      <Headset size={18} weight="bold" className="animate-pulse" />
+                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#34D399] border-2 border-[#070B09]" />
+                    </div>
+                    <div className="hidden sm:flex flex-col text-left">
+                      <span className="text-xs font-bold tracking-wide text-[#F4F7F5] flex items-center gap-1 font-serif whitespace-nowrap">
+                        Support &amp; Feedback
+                      </span>
+                      <span className="text-[9px] text-[#34D399] font-medium tracking-wider uppercase font-mono">
+                        ● Live 24/7 Desk
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </button>
             </div>
-          ) : (
-            // Open Launcher
-            <div className="relative z-10 flex items-center gap-2">
-              <div className="relative flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#D9C08A]/20 border border-[#D9C08A]/50 text-[#D9C08A] shrink-0">
-                <Headset size={16} weight="bold" className="animate-pulse" />
-                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#34D399] border-2 border-[#070B09]" />
-              </div>
-              <div className="flex flex-col text-left">
-                <span className="text-[11px] sm:text-xs font-bold tracking-wide text-[#F4F7F5] flex items-center gap-1 font-serif whitespace-nowrap">
-                  Support & Feedback
-                </span>
-                <span className="text-[9px] text-[#34D399] font-medium tracking-wider uppercase font-mono">
-                  ● Live 24/7 Desk
-                </span>
-              </div>
-            </div>
-          )}
-        </button>
-      </div>
 
-      {/* ========================================================
-          EXPANDABLE MODAL PANEL
-          ======================================================== */}
-      {isOpen && (
-        <div
-          ref={modalRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Customer Support and Feedback"
-          className="fixed bottom-14 sm:bottom-20 right-3 sm:right-5 z-[90] w-[calc(100vw-24px)] sm:w-[385px] md:w-[400px] flex flex-col rounded-2xl bg-[#090F0C] border border-[#D9C08A]/35 text-[#F4F7F5] shadow-[0_25px_65px_rgba(0,0,0,0.9),0_0_30px_rgba(217,192,138,0.15)] backdrop-blur-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
-        >
+            {/* ========================================================
+                EXPANDABLE MODAL PANEL
+                ======================================================== */}
+            {isOpen && (
+              <div
+                ref={modalRef}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Customer Support and Feedback"
+                className={`fixed ${panelBottomPos} right-3 sm:right-5 z-[90] w-[calc(100vw-24px)] sm:w-[385px] md:w-[400px] flex flex-col rounded-2xl bg-[#090F0C] border border-[#D9C08A]/35 text-[#F4F7F5] shadow-[0_25px_65px_rgba(0,0,0,0.9),0_0_30px_rgba(217,192,138,0.15)] backdrop-blur-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 max-h-[80vh] sm:max-h-[580px]`}
+              >
           {/* Subtle Corner Glow */}
           <div className="pointer-events-none absolute -top-12 -right-12 w-36 h-36 bg-[radial-gradient(circle,rgba(217,192,138,0.18),transparent_70%)] blur-2xl -z-10" />
 

@@ -223,18 +223,18 @@ export const Products: React.FC = () => {
           
           {/* Search Box */}
           <div className="relative w-full sm:max-w-md">
-            <MagnifyingGlass size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9EABA2]" />
+            <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9EABA2]" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search products by name, SKU, or keywords..."
-              className="w-full pl-9 pr-8 py-2.5 rounded-xl bg-[#070B09]/90 border border-white/10 text-[#F4F7F5] placeholder:text-[#9EABA2]/50 text-xs focus:outline-none focus:border-[#D9C08A] transition-colors font-sans shadow-inner"
+              className="w-full pl-9 pr-8 py-2.5 min-h-[44px] rounded-xl bg-[#070B09]/90 border border-white/10 text-[#F4F7F5] placeholder:text-[#9EABA2]/50 text-xs focus:outline-none focus:border-[#D9C08A] transition-colors font-sans shadow-inner"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9EABA2] hover:text-[#F4F7F5]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9EABA2] hover:text-[#F4F7F5] p-1"
               >
                 <X size={14} />
               </button>
@@ -250,7 +250,7 @@ export const Products: React.FC = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as ProductSortOption)}
-              className="px-3.5 py-2.5 rounded-xl bg-[#070B09]/90 border border-white/10 text-[#F4F7F5] text-xs focus:outline-none focus:border-[#D9C08A] cursor-pointer font-sans"
+              className="px-3.5 py-2.5 min-h-[44px] rounded-xl bg-[#070B09]/90 border border-white/10 text-[#F4F7F5] text-xs focus:outline-none focus:border-[#D9C08A] cursor-pointer font-sans"
             >
               <option value="highest_margin">Highest Profit Margin</option>
               <option value="lowest_margin">Lowest Profit Margin</option>
@@ -443,7 +443,7 @@ export const Products: React.FC = () => {
                           <Button
                             variant="liquid-glass"
                             size="sm"
-                            className="w-full justify-between text-xs font-medium group/btn text-[#F4F7F5]"
+                            className="w-full justify-between text-xs font-medium group/btn text-[#F4F7F5] min-h-[44px]"
                           >
                             <span>View Gallery &amp; Details</span>
                             <ArrowRight

@@ -636,7 +636,7 @@ export const ProductDetail: React.FC = () => {
                     </div>
 
                     <Link to={`/products/${rel.slug}`}>
-                      <Button variant="outline" size="sm" className="w-full text-xs justify-between min-h-[40px] sm:min-h-[36px] border-white/15 hover:border-[#D9C08A]/50 hover:bg-[#D9C08A]/10 text-[#F4F7F5]">
+                      <Button variant="outline" size="sm" className="w-full text-xs justify-between min-h-[44px] border-white/15 hover:border-[#D9C08A]/50 hover:bg-[#D9C08A]/10 text-[#F4F7F5]">
                         <span>View SKU</span>
                         <ArrowRight size={12} className="text-[#D9C08A]" />
                       </Button>
@@ -714,13 +714,13 @@ export const ProductDetail: React.FC = () => {
               )}
             </div>
 
-            <div className="flex items-center justify-center gap-2.5 overflow-x-auto py-1">
+            <div className="flex items-center justify-start sm:justify-center gap-2.5 overflow-x-auto no-scrollbar touch-momentum py-1 px-1">
               {imagesList.map((thumb, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => setActiveImageIndex(idx)}
-                  className={`relative size-14 rounded-xl overflow-hidden border-2 shrink-0 cursor-pointer transition-all ${
+                  className={`relative size-14 rounded-xl overflow-hidden border-2 shrink-0 cursor-pointer transition-all touch-manipulation ${
                     safeActiveIndex === idx
                       ? 'border-[#D9C08A] scale-105'
                       : 'border-white/15 opacity-60 hover:opacity-100'

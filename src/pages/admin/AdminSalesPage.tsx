@@ -268,7 +268,7 @@ export const AdminSalesPage: React.FC = () => {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center space-x-2 overflow-x-auto pb-1 text-xs font-mono">
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar touch-momentum pb-1 text-xs font-mono whitespace-nowrap">
         {[
           { id: 'all', label: `All Orders (${sales.length})` },
           { id: 'pending', label: `Pending Verification (${totalPending})` },
@@ -279,10 +279,10 @@ export const AdminSalesPage: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setStatusFilter(tab.id)}
-            className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
+            className={`px-3.5 py-2 min-h-[40px] rounded-xl border transition-all cursor-pointer shrink-0 inline-flex items-center justify-center ${
               statusFilter === tab.id
-                ? 'bg-[var(--primary)] text-white border-[var(--primary)] font-medium'
-                : 'bg-[var(--surface)] text-[var(--ink-soft)] border-[var(--line)] hover:bg-[var(--surface)]'
+                ? 'bg-[var(--primary)] text-white border-[var(--primary)] font-medium shadow-2xs'
+                : 'bg-[var(--surface)] text-[var(--ink-soft)] border-[var(--line)] hover:bg-[var(--surface-alt)]'
             }`}
           >
             {tab.label}
@@ -360,9 +360,9 @@ export const AdminSalesPage: React.FC = () => {
                             setPreviewZoom(1);
                             setPreviewRotation(0);
                           }}
-                          className="flex-1 min-h-[40px] px-3 py-2 rounded-xl bg-[var(--surface-alt)] hover:bg-[var(--surface-alt)]/80 border border-[var(--line)] text-[var(--ink)] text-xs font-mono inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          className="flex-1 min-h-[44px] px-3 py-2 rounded-xl bg-[var(--surface-alt)] hover:bg-[var(--surface-alt)]/80 border border-[var(--line)] text-[var(--ink)] text-xs font-mono inline-flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-[0.98]"
                         >
-                          <MagnifyingGlassPlus size={14} className="text-[var(--primary)]" />
+                          <MagnifyingGlassPlus size={15} className="text-[var(--primary)]" />
                           <span>View Proof Slip</span>
                         </button>
                       )}
@@ -375,7 +375,7 @@ export const AdminSalesPage: React.FC = () => {
                           setTrackingNo(sale.trackingNumber || '');
                           setShippingNotes(sale.shippingNotes || '');
                         }}
-                        className="flex-1 min-h-[40px] text-xs font-medium"
+                        className="flex-1 min-h-[44px] text-xs font-medium"
                       >
                         Audit &amp; Fulfill
                       </Button>
@@ -722,16 +722,16 @@ export const AdminSalesPage: React.FC = () => {
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[var(--line)]">
-                <div className="flex items-center space-x-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-3 border-t border-[var(--line)]">
+                <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => handleSaveFulfillment('delivered')}
-                    className="bg-[var(--surface-alt)] text-[var(--primary-dark)] border-[var(--line)] hover:bg-[var(--surface)] text-xs font-semibold"
+                    className="min-h-[44px] bg-[var(--surface-alt)] text-[var(--primary-dark)] border-[var(--line)] hover:bg-[var(--surface)] text-xs font-semibold"
                   >
-                    Mark Delivered &amp; Unlock Profit
+                    Mark Delivered
                   </Button>
 
                   <Button
@@ -739,19 +739,20 @@ export const AdminSalesPage: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => setRejectingSale(selectedSale)}
-                    className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 border-rose-500/20 text-xs font-semibold"
+                    className="min-h-[44px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 border-rose-500/20 text-xs font-semibold"
                     iconLeft={<Prohibit size={13} />}
                   >
-                    Reject Payment...
+                    Reject Slip...
                   </Button>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => setSelectedSale(null)}
+                    className="min-h-[44px]"
                   >
                     Cancel
                   </Button>
@@ -761,8 +762,9 @@ export const AdminSalesPage: React.FC = () => {
                     size="sm"
                     onClick={() => handleSaveFulfillment()}
                     isLoading={isUpdating}
+                    className="min-h-[44px] font-medium"
                   >
-                    Save Status Update
+                    Save Update
                   </Button>
                 </div>
               </div>
@@ -876,14 +878,14 @@ export const AdminSalesPage: React.FC = () => {
                     key={r}
                     type="button"
                     onClick={() => setSelectedReasonTag(r)}
-                    className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between text-xs transition-colors cursor-pointer ${
+                    className={`w-full min-h-[44px] p-3 rounded-xl border text-left flex items-center justify-between text-xs transition-colors cursor-pointer active:scale-[0.99] ${
                       selectedReasonTag === r
                         ? 'bg-rose-500/10 text-rose-600 border-rose-500/30 font-semibold'
                         : 'bg-[var(--surface)] text-[var(--ink-soft)] border-[var(--line)] hover:bg-[var(--surface-alt)]'
                     }`}
                   >
-                    <span>{r}</span>
-                    {selectedReasonTag === r && <Check size={14} className="text-rose-600" />}
+                    <span className="pr-2">{r}</span>
+                    {selectedReasonTag === r && <Check size={16} className="text-rose-600 shrink-0" />}
                   </button>
                 ))}
               </div>
@@ -897,18 +899,19 @@ export const AdminSalesPage: React.FC = () => {
                   value={customRejectReason}
                   onChange={(e) => setCustomRejectReason(e.target.value)}
                   placeholder="e.g. Please ask your customer to re-send the original bank transfer PDF or high-res photo..."
-                  className="w-full p-2.5 rounded-xl bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] focus:outline-none focus:border-rose-600 text-xs"
+                  className="w-full p-3 rounded-xl bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] focus:outline-none focus:border-rose-600 text-xs font-sans"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end space-x-2 pt-3 border-t border-[var(--line)]">
+            <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[var(--line)]">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setRejectingSale(null)}
                 disabled={isRejecting}
+                className="min-h-[44px]"
               >
                 Cancel
               </Button>
@@ -918,9 +921,9 @@ export const AdminSalesPage: React.FC = () => {
                 size="sm"
                 onClick={handleConfirmRejection}
                 isLoading={isRejecting}
-                className="bg-rose-600 hover:bg-rose-700 text-white border-transparent"
+                className="min-h-[44px] bg-rose-600 hover:bg-rose-700 text-white border-transparent font-medium"
               >
-                Confirm Payment Rejection
+                Confirm Rejection
               </Button>
             </div>
           </div>
