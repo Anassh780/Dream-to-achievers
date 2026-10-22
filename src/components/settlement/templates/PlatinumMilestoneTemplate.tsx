@@ -1,6 +1,7 @@
 import React from 'react';
 import { SettlementRecord, formatSettlementAmount } from '@/types/settlement';
 import { Award, ShieldCheck, Sparkles, Building2, Check, QrCode } from 'lucide-react';
+import { RealQrCode } from '@/components/common/RealQrCode';
 
 interface TemplateProps {
   record: SettlementRecord;
@@ -8,6 +9,8 @@ interface TemplateProps {
 
 export const PlatinumMilestoneTemplate: React.FC<TemplateProps> = ({ record }) => {
   const isVerified = record.mode === 'verified';
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://dream-to-achievers.vercel.app';
+  const verifyUrl = `${origin}/dashboard/sales?certificate=${encodeURIComponent(record.id)}&partner=${encodeURIComponent(record.partnerId || '')}`;
 
   return (
     <div
@@ -45,11 +48,11 @@ export const PlatinumMilestoneTemplate: React.FC<TemplateProps> = ({ record }) =
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1A1813] to-[#0A0906] border border-[#D4AF37]/50 flex items-center justify-center shadow-[0_0_25px_rgba(212,175,55,0.2)] p-2">
             <img
-              src="/images/brand-logo.png"
+              src="/brand-logo.png"
               alt="Platform Logo"
               className="w-full h-full object-contain"
               onError={(e) => {
-                e.currentTarget.style.display = 'none';
+                e.currentTarget.src = '/images/brand-logo.png';
               }}
             />
           </div>
@@ -185,7 +188,7 @@ export const PlatinumMilestoneTemplate: React.FC<TemplateProps> = ({ record }) =
         </div>
       </div>
 
-      {/* 4. Luxury Attestation Footer */}
+      {/* 4. Luxury Attestation Footer with Real Scannable Gold QR Code */}
       <div className="relative z-10 pt-4 border-t border-amber-500/20 flex items-center justify-between text-[10px] font-mono text-slate-400">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-[#D4AF37]">
@@ -195,8 +198,31 @@ export const PlatinumMilestoneTemplate: React.FC<TemplateProps> = ({ record }) =
             <span className="text-amber-200 font-bold block uppercase tracking-wider">
               Cryptographic SHA-256 Ledger Fingerprint
             </span>
-            <span className="text-slate-400 font-mono text-[9px] truncate max-w-[550px] block select-all">
+            <span className="text-slate-400 font-mono text-[9px] truncate max-w-[420px] block select-all">
               {record.complianceHash || 'E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855'}
+            </span>
+          </div>
+        </div>
+
+        {/* Real Scannable Gold QR Badge */}
+        <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-amber-500/30 shadow-[0_0_15px_rgba(212,175,55,0.15)]">
+          <div className="bg-white p-1 rounded-lg shrink-0">
+            <RealQrCode
+              value={verifyUrl}
+              size={42}
+              fgColor="#14120D"
+              bgColor="#FFFFFF"
+              level="M"
+              margin={1}
+              title="Scan to verify milestone record"
+            />
+          </div>
+          <div className="text-left font-mono">
+            <span className="text-[9px] font-bold text-amber-300 uppercase tracking-wider block">
+              SCAN TO VERIFY
+            </span>
+            <span className="text-[8px] text-slate-400 block">
+              Official Payout Node
             </span>
           </div>
         </div>

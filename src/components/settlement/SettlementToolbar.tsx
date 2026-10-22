@@ -52,7 +52,7 @@ export const SettlementToolbar: React.FC<SettlementToolbarProps> = ({
     const node = canvasRef.current;
 
     return await toBlob(node, {
-      pixelRatio: 2.5,
+      pixelRatio: 3.0,
       cacheBust: true,
       skipFonts: false,
     });
@@ -101,7 +101,7 @@ export const SettlementToolbar: React.FC<SettlementToolbarProps> = ({
     try {
       const node = canvasRef.current;
       const dataUrl = await toPng(node, {
-        pixelRatio: 2.5,
+        pixelRatio: 3.0,
         cacheBust: true,
         skipFonts: false,
       });

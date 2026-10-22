@@ -7,6 +7,7 @@ import { User as UserType, PaymentMethod, PaymentMethodType } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/context/ToastContext';
+import { ProfileQrCard } from '@/components/profile/ProfileQrCard';
 import {
   User,
   EnvelopeSimple,
@@ -158,6 +159,9 @@ export const DashboardProfile: React.FC = () => {
           <span className="font-semibold">{methodMsg}</span>
         </div>
       )}
+
+      {/* Reseller Profile QR Code Generator & Sharing Engine */}
+      <ProfileQrCard user={user} />
 
       {/* 1. Profile Form Card */}
       <div className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--line)] space-y-5 shadow-xs">

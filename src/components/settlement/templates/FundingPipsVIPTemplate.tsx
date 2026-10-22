@@ -7,10 +7,10 @@ import {
   Package,
   Sparkles,
   Crown,
-  QrCode,
   Building2,
-  TrendingUp,
+  QrCode,
 } from 'lucide-react';
+import { RealQrCode } from '@/components/common/RealQrCode';
 
 interface TemplateProps {
   record: SettlementRecord;
@@ -21,6 +21,9 @@ export const FundingPipsVIPTemplate: React.FC<TemplateProps> = ({ record }) => {
   const honoreeName =
     record.recipientName || record.signatoryName || record.businessName || 'Distinguished Partner';
   const totalProducts = record.totalProductsSold || 1;
+
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://dream-to-achievers.vercel.app';
+  const verifyUrl = `${origin}/dashboard/sales?certificate=${encodeURIComponent(record.id)}&partner=${encodeURIComponent(record.partnerId || '')}`;
 
   return (
     <div
@@ -62,11 +65,11 @@ export const FundingPipsVIPTemplate: React.FC<TemplateProps> = ({ record }) => {
         <div className="flex items-center gap-3.5">
           <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-amber-950/60 via-slate-900 to-slate-950 border border-amber-500/50 flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.25)] p-2">
             <img
-              src="/images/brand-logo.png"
+              src="/brand-logo.png"
               alt="Logo"
               className="w-full h-full object-contain"
               onError={(e) => {
-                e.currentTarget.style.display = 'none';
+                e.currentTarget.src = '/images/brand-logo.png';
               }}
             />
           </div>
@@ -147,7 +150,7 @@ export const FundingPipsVIPTemplate: React.FC<TemplateProps> = ({ record }) => {
           <div className="text-[9.5px] font-mono text-slate-400">Net Processed Profit</div>
         </div>
 
-        {/* Card 2: Total Products Sold (Key Requirement!) */}
+        {/* Card 2: Total Products Sold */}
         <div className="relative rounded-2xl p-4 bg-gradient-to-b from-cyan-500/15 via-slate-900/90 to-slate-950/90 border border-cyan-500/35 shadow-[0_4px_20px_rgba(6,182,212,0.12)] text-center space-y-1">
           <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-cyan-400 flex items-center justify-center gap-1.5">
             <Package size={13} className="text-cyan-400" />
@@ -186,7 +189,7 @@ export const FundingPipsVIPTemplate: React.FC<TemplateProps> = ({ record }) => {
         </div>
       </div>
 
-      {/* 4. FOOTER: Authority Signature, 3D Gold Seal & Verification Ledger */}
+      {/* 4. FOOTER: Authority Signature, 3D Gold Seal, Real Scannable QR & Verification Ledger */}
       <div className="relative z-10 pt-4 border-t border-amber-500/20 flex items-end justify-between">
         {/* Left: Authorized Officer Signature */}
         <div className="space-y-1">
@@ -221,17 +224,38 @@ export const FundingPipsVIPTemplate: React.FC<TemplateProps> = ({ record }) => {
           </span>
         </div>
 
-        {/* Right: Immutable Cryptographic Fingerprint */}
-        <div className="text-right space-y-1">
-          <div className="flex items-center justify-end gap-1.5 text-emerald-400 font-mono text-[10px] font-bold">
-            <CheckCircle2 size={13} />
-            <span>AUTHENTICATED RECORD</span>
+        {/* Right: Gold Foil-Framed Real Scannable QR Code & Cryptographic Stamp */}
+        <div className="flex items-center gap-4">
+          <div className="flex flex-col items-center">
+            <div className="p-[2.5px] rounded-xl bg-gradient-to-br from-[#FFE58F] via-[#D4AF37] to-[#8C6D15] shadow-[0_0_20px_rgba(212,175,55,0.3)]">
+              <div className="bg-white p-1 rounded-lg flex items-center justify-center">
+                <RealQrCode
+                  value={verifyUrl}
+                  size={52}
+                  fgColor="#07090E"
+                  bgColor="#FFFFFF"
+                  level="M"
+                  margin={1}
+                  title="Scan to verify VIP payout certificate"
+                />
+              </div>
+            </div>
+            <span className="text-[7.5px] font-mono font-bold uppercase tracking-widest text-amber-300/90 mt-1">
+              SCAN TO VERIFY
+            </span>
           </div>
-          <div className="font-mono text-[9px] text-slate-400 tracking-wider max-w-[240px] truncate">
-            HASH: {record.complianceHash ? record.complianceHash.slice(0, 32) : 'AUTH-CERT-LEDGER-DTA'}...
-          </div>
-          <div className="font-mono text-[9px] text-slate-500">
-            ISO-20022 Financial Clearing Standard
+
+          <div className="text-right space-y-1">
+            <div className="flex items-center justify-end gap-1.5 text-emerald-400 font-mono text-[10px] font-bold">
+              <CheckCircle2 size={13} />
+              <span>AUTHENTICATED RECORD</span>
+            </div>
+            <div className="font-mono text-[9px] text-slate-400 tracking-wider max-w-[210px] truncate">
+              HASH: {record.complianceHash ? record.complianceHash.slice(0, 32) : 'AUTH-CERT-LEDGER-DTA'}...
+            </div>
+            <div className="font-mono text-[9px] text-slate-500">
+              ISO-20022 Financial Clearing Standard
+            </div>
           </div>
         </div>
       </div>

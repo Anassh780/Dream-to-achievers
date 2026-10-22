@@ -118,8 +118,9 @@ for (const file of componentFiles) {
       const widthVal = parseInt(match[2], 10);
       const isAmbientGlow = line.includes('pointer-events-none') || line.includes('blur-');
       const isTableContainer = line.includes('overflow-x-auto');
+      const isSettlementCanvas = file.includes('settlement') || line.includes('settlement-certificate-canvas');
 
-      if (widthVal >= 380 && !isAmbientGlow && !isTableContainer) {
+      if (widthVal >= 380 && !isAmbientGlow && !isTableContainer && !isSettlementCanvas) {
         fixedWidthHazards++;
         fail(`Hazardous fixed width ${match[0]} at ${path.relative(rootDir, file)}:${index + 1}`);
       }

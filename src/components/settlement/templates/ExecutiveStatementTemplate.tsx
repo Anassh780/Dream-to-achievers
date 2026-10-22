@@ -1,6 +1,7 @@
 import React from 'react';
 import { SettlementRecord, formatSettlementAmount } from '@/types/settlement';
-import { ShieldCheck, CheckCircle2, Building2, Fingerprint, Award, Check } from 'lucide-react';
+import { ShieldCheck, Building2, Fingerprint, Check, QrCode } from 'lucide-react';
+import { RealQrCode } from '@/components/common/RealQrCode';
 
 interface TemplateProps {
   record: SettlementRecord;
@@ -8,6 +9,8 @@ interface TemplateProps {
 
 export const ExecutiveStatementTemplate: React.FC<TemplateProps> = ({ record }) => {
   const isVerified = record.mode === 'verified';
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://dream-to-achievers.vercel.app';
+  const verifyUrl = `${origin}/dashboard/sales?certificate=${encodeURIComponent(record.id)}&partner=${encodeURIComponent(record.partnerId || '')}`;
 
   return (
     <div
@@ -46,11 +49,11 @@ export const ExecutiveStatementTemplate: React.FC<TemplateProps> = ({ record }) 
         <div className="flex items-center gap-4">
           <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-700/80 flex items-center justify-center shadow-lg p-2.5">
             <img
-              src="/images/brand-logo.png"
+              src="/brand-logo.png"
               alt="Platform Logo"
               className="w-full h-full object-contain"
               onError={(e) => {
-                e.currentTarget.style.display = 'none';
+                e.currentTarget.src = '/images/brand-logo.png';
               }}
             />
           </div>
@@ -200,7 +203,7 @@ export const ExecutiveStatementTemplate: React.FC<TemplateProps> = ({ record }) 
         </div>
       </div>
 
-      {/* 4. Footer: Cryptographic SHA-256 Stamp & Legal Attestation */}
+      {/* 4. Footer: Cryptographic SHA-256 Stamp, Real QR Code & Legal Attestation */}
       <div className="relative z-10 pt-4 flex items-center justify-between text-[10px] font-mono text-slate-400">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400">
@@ -210,13 +213,37 @@ export const ExecutiveStatementTemplate: React.FC<TemplateProps> = ({ record }) 
             <span className="text-slate-300 font-bold block uppercase tracking-wider">
               Cryptographic SHA-256 Ledger Stamp
             </span>
-            <span className="text-slate-400 font-mono text-[9px] truncate max-w-[500px] block select-all">
+            <span className="text-slate-400 font-mono text-[9px] truncate max-w-[380px] block select-all">
               {record.complianceHash || 'E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855'}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-right">
+        {/* Real Scannable Cyber QR Lockup */}
+        <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.15)]">
+          <div className="bg-white p-1 rounded-lg shrink-0">
+            <RealQrCode
+              value={verifyUrl}
+              size={44}
+              fgColor="#080C14"
+              bgColor="#FFFFFF"
+              level="M"
+              margin={1}
+              title="Scan to audit institutional ledger"
+            />
+          </div>
+          <div className="text-left font-mono">
+            <span className="text-[9px] font-bold text-cyan-400 uppercase tracking-wider block flex items-center gap-1">
+              <QrCode size={10} className="text-cyan-400" />
+              SCAN TO AUDIT
+            </span>
+            <span className="text-[8px] text-slate-400 block">
+              Node Ledger Clearance
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 text-right">
           <div>
             <span className="text-slate-300 font-semibold block uppercase">
               Dream to Achievers Financial Operations
@@ -225,8 +252,8 @@ export const ExecutiveStatementTemplate: React.FC<TemplateProps> = ({ record }) 
               ISO-20022 Compliant Settlement Output • Official B2B Attestation
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-slate-900 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.15)]">
-            <ShieldCheck size={20} />
+          <div className="w-9 h-9 rounded-xl bg-slate-900 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.15)] shrink-0">
+            <ShieldCheck size={18} />
           </div>
         </div>
       </div>

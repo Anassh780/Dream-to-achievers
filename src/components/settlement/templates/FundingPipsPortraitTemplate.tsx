@@ -1,60 +1,12 @@
 import React from 'react';
 import { SettlementRecord, formatSettlementAmount } from '@/types/settlement';
-import { Package, ShieldCheck, CheckCircle2, Sparkles, Award } from 'lucide-react';
+import { Package, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { RealQrCode } from '@/components/common/RealQrCode';
 
 interface TemplateProps {
   record: SettlementRecord;
   variant?: 'blue' | 'emerald';
 }
-
-/**
- * High-precision deterministic SVG QR code pattern.
- */
-const HolographicQrCode: React.FC<{ value: string; size?: number }> = ({ value, size = 64 }) => {
-  // Deterministic pattern generation based on hash of string
-  const modules = [
-    [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1],
-    [1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1],
-    [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1],
-    [0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0],
-    [1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1],
-    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0],
-    [1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0],
-    [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1],
-    [1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1],
-  ];
-
-  const n = modules.length;
-  const cellSize = size / n;
-
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="rounded-xs">
-      <rect width={size} height={size} fill="#FFFFFF" />
-      {modules.map((row, r) =>
-        row.map((cell, c) =>
-          cell ? (
-            <rect
-              key={`${r}-${c}`}
-              x={c * cellSize}
-              y={r * cellSize}
-              width={cellSize + 0.2}
-              height={cellSize + 0.2}
-              fill="#0F172A"
-            />
-          ) : null
-        )
-      )}
-    </svg>
-  );
-};
 
 export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, variant }) => {
   const isEmerald = variant === 'emerald' || record.template === 'emerald_website_ui';
@@ -63,7 +15,10 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
   const totalProducts = record.totalProductsSold || 1;
   const amountStr = formatSettlementAmount(record.amount, record.currency);
 
-  // Format date like "OCT 13, 2026"
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://dream-to-achievers.vercel.app';
+  const verifyUrl = `${origin}/dashboard/sales?certificate=${encodeURIComponent(record.id)}&partner=${encodeURIComponent(record.partnerId || '')}`;
+
+  // Format date like "OCT 19, 2026"
   const formattedDate = (() => {
     try {
       const d = new Date(record.settlementDate);
@@ -148,23 +103,24 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
           CONGRATULATIONS
         </div>
 
-        <div className="flex items-end justify-between gap-4 pt-1">
-          {/* Giant Impact Words */}
-          <div className="font-sans font-black text-[68px] leading-[0.88] tracking-[-0.03em] text-[#0B1536]">
+        <div className="flex items-end justify-between gap-3 pt-1">
+          {/* Giant Impact Words - adjusted sizing to guarantee zero clipping */}
+          <div className="font-sans font-black text-[50px] leading-[0.92] tracking-tight text-[#0B1536] max-w-[360px]">
             <div>WITHDRAWAL</div>
             <div>PROCESSED</div>
           </div>
 
-          {/* Right Sub-Badge ("Evaluation Stage" in photo, "Disbursement Stage" here) */}
-          <div className="pb-2 text-right">
-            <div className="font-sans font-extrabold text-sm leading-tight text-[#0B1536]">
+          {/* Right Sub-Badge ("Disbursement Stage VERIFIED") - protected from overflow */}
+          <div className="pb-2 text-right shrink-0 min-w-[125px]">
+            <div className="font-sans font-extrabold text-sm leading-tight text-[#0B1536] whitespace-nowrap">
               Disbursement
             </div>
-            <div className="font-sans font-extrabold text-sm leading-tight text-[#0B1536]">
+            <div className="font-sans font-extrabold text-sm leading-tight text-[#0B1536] whitespace-nowrap">
               Stage
             </div>
-            <div className="mt-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#0B1536]/10 text-[10px] font-mono font-bold text-[#0B1536]">
-              VERIFIED
+            <div className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#0B1536]/10 text-[10px] font-mono font-bold text-[#0B1536] shadow-2xs whitespace-nowrap">
+              <CheckCircle2 size={11} className="text-emerald-700" />
+              <span>VERIFIED</span>
             </div>
           </div>
         </div>
@@ -186,7 +142,7 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
           </div>
         </div>
 
-        {/* Total Products Sold (Key Requirement!) */}
+        {/* Total Products Sold */}
         <div className="p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-white/80 shadow-md">
           <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
             <Package size={12} className="text-slate-600" />
@@ -201,7 +157,7 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
         </div>
       </div>
 
-      {/* 4. HONOREE PRESENTATION ("Proudly presented to Anas M") */}
+      {/* 4. HONOREE PRESENTATION */}
       <div className="relative z-10 space-y-1">
         <div className="font-sans text-sm font-semibold text-slate-700">
           Proudly presented to
@@ -216,7 +172,7 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
         </div>
       </div>
 
-      {/* 5. FOOTER: Date & Rainbow Holographic Foil QR Code */}
+      {/* 5. FOOTER: Date & Real Scannable Rainbow Holographic Foil QR Code */}
       <div className="relative z-10 flex items-end justify-between pt-4 border-t border-white/30">
         {/* Left: Date & Batch reference */}
         <div className="space-y-0.5">
@@ -231,7 +187,7 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
           </div>
         </div>
 
-        {/* Right: Rainbow Iridescent Holographic Foil QR Code (Matching exact photo!) */}
+        {/* Right: Rainbow Iridescent Holographic Foil with REAL Scannable QR Code */}
         <div className="flex flex-col items-end">
           <div
             className="p-[3.5px] rounded-2xl shadow-xl transition-transform hover:scale-105"
@@ -241,11 +197,20 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
             }}
           >
             <div className="bg-white p-1 rounded-xl shadow-inner flex items-center justify-center">
-              <HolographicQrCode value={record.id} size={52} />
+              <RealQrCode
+                value={verifyUrl}
+                size={52}
+                fgColor="#0F172A"
+                bgColor="#FFFFFF"
+                level="M"
+                margin={1}
+                title="Scan to verify official payout record"
+              />
             </div>
           </div>
-          <span className="text-[8px] font-mono font-bold uppercase tracking-widest text-[#0B1536]/70 mt-1.5">
-            VERIFIED LEDGER
+          <span className="text-[8px] font-mono font-bold uppercase tracking-widest text-[#0B1536]/80 mt-1.5 flex items-center gap-1">
+            <ShieldCheck size={9} className="text-emerald-700" />
+            <span>VERIFIED LEDGER</span>
           </span>
         </div>
       </div>

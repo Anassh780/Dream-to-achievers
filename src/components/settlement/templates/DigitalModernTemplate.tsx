@@ -1,6 +1,7 @@
 import React from 'react';
 import { SettlementRecord, formatSettlementAmount } from '@/types/settlement';
 import { Zap, ShieldCheck, Check, Building2, QrCode, ArrowUpRight, Cpu } from 'lucide-react';
+import { RealQrCode } from '@/components/common/RealQrCode';
 
 interface TemplateProps {
   record: SettlementRecord;
@@ -8,6 +9,8 @@ interface TemplateProps {
 
 export const DigitalModernTemplate: React.FC<TemplateProps> = ({ record }) => {
   const isVerified = record.mode === 'verified';
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://dream-to-achievers.vercel.app';
+  const verifyUrl = `${origin}/dashboard/sales?certificate=${encodeURIComponent(record.id)}&partner=${encodeURIComponent(record.partnerId || '')}`;
 
   return (
     <div
@@ -42,11 +45,11 @@ export const DigitalModernTemplate: React.FC<TemplateProps> = ({ record }) => {
         <div className="flex items-center gap-4">
           <div className="w-13 h-13 rounded-2xl bg-slate-900 border border-cyan-500/40 flex items-center justify-center p-2.5 shadow-[0_0_20px_rgba(6,182,212,0.15)]">
             <img
-              src="/images/brand-logo.png"
+              src="/brand-logo.png"
               alt="Platform Logo"
               className="w-full h-full object-contain"
               onError={(e) => {
-                e.currentTarget.style.display = 'none';
+                e.currentTarget.src = '/images/brand-logo.png';
               }}
             />
           </div>
@@ -155,8 +158,16 @@ export const DigitalModernTemplate: React.FC<TemplateProps> = ({ record }) => {
               </div>
             </div>
 
-            <div className="w-18 h-18 rounded-2xl bg-white p-2 flex items-center justify-center shrink-0 shadow-lg border border-slate-300">
-              <QrCode className="w-full h-full text-slate-900" />
+            <div className="w-18 h-18 rounded-2xl bg-white p-1.5 flex items-center justify-center shrink-0 shadow-lg border border-slate-300">
+              <RealQrCode
+                value={verifyUrl}
+                size={60}
+                fgColor="#090D16"
+                bgColor="#FFFFFF"
+                level="M"
+                margin={1}
+                title="Scan to verify settlement"
+              />
             </div>
           </div>
         </div>
