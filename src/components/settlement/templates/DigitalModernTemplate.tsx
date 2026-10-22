@@ -166,8 +166,14 @@ export const DigitalModernTemplate: React.FC<TemplateProps> = ({ record }) => {
       <div className="relative z-10 grid grid-cols-4 gap-4 py-1 font-mono text-xs">
         <div className="p-3.5 rounded-2xl bg-slate-900/40 border border-slate-800/80 space-y-1">
           <span className="text-[10px] text-slate-400 uppercase block">Account Holder / Signatory</span>
-          <p className="text-slate-200 font-bold truncate">{record.signatoryName}</p>
+          <p className="text-slate-200 font-bold truncate">{record.recipientName || record.signatoryName || record.businessName}</p>
           <span className="text-[9.5px] text-cyan-400 block truncate">Enterprise Verified</span>
+        </div>
+
+        <div className="p-3.5 rounded-2xl bg-slate-900/40 border border-slate-800/80 space-y-1">
+          <span className="text-[10px] text-cyan-400 uppercase block font-semibold">Total Products Sold</span>
+          <p className="text-cyan-200 font-bold">{record.totalProductsSold || 1} Products</p>
+          <span className="text-[9.5px] text-slate-400 block">Verified Units Delivered</span>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-slate-900/40 border border-slate-800/80 space-y-1">
@@ -179,13 +185,7 @@ export const DigitalModernTemplate: React.FC<TemplateProps> = ({ record }) => {
         <div className="p-3.5 rounded-2xl bg-slate-900/40 border border-slate-800/80 space-y-1">
           <span className="text-[10px] text-slate-400 uppercase block">Disbursement Rail</span>
           <p className="text-slate-200 font-bold truncate">{record.payoutChannel}</p>
-          <span className="text-[9.5px] text-emerald-400 block">Instant Settlement Engine</span>
-        </div>
-
-        <div className="p-3.5 rounded-2xl bg-slate-900/40 border border-slate-800/80 space-y-1">
-          <span className="text-[10px] text-slate-400 uppercase block">Settlement Hash / Record ID</span>
-          <p className="text-slate-200 font-bold truncate font-mono text-[11px]">{record.id}</p>
-          <span className="text-[9.5px] text-slate-400 block">Immutable Block Attestation</span>
+          <span className="text-[9.5px] text-emerald-400 block truncate">UTR: {record.utrReference}</span>
         </div>
       </div>
 

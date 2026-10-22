@@ -184,6 +184,7 @@ export interface WithdrawalRequest {
   transactionReference?: string;
   payoutProofUrl?: string; // Admin Bank / Wallet Transfer Receipt Slip (Base64 or Image URL)
   adminNote?: string;
+  certificateId?: string; // Links to auto-generated VIP settlement certificate
 }
 
 export type ReferralStatus = 'active' | 'pending' | 'inactive';

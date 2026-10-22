@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { SettlementRecord, buildSettlementFilename } from '@/types/settlement';
+import {
+  SettlementRecord,
+  SettlementTemplateType,
+  buildSettlementFilename,
+  formatSettlementAmount,
+} from '@/types/settlement';
 import { toBlob, toPng, toSvg } from 'html-to-image';
 import {
   Copy,
@@ -12,6 +17,9 @@ import {
   Share2,
   Printer,
   Sparkles,
+  Crown,
+  Link as LinkIcon,
+  FileText,
 } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 
@@ -21,6 +29,7 @@ interface SettlementToolbarProps {
   zoom: number;
   onZoomChange: (newZoom: number) => void;
   onFitWidth: () => void;
+  onTemplateChange?: (newTemplate: SettlementTemplateType) => void;
 }
 
 export const SettlementToolbar: React.FC<SettlementToolbarProps> = ({
@@ -29,23 +38,23 @@ export const SettlementToolbar: React.FC<SettlementToolbarProps> = ({
   zoom,
   onZoomChange,
   onFitWidth,
+  onTemplateChange,
 }) => {
   const { success: toastSuccess, error: toastError, info: toastInfo } = useToast();
   const [isExporting, setIsExporting] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
   const [copiedSuccess, setCopiedSuccess] = useState(false);
+  const [copiedLinkSuccess, setCopiedLinkSuccess] = useState(false);
 
   // Helper to ensure webfonts and images are settled before screenshot
   const captureCanvasBlob = async (): Promise<Blob | null> => {
     if (!canvasRef.current) return null;
     const node = canvasRef.current;
 
-    // Use toBlob with pixelRatio 2 to ensure 1600x1000 / retina sharpness
     return await toBlob(node, {
-      pixelRatio: 2,
+      pixelRatio: 2.5,
       cacheBust: true,
       skipFonts: false,
-      backgroundColor: '#080C14',
     });
   };
 
@@ -71,7 +80,7 @@ export const SettlementToolbar: React.FC<SettlementToolbarProps> = ({
       ]);
 
       setCopiedSuccess(true);
-      toastSuccess('Settlement certificate copied to clipboard as high-res PNG!');
+      toastSuccess('Certificate image copied to clipboard!');
       setTimeout(() => setCopiedSuccess(false), 2500);
     } catch (err: any) {
       console.warn('Clipboard write image failed, offering download fallback:', err);
@@ -83,7 +92,7 @@ export const SettlementToolbar: React.FC<SettlementToolbarProps> = ({
   };
 
   /**
-   * Downloads high-resolution 1600x1000 PNG image with sanitized B2B naming.
+   * Downloads high-resolution PNG image.
    */
   const handleDownloadPng = async () => {
     if (!canvasRef.current) return;
@@ -92,14 +101,15 @@ export const SettlementToolbar: React.FC<SettlementToolbarProps> = ({
     try {
       const node = canvasRef.current;
       const dataUrl = await toPng(node, {
-        pixelRatio: 2,
+        pixelRatio: 2.5,
         cacheBust: true,
         skipFonts: false,
-        backgroundColor: '#080C14',
       });
 
+      const recipient =
+        record.recipientName || record.signatoryName || record.businessName || 'Partner';
       const filename = buildSettlementFilename(
-        record.businessName,
+        recipient,
         record.settlementDate,
         record.utrReference
       );
@@ -109,53 +119,118 @@ export const SettlementToolbar: React.FC<SettlementToolbarProps> = ({
       link.href = dataUrl;
       link.click();
 
-      toastSuccess(`Settlement certificate saved as ${filename}`);
+      toastSuccess(`Certificate saved as ${filename}`);
     } catch (err: any) {
       console.error('Download PNG failed:', err);
-      toastError('Failed to render certificate PNG. Please check image permissions.');
+      toastError('Failed to render certificate PNG. Please check browser permissions.');
     } finally {
       setIsExporting(false);
     }
   };
 
   /**
-   * Export vector SVG.
+   * Copy verification link to clipboard.
    */
-  const handleDownloadSvg = async () => {
-    if (!canvasRef.current) return;
+  const handleCopyLink = async () => {
     try {
-      const svgData = await toSvg(canvasRef.current, { backgroundColor: '#080C14' });
-      const filename = buildSettlementFilename(
-        record.businessName,
-        record.settlementDate,
-        record.utrReference
-      ).replace('.png', '.svg');
-
-      const link = document.createElement('a');
-      link.download = filename;
-      link.href = svgData;
-      link.click();
-      toastSuccess(`Vector SVG settlement document saved.`);
-    } catch (err) {
-      console.error('SVG export failed:', err);
-      toastError('Failed to export vector SVG.');
+      const url = `${window.location.origin}/dashboard/sales?certificate=${record.id}`;
+      await navigator.clipboard.writeText(url);
+      setCopiedLinkSuccess(true);
+      toastSuccess('Certificate verification link copied to clipboard!');
+      setTimeout(() => setCopiedLinkSuccess(false), 2500);
+    } catch {
+      toastInfo(`Certificate ID: ${record.id}`);
     }
   };
 
   /**
-   * Trigger print dialog.
+   * 1-Click WhatsApp Share.
    */
-  const handlePrint = () => {
+  const handleShareWhatsApp = () => {
+    const recipient =
+      record.recipientName || record.signatoryName || record.businessName || 'Reseller';
+    const amountStr = formatSettlementAmount(record.amount, record.currency);
+    const products = record.totalProductsSold || 1;
+    const msg = encodeURIComponent(
+      `🏆 Official Payout Certificate Attestation\n\n` +
+      `👑 Recipient: ${recipient}\n` +
+      `💰 Amount Disbursed: ${amountStr}\n` +
+      `📦 Total Products Sold: ${products}\n` +
+      `⚡ Certificate ID: ${record.id}\n` +
+      `🏛️ Verified via Dream to Achievers Financial Clearing\n` +
+      `Status: VERIFIED & DISBURSED ✅`
+    );
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+  };
+
+  /**
+   * Trigger print / PDF dialog.
+   */
+  const handlePrintPdf = () => {
     window.print();
   };
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs shadow-md">
-      {/* Zoom / Scaling Controls */}
+    <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-slate-900/95 border border-slate-800 text-xs shadow-md">
+      {/* Left: Template Selector Pills */}
+      {onTemplateChange && (
+        <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-slate-950/80 border border-slate-800">
+          <button
+            type="button"
+            onClick={() => onTemplateChange('funding_pips_portrait')}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              record.template === 'funding_pips_portrait' || !record.template
+                ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <span>⚡ Funding Pips (Sky Blue)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onTemplateChange('emerald_website_ui')}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              record.template === 'emerald_website_ui'
+                ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <span>💎 Website UI (Emerald)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onTemplateChange('funding_pips_vip')}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              record.template === 'funding_pips_vip'
+                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Crown size={12} className="text-amber-400" />
+            <span>Obsidian Gold</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onTemplateChange('executive_statement')}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-medium transition-all cursor-pointer ${
+              record.template === 'executive_statement'
+                ? 'bg-slate-800 text-slate-100 border border-slate-700'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <span>Executive Minimal</span>
+          </button>
+        </div>
+      )}
+
+      {/* Center: Zoom / Scaling Controls */}
       <div className="flex items-center space-x-1.5 font-mono">
         <button
           type="button"
-          onClick={() => onZoomChange(Math.max(0.35, zoom - 0.1))}
+          onClick={() => onZoomChange(Math.max(0.25, zoom - 0.08))}
           className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 border border-transparent hover:border-slate-700 cursor-pointer"
           title="Zoom Out"
         >
@@ -168,7 +243,7 @@ export const SettlementToolbar: React.FC<SettlementToolbarProps> = ({
 
         <button
           type="button"
-          onClick={() => onZoomChange(Math.min(1.2, zoom + 0.1))}
+          onClick={() => onZoomChange(Math.min(1.2, zoom + 0.08))}
           className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 border border-transparent hover:border-slate-700 cursor-pointer"
           title="Zoom In"
         >
@@ -178,7 +253,7 @@ export const SettlementToolbar: React.FC<SettlementToolbarProps> = ({
         <button
           type="button"
           onClick={onFitWidth}
-          className="px-2 py-1 rounded-lg text-[10px] text-cyan-400 hover:bg-cyan-500/10 border border-cyan-500/20 cursor-pointer ml-1 inline-flex items-center gap-1"
+          className="px-2.5 py-1 rounded-lg text-[11px] text-cyan-400 hover:bg-cyan-500/10 border border-cyan-500/20 cursor-pointer ml-1 inline-flex items-center gap-1"
           title="Fit Canvas to Screen"
         >
           <Maximize2 size={12} />
@@ -186,59 +261,81 @@ export const SettlementToolbar: React.FC<SettlementToolbarProps> = ({
         </button>
       </div>
 
-      {/* Main Export & Copy Action Buttons */}
+      {/* Right: Sleek Action Row matching Funding Pips Image 2 */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* Copy Image Button */}
-        <button
-          type="button"
-          disabled={isCopying}
-          onClick={handleCopyImage}
-          className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 inline-flex items-center gap-2 cursor-pointer transition-all active:scale-95 disabled:opacity-50"
-          title="Copy 1600x1000 PNG to clipboard"
-        >
-          {copiedSuccess ? (
-            <>
-              <Check size={14} className="text-emerald-400" />
-              <span className="text-emerald-400 font-semibold">Image Copied!</span>
-            </>
-          ) : (
-            <>
-              <Copy size={14} className="text-slate-300" />
-              <span>{isCopying ? 'Copying...' : 'Copy Image'}</span>
-            </>
-          )}
-        </button>
-
-        {/* Download PNG Button */}
+        {/* [ ↓ PNG ] Button */}
         <button
           type="button"
           disabled={isExporting}
           onClick={handleDownloadPng}
-          className="min-h-[38px] px-4 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-bold text-xs inline-flex items-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all active:scale-95 disabled:opacity-50"
-          title="Download High-Resolution PNG (1600x1000 px)"
+          className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-950 font-bold text-xs inline-flex items-center gap-1.5 cursor-pointer shadow-sm transition-all active:scale-95 disabled:opacity-50"
+          title="Download High-Resolution PNG Image"
         >
-          <Download size={15} />
-          <span>{isExporting ? 'Generating PNG...' : 'Download HD PNG'}</span>
+          <Download size={14} />
+          <span>{isExporting ? 'Generating...' : 'PNG'}</span>
         </button>
 
-        {/* Vector SVG Export */}
+        {/* [ ↓ PDF ] Button */}
         <button
           type="button"
-          onClick={handleDownloadSvg}
-          className="min-h-[38px] p-2 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-slate-800 border border-slate-800 cursor-pointer"
-          title="Download Vector SVG"
+          onClick={handlePrintPdf}
+          className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs inline-flex items-center gap-1.5 border border-slate-700 cursor-pointer transition-all active:scale-95"
+          title="Export / Print Certificate as PDF"
         >
-          <FileCode size={15} />
+          <FileText size={14} />
+          <span>PDF</span>
         </button>
 
-        {/* Print Document */}
+        {/* [ 📋 Image ] Button */}
         <button
           type="button"
-          onClick={handlePrint}
-          className="min-h-[38px] p-2 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-slate-800 border border-slate-800 cursor-pointer"
-          title="Print Certificate"
+          disabled={isCopying}
+          onClick={handleCopyImage}
+          className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs inline-flex items-center gap-1.5 border border-slate-700 cursor-pointer transition-all active:scale-95 disabled:opacity-50"
+          title="Copy Image to clipboard"
         >
-          <Printer size={15} />
+          {copiedSuccess ? (
+            <>
+              <Check size={14} className="text-emerald-400" />
+              <span className="text-emerald-400">Copied</span>
+            </>
+          ) : (
+            <>
+              <Copy size={14} className="text-slate-300" />
+              <span>Image</span>
+            </>
+          )}
+        </button>
+
+        {/* [ 🔗 Link ] Button */}
+        <button
+          type="button"
+          onClick={handleCopyLink}
+          className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs inline-flex items-center gap-1.5 border border-slate-700 cursor-pointer transition-all active:scale-95"
+          title="Copy Verification Link"
+        >
+          {copiedLinkSuccess ? (
+            <>
+              <Check size={14} className="text-cyan-400" />
+              <span className="text-cyan-400">Linked</span>
+            </>
+          ) : (
+            <>
+              <LinkIcon size={14} className="text-slate-300" />
+              <span>Link</span>
+            </>
+          )}
+        </button>
+
+        {/* [ 💬 WhatsApp ] Button */}
+        <button
+          type="button"
+          onClick={handleShareWhatsApp}
+          className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
+          title="Share on WhatsApp"
+        >
+          <Share2 size={14} />
+          <span>WhatsApp</span>
         </button>
       </div>
     </div>

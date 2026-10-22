@@ -176,9 +176,15 @@ export const ExecutiveStatementTemplate: React.FC<TemplateProps> = ({ record }) 
       {/* 3. Structured Settlement Metadata Grid */}
       <div className="relative z-10 grid grid-cols-4 gap-3 py-3 border-y border-slate-800 font-mono text-xs">
         <div className="p-3 rounded-lg bg-slate-900/40 border border-slate-800/80 space-y-1">
-          <span className="text-[10px] text-slate-400 uppercase block">Authorized Signatory</span>
-          <p className="text-slate-200 font-bold truncate">{record.signatoryName}</p>
-          <span className="text-[9.5px] text-slate-500 block truncate">Identity Verified</span>
+          <span className="text-[10px] text-slate-400 uppercase block">Honoree Partner</span>
+          <p className="text-slate-200 font-bold truncate">{record.recipientName || record.signatoryName || record.businessName}</p>
+          <span className="text-[9.5px] text-slate-500 block truncate">ID: {record.partnerId}</span>
+        </div>
+
+        <div className="p-3 rounded-lg bg-slate-900/40 border border-slate-800/80 space-y-1">
+          <span className="text-[10px] text-cyan-400 uppercase block font-semibold">Total Products Sold</span>
+          <p className="text-cyan-200 font-bold">{record.totalProductsSold || 1} Products</p>
+          <span className="text-[9.5px] text-slate-500 block">Verified Orders Delivered</span>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-900/40 border border-slate-800/80 space-y-1">
@@ -190,13 +196,7 @@ export const ExecutiveStatementTemplate: React.FC<TemplateProps> = ({ record }) 
         <div className="p-3 rounded-lg bg-slate-900/40 border border-slate-800/80 space-y-1">
           <span className="text-[10px] text-slate-400 uppercase block">Clearing Routing</span>
           <p className="text-slate-200 font-bold truncate">{record.payoutChannel}</p>
-          <span className="text-[9.5px] text-emerald-400 block">Direct Treasury Dispatch</span>
-        </div>
-
-        <div className="p-3 rounded-lg bg-slate-900/40 border border-slate-800/80 space-y-1">
-          <span className="text-[10px] text-slate-400 uppercase block">Ledger Verification ID</span>
-          <p className="text-slate-200 font-bold truncate font-mono text-[11px]">{record.id}</p>
-          <span className="text-[9.5px] text-slate-500 block">Immutable Record</span>
+          <span className="text-[9.5px] text-emerald-400 block truncate">UTR: {record.utrReference}</span>
         </div>
       </div>
 

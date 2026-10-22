@@ -1,6 +1,7 @@
 import { PaymentMethod, PaymentMethodType, WithdrawalRequest, WithdrawalStatus, User } from '@/types';
 import { storage } from './storage';
 import { notificationService } from './notificationService';
+import { settlementService } from './settlementService';
 import { db, rtdb } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { ref, set } from 'firebase/database';
@@ -163,6 +164,13 @@ export const payoutService = {
     withdrawals.unshift(newRequest);
     storage.set('WITHDRAWALS', withdrawals);
 
+    // Auto-generate preliminary VIP certificate in background
+    try {
+      settlementService.createRecordFromWithdrawal(newRequest).catch(() => {});
+    } catch {
+      // Non-blocking
+    }
+
     // Sync to Cloud
     const cloudRequest = cleanRecordForCloud(newRequest);
     try {
@@ -223,6 +231,16 @@ export const payoutService = {
     if (transactionReference !== undefined) withdrawals[idx].transactionReference = transactionReference;
     if (adminNote !== undefined) withdrawals[idx].adminNote = adminNote;
     if (payoutProofUrl !== undefined) withdrawals[idx].payoutProofUrl = payoutProofUrl;
+
+    // Auto-generate verified VIP Payout Certificate when approved or paid
+    if (status === 'approved' || status === 'paid') {
+      try {
+        const cert = await settlementService.createRecordFromWithdrawal(withdrawals[idx]);
+        withdrawals[idx].certificateId = cert.id;
+      } catch (err) {
+        console.warn('Auto VIP certificate generation warning:', err);
+      }
+    }
 
     storage.set('WITHDRAWALS', withdrawals);
 

@@ -25,6 +25,7 @@ import {
   DownloadSimple,
   Plus,
   Certificate,
+  Crown,
 } from '@phosphor-icons/react';
 import { SettlementModal } from '@/components/settlement/SettlementModal';
 import { settlementService } from '@/services/settlementService';
@@ -57,7 +58,20 @@ export const DashboardSales: React.FC = () => {
   const [showCertModal, setShowCertModal] = useState(false);
 
   const handleOpenSettlementCertificate = async (w: WithdrawalRequest) => {
-    const record = await settlementService.createRecordFromWithdrawal(w);
+    if (!user) return;
+    const userSales = salesService.getUserSales(user.id);
+    const totalProducts = userSales
+      .filter((s) => s.status !== 'cancelled' && s.status !== 'rejected')
+      .reduce((sum, s) => sum + (Number(s.quantity) || 1), 0);
+
+    const record = await settlementService.createRecordFromWithdrawal(w, {
+      recipientName: user.fullName || w.userName,
+      totalProductsSold: totalProducts > 0 ? totalProducts : (sales.length > 0 ? sales.length : 1),
+      partnerTier: user.currentRankSlug && user.currentRankSlug !== 'unranked'
+        ? `${user.currentRankSlug.toUpperCase()} VIP Partner`
+        : 'VIP Reseller Partner',
+      template: 'funding_pips_portrait',
+    });
     setCertificateRecord(record);
     setShowCertModal(true);
   };
@@ -328,7 +342,7 @@ export const DashboardSales: React.FC = () => {
           </button>
         </div>
 
-        {/* Executive Action: B2B Settlement Image & Certificate Generator */}
+        {/* Executive Action: VIP Payout Certificate (Funding Pips Style Auto Generator) */}
         <button
           type="button"
           onClick={() => {
@@ -337,18 +351,21 @@ export const DashboardSales: React.FC = () => {
               handleOpenSettlementCertificate(latestPaid);
             } else {
               const sample = settlementService.createSampleRecord();
-              sample.businessName = user.fullName || 'Partner Reseller';
-              sample.signatoryName = user.fullName || 'Authorized Signatory';
-              sample.amount = availableBalance || totalDeliveredProfit || 5000;
-              sample.cumulativeSettlements = totalWithdrawn || totalDeliveredProfit || 15000;
+              sample.businessName = user?.fullName || 'Partner Reseller';
+              sample.signatoryName = user?.fullName || 'Authorized Signatory';
+              sample.recipientName = user?.fullName || 'Partner Reseller';
+              sample.amount = availableBalance || totalDeliveredProfit || 15000;
+              sample.totalProductsSold = sales.length > 0 ? sales.length : 18;
+              sample.cumulativeSettlements = totalWithdrawn || totalDeliveredProfit || 45000;
+              sample.template = 'funding_pips_portrait';
               setCertificateRecord(sample);
               setShowCertModal(true);
             }
           }}
-          className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent hover:from-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-mono font-semibold inline-flex items-center gap-2 shadow-xs cursor-pointer transition-all active:scale-[0.98]"
+          className="min-h-[38px] px-4 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/25 via-yellow-500/15 to-amber-500/20 hover:from-amber-500/35 hover:to-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-mono font-bold inline-flex items-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.15)] cursor-pointer transition-all active:scale-[0.98]"
         >
-          <Certificate size={16} weight="duotone" className="text-amber-400 shrink-0" />
-          <span>B2B Settlement Image Generator</span>
+          <Crown size={16} weight="duotone" className="text-amber-400 shrink-0" />
+          <span>👑 View VIP Payout Certificate</span>
         </button>
       </div>
 
@@ -621,10 +638,10 @@ export const DashboardSales: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleOpenSettlementCertificate(w)}
-                        className="flex-1 min-h-[40px] px-3 py-2 rounded-xl bg-gradient-to-r from-slate-900 via-slate-800 to-amber-950/40 hover:from-slate-800 hover:to-amber-900/50 border border-amber-500/30 text-amber-300 text-xs font-mono inline-flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                        className="flex-1 min-h-[40px] px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-950/40 hover:from-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-mono font-bold inline-flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
                       >
-                        <Certificate size={15} weight="duotone" className="text-amber-400" />
-                        <span>Official B2B Certificate</span>
+                        <Crown size={15} weight="duotone" className="text-amber-400" />
+                        <span>👑 VIP Certificate</span>
                       </button>
                     </div>
                   </div>
@@ -694,11 +711,11 @@ export const DashboardSales: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleOpenSettlementCertificate(w)}
-                            className="text-[10px] text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1 cursor-pointer transition-colors"
-                            title="Generate / Download Official B2B Settlement Certificate"
+                            className="text-[10px] text-amber-300 hover:text-amber-200 font-bold bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/35 px-2.5 py-1 rounded-md flex items-center gap-1 cursor-pointer transition-all shadow-xs"
+                            title="Auto-Generate / Download Official VIP Payout Certificate (Funding Pips Style)"
                           >
-                            <Certificate size={12} weight="duotone" />
-                            <span>B2B Certificate</span>
+                            <Crown size={12} weight="duotone" className="text-amber-400" />
+                            <span>👑 VIP Certificate</span>
                           </button>
                         </div>
                       </td>

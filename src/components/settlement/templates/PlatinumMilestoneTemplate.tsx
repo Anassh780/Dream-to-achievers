@@ -161,21 +161,21 @@ export const PlatinumMilestoneTemplate: React.FC<TemplateProps> = ({ record }) =
       {/* 3. Operational Attribution Grid */}
       <div className="relative z-10 grid grid-cols-4 gap-4 py-2 font-mono text-xs">
         <div className="p-3.5 rounded-xl bg-slate-900/50 border border-slate-800 space-y-1">
-          <span className="text-[10px] text-amber-200/70 uppercase block">Signatory Representative</span>
-          <p className="text-slate-200 font-bold truncate">{record.signatoryName}</p>
-          <span className="text-[9.5px] text-slate-400 block truncate">{record.businessName}</span>
+          <span className="text-[10px] text-amber-200/70 uppercase block">Honoree Partner</span>
+          <p className="text-slate-200 font-bold truncate">{record.recipientName || record.signatoryName || record.businessName}</p>
+          <span className="text-[9.5px] text-slate-400 block truncate">{record.partnerId}</span>
         </div>
 
         <div className="p-3.5 rounded-xl bg-slate-900/50 border border-slate-800 space-y-1">
-          <span className="text-[10px] text-amber-200/70 uppercase block">Settlement Date</span>
-          <p className="text-slate-200 font-bold">{record.settlementDate}</p>
-          <span className="text-[9.5px] text-slate-400 block">{record.settlementTime || '14:00:00 UTC'}</span>
+          <span className="text-[10px] text-cyan-300 uppercase block font-semibold">Total Products Sold</span>
+          <p className="text-cyan-200 font-bold">{record.totalProductsSold || 1} Products</p>
+          <span className="text-[9.5px] text-slate-400 block">Verified Sales Delivered</span>
         </div>
 
         <div className="p-3.5 rounded-xl bg-slate-900/50 border border-slate-800 space-y-1">
           <span className="text-[10px] text-amber-200/70 uppercase block">Settlement Batch UTR</span>
           <p className="text-slate-200 font-bold truncate">{record.utrReference}</p>
-          <span className="text-[9.5px] text-emerald-400 block">Settled on Ledger</span>
+          <span className="text-[9.5px] text-emerald-400 block">{record.settlementDate}</span>
         </div>
 
         <div className="p-3.5 rounded-xl bg-slate-900/50 border border-slate-800 space-y-1">

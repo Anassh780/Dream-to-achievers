@@ -1,4 +1,10 @@
-export type SettlementTemplateType = 'executive_statement' | 'platinum_milestone' | 'digital_modern';
+export type SettlementTemplateType =
+  | 'funding_pips_portrait'
+  | 'emerald_website_ui'
+  | 'funding_pips_vip'
+  | 'platinum_milestone'
+  | 'digital_modern'
+  | 'executive_statement';
 
 export type SettlementCurrency = 'PKR' | 'USD' | 'EUR' | 'GBP' | 'AED' | 'SGD' | 'CAD' | 'USDT';
 
@@ -22,14 +28,16 @@ export type PartnerTier =
   | 'Corporate Affiliate';
 
 export interface SettlementRecord {
-  id: string; // Internal certificate ID e.g. "CERT-2026-8841"
+  id: string; // Internal certificate ID e.g. "CERT-2026-8841" or "FP-VIP-8841"
   mode: 'verified' | 'draft';
   withdrawalId?: string; // Links to WithdrawalRequest.id if verified
   businessName: string;
   signatoryName: string;
+  recipientName?: string; // Honoree name prominently displayed on VIP certificate
   partnerId: string; // e.g. "DTA-ORG-8492"
   amount: number;
   currency: SettlementCurrency;
+  totalProductsSold?: number; // Total products / items sold by this reseller
   cumulativeSettlements: number;
   partnerTier: PartnerTier | string;
   settlementDate: string; // YYYY-MM-DD

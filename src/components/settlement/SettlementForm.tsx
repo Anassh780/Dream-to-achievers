@@ -183,11 +183,12 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
             <Layers size={14} className="text-cyan-400" />
             Executive Template Theme
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {[
-              { id: 'executive_statement', name: 'Executive Statement', desc: 'Minimalist Swiss-Fintech' },
-              { id: 'platinum_milestone', name: 'Platinum Milestone', desc: 'Luxury Gold Attestation' },
-              { id: 'digital_modern', name: 'Digital Modern', desc: 'High-Tech Neon Ledger' },
+              { id: 'funding_pips_portrait', name: 'Funding Pips (Sky Blue)', desc: 'Vertical Poster Cyan/Blue' },
+              { id: 'emerald_website_ui', name: 'Website UI (Emerald)', desc: 'Vertical Emerald Mint' },
+              { id: 'funding_pips_vip', name: 'VIP Gold Edition', desc: 'Obsidian Gold Landscape' },
+              { id: 'executive_statement', name: 'Executive Statement', desc: 'Minimalist Swiss' },
             ].map((tmpl) => (
               <button
                 key={tmpl.id}
@@ -215,6 +216,23 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="sm:col-span-2">
+            <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase">
+              Honoree / Recipient Name (VIP Certificate Display) *
+            </label>
+            <input
+              type="text"
+              value={record.recipientName || record.signatoryName || record.businessName || ''}
+              onChange={(e) => {
+                handleFieldChange('recipientName', e.target.value);
+                handleFieldChange('businessName', e.target.value);
+                handleFieldChange('signatoryName', e.target.value);
+              }}
+              placeholder="e.g. Ghhhhbbhjn"
+              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs transition-colors"
+            />
+          </div>
+
           <div>
             <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase">
               Business / Entity Name *
@@ -399,6 +417,21 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
             value={record.cumulativeSettlements}
             onChange={(e) => handleFieldChange('cumulativeSettlements', parseFloat(e.target.value) || 0)}
             className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs font-mono tabular-nums transition-colors"
+          />
+        </div>
+
+        {/* Total Products Sold */}
+        <div>
+          <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase flex items-center justify-between">
+            <span>Total Products Sold (Volume Milestone)</span>
+            <span className="text-[9.5px] text-cyan-400 font-semibold">Auto-calculated from sales</span>
+          </label>
+          <input
+            type="number"
+            min="1"
+            value={record.totalProductsSold || 1}
+            onChange={(e) => handleFieldChange('totalProductsSold', parseInt(e.target.value) || 1)}
+            className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs focus:outline-none focus:border-cyan-400 tabular-nums transition-colors"
           />
         </div>
       </div>

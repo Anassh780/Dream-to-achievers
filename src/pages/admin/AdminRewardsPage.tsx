@@ -6,7 +6,7 @@ import { notificationService } from '@/services/notificationService';
 import { Reward, WithdrawalRequest, User } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/context/ToastContext';
-import { Gift, HandCoins, X, Check, CheckCircle, Bank, DeviceMobile, WhatsappLogo, Certificate } from '@phosphor-icons/react';
+import { Gift, HandCoins, X, Check, CheckCircle, Bank, DeviceMobile, WhatsappLogo, Certificate, Crown } from '@phosphor-icons/react';
 import { SettlementModal } from '@/components/settlement/SettlementModal';
 import { settlementService } from '@/services/settlementService';
 import { SettlementRecord } from '@/types/settlement';
@@ -35,7 +35,20 @@ export const AdminRewardsPage: React.FC = () => {
   const [showCertModal, setShowCertModal] = useState(false);
 
   const handleOpenWithdrawalCertificate = async (w: WithdrawalRequest) => {
-    const record = await settlementService.createRecordFromWithdrawal(w);
+    const u = getUser(w.userId);
+    const userSales = storage.get<any[]>('SALES', []).filter((s: any) => s.userId === w.userId);
+    const totalProducts = userSales
+      .filter((s: any) => s.status !== 'cancelled' && s.status !== 'rejected')
+      .reduce((sum: number, s: any) => sum + (Number(s.quantity) || 1), 0);
+
+    const record = await settlementService.createRecordFromWithdrawal(w, {
+      recipientName: w.userName || u?.fullName || 'Distinguished Reseller',
+      totalProductsSold: totalProducts > 0 ? totalProducts : (userSales.length > 0 ? userSales.length : 1),
+      partnerTier: u?.currentRankSlug && u.currentRankSlug !== 'unranked'
+        ? `${u.currentRankSlug.toUpperCase()} VIP Partner`
+        : 'Diamond VIP Partner',
+      template: 'funding_pips_portrait',
+    });
     setCertificateRecord(record);
     setShowCertModal(true);
   };
@@ -359,10 +372,10 @@ export const AdminRewardsPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleOpenWithdrawalCertificate(w)}
-                          className="w-full min-h-[38px] px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-cyan-400 border border-cyan-500/30 text-xs font-mono font-medium inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                          className="w-full min-h-[38px] px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-950/40 hover:from-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-mono font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-xs"
                         >
-                          <Certificate size={15} />
-                          <span>Generate B2B Certificate</span>
+                          <Crown size={15} weight="duotone" className="text-amber-400" />
+                          <span>👑 VIP Certificate</span>
                         </button>
                       </div>
                     </div>
@@ -470,11 +483,11 @@ export const AdminRewardsPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleOpenWithdrawalCertificate(w)}
-                              className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyan-400 border border-cyan-500/30 text-[11px] font-mono whitespace-nowrap shrink-0 cursor-pointer inline-flex items-center gap-1 shadow-2xs"
-                              title="Generate Official Settlement Certificate"
+                              className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 text-[11px] font-mono font-bold whitespace-nowrap shrink-0 cursor-pointer inline-flex items-center gap-1 shadow-2xs transition-all"
+                              title="Auto-Generate VIP Payout Certificate (Funding Pips Style)"
                             >
-                              <Certificate size={13} />
-                              <span>Certificate</span>
+                              <Crown size={13} weight="duotone" className="text-amber-400" />
+                              <span>👑 VIP Cert</span>
                             </button>
                           </div>
                         </td>
