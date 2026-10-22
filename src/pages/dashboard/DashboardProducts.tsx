@@ -370,7 +370,7 @@ export const DashboardProducts: React.FC = () => {
                         grossMargin: econ.grossMargin,
                       })
                     }
-                    className="funding-sheen-btn w-full justify-center text-xs font-bold uppercase tracking-wider py-2.5 shadow-md inline-flex items-center gap-1.5 cursor-pointer"
+                    className="funding-sheen-btn w-full justify-center text-xs font-bold uppercase tracking-wider py-2.5 min-h-[44px] shadow-md inline-flex items-center gap-1.5 cursor-pointer active:scale-[0.98] transition-all"
                   >
                     <ShoppingCart size={15} weight="bold" />
                     <span>Record Client Sale &amp; Keep Profit</span>

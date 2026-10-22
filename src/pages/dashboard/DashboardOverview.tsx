@@ -31,6 +31,7 @@ import {
   Info,
   LightbulbFilament,
   Certificate,
+  Truck,
 } from '@phosphor-icons/react';
 
 export const DashboardOverview: React.FC = () => {
@@ -133,14 +134,6 @@ export const DashboardOverview: React.FC = () => {
               <span>Withdraw Profits</span>
             </button>
           </Link>
-          <button
-            onClick={() => setShowOnboarding(true)}
-            className="funding-ghost-pill px-3.5 sm:px-4 py-2.5 text-xs font-medium text-[#F4F7F5] inline-flex items-center justify-center gap-1.5 cursor-pointer hover:border-white/20 transition-all min-h-[44px] w-full sm:w-auto"
-            title="View beginner earning guide"
-          >
-            <Sparkle size={15} className="text-[#D9C08A]" weight="fill" />
-            <span>How It Works</span>
-          </button>
         </div>
       </div>
 
@@ -250,21 +243,21 @@ export const DashboardOverview: React.FC = () => {
                     Step 03
                   </span>
                   <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
-                    <ShoppingCart size={17} weight="duotone" />
+                    <Truck size={17} weight="duotone" />
                   </div>
                 </div>
                 <h3 className="font-serif font-bold text-sm text-[#F4F7F5]">
-                  Record Client Order
+                  Track Client Orders
                 </h3>
                 <p className="text-xs text-[#9EABA2] leading-relaxed">
-                  Enter customer address. We dispatch COD across Pakistan while you track delivery status.
+                  Enter buyer address. We dispatch COD across Pakistan while you track delivery &amp; courier status.
                 </p>
               </div>
               <Link
-                to="/dashboard/products"
+                to="/dashboard/sales"
                 className="inline-flex items-center gap-1 text-xs font-mono font-semibold text-sky-400 group-hover:underline pt-1 min-h-[36px]"
               >
-                <span>Record New Sale</span>
+                <span>Live Orders Tracker</span>
                 <ArrowRight size={13} />
               </Link>
             </div>
@@ -281,17 +274,17 @@ export const DashboardOverview: React.FC = () => {
                   </div>
                 </div>
                 <h3 className="font-serif font-bold text-sm text-[#F4F7F5]">
-                  Withdraw Profit
+                  Receive Profits
                 </h3>
                 <p className="text-xs text-[#9EABA2] leading-relaxed">
                   Upon parcel delivery, your margin is credited. Withdraw directly to <strong className="text-[#F4F7F5]">JazzCash, EasyPaisa, or Bank</strong>.
                 </p>
               </div>
               <Link
-                to="/dashboard/sales"
+                to="/dashboard/profile"
                 className="inline-flex items-center gap-1 text-xs font-mono font-semibold text-[#D9C08A] group-hover:underline pt-1 min-h-[36px]"
               >
-                <span>Payout Balance</span>
+                <span>Add Payout Account</span>
                 <ArrowRight size={13} />
               </Link>
             </div>

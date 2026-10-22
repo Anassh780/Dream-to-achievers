@@ -241,17 +241,17 @@ export const DashboardSales: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center space-x-2.5">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto shrink-0">
           <button
             onClick={() => setShowWithdrawModal(true)}
-            className="funding-ghost-pill px-4 py-2.5 text-xs font-medium text-[#D9C08A] hover:border-[#D9C08A]/40 inline-flex items-center gap-1.5 cursor-pointer transition-all"
+            className="funding-ghost-pill px-4 py-2.5 text-xs font-medium text-[#D9C08A] hover:border-[#D9C08A]/40 inline-flex items-center justify-center gap-1.5 cursor-pointer transition-all min-h-[44px] flex-1 sm:flex-initial"
           >
             <HandCoins size={15} className="text-[#D9C08A]" />
             <span>Request Withdrawal</span>
           </button>
 
-          <Link to="/dashboard/products">
-            <button className="funding-sheen-btn px-5 py-2.5 text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-md cursor-pointer">
+          <Link to="/dashboard/products" className="flex-1 sm:flex-initial">
+            <button className="funding-sheen-btn px-5 py-2.5 text-xs font-bold uppercase tracking-wider inline-flex items-center justify-center gap-1.5 shadow-md cursor-pointer min-h-[44px] w-full">
               <ShoppingCart size={14} weight="bold" />
               <span>Record New Sale</span>
             </button>
@@ -468,7 +468,7 @@ export const DashboardSales: React.FC = () => {
                       size="sm"
                       onClick={() => setSelectedSale(sale)}
                       iconLeft={<Truck size={14} className="shrink-0" />}
-                      className="w-full min-h-[40px] text-xs font-medium justify-center"
+                      className="w-full min-h-[44px] text-xs font-medium justify-center"
                     >
                       Track Shipping &amp; Details
                     </Button>
@@ -629,7 +629,7 @@ export const DashboardSales: React.FC = () => {
                             setPreviewZoom(1);
                             setPreviewRotation(0);
                           }}
-                          className="flex-1 min-h-[40px] px-3 py-2 rounded-xl bg-[var(--surface-alt)] hover:bg-[var(--surface-alt)]/80 border border-[var(--line)] text-[var(--primary)] text-xs font-mono inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          className="flex-1 min-h-[44px] px-3 py-2 rounded-xl bg-[var(--surface-alt)] hover:bg-[var(--surface-alt)]/80 border border-[var(--line)] text-[var(--primary)] text-xs font-mono inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer active:scale-[0.98]"
                         >
                           <MagnifyingGlassPlus size={14} />
                           <span>View Transfer Slip</span>
@@ -638,7 +638,7 @@ export const DashboardSales: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleOpenSettlementCertificate(w)}
-                        className="flex-1 min-h-[40px] px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-950/40 hover:from-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-mono font-bold inline-flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                        className="flex-1 min-h-[44px] px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-950/40 hover:from-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-mono font-bold inline-flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98]"
                       >
                         <Crown size={15} weight="duotone" className="text-amber-400" />
                         <span>👑 VIP Certificate</span>

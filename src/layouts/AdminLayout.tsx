@@ -633,12 +633,12 @@ export const AdminLayout: React.FC = () => {
         </main>
       </div>
 
-      {/* Mobile Android Administrative Quick Dock */}
+      {/* Mobile Android Administrative Quick Dock with Center Hero Products Action */}
       <nav
         aria-label="Admin Mobile Navigation Dock"
         className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[#070B09]/95 backdrop-blur-2xl border-t border-white/[0.08] shadow-[0_-8px_25px_rgba(0,0,0,0.85)] px-2 pt-1 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
       >
-        <div className="grid grid-cols-5 items-center justify-around max-w-lg mx-auto">
+        <div className="grid grid-cols-5 items-end justify-around max-w-lg mx-auto relative h-[56px]">
           {[
             { label: 'Overview', href: '/admin', icon: House, exact: true },
             {
@@ -647,7 +647,12 @@ export const AdminLayout: React.FC = () => {
               icon: ShoppingCart,
               badgeCount: unseenAdminOrders > 0 ? unseenAdminOrders : undefined,
             },
-            { label: 'Products', href: '/admin/products', icon: Package },
+            {
+              label: 'Products',
+              href: '/admin/products',
+              icon: Package,
+              isHeroCenter: true,
+            },
             { label: 'Certificates', href: '/admin/settlements', icon: Certificate },
           ].map((item) => {
             const Icon = item.icon;
@@ -655,18 +660,49 @@ export const AdminLayout: React.FC = () => {
               ? location.pathname === item.href
               : location.pathname.startsWith(item.href);
 
+            if (item.isHeroCenter) {
+              return (
+                <NavLink
+                  key={item.label}
+                  to={item.href}
+                  className="relative -top-3 flex flex-col items-center justify-center group focus:outline-hidden touch-manipulation"
+                  title="Admin Products Catalog"
+                >
+                  <div
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200 active:scale-90 shadow-[0_8px_20px_rgba(0,0,0,0.7)] ${
+                      isActive
+                        ? 'bg-gradient-to-br from-[#D9C08A] to-[#B39356] text-[#070B09] ring-4 ring-[#070B09] shadow-[0_0_22px_rgba(217,192,138,0.65)]'
+                        : 'bg-gradient-to-br from-[#1C180F] to-[#0A0F0D] text-[#D9C08A] border border-[#D9C08A]/40 ring-4 ring-[#070B09] hover:border-[#D9C08A]'
+                    }`}
+                  >
+                    <Icon size={25} weight={isActive ? 'fill' : 'duotone'} />
+                  </div>
+                  <span
+                    className={`text-[10px] font-mono tracking-tight mt-1 font-bold ${
+                      isActive ? 'text-[#D9C08A]' : 'text-[#F4F7F5]'
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                  {isActive && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#D9C08A] mt-0.5 shadow-[0_0_8px_rgba(217,192,138,0.9)]" />
+                  )}
+                </NavLink>
+              );
+            }
+
             return (
               <NavLink
                 key={item.label}
                 to={item.href}
-                className={`relative flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all active:scale-90 ${
+                className={`relative flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all active:scale-90 min-h-[44px] ${
                   isActive ? 'text-[#D9C08A]' : 'text-[#9EABA2] hover:text-[#F4F7F5]'
                 }`}
               >
                 <div className="relative flex items-center justify-center">
                   <Icon size={21} weight={isActive ? 'fill' : 'regular'} />
                   {item.badgeCount !== undefined && item.badgeCount > 0 && (
-                    <span className="absolute -top-1 -right-2 flex items-center justify-center min-w-[15px] h-[15px] px-1 rounded-full bg-red-600 text-white font-mono font-bold text-[8.5px] shadow-sm animate-pulse">
+                    <span className="absolute -top-1 -right-2 flex items-center justify-center min-w-[15px] h-[15px] px-1 rounded-full bg-red-600 text-white font-mono font-bold text-[8.5px] shadow-xs animate-pulse">
                       {item.badgeCount}
                     </span>
                   )}

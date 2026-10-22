@@ -593,16 +593,11 @@ export const DashboardLayout: React.FC = () => {
                 )}
               </button>
 
-              <LiquidGlassButton
-                to="/products"
-                size="sm"
-                iconLeft={<Package size={14} className="text-[#D9C08A]" />}
-                className="px-3.5 py-1.5 text-xs font-medium text-[#F4F7F5]"
+              <Link
+                to="/dashboard/products"
+                className="funding-sheen-btn px-4 py-1.5 text-xs uppercase tracking-wider font-semibold inline-flex items-center gap-1.5 shadow-md min-h-[38px]"
               >
-                <span>Wholesale Catalog</span>
-              </LiquidGlassButton>
-              <Link to="/dashboard/sales" className="funding-sheen-btn px-4 py-1.5 text-xs uppercase tracking-wider font-semibold inline-flex items-center gap-1.5 shadow-md">
-                <ShoppingCart size={13} weight="bold" />
+                <ShoppingCart size={14} weight="bold" />
                 <span>Record Sale</span>
               </Link>
             </div>
@@ -612,20 +607,25 @@ export const DashboardLayout: React.FC = () => {
         </main>
       </div>
 
-      {/* Mobile Android Native Bottom Navigation Dock */}
+      {/* Mobile Android Native Bottom Navigation Dock with Hero Center Catalog Action */}
       <nav
         aria-label="Mobile Navigation Dock"
         className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[#070B09]/95 backdrop-blur-2xl border-t border-white/[0.08] shadow-[0_-8px_25px_rgba(0,0,0,0.85)] px-2 pt-1 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
       >
-        <div className="grid grid-cols-5 items-center justify-around max-w-lg mx-auto">
+        <div className="grid grid-cols-5 items-end justify-around max-w-lg mx-auto relative h-[56px]">
           {[
-            { label: 'Home', href: '/dashboard', icon: House, exact: true },
-            { label: 'Catalog', href: '/dashboard/products', icon: Package },
+            { label: 'Overview', href: '/dashboard', icon: House, exact: true },
             {
               label: 'Orders',
               href: '/dashboard/sales',
               icon: ShoppingCart,
               count: unseenSales > 0 ? unseenSales : undefined,
+            },
+            {
+              label: 'Catalog',
+              href: '/dashboard/products',
+              icon: Package,
+              isHeroCenter: true,
             },
             {
               label: 'Network',
@@ -640,18 +640,49 @@ export const DashboardLayout: React.FC = () => {
               ? location.pathname === item.href
               : location.pathname.startsWith(item.href);
 
+            if (item.isHeroCenter) {
+              return (
+                <NavLink
+                  key={item.label}
+                  to={item.href}
+                  className="relative -top-3 flex flex-col items-center justify-center group focus:outline-hidden touch-manipulation"
+                  title="Wholesale Products Catalog"
+                >
+                  <div
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200 active:scale-90 shadow-[0_8px_20px_rgba(0,0,0,0.7)] ${
+                      isActive
+                        ? 'bg-gradient-to-br from-[#6EE7A8] to-[#2FA46B] text-[#070B09] ring-4 ring-[#070B09] shadow-[0_0_22px_rgba(52,211,153,0.65)]'
+                        : 'bg-gradient-to-br from-[#121B15] to-[#0A0F0D] text-[#34D399] border border-[#34D399]/40 ring-4 ring-[#070B09] hover:border-[#34D399]'
+                    }`}
+                  >
+                    <Icon size={25} weight={isActive ? 'fill' : 'duotone'} />
+                  </div>
+                  <span
+                    className={`text-[10px] font-mono tracking-tight mt-1 font-bold ${
+                      isActive ? 'text-[#34D399]' : 'text-[#F4F7F5]'
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                  {isActive && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] mt-0.5 shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
+                  )}
+                </NavLink>
+              );
+            }
+
             return (
               <NavLink
                 key={item.label}
                 to={item.href}
-                className={`relative flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all active:scale-90 ${
+                className={`relative flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all active:scale-90 min-h-[44px] ${
                   isActive ? 'text-[#34D399]' : 'text-[#9EABA2] hover:text-[#F4F7F5]'
                 }`}
               >
                 <div className="relative flex items-center justify-center">
                   <Icon size={21} weight={isActive ? 'fill' : 'regular'} />
                   {item.count !== undefined && item.count > 0 && (
-                    <span className="absolute -top-1 -right-2 flex items-center justify-center min-w-[15px] h-[15px] px-1 rounded-full bg-red-600 text-white font-mono font-bold text-[8.5px] shadow-sm animate-pulse">
+                    <span className="absolute -top-1 -right-2 flex items-center justify-center min-w-[15px] h-[15px] px-1 rounded-full bg-red-600 text-white font-mono font-bold text-[8.5px] shadow-xs animate-pulse">
                       {item.count}
                     </span>
                   )}
