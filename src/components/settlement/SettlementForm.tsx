@@ -40,6 +40,7 @@ interface SettlementFormProps {
   onChange: (updated: SettlementRecord) => void;
   onReset: () => void;
   onSamplePrefill: () => void;
+  defaultTab?: 'details' | 'styles';
 }
 
 const CURRENCIES: SettlementCurrency[] = ['USD', 'EUR', 'GBP', 'PKR', 'AED', 'SGD', 'CAD', 'USDT'];
@@ -70,8 +71,9 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
   onChange,
   onReset,
   onSamplePrefill,
+  defaultTab = 'styles',
 }) => {
-  const [activeTab, setActiveTab] = useState<'details' | 'styles'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'styles'>(defaultTab);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const bgImageInputRef = useRef<HTMLInputElement>(null);
 

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { isUserAdminOrSuperAdmin } from '@/services/authService';
 import { SettlementRecord, SettlementTemplateType, formatSettlementAmount } from '@/types/settlement';
 import { SettlementCanvas } from './SettlementCanvas';
 import { SettlementForm } from './SettlementForm';
@@ -18,14 +19,20 @@ export const SettlementModal: React.FC<SettlementModalProps> = ({
   onClose,
   initialRecord,
 }) => {
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'admin';
+  const { user, isAdmin: authIsAdmin, isSuperAdmin } = useAuth();
+  const canEdit = Boolean(authIsAdmin || isSuperAdmin || isUserAdminOrSuperAdmin(user));
 
   const [record, setRecord] = useState<SettlementRecord>(
     () => initialRecord || settlementService.createSampleRecord()
   );
   const [zoom, setZoom] = useState(0.68);
-  const [showEditDrawer, setShowEditDrawer] = useState(false);
+  const [showEditDrawer, setShowEditDrawer] = useState(() => {
+    // If admin or super admin on desktop, open editor by default
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+      return true;
+    }
+    return false;
+  });
   const canvasRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
@@ -142,20 +149,20 @@ export const SettlementModal: React.FC<SettlementModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2.5">
-            {/* Admin-Only Manual Customizer Toggle Button */}
-            {isAdmin && (
+            {/* Admin & Super Admin Manual Customizer Toggle Button */}
+            {canEdit && (
               <button
                 type="button"
                 onClick={() => setShowEditDrawer(!showEditDrawer)}
-                className={`min-h-[38px] px-3.5 py-1.5 rounded-xl border text-xs font-mono inline-flex items-center gap-1.5 transition-all cursor-pointer ${
+                className={`min-h-[38px] px-3.5 py-1.5 rounded-xl border text-xs font-mono font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
                   showEditDrawer
-                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
-                    : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700'
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md font-black'
+                    : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border-amber-500/40 shadow-xs'
                 }`}
-                title="Toggle visual style and field customization (Admin Only)"
+                title="Toggle visual style and field customization (Admin & Super Admin)"
               >
-                <SlidersHorizontal size={14} />
-                <span>{showEditDrawer ? 'Hide Editor' : 'Customize Certificate'}</span>
+                <SlidersHorizontal size={14} className={showEditDrawer ? 'text-slate-950' : 'text-amber-400'} />
+                <span>{showEditDrawer ? 'Hide Styling Studio' : '🎨 Styling Studio (Fonts & Colors)'}</span>
               </button>
             )}
 
@@ -184,6 +191,9 @@ export const SettlementModal: React.FC<SettlementModalProps> = ({
                 onZoomChange={setZoom}
                 onFitWidth={handleFitWidth}
                 onTemplateChange={handleTemplateChange}
+                canEdit={canEdit}
+                showEditor={showEditDrawer}
+                onToggleEditor={() => setShowEditDrawer(!showEditDrawer)}
               />
             </div>
 
@@ -198,18 +208,22 @@ export const SettlementModal: React.FC<SettlementModalProps> = ({
             </div>
           </div>
 
-          {/* Optional Collapsible Side Drawer for Manual Overrides (Admin Only) */}
-          {isAdmin && showEditDrawer && (
+          {/* Collapsible Side Drawer for Manual Overrides (Admin & Super Admin Only) */}
+          {canEdit && showEditDrawer && (
             <div className="w-full sm:w-[460px] xl:w-[500px] shrink-0 border-l border-slate-800 bg-[#080B12]/95 backdrop-blur-md overflow-y-auto p-5 space-y-4 shadow-2xl animate-in slide-in-from-right duration-200 z-20">
               <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                 <div>
-                  <h3 className="font-serif font-bold text-sm text-slate-100">Certificate Overrides</h3>
-                  <p className="text-[11px] text-slate-400">Tweak recipient name, metrics, or custom notes</p>
+                  <h3 className="font-serif font-bold text-sm text-slate-100 flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-amber-400" />
+                    <span>Certificate Studio &amp; Styling</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-400">Fonts, text colors, luxury backgrounds &amp; ledger parameters</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowEditDrawer(false)}
                   className="p-1 rounded-lg text-slate-400 hover:text-slate-100 cursor-pointer"
+                  aria-label="Close editor"
                 >
                   <X size={16} />
                 </button>
@@ -220,6 +234,7 @@ export const SettlementModal: React.FC<SettlementModalProps> = ({
                 onChange={setRecord}
                 onReset={handleReset}
                 onSamplePrefill={handleSamplePrefill}
+                defaultTab="styles"
               />
             </div>
           )}

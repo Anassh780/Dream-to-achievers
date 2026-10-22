@@ -240,21 +240,36 @@ export const DashboardLayout: React.FC = () => {
             </div>
           )}
 
-          {/* Admin Switch Banner (If user is admin) */}
+          {/* Admin Switch Banners (If user is admin or superadmin) */}
           {isAdmin && (
-            <Link
-              to="/admin"
-              className={`flex items-center ${
-                isCollapsed ? 'justify-center p-2' : 'justify-between px-3 py-2'
-              } rounded-xl bg-gradient-to-r from-[#D9C08A]/10 to-transparent border border-[#D9C08A]/25 hover:border-[#D9C08A]/50 transition-all text-xs group`}
-              title="Admin Portal"
-            >
-              <div className="flex items-center space-x-2">
-                <ShieldCheck size={16} className="text-[#D9C08A]" weight="fill" />
-                {!isCollapsed && <span className="font-semibold text-[#F4F7F5]">Executive Admin</span>}
-              </div>
-              {!isCollapsed && <ArrowSquareOut size={13} className="text-[#D9C08A]" />}
-            </Link>
+            <div className="space-y-1.5">
+              <Link
+                to="/admin"
+                className={`flex items-center ${
+                  isCollapsed ? 'justify-center p-2' : 'justify-between px-3 py-2'
+                } rounded-xl bg-gradient-to-r from-[#D9C08A]/10 to-transparent border border-[#D9C08A]/25 hover:border-[#D9C08A]/50 transition-all text-xs group`}
+                title="Admin Portal"
+              >
+                <div className="flex items-center space-x-2">
+                  <ShieldCheck size={16} className="text-[#D9C08A]" weight="fill" />
+                  {!isCollapsed && <span className="font-semibold text-[#F4F7F5]">Executive Admin</span>}
+                </div>
+                {!isCollapsed && <ArrowSquareOut size={13} className="text-[#D9C08A]" />}
+              </Link>
+              <Link
+                to="/admin/settlements"
+                className={`flex items-center ${
+                  isCollapsed ? 'justify-center p-2' : 'justify-between px-3 py-2'
+                } rounded-xl bg-amber-500/10 border border-amber-500/25 hover:border-amber-500/50 transition-all text-xs group`}
+                title="Certificate Styling Studio"
+              >
+                <div className="flex items-center space-x-2">
+                  <Certificate size={16} className="text-amber-400" weight="duotone" />
+                  {!isCollapsed && <span className="font-semibold text-amber-200">Certificate Studio</span>}
+                </div>
+                {!isCollapsed && <ArrowSquareOut size={13} className="text-amber-400" />}
+              </Link>
+            </div>
           )}
 
           {/* Referral Code Quick Copy Pill */}
@@ -497,17 +512,30 @@ export const DashboardLayout: React.FC = () => {
               })}
 
               {isAdmin && (
-                <Link
-                  to="/admin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between px-4 py-2.5 rounded-xl font-semibold text-[#D9C08A] bg-[#D9C08A]/10 border border-[#D9C08A]/30 mt-3"
-                >
-                  <div className="flex items-center space-x-3">
-                    <ShieldCheck size={18} />
-                    <span>Admin Portal</span>
-                  </div>
-                  <ArrowSquareOut size={14} />
-                </Link>
+                <div className="space-y-2 mt-3">
+                  <Link
+                    to="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between px-4 py-2.5 rounded-xl font-semibold text-[#D9C08A] bg-[#D9C08A]/10 border border-[#D9C08A]/30"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <ShieldCheck size={18} />
+                      <span>Admin Portal</span>
+                    </div>
+                    <ArrowSquareOut size={14} />
+                  </Link>
+                  <Link
+                    to="/admin/settlements"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between px-4 py-2.5 rounded-xl font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/30"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Certificate size={18} className="text-amber-400" />
+                      <span>Certificate Studio</span>
+                    </div>
+                    <ArrowSquareOut size={14} />
+                  </Link>
+                </div>
               )}
             </nav>
           </div>

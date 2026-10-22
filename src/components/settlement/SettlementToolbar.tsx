@@ -30,6 +30,9 @@ interface SettlementToolbarProps {
   onZoomChange: (newZoom: number) => void;
   onFitWidth: () => void;
   onTemplateChange?: (newTemplate: SettlementTemplateType) => void;
+  canEdit?: boolean;
+  showEditor?: boolean;
+  onToggleEditor?: () => void;
 }
 
 export const SettlementToolbar: React.FC<SettlementToolbarProps> = ({
@@ -39,6 +42,9 @@ export const SettlementToolbar: React.FC<SettlementToolbarProps> = ({
   onZoomChange,
   onFitWidth,
   onTemplateChange,
+  canEdit = false,
+  showEditor = false,
+  onToggleEditor,
 }) => {
   const { success: toastSuccess, error: toastError, info: toastInfo } = useToast();
   const [isExporting, setIsExporting] = useState(false);
@@ -172,59 +178,77 @@ export const SettlementToolbar: React.FC<SettlementToolbarProps> = ({
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-slate-900/95 border border-slate-800 text-xs shadow-md">
-      {/* Left: Template Selector Pills */}
-      {onTemplateChange && (
-        <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-slate-950/80 border border-slate-800">
+      {/* Left: Template Selector Pills & Admin Studio Toggle */}
+      <div className="flex flex-wrap items-center gap-2">
+        {canEdit && onToggleEditor && (
           <button
             type="button"
-            onClick={() => onTemplateChange('funding_pips_portrait')}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              record.template === 'funding_pips_portrait' || !record.template
-                ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
-                : 'text-slate-400 hover:text-slate-200'
+            onClick={onToggleEditor}
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+              showEditor
+                ? 'bg-amber-400 text-slate-950 font-black shadow-[0_0_15px_rgba(251,191,36,0.5)]'
+                : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-xs'
             }`}
+            title="Toggle real-time visual styling studio (Fonts, Colors & Backgrounds)"
           >
-            <span>⚡ Funding Pips (Sky Blue)</span>
+            <Sparkles size={13} className={showEditor ? 'text-slate-950' : 'text-amber-400'} />
+            <span>{showEditor ? 'Hide Styling Studio' : '🎨 Styling Studio (Fonts & Colors)'}</span>
           </button>
+        )}
 
-          <button
-            type="button"
-            onClick={() => onTemplateChange('emerald_website_ui')}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              record.template === 'emerald_website_ui'
-                ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <span>💎 Website UI (Emerald)</span>
-          </button>
+        {onTemplateChange && (
+          <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-slate-950/80 border border-slate-800">
+            <button
+              type="button"
+              onClick={() => onTemplateChange('funding_pips_portrait')}
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                record.template === 'funding_pips_portrait' || !record.template
+                  ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <span>⚡ Funding Pips (Sky Blue)</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => onTemplateChange('funding_pips_vip')}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              record.template === 'funding_pips_vip'
-                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Crown size={12} className="text-amber-400" />
-            <span>Obsidian Gold</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => onTemplateChange('emerald_website_ui')}
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                record.template === 'emerald_website_ui'
+                  ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <span>💎 Website UI (Emerald)</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => onTemplateChange('executive_statement')}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-medium transition-all cursor-pointer ${
-              record.template === 'executive_statement'
-                ? 'bg-slate-800 text-slate-100 border border-slate-700'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <span>Executive Minimal</span>
-          </button>
-        </div>
-      )}
+            <button
+              type="button"
+              onClick={() => onTemplateChange('funding_pips_vip')}
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                record.template === 'funding_pips_vip'
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Crown size={12} className="text-amber-400" />
+              <span>Obsidian Gold</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onTemplateChange('executive_statement')}
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-medium transition-all cursor-pointer ${
+                record.template === 'executive_statement'
+                  ? 'bg-slate-800 text-slate-100 border border-slate-700'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <span>Executive Minimal</span>
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Center: Zoom / Scaling Controls */}
       <div className="flex items-center space-x-1.5 font-mono">

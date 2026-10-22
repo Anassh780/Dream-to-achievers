@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { isUserAdminOrSuperAdmin } from '@/services/authService';
 import { SettlementRecord, SettlementTemplateType } from '@/types/settlement';
 import { SettlementCanvas } from '@/components/settlement/SettlementCanvas';
 import { SettlementForm } from '@/components/settlement/SettlementForm';
@@ -20,13 +21,15 @@ import {
   Sparkles,
   Download,
   Share2,
+  X,
 } from 'lucide-react';
 
 export const AdminSettlementGenerator: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isAdmin, isSuperAdmin } = useAuth();
+  const isAuthorized = Boolean(isAdmin || isSuperAdmin || isUserAdminOrSuperAdmin(user));
 
-  // Strict Admin-Only Guard: Resellers cannot access this studio
-  if (user && user.role !== 'admin') {
+  // Strict Admin & Super Admin Guard: Resellers cannot access this studio
+  if (user && !isAuthorized) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -41,7 +44,7 @@ export const AdminSettlementGenerator: React.FC = () => {
   );
   const [selectedWithdrawalId, setSelectedWithdrawalId] = useState<string>('');
   const [zoom, setZoom] = useState(0.72);
-  const [showEditDrawer, setShowEditDrawer] = useState(false);
+  const [showEditDrawer, setShowEditDrawer] = useState(true);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -193,19 +196,23 @@ export const AdminSettlementGenerator: React.FC = () => {
             onZoomChange={setZoom}
             onFitWidth={handleFitWidth}
             onTemplateChange={handleTemplateChange}
+            canEdit={true}
+            showEditor={showEditDrawer}
+            onToggleEditor={() => setShowEditDrawer(!showEditDrawer)}
           />
 
           <button
             type="button"
             onClick={() => setShowEditDrawer(!showEditDrawer)}
-            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl border text-xs font-mono inline-flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl border text-xs font-mono font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
               showEditDrawer
-                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
-                : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700'
+                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md font-black'
+                : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border-amber-500/40 shadow-xs'
             }`}
+            title="Toggle real-time visual styling studio (Fonts, Colors & Backgrounds)"
           >
-            <SlidersHorizontal size={14} />
-            <span>{showEditDrawer ? 'Hide Overrides' : 'Custom Overrides'}</span>
+            <SlidersHorizontal size={14} className={showEditDrawer ? 'text-slate-950' : 'text-amber-400'} />
+            <span>{showEditDrawer ? 'Hide Styling Studio' : '🎨 Styling Studio (Fonts & Colors)'}</span>
           </button>
         </div>
 
@@ -221,18 +228,32 @@ export const AdminSettlementGenerator: React.FC = () => {
             </div>
           </div>
 
-          {/* Optional Side Editor Drawer for Overrides */}
+          {/* Side Styling Studio & Editor Drawer */}
           {showEditDrawer && (
-            <div className="w-full lg:w-[460px] shrink-0 border border-slate-800 rounded-3xl bg-[#080B12]/95 p-5 space-y-4 shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="w-full lg:w-[480px] xl:w-[520px] shrink-0 border border-slate-800 rounded-3xl bg-[#080B12]/95 p-5 space-y-4 shadow-2xl animate-in slide-in-from-right duration-200">
               <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                <h3 className="font-serif font-bold text-sm text-slate-100">Optional Overrides</h3>
-                <span className="text-[10px] font-mono text-amber-400">Real-time sync</span>
+                <div>
+                  <h3 className="font-serif font-bold text-sm text-slate-100 flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-amber-400" />
+                    <span>Certificate Studio &amp; Styling</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-400">Fonts, text colors, luxury backgrounds &amp; ledger parameters</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowEditDrawer(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-100 cursor-pointer"
+                  aria-label="Close studio panel"
+                >
+                  <X size={16} />
+                </button>
               </div>
               <SettlementForm
                 record={record}
                 onChange={setRecord}
                 onReset={handleReset}
                 onSamplePrefill={handleSamplePrefill}
+                defaultTab="styles"
               />
             </div>
           )}

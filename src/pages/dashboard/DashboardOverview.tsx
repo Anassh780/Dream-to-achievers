@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { isUserAdminOrSuperAdmin } from '@/services/authService';
 import { salesService } from '@/services/salesService';
 import { referralService } from '@/services/referralService';
 import { rewardService } from '@/services/rewardService';
@@ -33,7 +34,8 @@ import {
 } from '@phosphor-icons/react';
 
 export const DashboardOverview: React.FC = () => {
-  const { user, rankProgress } = useAuth();
+  const { user, isAdmin, isSuperAdmin, rankProgress } = useAuth();
+  const canAccessStudio = Boolean(isAdmin || isSuperAdmin || isUserAdminOrSuperAdmin(user));
   const [copied, setCopied] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
     if (!user) return false;
@@ -130,7 +132,7 @@ export const DashboardOverview: React.FC = () => {
               Withdraw Profits
             </button>
           </Link>
-          {user?.role === 'admin' && (
+          {canAccessStudio && (
             <Link to="/admin/settlements" className="flex-1 sm:flex-initial">
               <button className="funding-ghost-pill px-4 py-2.5 text-xs font-medium text-amber-300 border-amber-500/30 hover:border-amber-500/50 w-full inline-flex items-center justify-center gap-1.5 cursor-pointer transition-all">
                 <Certificate size={15} weight="duotone" className="text-amber-400" />
