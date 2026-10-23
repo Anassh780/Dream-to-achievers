@@ -84,8 +84,8 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center p-1.5 shadow-sm">
             <img
-              src="/brand-logo.png"
-              alt="Dream to Achievers"
+              src={record.partnerLogoUrl || record.platformLogoUrl || "/brand-logo.png"}
+              alt="Brand Logo"
               className="w-full h-full object-contain"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
@@ -94,7 +94,7 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
           </div>
           <div className="flex items-center">
             <span className="font-sans font-black text-xl tracking-tight" style={{ color: primaryColor }}>
-              Dream to Achievers
+              {record.platformName || 'Dream to Achievers'}
             </span>
             <span className="text-[10px] font-black align-super ml-0.5" style={{ color: primaryColor }}>®</span>
           </div>
@@ -102,21 +102,27 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
 
         {/* Right: Subtitle */}
         <div className="text-xs font-sans font-semibold tracking-wide" style={{ color: secondaryColor }}>
-          Certification of achievement
+          {record.certificateTitle || 'Certification of achievement'}
         </div>
       </div>
 
       {/* 2. HERO SECTION: Congratulations & Giant Phase/Payout Header */}
       <div className="relative z-10 mt-6 space-y-1">
         <div className="font-sans font-extrabold text-sm uppercase tracking-[0.22em]" style={{ color: record.accentColor || primaryColor }}>
-          CONGRATULATIONS
+          {record.congratsHeading || 'CONGRATULATIONS'}
         </div>
 
         <div className="flex items-end justify-between gap-3 pt-1">
           {/* Giant Impact Words - dynamic color & zero clipping */}
           <div className="font-sans font-black text-[50px] leading-[0.92] tracking-tight max-w-[360px]" style={{ color: primaryColor }}>
-            <div>WITHDRAWAL</div>
-            <div>PROCESSED</div>
+            {record.headline ? (
+              <div className="break-words">{record.headline}</div>
+            ) : (
+              <>
+                <div>WITHDRAWAL</div>
+                <div>PROCESSED</div>
+              </>
+            )}
           </div>
 
           {/* Right Sub-Badge ("Disbursement Stage VERIFIED") - protected from overflow */}
@@ -135,7 +141,7 @@ export const FundingPipsPortraitTemplate: React.FC<TemplateProps> = ({ record, v
               }}
             >
               <CheckCircle2 size={11} className="text-emerald-700" />
-              <span>VERIFIED</span>
+              <span>{record.statusBadgeLabel || record.status || 'VERIFIED'}</span>
             </div>
           </div>
         </div>

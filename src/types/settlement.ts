@@ -63,9 +63,17 @@ export interface SettlementRecord {
   backgroundPreset?: string;
   customBackgroundGradient?: string;
   customBackgroundImageUrl?: string;
+
+  // Fully Editable Certificate Text, Headlines, Badges & Signatures
+  certificateTitle?: string; // e.g. "Certification of achievement"
+  congratsHeading?: string; // e.g. "CONGRATULATIONS"
+  headline?: string; // e.g. "WITHDRAWAL PROCESSED"
+  statusBadgeLabel?: string; // e.g. "VERIFIED"
+  signatoryTitle?: string; // e.g. "Executive Director of Treasury"
+  signatoryDepartment?: string; // e.g. "Disbursement Authority • Clearing Node 01"
 }
 
-export const CURRENCY_SYMBOLS: Record<SettlementCurrency, string> = {
+export const CURRENCY_SYMBOLS: Record<string, string> = {
   PKR: 'PKR ',
   USD: '$',
   EUR: '€',
@@ -74,12 +82,14 @@ export const CURRENCY_SYMBOLS: Record<SettlementCurrency, string> = {
   SGD: 'S$',
   CAD: 'CA$',
   USDT: '₮',
+  SAR: 'SAR ',
+  INR: '₹',
 };
 
 /**
  * Formats monetary amounts with ISO currency rules and tabular figures.
  */
-export function formatSettlementAmount(amount: number, currency: SettlementCurrency): string {
+export function formatSettlementAmount(amount: number, currency: string = 'PKR'): string {
   const symbol = CURRENCY_SYMBOLS[currency] || `${currency} `;
   const formattedNumber = Number(amount || 0).toLocaleString('en-US', {
     minimumFractionDigits: 2,

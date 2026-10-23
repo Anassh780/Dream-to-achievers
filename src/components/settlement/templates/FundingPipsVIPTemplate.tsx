@@ -74,11 +74,11 @@ export const FundingPipsVIPTemplate: React.FC<TemplateProps> = ({ record }) => {
         <div className="flex items-center gap-3.5">
           <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-amber-950/60 via-slate-900 to-slate-950 border border-amber-500/50 flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.25)] p-2">
             <img
-              src="/brand-logo.png"
+              src={record.partnerLogoUrl || record.platformLogoUrl || "/brand-logo.png"}
               alt="Logo"
               className="w-full h-full object-contain"
               onError={(e) => {
-                e.currentTarget.src = '/images/brand-logo.png';
+                e.currentTarget.src = '/brand-logo.png';
               }}
             />
           </div>
@@ -92,7 +92,7 @@ export const FundingPipsVIPTemplate: React.FC<TemplateProps> = ({ record }) => {
               <span className="font-mono text-[10px] text-slate-400 tracking-wider">OFFICIAL ATTESTATION</span>
             </div>
             <h1 className="font-serif font-black text-2xl text-slate-100 tracking-tight">
-              {record.platformName}
+              {record.platformName || 'Dream to Achievers Financial Node'}
             </h1>
           </div>
         </div>
@@ -102,9 +102,10 @@ export const FundingPipsVIPTemplate: React.FC<TemplateProps> = ({ record }) => {
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-mono font-bold tracking-wider shadow-[0_0_20px_rgba(16,185,129,0.2)]">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
             <span className="uppercase tracking-widest">
-              {record.status === 'Settled' || record.status === 'Disbursed'
-                ? 'VERIFIED & DISBURSED'
-                : 'OFFICIAL PAYOUT RECORD'}
+              {record.statusBadgeLabel ||
+                (record.status === 'Settled' || record.status === 'Disbursed'
+                  ? 'VERIFIED & DISBURSED'
+                  : (record.status || 'OFFICIAL PAYOUT RECORD'))}
             </span>
           </div>
         </div>
@@ -127,7 +128,7 @@ export const FundingPipsVIPTemplate: React.FC<TemplateProps> = ({ record }) => {
       <div className="relative z-10 text-center py-2 space-y-1.5">
         <div className="inline-flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-[0.28em] text-amber-400/90">
           <Sparkles size={14} className="text-amber-400" />
-          <span>Official Payout Certificate</span>
+          <span>{record.certificateTitle || 'Official Payout Certificate'}</span>
           <Sparkles size={14} className="text-amber-400" />
         </div>
 
@@ -213,14 +214,14 @@ export const FundingPipsVIPTemplate: React.FC<TemplateProps> = ({ record }) => {
         {/* Left: Authorized Officer Signature */}
         <div className="space-y-1">
           <div className="font-serif italic text-lg text-amber-200/90 select-none tracking-wider">
-            Marcus Sterling
+            {record.signatoryName || 'Marcus Sterling'}
           </div>
           <div className="w-48 h-0.5 bg-gradient-to-r from-amber-400/60 to-transparent" />
           <div className="font-mono text-[10px] text-slate-300 uppercase font-semibold">
-            Executive Director of Treasury
+            {record.signatoryTitle || 'Executive Director of Treasury'}
           </div>
           <div className="font-mono text-[9px] text-slate-500">
-            Disbursement Authority • Clearing Node 01
+            {record.signatoryDepartment || 'Disbursement Authority • Clearing Node 01'}
           </div>
         </div>
 

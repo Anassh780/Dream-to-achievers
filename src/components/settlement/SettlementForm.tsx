@@ -29,6 +29,10 @@ import {
   Check,
   Sliders,
   Paintbrush,
+  Award,
+  Clock,
+  FileText,
+  CheckCircle2,
 } from 'lucide-react';
 import {
   BACKGROUND_PRESETS,
@@ -77,22 +81,29 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
   const logoInputRef = useRef<HTMLInputElement>(null);
   const bgImageInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFieldChange = async (field: keyof SettlementRecord, value: any) => {
-    const updated: SettlementRecord = { ...record, [field]: value };
+  const handleFieldsChange = async (updates: Partial<SettlementRecord>) => {
+    const updated: SettlementRecord = { ...record, ...updates };
 
     // Recompute compliance hash when key financial/legal parameters change
-    if (['businessName', 'partnerId', 'amount', 'currency', 'utrReference', 'settlementDate'].includes(field)) {
+    const hashRelevantFields = ['businessName', 'partnerId', 'amount', 'currency', 'utrReference', 'settlementDate'];
+    const hasHashField = Object.keys(updates).some((f) => hashRelevantFields.includes(f));
+
+    if (hasHashField) {
       updated.complianceHash = await computeRecordHash({
-        businessName: updated.businessName,
-        partnerId: updated.partnerId,
-        amount: updated.amount,
-        currency: updated.currency,
-        utrReference: updated.utrReference,
-        settlementDate: updated.settlementDate,
+        businessName: updated.businessName || '',
+        partnerId: updated.partnerId || '',
+        amount: Number(updated.amount || 0),
+        currency: updated.currency || 'PKR',
+        utrReference: updated.utrReference || '',
+        settlementDate: updated.settlementDate || '',
       });
     }
 
     onChange(updated);
+  };
+
+  const handleFieldChange = (field: keyof SettlementRecord, value: any) => {
+    handleFieldsChange({ [field]: value });
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -603,7 +614,7 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
             </div>
           </div>
 
-          {/* Business & Beneficiary Entity Details */}
+          {/* 1. Entity & Merchant Attribution */}
           <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3.5 shadow-xs">
             <h3 className="font-serif font-bold text-sm text-slate-100 pb-2 border-b border-slate-800 flex items-center gap-2">
               <Building2 size={16} className="text-cyan-400" />
@@ -617,11 +628,14 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={record.recipientName || record.signatoryName || record.businessName || ''}
+                  value={record.recipientName ?? record.businessName ?? ''}
                   onChange={(e) => {
-                    handleFieldChange('recipientName', e.target.value);
-                    handleFieldChange('businessName', e.target.value);
-                    handleFieldChange('signatoryName', e.target.value);
+                    const val = e.target.value;
+                    handleFieldsChange({
+                      recipientName: val,
+                      businessName: val,
+                      signatoryName: record.signatoryName || val,
+                    });
                   }}
                   placeholder="e.g. Anas M / Ghhhhbbhjn"
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs font-semibold transition-colors"
@@ -629,14 +643,21 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase">
-                  Partner Identifier
+                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase flex items-center justify-between">
+                  <span>Partner Identifier</span>
+                  <button
+                    type="button"
+                    onClick={() => handleFieldChange('partnerId', `DTA-VIP-${Math.floor(1000 + Math.random() * 9000)}`)}
+                    className="text-[9px] font-mono text-cyan-400 hover:underline cursor-pointer"
+                  >
+                    Randomize
+                  </button>
                 </label>
                 <div className="relative">
                   <Hash size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                   <input
                     type="text"
-                    value={record.partnerId}
+                    value={record.partnerId ?? ''}
                     onChange={(e) => handleFieldChange('partnerId', e.target.value)}
                     placeholder="e.g. DTA-VIP-9842"
                     className="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs font-mono transition-colors"
@@ -645,29 +666,48 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase">
-                  Partner Recognition Tier
+                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase flex items-center justify-between">
+                  <span>Partner Recognition Tier</span>
+                  <span className="text-[9.5px] text-slate-500 font-mono">Editable</span>
                 </label>
-                <select
-                  value={record.partnerTier}
+                <input
+                  type="text"
+                  list="tier-presets-list"
+                  value={record.partnerTier ?? ''}
                   onChange={(e) => handleFieldChange('partnerTier', e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs transition-colors"
-                >
+                  placeholder="e.g. Diamond VIP Partner"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs font-medium transition-colors"
+                />
+                <datalist id="tier-presets-list">
                   {TIER_PRESETS.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
+                    <option key={t} value={t} />
                   ))}
-                  <option value="Diamond VIP Partner">Diamond VIP Partner</option>
-                  <option value="Gold Achiever">Gold Achiever</option>
-                  <option value="Platinum Reseller">Platinum Reseller</option>
-                  <option value="Silver Rising Star">Silver Rising Star</option>
-                </select>
+                  <option value="Diamond VIP Partner" />
+                  <option value="Gold Achiever" />
+                  <option value="Platinum Reseller" />
+                  <option value="Silver Rising Star" />
+                  <option value="Crown Ambassador" />
+                  <option value="Executive Partner" />
+                </datalist>
+
+                {/* Quick Presets Pills */}
+                <div className="flex flex-wrap gap-1 mt-1.5">
+                  {['Diamond VIP Partner', 'Gold Achiever', 'Platinum Reseller', 'Tier-1 Enterprise Partner'].map((tier) => (
+                    <button
+                      key={tier}
+                      type="button"
+                      onClick={() => handleFieldChange('partnerTier', tier)}
+                      className="px-2 py-0.5 rounded-md text-[9.5px] font-mono bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-colors"
+                    >
+                      {tier}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Financial Amounts & Products Sold */}
+          {/* 2. Financial Settlement & Sales Deliveries */}
           <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3.5 shadow-xs">
             <h3 className="font-serif font-bold text-sm text-slate-100 pb-2 border-b border-slate-800 flex items-center gap-2">
               <Coins size={16} className="text-emerald-400" />
@@ -680,30 +720,54 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
                   Disbursed Amount *
                 </label>
                 <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={record.amount}
-                  onChange={(e) => handleFieldChange('amount', parseFloat(e.target.value) || 0)}
+                  type="text"
+                  inputMode="decimal"
+                  value={record.amount !== undefined && record.amount !== null ? String(record.amount) : ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                      handleFieldChange('amount', val === '' ? ('' as any) : Number(val));
+                    }
+                  }}
+                  placeholder="0.00"
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs font-mono font-bold transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase">
-                  Currency
+                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase flex items-center justify-between">
+                  <span>Currency</span>
+                  <span className="text-[9.5px] text-slate-500 font-mono">Editable</span>
                 </label>
-                <select
-                  value={record.currency}
-                  onChange={(e) => handleFieldChange('currency', e.target.value as SettlementCurrency)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs font-mono transition-colors"
-                >
+                <input
+                  type="text"
+                  list="currency-presets-list"
+                  value={record.currency ?? ''}
+                  onChange={(e) => handleFieldChange('currency', e.target.value.toUpperCase())}
+                  placeholder="e.g. PKR, USD"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs font-mono font-bold transition-colors uppercase"
+                />
+                <datalist id="currency-presets-list">
                   {CURRENCIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
+                    <option key={c} value={c} />
                   ))}
-                </select>
+                  <option value="SAR" />
+                  <option value="INR" />
+                </datalist>
+                <div className="flex gap-1 mt-1.5">
+                  {['PKR', 'USD', 'EUR', 'GBP', 'AED', 'USDT'].map((cur) => (
+                    <button
+                      key={cur}
+                      type="button"
+                      onClick={() => handleFieldChange('currency', cur)}
+                      className={`px-1.5 py-0.5 rounded text-[9.5px] font-mono transition-colors ${
+                        record.currency === cur ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30' : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      {cur}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div>
@@ -711,11 +775,16 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
                   Total Products Sold *
                 </label>
                 <input
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={record.totalProductsSold || 1}
-                  onChange={(e) => handleFieldChange('totalProductsSold', parseInt(e.target.value, 10) || 1)}
+                  type="text"
+                  inputMode="numeric"
+                  value={record.totalProductsSold !== undefined && record.totalProductsSold !== null ? String(record.totalProductsSold) : ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '' || /^\d+$/.test(val)) {
+                      handleFieldChange('totalProductsSold', val === '' ? ('' as any) : parseInt(val, 10));
+                    }
+                  }}
+                  placeholder="e.g. 18"
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-cyan-300 focus:outline-none focus:border-cyan-400 text-xs font-mono font-bold transition-colors"
                 />
               </div>
@@ -725,18 +794,23 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
                   Lifetime Cumulative Settlements
                 </label>
                 <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={record.cumulativeSettlements}
-                  onChange={(e) => handleFieldChange('cumulativeSettlements', parseFloat(e.target.value) || 0)}
+                  type="text"
+                  inputMode="decimal"
+                  value={record.cumulativeSettlements !== undefined && record.cumulativeSettlements !== null ? String(record.cumulativeSettlements) : ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                      handleFieldChange('cumulativeSettlements', val === '' ? ('' as any) : Number(val));
+                    }
+                  }}
+                  placeholder="0.00"
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs font-mono transition-colors"
                 />
               </div>
             </div>
           </div>
 
-          {/* Clearing Routing & Settlement Dates */}
+          {/* 3. Clearing Rails & Reference Audit */}
           <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3.5 shadow-xs">
             <h3 className="font-serif font-bold text-sm text-slate-100 pb-2 border-b border-slate-800 flex items-center gap-2">
               <Calendar size={16} className="text-cyan-400" />
@@ -757,27 +831,54 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={record.utrReference}
+                  value={record.utrReference ?? ''}
                   onChange={(e) => handleFieldChange('utrReference', e.target.value)}
+                  placeholder="e.g. UTR-6588999066"
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs font-mono transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase">
-                  Payout Channel
+                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase flex items-center justify-between">
+                  <span>Payout Channel</span>
+                  <span className="text-[9.5px] text-slate-500 font-mono">Editable</span>
                 </label>
-                <select
-                  value={record.payoutChannel}
+                <input
+                  type="text"
+                  list="channel-presets-list"
+                  value={record.payoutChannel ?? ''}
                   onChange={(e) => handleFieldChange('payoutChannel', e.target.value)}
+                  placeholder="e.g. Easypaisa, JazzCash, Bank Transfer"
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs transition-colors"
-                >
-                  {CHANNEL_OPTIONS.map((ch) => (
-                    <option key={ch} value={ch}>
+                />
+                <datalist id="channel-presets-list">
+                  <option value="Easypaisa" />
+                  <option value="JazzCash" />
+                  <option value="Bank Transfer / Raast" />
+                  <option value="1-Link IBFT / Raast" />
+                  <option value="Wire Transfer" />
+                  <option value="SEPA Instant" />
+                  <option value="ACH Corporate Payout" />
+                  <option value="Digital Rails (USDT/USDC)" />
+                  <option value="Binance Pay" />
+                  <option value="Nayapay / Sadapay" />
+                  <option value="Cash on Delivery (COD)" />
+                  <option value="Escrow Settlement" />
+                </datalist>
+
+                {/* Quick Channel Chips */}
+                <div className="flex flex-wrap gap-1 mt-1.5">
+                  {['Easypaisa', 'JazzCash', 'Bank Transfer', 'Wire Transfer', 'USDT'].map((ch) => (
+                    <button
+                      key={ch}
+                      type="button"
+                      onClick={() => handleFieldChange('payoutChannel', ch)}
+                      className="px-2 py-0.5 rounded-md text-[9.5px] font-mono bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-colors"
+                    >
                       {ch}
-                    </option>
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
 
               <div>
@@ -787,7 +888,7 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
                     <button
                       type="button"
                       onClick={() => setDatePreset('today')}
-                      className="text-[9px] font-mono text-cyan-400 hover:underline"
+                      className="text-[9px] font-mono text-cyan-400 hover:underline cursor-pointer"
                     >
                       Today
                     </button>
@@ -795,7 +896,7 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
                     <button
                       type="button"
                       onClick={() => setDatePreset('yesterday')}
-                      className="text-[9px] font-mono text-cyan-400 hover:underline"
+                      className="text-[9px] font-mono text-cyan-400 hover:underline cursor-pointer"
                     >
                       Yesterday
                     </button>
@@ -803,42 +904,206 @@ export const SettlementForm: React.FC<SettlementFormProps> = ({
                 </label>
                 <input
                   type="date"
-                  value={record.settlementDate}
+                  value={record.settlementDate ?? ''}
                   onChange={(e) => handleFieldChange('settlementDate', e.target.value)}
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs font-mono transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase">
-                  Settlement Status
+                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase flex items-center justify-between">
+                  <span>Settlement Status</span>
+                  <span className="text-[9.5px] text-slate-500 font-mono">Editable</span>
                 </label>
-                <select
-                  value={record.status}
+                <input
+                  type="text"
+                  list="status-presets-list"
+                  value={record.status ?? ''}
                   onChange={(e) => handleFieldChange('status', e.target.value as SettlementStatus)}
+                  placeholder="e.g. Settled, Disbursed"
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs font-mono transition-colors"
-                >
+                />
+                <datalist id="status-presets-list">
                   {STATUS_OPTIONS.map((st) => (
-                    <option key={st} value={st}>
-                      {st}
-                    </option>
+                    <option key={st} value={st} />
                   ))}
-                </select>
+                  <option value="Completed" />
+                  <option value="Approved" />
+                </datalist>
+                <div className="flex gap-1 mt-1.5">
+                  {['Settled', 'Disbursed', 'Processed', 'Pending Re-check'].map((st) => (
+                    <button
+                      key={st}
+                      type="button"
+                      onClick={() => handleFieldChange('status', st as any)}
+                      className="px-1.5 py-0.5 rounded text-[9.5px] font-mono bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-colors"
+                    >
+                      {st}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase flex items-center justify-between">
+                  <span>Certificate ID / Serial</span>
+                  <button
+                    type="button"
+                    onClick={() => handleFieldChange('id', `FP-VIP-${Date.now().toString(36).toUpperCase()}`)}
+                    className="text-[9px] font-mono text-cyan-400 hover:underline cursor-pointer"
+                  >
+                    Randomize ID
+                  </button>
+                </label>
+                <input
+                  type="text"
+                  value={record.id ?? ''}
+                  onChange={(e) => handleFieldChange('id', e.target.value)}
+                  placeholder="e.g. FP-VIP-9842"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs font-mono transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase">
+                  Settlement Timestamp
+                </label>
+                <input
+                  type="text"
+                  value={record.settlementTime ?? ''}
+                  onChange={(e) => handleFieldChange('settlementTime', e.target.value)}
+                  placeholder="e.g. 14:30:00 UTC or 02:45 PM"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs font-mono transition-colors"
+                />
               </div>
             </div>
 
             {/* Optional Endorsement Note */}
             <div>
               <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase">
-                Endorsement Note
+                Endorsement &amp; Legal Note
               </label>
               <textarea
                 rows={2}
                 value={record.endorsementNote || ''}
                 onChange={(e) => handleFieldChange('endorsementNote', e.target.value)}
-                placeholder="e.g. Authorized Quarterly Revenue Share Distribution & Milestone Attestation"
+                placeholder="e.g. Authorized Revenue Share Distribution & Milestone Performance Attestation"
                 className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs transition-colors"
               />
+            </div>
+          </div>
+
+          {/* 4. Certificate Headings, Branding & Signatures (100% Editable) */}
+          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3.5 shadow-xs">
+            <h3 className="font-serif font-bold text-sm text-slate-100 pb-2 border-b border-slate-800 flex items-center gap-2">
+              <Award size={16} className="text-amber-400" />
+              <span>Certificate Headings, Issuer Branding &amp; Signatures</span>
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase">
+                  Platform / Issuer Name
+                </label>
+                <input
+                  type="text"
+                  value={record.platformName ?? ''}
+                  onChange={(e) => handleFieldChange('platformName', e.target.value)}
+                  placeholder="e.g. Dream to Achievers"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase">
+                  Certificate Document Subtitle
+                </label>
+                <input
+                  type="text"
+                  value={record.certificateTitle ?? ''}
+                  onChange={(e) => handleFieldChange('certificateTitle', e.target.value)}
+                  placeholder="e.g. Certification of achievement"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase">
+                  Celebration Banner Text
+                </label>
+                <input
+                  type="text"
+                  value={record.congratsHeading ?? ''}
+                  onChange={(e) => handleFieldChange('congratsHeading', e.target.value)}
+                  placeholder="e.g. CONGRATULATIONS"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase">
+                  Primary Certificate Headline
+                </label>
+                <input
+                  type="text"
+                  value={record.headline ?? ''}
+                  onChange={(e) => handleFieldChange('headline', e.target.value)}
+                  placeholder="e.g. WITHDRAWAL PROCESSED"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase">
+                  Status Verification Badge Label
+                </label>
+                <input
+                  type="text"
+                  value={record.statusBadgeLabel ?? ''}
+                  onChange={(e) => handleFieldChange('statusBadgeLabel', e.target.value)}
+                  placeholder="e.g. VERIFIED or DISBURSED"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs font-mono transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase">
+                  Authorized Signatory Name
+                </label>
+                <input
+                  type="text"
+                  value={record.signatoryName ?? ''}
+                  onChange={(e) => handleFieldChange('signatoryName', e.target.value)}
+                  placeholder="e.g. Marcus Sterling"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase">
+                  Signatory Executive Title
+                </label>
+                <input
+                  type="text"
+                  value={record.signatoryTitle ?? ''}
+                  onChange={(e) => handleFieldChange('signatoryTitle', e.target.value)}
+                  placeholder="e.g. Executive Director of Treasury"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-mono text-[10.5px] uppercase">
+                  Signatory Department / Clearing Node
+                </label>
+                <input
+                  type="text"
+                  value={record.signatoryDepartment ?? ''}
+                  onChange={(e) => handleFieldChange('signatoryDepartment', e.target.value)}
+                  placeholder="e.g. Disbursement Authority • Clearing Node 01"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-400 text-xs transition-colors"
+                />
+              </div>
             </div>
           </div>
         </div>
