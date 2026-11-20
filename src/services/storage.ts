@@ -14,6 +14,7 @@ import {
 import { CANONICAL_RANKS } from '@/config/ranks';
 import { SITE_CONFIG } from '@/config/site';
 import { INITIAL_TUTORIALS } from '@/config/tutorials';
+import { INITIAL_REVIEWS } from '@/config/reviews';
 
 const STORAGE_KEYS = {
   USERS: 'dta_users',
@@ -38,12 +39,14 @@ const STORAGE_KEYS = {
   FEEDBACKS: 'dta_feedbacks',
   SUPPORT_TICKETS: 'dta_support_tickets',
   SETTLEMENT_CERTIFICATES: 'dta_settlement_certificates',
+  REVIEWS: 'dta_reviews',
 };
 
 const cloudDataKeys = new Set<keyof typeof STORAGE_KEYS>([
   'USERS', 'PRODUCTS', 'CATEGORIES', 'SALES', 'REFERRALS', 'REWARDS',
   'WITHDRAWALS', 'PAYMENT_METHODS', 'RANK_HISTORY', 'NOTIFICATIONS', 'AUDIT_LOGS',
   'DELETED_PRODUCTS', 'TUTORIALS', 'FEEDBACKS', 'SUPPORT_TICKETS', 'SETTLEMENT_CERTIFICATES',
+  'REVIEWS',
 ]);
 const memoryData = new Map<keyof typeof STORAGE_KEYS, unknown>();
 
@@ -184,6 +187,9 @@ export const storage = {
     }
     if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(SITE_CONFIG));
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.REVIEWS)) {
+      localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(INITIAL_REVIEWS));
     }
     if (!localStorage.getItem(STORAGE_KEYS.TUTORIALS)) {
       localStorage.setItem(STORAGE_KEYS.TUTORIALS, JSON.stringify(INITIAL_TUTORIALS));

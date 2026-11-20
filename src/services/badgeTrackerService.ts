@@ -115,6 +115,24 @@ class BadgeTrackerService {
     localStorage.setItem('dta_badge_admin_users_seen', String(currentTotal));
     storage.broadcastBadgeUpdate();
   }
+
+  // --- ADMIN REVIEWS BADGE ---
+  public getUnseenAdminReviewsCount(currentPending: number): number {
+    if (typeof window === 'undefined') return 0;
+    if (currentPending <= 0) return 0;
+    const stored = localStorage.getItem('dta_badge_admin_reviews_seen');
+    if (stored === null) {
+      return currentPending;
+    }
+    const lastViewed = parseInt(stored, 10) || 0;
+    return Math.max(0, currentPending - lastViewed);
+  }
+
+  public markAdminReviewsSeen(currentPending: number): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('dta_badge_admin_reviews_seen', String(currentPending));
+    storage.broadcastBadgeUpdate();
+  }
 }
 
 export const badgeTrackerService = new BadgeTrackerService();

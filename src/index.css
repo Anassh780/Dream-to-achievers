@@ -1066,6 +1066,25 @@ button, a, input, select, textarea {
   animation-play-state: paused;
 }
 
+@keyframes luxury-marquee-reverse {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-marquee-luxury-reverse {
+  display: flex;
+  width: max-content;
+  animation: luxury-marquee-reverse 46s linear infinite;
+}
+
+.animate-marquee-luxury-reverse:hover {
+  animation-play-state: paused;
+}
+
 /* Accessibility: Respect Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -1077,7 +1096,8 @@ button, a, input, select, textarea {
     scroll-behavior: auto !important;
   }
 
-  .animate-marquee-luxury {
+  .animate-marquee-luxury,
+  .animate-marquee-luxury-reverse {
     animation: none !important;
     overflow-x: auto !important;
   }

@@ -5,7 +5,7 @@ import { CategoriesSection } from '@/components/landing/CategoriesSection';
 import { HowItWorksSticky } from '@/components/landing/HowItWorksSticky';
 import { RanksTierSection } from '@/components/landing/RanksTierSection';
 import { ServicesEditorialSection } from '@/components/landing/ServicesEditorialSection';
-import { TestimonialMarquee } from '@/components/landing/TestimonialMarquee';
+import { CustomerReviewsSection } from '@/components/landing/CustomerReviewsSection';
 import { FinalCTASection } from '@/components/landing/FinalCTASection';
 import { LuxuryFAQSection } from '@/components/landing/LuxuryFAQSection';
 
@@ -60,6 +60,13 @@ export const Home: React.FC = () => {
         'https://instagram.com/dreamtoachievers',
         'https://facebook.com/dreamtoachievers',
       ],
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: '4.92',
+        reviewCount: '18400',
+        bestRating: '5',
+        worstRating: '1',
+      },
     },
     {
       '@type': 'Person',
@@ -98,8 +105,8 @@ export const Home: React.FC = () => {
       {/* 5. Services + About (Alternating image/text rows with clip-path reveals) */}
       <ServicesEditorialSection />
 
-      {/* 6. Social Proof (Verified partner testimonials in a slow marquee that pauses on hover) */}
-      <TestimonialMarquee />
+      {/* 6. Social Proof (Verified partner testimonials with SaaS 10-year experience animation & persona filters) */}
+      <CustomerReviewsSection />
 
       {/* 7. Frequently Asked Questions (Luxury Accordion) */}
       <LuxuryFAQSection />

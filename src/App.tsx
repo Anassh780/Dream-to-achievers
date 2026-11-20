@@ -64,6 +64,7 @@ const AdminAuditLogsPage = lazy(() => import('@/pages/admin/AdminAuditLogsPage')
 const AdminCategoriesPage = lazy(() => import('@/pages/admin/AdminCategoriesPage').then((m) => ({ default: m.AdminCategoriesPage })));
 const AdminTutorialsPage = lazy(() => import('@/pages/admin/AdminTutorialsPage').then((m) => ({ default: m.AdminTutorialsPage })));
 const AdminFeedbackPage = lazy(() => import('@/pages/admin/AdminFeedbackPage').then((m) => ({ default: m.AdminFeedbackPage })));
+const AdminReviewsPage = lazy(() => import('@/pages/admin/AdminReviewsPage').then((m) => ({ default: m.AdminReviewsPage })));
 const AdminSettlementGenerator = lazy(() => import('@/pages/admin/AdminSettlementGenerator').then((m) => ({ default: m.AdminSettlementGenerator })));
 
 // Global Customer Support & Feedback Floating Dock
@@ -194,6 +195,7 @@ export const App: React.FC = () => {
                 <Route path="cms" element={<AdminCMSPage />} />
                 <Route path="tutorials" element={<AdminTutorialsPage />} />
                 <Route path="feedback" element={<AdminFeedbackPage />} />
+                <Route path="reviews" element={<AdminReviewsPage />} />
                 <Route path="audit-logs" element={<AdminAuditLogsPage />} />
               </Route>
 

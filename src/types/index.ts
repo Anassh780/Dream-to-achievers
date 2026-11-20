@@ -275,7 +275,7 @@ export interface AdminAuditLog {
   adminId: string;
   adminEmail: string;
   action: string;
-  entityType: 'rank' | 'user' | 'product' | 'sale' | 'reward' | 'settings' | 'category' | 'tutorial';
+  entityType: 'rank' | 'user' | 'product' | 'sale' | 'reward' | 'settings' | 'category' | 'tutorial' | 'review';
   entityId: string;
   details: string;
   timestamp: string;
@@ -373,4 +373,40 @@ export interface SupportTicket {
   messages: SupportChatMessage[];
   createdAt: string;
   updatedAt: string;
+}
+
+export type ReviewPersona =
+  | 'student'
+  | 'homemaker'
+  | 'professional'
+  | 'retailer'
+  | 'creator'
+  | 'entrepreneur'
+  | 'other';
+
+export type ReviewStatus = 'published' | 'pending' | 'hidden';
+
+export interface CustomerReview {
+  id: string;
+  name: string;
+  role: string;
+  persona: ReviewPersona;
+  organizationOrCollege?: string;
+  city: string;
+  avatar: string;
+  rating: number; // 1 to 5
+  headline: string;
+  quote: string;
+  revenueEarned?: string;
+  ordersCount?: number;
+  rankTier?: string;
+  payoutMethod?: string;
+  isVerified: boolean;
+  isFeatured: boolean;
+  status: ReviewStatus;
+  helpfulCount?: number;
+  date: string;
+  createdAt: string;
+  updatedAt?: string;
+  adminNotes?: string;
 }

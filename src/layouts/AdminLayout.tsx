@@ -33,6 +33,7 @@ import {
   GearSix,
   CheckCircle,
   Sparkle,
+  Star,
   Bell,
   CaretLeft,
   CaretRight,
@@ -41,6 +42,7 @@ import {
   Certificate,
 } from '@phosphor-icons/react';
 import { feedbackService } from '@/services/feedbackService';
+import { reviewService } from '@/services/reviewService';
 
 interface NavGroup {
   title: string;
@@ -103,6 +105,7 @@ export const AdminLayout: React.FC = () => {
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [pendingPayoutsCount, setPendingPayoutsCount] = useState(0);
   const [pendingFeedbackCount, setPendingFeedbackCount] = useState(0);
+  const [pendingReviewsCount, setPendingReviewsCount] = useState(0);
   const [, setBadgeTrigger] = useState(0);
 
   const calculatePendingUpdates = () => {
@@ -124,6 +127,9 @@ export const AdminLayout: React.FC = () => {
       const unreviewedFeedbacks = feedbackService.getPendingFeedbackCount();
       const urgentTickets = feedbackService.getPendingTicketsCount();
       setPendingFeedbackCount(unreviewedFeedbacks + urgentTickets);
+
+      const unreviewedReviews = reviewService.getPendingCount();
+      setPendingReviewsCount(unreviewedReviews);
     } catch {
       // Fallback
     }
@@ -139,6 +145,9 @@ export const AdminLayout: React.FC = () => {
     } else if (location.pathname.startsWith('/admin/rewards')) {
       badgeTrackerService.markAdminPayoutsSeen(pendingPayoutsCount);
       setBadgeTrigger((prev) => prev + 1);
+    } else if (location.pathname.startsWith('/admin/reviews')) {
+      badgeTrackerService.markAdminReviewsSeen(pendingReviewsCount);
+      setBadgeTrigger((prev) => prev + 1);
     }
 
     const handleStorageChange = () => {
@@ -153,18 +162,24 @@ export const AdminLayout: React.FC = () => {
       calculatePendingUpdates();
       setBadgeTrigger((prev) => prev + 1);
     };
+    const handleReviewsUpdate = () => {
+      calculatePendingUpdates();
+      setBadgeTrigger((prev) => prev + 1);
+    };
 
     window.addEventListener('dta_storage_change', handleStorageChange);
     window.addEventListener('dta_badge_update', handleBadgeUpdate);
     window.addEventListener('dta_feedback_update', handleFeedbackUpdate);
     window.addEventListener('dta_support_update', handleFeedbackUpdate);
+    window.addEventListener('dta_reviews_update', handleReviewsUpdate);
     return () => {
       window.removeEventListener('dta_storage_change', handleStorageChange);
       window.removeEventListener('dta_badge_update', handleBadgeUpdate);
       window.removeEventListener('dta_feedback_update', handleFeedbackUpdate);
       window.removeEventListener('dta_support_update', handleFeedbackUpdate);
+      window.removeEventListener('dta_reviews_update', handleReviewsUpdate);
     };
-  }, [location.pathname, pendingOrdersCount, pendingPayoutsCount]);
+  }, [location.pathname, pendingOrdersCount, pendingPayoutsCount, pendingReviewsCount]);
 
   if (!isAuthenticated || !isAdmin) {
     return (
@@ -198,7 +213,8 @@ export const AdminLayout: React.FC = () => {
   // Calculate unseen counts that decrement once admin visits the section
   const unseenAdminOrders = badgeTrackerService.getUnseenAdminOrdersCount(pendingOrdersCount);
   const unseenAdminPayouts = badgeTrackerService.getUnseenAdminPayoutsCount(pendingPayoutsCount);
-  const totalAdminAlerts = unseenAdminOrders + unseenAdminPayouts;
+  const unseenAdminReviews = badgeTrackerService.getUnseenAdminReviewsCount(pendingReviewsCount);
+  const totalAdminAlerts = unseenAdminOrders + unseenAdminPayouts + unseenAdminReviews;
 
   const navGroups: NavGroup[] = [
     {
@@ -233,6 +249,12 @@ export const AdminLayout: React.FC = () => {
     {
       title: 'SYSTEM & SETTINGS',
       items: [
+        {
+          label: 'Customer Reviews',
+          href: '/admin/reviews',
+          icon: Star,
+          badgeCount: unseenAdminReviews > 0 ? unseenAdminReviews : undefined,
+        },
         {
           label: 'Support & Feedback',
           href: '/admin/feedback',

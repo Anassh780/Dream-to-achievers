@@ -155,6 +155,37 @@ class CloudSyncService {
       console.warn('[RTDB] tutorials listener setup failed:', rtdbErr);
     }
 
+    // 4. Realtime Database listener for reviews (public real-time broadcast across all users)
+    try {
+      const reviewsRef = ref(rtdb, 'reviews');
+      const unsubRtdbReviews = onValue(
+        reviewsRef,
+        (snapshot: any) => {
+          if (snapshot.exists()) {
+            const val = snapshot.val() || {};
+            const items = Object.values(val) as any[];
+            if (Array.isArray(items) && items.length > 0) {
+              storage.set('REVIEWS', items);
+              window.dispatchEvent(new CustomEvent('dta_reviews_update', { detail: items }));
+            }
+          } else {
+            const local = storage.get<any[]>('REVIEWS', []);
+            if (local.length > 0) {
+              local.forEach((r) => {
+                set(ref(rtdb, `reviews/${r.id}`), r).catch(() => {});
+              });
+            }
+          }
+        },
+        (error: any) => {
+          console.warn('[RTDB] reviews listener error:', error);
+        }
+      );
+      this.publicUnsubscribers.push(() => unsubRtdbReviews());
+    } catch (rtdbErr) {
+      console.warn('[RTDB] reviews listener setup failed:', rtdbErr);
+    }
+
     // Also listen to Firestore collection
     this.listenCollection('tutorials', 'TUTORIALS', this.publicUnsubscribers);
     this.authUnsubscribe = onAuthStateChanged(auth, (user: any) => void this.bindProtectedListeners(user));
